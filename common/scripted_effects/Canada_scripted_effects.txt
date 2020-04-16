@@ -1,0 +1,1156 @@
+CAN_transfer_iedc_leadership = {
+	event_target:iedc_leader = { remove_ideas = CAN_iedc_main }
+	add_ideas = CAN_iedc_main
+	hidden_effect = {
+		save_global_event_target_as = iedc_leader
+		set_variable = { iedc_happiness = 5 }
+		clr_country_flag = CAN_refused_iedc
+	}
+}
+
+CAN_remove_from_iedc = {
+	custom_effect_tooltip = CAN_leave_the_iedc
+	clr_country_flag = CAN_joined_iedc
+	clear_variable = iedc_happiness
+	clear_variable = iedc_contribution
+	if = {
+		limit = { has_idea = CAN_iedc_econ }
+		remove_ideas = CAN_iedc_econ
+	}
+	if = {
+		limit = { has_idea = CAN_iedc_naval }
+		remove_ideas = CAN_iedc_naval
+	}
+	if = {
+		limit = { has_idea = CAN_iedc_const }
+		remove_ideas = CAN_iedc_const
+	}
+	if = {
+		limit = { check_variable = { iedc_civ_factories > 0 } }
+		custom_effect_tooltip = CAN_remove_iedc_civ
+		hidden_effect = {
+			set_variable = { tempvar1 = 0 }
+			subtract_from_variable = { var = tempvar1 value = iedc_civ_factories }
+			add_offsite_building = { type = industrial_complex level = tempvar1 }
+			clear_variable = tempvar1
+		}
+	}
+	if = {
+		limit = { check_variable = { iedc_mil_factories > 0 } }
+		custom_effect_tooltip = CAN_remove_iedc_mil
+		hidden_effect = {
+			set_variable = { tempvar2 = 0 }
+			subtract_from_variable = { var = tempvar2 value = iedc_mil_factories }
+			add_offsite_building = { type = arms_factory level = tempvar2 }
+			clear_variable = tempvar2
+		}
+	}
+	if = {
+		limit = { check_variable = { iedc_nav_factories > 0 } }
+		custom_effect_tooltip = CAN_remove_iedc_nav
+		hidden_effect = {
+			set_variable = { tempvar3 = 0 }
+			subtract_from_variable = { var = tempvar3 value = iedc_nav_factories }
+			add_offsite_building = { type = dockyard level = tempvar3 }
+			clear_variable = tempvar3
+		}
+	}
+	hidden_effect = {
+		clear_variable = iedc_civ_factories
+		clear_variable = iedc_mil_factories
+		clear_variable = iedc_nav_factories
+		event_target:iedc_leader = {
+			remove_opinion_modifier = { target = ROOT modifier = CAN_iedc_member }
+		}
+	}
+}
+
+CAN_find_entente_leader = {
+	if = {
+		limit = {
+			GBR = {
+				exists = yes
+				is_in_faction_with = ROOT
+				is_subject = no
+				surrender_progress < 0.40
+				NOT = {
+					tag = ROOT
+					has_capitulated = yes
+				}
+			}
+		}
+		set_global_flag = KR_entente_transfer
+		GBR = { save_event_target_as = entente_transfer_to }
+	}
+	else_if = {
+		limit = {
+			CAN = {
+				exists = yes
+				is_in_faction_with = ROOT
+				is_subject = no
+				surrender_progress < 0.40
+				NOT = {
+					tag = ROOT
+					has_capitulated = yes
+				}
+			}
+		}
+		set_global_flag = KR_entente_transfer
+		CAN = { save_event_target_as = entente_transfer_to }
+	}
+	else_if = {
+		limit = {
+			NFA = {
+				exists = yes
+				is_in_faction_with = ROOT
+				is_subject = no
+				surrender_progress < 0.40
+				NOT = {
+					tag = ROOT
+					has_capitulated = yes
+				}
+			}
+		}
+		set_global_flag = KR_entente_transfer
+		NFA = { save_event_target_as = entente_transfer_to }
+	}
+	else_if = {
+		limit = {
+			any_other_country = {
+				exists = yes
+				is_in_faction_with = ROOT
+				is_subject = no
+				is_actual_major = yes
+				surrender_progress < 0.40
+				NOT = {
+					tag = ROOT
+					has_capitulated = yes
+				}
+			}
+		}
+		set_global_flag = KR_entente_transfer
+		random_country = {
+			limit = {
+				exists = yes
+				is_in_faction_with = ROOT
+				is_subject = no
+				is_actual_major = yes
+				surrender_progress < 0.40
+				NOT = {
+					tag = ROOT
+					has_capitulated = yes
+				}
+			}
+			save_event_target_as = entente_transfer_to
+		}
+	}
+	else = {
+		set_global_flag = KR_entente_collapse
+	}
+}
+
+CAN_transfer_entente_leader = {
+	event_target:entente_transfer_to = {
+		set_faction_leader = yes
+		if = {
+			limit = {
+				NOT = {
+					has_idea = CAN_rally_the_country
+					has_idea = CAN_all_hands_on_deck_idea
+					has_idea = CAN_darkest_hour
+					has_idea = has_scripted_peace
+				}
+				has_war = yes
+				any_owned_state = {
+					is_core_of = PREV
+					NOT = { is_controlled_by = PREV }
+				}
+			}
+			add_ideas = CAN_darkest_hour
+		}
+		if = {
+			limit = { has_idea = CAN_all_hands_on_deck_idea }
+			swap_ideas = {
+				remove_idea = CAN_all_hands_on_deck_idea
+				add_idea = CAN_darkest_hour
+			}
+		}	
+		else_if = {
+			limit = { has_idea = has_scripted_peace }
+			swap_ideas = {
+				remove_idea = has_scripted_peace
+				add_idea = CAN_darkest_hour
+			}
+		}
+		hidden_effect = {
+			save_global_event_target_as = KR_entente_leader
+		}
+	}
+	if = {
+		limit = { has_global_flag = CAN_iedc_created }
+		event_target:entente_transfer_to = {
+			CAN_transfer_iedc_leadership = yes
+		}
+	}
+}
+
+CAN_transfer_king_base = {
+	set_country_flag = KR_british_king_base
+	clr_country_flag = CAN_king_toured
+	clr_global_flag = CAN_king_on_tour
+	clr_global_flag = CAN_king_busy
+	set_global_flag = { flag = CAN_king_busy days = 30 value = 1 }
+	clr_country_flag = CAN_visit_cancel
+	set_variable = { king_popularity = event_target:KR_king_base.king_popularity }
+	event_target:KR_king_base = {
+		if = {
+			limit = { check_variable = { king_civ_factories > 0 } }
+			custom_effect_tooltip = CAN_remove_king_civ
+			hidden_effect = {
+				set_variable = { tempvar1 = 0 }
+				subtract_from_variable = { var = tempvar1 value = king_civ_factories }
+				add_offsite_building = { type = industrial_complex level = tempvar1 }
+				clear_variable = tempvar1
+			}
+		}
+		if = {
+			limit = { check_variable = { king_mil_factories > 0 } }
+			custom_effect_tooltip = CAN_remove_king_mil
+			hidden_effect = {
+				set_variable = { tempvar2 = 0 }
+				subtract_from_variable = { var = tempvar2 value = king_mil_factories }
+				add_offsite_building = { type = arms_factory level = tempvar2 }
+				clear_variable = tempvar2
+			}
+		}
+	}
+	set_variable = { king_civ_factories = 0 }
+	set_variable = { king_mil_factories = 0 }
+	if = {
+		limit = { NOT = { tag = GBR } }
+		set_variable = { king_influence = 1 }
+	}
+	if = {
+		limit = {
+			tag = GBR
+			check_variable = { king_popularity < 5 }
+		}
+		add_to_variable = { king_popularity = 1 }
+	}
+	if = {
+		limit = {
+			event_target:KR_king_base = { has_country_flag = CAN_speech_home_isles }
+		}
+		set_country_flag = CAN_speech_home_isles
+	}
+	if = {
+		limit = {
+			event_target:KR_king_base = { has_country_flag = CAN_speech_war_eng }
+		}
+		set_country_flag = CAN_speech_war_eng
+	}
+	if = {
+		limit = {
+			event_target:KR_king_base = { has_country_flag = CAN_speech_war_ger }
+		}
+		set_country_flag = CAN_speech_war_ger
+	}
+	if = {
+		limit = {
+			event_target:KR_king_base = { has_country_flag = CAN_speech_war_acw }
+		}
+		set_country_flag = CAN_speech_war_acw
+	}
+	if = {
+		limit = {
+			event_target:KR_king_base = { has_country_flag = CAN_speech_france_taken }
+		}
+		set_country_flag = CAN_speech_france_taken
+	}
+	if = {
+		limit = {
+			event_target:KR_king_base = { has_country_flag = CAN_speech_france_mainland }
+		}
+		set_country_flag = CAN_speech_france_mainland
+	}
+	if = {
+		limit = {
+			event_target:KR_king_base = { has_country_flag = CAN_speech_india_united }
+		}
+		set_country_flag = CAN_speech_india_united
+	}
+	if = {
+		limit = {
+			event_target:KR_king_base = { has_country_flag = CAN_speech_italy_united }
+		}
+		set_country_flag = CAN_speech_italy_united
+	}
+	if = {
+		limit = {
+			event_target:KR_king_base = { has_country_flag = CAN_speech_india_defeated }
+		}
+		set_country_flag = CAN_speech_india_defeated
+	}
+	if = {
+		limit = {
+			event_target:KR_king_base = { has_country_flag = CAN_speech_aus_syndicalist }
+		}
+		set_country_flag = CAN_speech_aus_syndicalist
+	}
+	if = {
+		limit = {
+			event_target:KR_king_base = { has_country_flag = CAN_speech_caf_syndicalist }
+		}
+		set_country_flag = CAN_speech_caf_syndicalist
+	}
+	if = {
+		limit = {
+			event_target:KR_king_base = { has_country_flag = CAN_speech_acw_begins }
+		}
+		set_country_flag = CAN_speech_acw_begins
+	}
+	event_target:KR_king_base = {
+		set_country_flag = CAN_visit_cancel
+		clr_country_flag = KR_british_king_base
+		clr_country_flag = CAN_speech_home_isles
+		clr_country_flag = CAN_speech_war_eng
+		clr_country_flag = CAN_speech_war_ger
+		clr_country_flag = CAN_speech_war_acw
+		clr_country_flag = CAN_speech_france_taken
+		clr_country_flag = CAN_speech_france_mainland
+		clr_country_flag = CAN_speech_india_united
+		clr_country_flag = CAN_speech_italy_united
+		clr_country_flag = CAN_speech_india_defeated
+		clr_country_flag = CAN_speech_aus_syndicalist
+		clr_country_flag = CAN_speech_caf_syndicalist
+		clr_country_flag = CAN_speech_acw_begins
+		clr_country_flag = CAN_suppressed_exiles
+		clr_country_flag = CAN_supported_government
+		clr_country_flag = CAN_exile_inc_influence
+		clr_country_flag = CAN_exile_inc_industry
+		clr_country_flag = CAN_exile_inc_popularity
+		if = {
+			limit = { tag = CAN }
+			set_variable = { CAN_was_king_popularity = king_popularity }
+		}
+		clear_variable = king_popularity
+		clear_variable = king_influence
+		clear_variable = CAN_visit_stability
+		clear_variable = CAN_visit_war_support
+		clear_variable = CAN_visit_mobilization
+		clear_variable = CAN_visit_morale
+		clear_variable = king_civ_factories
+		clear_variable = king_mil_factories
+		clear_variable = CAN_exile_building
+		clear_variable = CAN_exile_factory
+		clear_variable = CAN_exile_power
+		clear_variable = CAN_exile_stability
+	}
+	save_global_event_target_as = KR_king_base
+	CAN_calc_royal_visit_effects = yes
+	if = {
+		limit = { NOT = { tag = GBR } }
+		CAN_calc_exile_influence_effects = yes
+	}
+	if = {
+		limit = {
+			NOT = {
+				has_idea = CAN_rally_the_country
+				has_idea = CAN_all_hands_on_deck_idea
+				has_idea = CAN_darkest_hour
+				has_idea = has_scripted_peace
+			}
+			has_war = yes
+			any_owned_state = {
+				is_core_of = PREV
+				NOT = { is_controlled_by = PREV }
+			}
+		}
+		add_ideas = CAN_rally_the_country
+	}
+	if = {
+		limit = { has_idea = CAN_all_hands_on_deck_idea }
+		swap_ideas = {
+			remove_idea = CAN_all_hands_on_deck_idea
+			add_idea = CAN_rally_the_country
+		}
+	}
+	else_if = {
+		limit = { has_idea = CAN_darkest_hour }
+		swap_ideas = {
+			remove_idea = CAN_darkest_hour
+			add_idea = CAN_rally_the_country
+		}
+	}	
+	else_if = {
+		limit = { has_idea = has_scripted_peace }
+		swap_ideas = {
+			remove_idea = has_scripted_peace
+			add_idea = CAN_rally_the_country
+		}
+	}	
+	hidden_effect = {
+		country_event = { id = entente.50 days = 90 random = 1440 } #restart random royal events
+	}
+}
+
+CAN_add_ws_based_on_popularity_cw = {
+	if = {
+		limit = {
+			check_variable = { event_target:king_home.king_popularity > 4 }
+		}
+		add_war_support = 0.10
+	}
+	else_if = {
+		limit = {
+			check_variable = { event_target:king_home.king_popularity > 3 }
+			check_variable = { event_target:king_home.king_popularity < 5 }
+		}
+		add_war_support = 0.075
+	}
+	else_if = {
+		limit = {
+			check_variable = { event_target:king_home.king_popularity > 2 }
+			check_variable = { event_target:king_home.king_popularity < 4 }
+		}
+		add_war_support = 0.05
+	}
+	else_if = {
+		limit = {
+			check_variable = { event_target:king_home.king_popularity > 1 }
+			check_variable = { event_target:king_home.king_popularity < 3 }
+		}
+		add_war_support = 0.035
+	}
+	else = {
+		add_war_support = 0.025
+	}
+}
+
+CAN_add_ws_based_on_popularity = {
+	if = {
+		limit = {
+			check_variable = { event_target:king_home.king_popularity > 5 }
+		}
+		add_war_support = 0.10
+	}
+	else_if = {
+		limit = {
+			check_variable = { event_target:king_home.king_popularity > 4 }
+			check_variable = { event_target:king_home.king_popularity < 6 }
+		}
+		add_war_support = 0.075
+	}
+	else_if = {
+		limit = {
+			check_variable = { event_target:king_home.king_popularity > 3 }
+			check_variable = { event_target:king_home.king_popularity < 5 }
+		}
+		add_war_support = 0.05
+	}
+	else_if = {
+		limit = {
+			check_variable = { event_target:king_home.king_popularity > 2 }
+			check_variable = { event_target:king_home.king_popularity < 4 }
+		}
+		add_war_support = 0.035
+	}
+	else = {
+		add_war_support = 0.025
+	}
+}
+
+CAN_calc_royal_visit_effects = {
+	hidden_effect = {
+		event_target:KR_king_base = {
+			if = {
+				limit = {
+					check_variable = { king_popularity > 4 }
+				}
+				set_variable = { CAN_visit_stability = 0.05 }
+				set_variable = { CAN_visit_war_support = 0.20 }
+				set_variable = { CAN_visit_mobilization = 0.20 }
+				set_variable = { CAN_visit_morale = 0.20 }
+			}
+			else_if = {
+				limit = {
+					check_variable = { king_popularity > 3 }
+					check_variable = { king_popularity < 5 }
+				}
+				set_variable = { CAN_visit_stability = 0.04 }
+				set_variable = { CAN_visit_war_support = 0.15 }
+				set_variable = { CAN_visit_mobilization = 0.15 }
+				set_variable = { CAN_visit_morale = 0.15 }
+			}
+			else_if = {
+				limit = {
+					check_variable = { king_popularity > 2 }
+					check_variable = { king_popularity < 4 }
+				}
+				set_variable = { CAN_visit_stability = 0.03 }
+				set_variable = { CAN_visit_war_support = 0.10 }
+				set_variable = { CAN_visit_mobilization = 0.10 }
+				set_variable = { CAN_visit_morale = 0.10 }
+			}
+			else_if = {
+				limit = {
+					check_variable = { king_popularity > 1 }
+					check_variable = { king_popularity < 3 }
+				}
+				set_variable = { CAN_visit_stability = 0.02 }
+				set_variable = { CAN_visit_war_support = 0.075 }
+				set_variable = { CAN_visit_mobilization = 0.075 }
+				set_variable = { CAN_visit_morale = 0.075 }
+			}
+			else = {
+				set_variable = { CAN_visit_stability = 0.01 }
+				set_variable = { CAN_visit_war_support = 0.05 }
+				set_variable = { CAN_visit_mobilization = 0.05 }
+				set_variable = { CAN_visit_morale = 0.05 }
+			}
+		}
+	}
+}
+
+CAN_calc_exile_influence_effects = {
+	hidden_effect = {
+		event_target:KR_king_base = {
+			if = {
+				limit = {
+					check_variable = { king_influence > 4 }
+				}
+				set_variable = { CAN_exile_building = 0.25 }
+				set_variable = { CAN_exile_factory = 0.25 }
+				set_variable = { CAN_exile_power = 0.25 }
+				set_variable = { CAN_exile_stability = 0.10 }
+			}
+			else_if = {
+				limit = {
+					check_variable = { king_influence > 3 }
+					check_variable = { king_influence < 5 }
+				}
+				set_variable = { CAN_exile_building = 0.20 }
+				set_variable = { CAN_exile_factory = 0.20 }
+				set_variable = { CAN_exile_power = 0.20 }
+				set_variable = { CAN_exile_stability = 0.08 }
+			}
+			else_if = {
+				limit = {
+					check_variable = { king_influence > 2 }
+					check_variable = { king_influence < 4 }
+				}
+				set_variable = { CAN_exile_building = 0.15 }
+				set_variable = { CAN_exile_factory = 0.15 }
+				set_variable = { CAN_exile_power = 0.15 }
+				set_variable = { CAN_exile_stability = 0.06 }
+			}
+			else_if = {
+				limit = {
+					check_variable = { king_influence > 1 }
+					check_variable = { king_influence < 3 }
+				}
+				set_variable = { CAN_exile_building = 0.10 }
+				set_variable = { CAN_exile_factory = 0.10 }
+				set_variable = { CAN_exile_power = 0.10 }
+				set_variable = { CAN_exile_stability = 0.04 }
+			}
+			else = {
+				set_variable = { CAN_exile_building = 0.05 }
+				set_variable = { CAN_exile_factory = 0.05 }
+				set_variable = { CAN_exile_power = 0.05 }
+				set_variable = { CAN_exile_stability = 0.02 }
+			}
+		}
+	}
+}
+
+CAN_improve_depression_idea = {
+	if = {
+		limit = { has_idea = CAN_great_depression_1 }
+		swap_ideas = {
+			remove_idea = CAN_great_depression_1
+			add_idea = CAN_great_depression_2
+		}
+	}
+	else_if = {
+		limit = { has_idea = CAN_great_depression_2 }
+		swap_ideas = {
+			remove_idea = CAN_great_depression_2
+			add_idea = CAN_great_depression_3
+		}
+	}
+	else_if = {
+		limit = { has_idea = CAN_great_depression_3 }
+		remove_ideas = CAN_great_depression_3
+	}
+}
+
+CAN_improve_french_tensions_idea = {
+	if = {
+		limit = { has_idea = CAN_anglo_french_tensions_1 }
+		swap_ideas = {
+			remove_idea = CAN_anglo_french_tensions_1
+			add_idea = CAN_anglo_french_tensions_2
+		}
+	}
+	else_if = {
+		limit = { has_idea = CAN_anglo_french_tensions_2 }
+		swap_ideas = {
+			remove_idea = CAN_anglo_french_tensions_2
+			add_idea = CAN_anglo_french_tensions_3
+		}
+	}
+	else_if = {
+		limit = { has_idea = CAN_anglo_french_tensions_3 }
+		remove_ideas = CAN_anglo_french_tensions_3
+	}
+}
+
+CAN_reduce_french_resistance = {
+	hidden_effect = {
+		if = {
+			limit = { has_state_flag = CAN_french_resistance_3 }
+			clr_state_flag = CAN_french_resistance_3
+			set_state_flag = CAN_french_resistance_2
+			add_state_modifier = {
+				modifier = {
+					local_resources = 0.20
+					local_manpower = 0.20
+					local_factory_sabotage = -0.20
+				}
+			}
+		}
+		else_if = {
+			limit = { has_state_flag = CAN_french_resistance_2 }
+			clr_state_flag = CAN_french_resistance_2
+			set_state_flag = CAN_french_resistance_1
+			add_state_modifier = {
+				modifier = {
+					local_resources = 0.20
+					local_manpower = 0.20
+					local_factory_sabotage = -0.20
+				}
+			}
+		}
+		else_if = {
+			limit = { has_state_flag = CAN_french_resistance_1 }
+			clr_state_flag = CAN_french_resistance_1
+			add_state_modifier = {
+				modifier = {
+					local_resources = 0.20
+					local_manpower = 0.20
+					local_factory_sabotage = -0.20
+				}
+			}
+		}
+	}
+}
+
+CAN_create_quebec_cores = {
+	every_state = {
+		limit = {
+			OR = {
+				state = 466 #Quebec
+				state = 468 #Saint Lawrence
+				state = 683 #New Quebec
+				state = 832 #Montreal
+			}
+		}
+		remove_core_of = CAN
+		add_core_of = QUE
+	}
+	332 = { add_claim_by = QUE }
+}
+
+CAN_create_uk_cores = {
+	every_state = {
+		limit = { is_british_isles = yes }
+		add_core_of = GBR
+		remove_claim_by = CAN
+	}
+	every_state = {
+		limit = {
+			OR = {
+				is_core_of = GBR
+				is_british_colonial_claim = yes
+				state = 118 #Gibraltar
+				state = 753 #Suez Canal
+				state = 299 #Falkland Islands
+				state = 720 #South Georgia Islands
+				state = 116 #Malta
+				state = 183 #Cyprus
+			}
+		}
+		clear_variable = ambition_area_@CAN
+	}
+}
+
+CAN_release_uk = {
+	random_state = {
+		limit = {
+			is_core_of = GBR
+			is_owned_and_controlled_by_ROOT_or_subject = yes
+		}
+		GBR = { transfer_state = PREV }
+	}
+	every_state = {
+		limit = {
+			OR = {
+				is_core_of = GBR
+				AND = {
+					is_core_of = IRE
+					is_not_claim_or_core_of_ROOT = yes
+					is_owned_by = ROOT
+				}
+			}
+			is_owned_by_ROOT_or_subject = yes
+		}
+		GBR = { transfer_state = PREV }
+	}
+}
+
+CAN_add_british_pm_in_exile = {
+	if = {
+		limit = { GBR = { has_country_flag = GBR_Croft_PM } }
+		add_ideas = CAN_Henry_Page_Croft_lobe_pau
+	}
+	else_if = {
+		limit = { GBR = { has_country_flag = GBR_Cecil_PM } }
+		add_ideas = CAN_Robert_Cecil_lobe_ade
+	}
+	else_if = {
+		limit = { GBR = { has_country_flag = GBR_Eden_PM } }
+		add_ideas = CAN_Anthony_Eden_lobe_ade
+	}
+	else_if = {
+		limit = { GBR = { has_country_flag = GBR_Vansittart_PM } }
+		add_ideas = CAN_Robert_Vansittart_lobe_ade
+	}
+	else_if = {
+		limit = { GBR = { has_country_flag = GBR_Chamberlain_PM } }
+		add_ideas = CAN_Austen_Chamberlain_lobe_ade
+	}
+}
+
+CAN_setup_uk_government = {
+	remove_all_ministers = yes
+	if = {
+		limit = { has_country_flag = GBR_Croft_PM }
+		set_country_flag = GBR_cons_leader_croft
+		add_ideas = {
+			GBR_Henry_Page_Croft_hog_ade
+			GBR_Arthur_Wellesley_for_ade
+			GBR_John_Carnegie_eco_ade
+			GBR_Maxwell_Knight_sec_ade
+		}
+	}
+	else_if = {
+		limit = { has_country_flag = GBR_Cecil_PM }
+		set_country_flag = GBR_cons_leader_cecil
+		add_ideas = {
+			GBR_Robert_Cecil_hog_sco
+			GBR_Adrian_Carton_de_Wiart_for_sco
+			GBR_George_Lane_Fox_eco_sco
+			GBR_Desmond_Morton_sec_sco
+		}
+	}
+	else_if = {
+		limit = { has_country_flag = GBR_Eden_PM }
+		set_country_flag = GBR_cons_leader_eden
+		add_ideas = {
+			GBR_Anthony_Eden_hog_sco
+			GBR_John_Colville_for_sco
+			GBR_John_Siddeley_eco_sco
+			GBR_Edward_Cavendish_sec_sco
+		}
+	}
+	else_if = {
+		limit = { has_country_flag = GBR_Vansittart_PM }
+		set_country_flag = GBR_cons_leader_vansittart
+		add_ideas = {
+			GBR_Robert_Vansittart_hog_sco
+			GBR_Robert_Boothby_for_sco
+			GBR_Philip_Lloyd_Greame_eco_sco
+			GBR_Randolph_Churchill_sec_sco
+		}
+	}
+}
+
+CAN_create_monarchy = {
+	if = {
+		limit = { has_global_flag = CAN_king_george_V }
+		create_country_leader = {
+			name = "George V"
+			desc = "POLITICS_GEORGE_DESC"
+			picture = "gfx/leaders/CAN/Portrait_Canada_King_George.tga"
+			expire = "1965.1.1"
+			ideology = social_democrat_subtype
+		}
+		create_country_leader = {
+			name = "George V"
+			desc = "POLITICS_GEORGE_DESC"
+			picture = "gfx/leaders/CAN/Portrait_Canada_King_George.tga"
+			expire = "1965.1.1"
+			ideology = social_liberal_subtype
+		}
+		create_country_leader = {
+			name = "George V"
+			desc = "POLITICS_GEORGE_DESC"
+			picture = "gfx/leaders/CAN/Portrait_Canada_King_George.tga"
+			expire = "1965.1.1"
+			ideology = market_liberal_subtype
+		}
+		create_country_leader = {
+			name = "George V"
+			desc = "POLITICS_GEORGE_DESC"
+			picture = "gfx/leaders/CAN/Portrait_Canada_King_George.tga"
+			expire = "1965.1.1"
+			ideology = social_conservative_subtype
+		}
+		create_country_leader = {
+			name = "George V"
+			desc = "POLITICS_GEORGE_DESC"
+			picture = "gfx/leaders/CAN/Portrait_Canada_King_George.tga"
+			expire = "1965.1.1"
+			ideology = authoritarian_democrat_subtype
+		}
+		create_country_leader = {
+			name = "George V"
+			desc = "POLITICS_GEORGE_DESC"
+			picture = "gfx/leaders/CAN/Portrait_Canada_King_George.tga"
+			expire = "1965.1.1"
+			ideology = paternal_autocrat_subtype
+		}
+	}
+	else_if = {
+		limit = { has_global_flag = CAN_king_edward_VIII }
+		create_country_leader = {
+			name = "Edward VIII"
+			picture = "gfx/leaders/CAN/Portrait_Canada_King_Edward_VIII_Liberal.tga"
+			expire = "1965.1.1"
+			ideology = social_democrat_subtype
+			traits = {
+				CAN_autocratic_tendencies
+			}
+		}
+		create_country_leader = {
+			name = "Edward VIII"
+			picture = "gfx/leaders/CAN/Portrait_Canada_King_Edward_VIII_Liberal.tga"
+			expire = "1965.1.1"
+			ideology = social_liberal_subtype
+			traits = {
+				CAN_autocratic_tendencies
+			}
+		}
+		create_country_leader = {
+			name = "Edward VIII"
+			picture = "gfx/leaders/CAN/Portrait_Canada_King_Edward_VIII_Liberal.tga"
+			expire = "1965.1.1"
+			ideology = market_liberal_subtype
+			traits = {
+				CAN_autocratic_tendencies
+			}
+		}
+		create_country_leader = {
+			name = "Edward VIII"
+			picture = "gfx/leaders/CAN/Portrait_Canada_King_Edward_VIII.tga"
+			expire = "1965.1.1"
+			ideology = social_conservative_subtype
+			traits = {
+				CAN_autocratic_tendencies
+			}
+		}
+		create_country_leader = {
+			name = "Edward VIII"
+			picture = "gfx/leaders/CAN/Portrait_Canada_King_Edward_VIII.tga"
+			expire = "1965.1.1"
+			ideology = authoritarian_democrat_subtype
+			traits = {
+				CAN_autocratic_tendencies
+			}
+		}
+		create_country_leader = {
+			name = "Edward VIII"
+			picture = "gfx/leaders/CAN/Portrait_Canada_King_Edward_VIII_Autocratic.tga"
+			expire = "1965.1.1"
+			ideology = paternal_autocrat_subtype
+			traits = {
+				CAN_autocratic_tendencies
+			}
+		}
+	}
+	else_if = {
+		limit = { has_global_flag = CAN_king_albert_I }
+		create_country_leader = {
+			name = "Albert I"
+			picture = "gfx/leaders/CAN/Portrait_Canada_King_Albert.tga"
+			expire = "1965.1.1"
+			ideology = social_democrat_subtype
+			traits = {
+				CAN_popular_figurehead CAN_humble
+			}
+		}
+		create_country_leader = {
+			name = "Albert I"
+			picture = "gfx/leaders/CAN/Portrait_Canada_King_Albert.tga"
+			expire = "1965.1.1"
+			ideology = social_liberal_subtype
+			traits = {
+				CAN_popular_figurehead CAN_humble
+			}
+		}
+		create_country_leader = {
+			name = "Albert I"
+			picture = "gfx/leaders/CAN/Portrait_Canada_King_Albert.tga"
+			expire = "1965.1.1"
+			ideology = market_liberal_subtype
+			traits = {
+				CAN_popular_figurehead CAN_humble
+			}
+		}
+		create_country_leader = {
+			name = "Albert I"
+			picture = "gfx/leaders/CAN/Portrait_Canada_King_Albert.tga"
+			expire = "1965.1.1"
+			ideology = social_conservative_subtype
+			traits = {
+				CAN_popular_figurehead CAN_humble
+			}
+		}
+		create_country_leader = {
+			name = "Albert I"
+			picture = "gfx/leaders/CAN/Portrait_Canada_King_Albert.tga"
+			expire = "1965.1.1"
+			ideology = authoritarian_democrat_subtype
+			traits = {
+				CAN_popular_figurehead CAN_humble
+			}
+		}
+		create_country_leader = {
+			name = "Albert I"
+			picture = "gfx/leaders/CAN/Portrait_Canada_King_Albert.tga"
+			expire = "1965.1.1"
+			ideology = paternal_autocrat_subtype
+			traits = {
+				CAN_popular_figurehead CAN_humble
+			}
+		}
+	}
+	else_if = {
+		limit = { has_global_flag = CAN_king_henry_IX }
+		create_country_leader = {
+			name = "Henry IX"
+			picture = "gfx/leaders/CAN/Portrait_Canada_King_Henry.tga"
+			expire = "1965.1.1"
+			ideology = social_democrat_subtype
+			traits = {
+				CAN_biddable CAN_army_experience
+			}
+		}
+		create_country_leader = {
+			name = "Henry IX"
+			picture = "gfx/leaders/CAN/Portrait_Canada_King_Henry.tga"
+			expire = "1965.1.1"
+			ideology = social_liberal_subtype
+			traits = {
+				CAN_biddable CAN_army_experience
+			}
+		}
+		create_country_leader = {
+			name = "Henry IX"
+			picture = "gfx/leaders/CAN/Portrait_Canada_King_Henry.tga"
+			expire = "1965.1.1"
+			ideology = market_liberal_subtype
+			traits = {
+				CAN_biddable CAN_army_experience
+			}
+		}
+		create_country_leader = {
+			name = "Henry IX"
+			picture = "gfx/leaders/CAN/Portrait_Canada_King_Henry.tga"
+			expire = "1965.1.1"
+			ideology = social_conservative_subtype
+			traits = {
+				CAN_biddable CAN_army_experience
+			}
+		}
+		create_country_leader = {
+			name = "Henry IX"
+			picture = "gfx/leaders/CAN/Portrait_Canada_King_Henry.tga"
+			expire = "1965.1.1"
+			ideology = authoritarian_democrat_subtype
+			traits = {
+				CAN_biddable CAN_army_experience
+			}
+		}
+		create_country_leader = {
+			name = "Henry IX"
+			picture = "gfx/leaders/CAN/Portrait_Canada_King_Henry.tga"
+			expire = "1965.1.1"
+			ideology = paternal_autocrat_subtype
+			traits = {
+				CAN_biddable CAN_army_experience
+			}
+		}
+	}
+	else_if = {
+		limit = { has_global_flag = CAN_king_george_VI }
+		create_country_leader = {
+			name = "George VI"
+			picture = "gfx/leaders/CAN/Portrait_Canada_King_GeorgeVI.tga"
+			expire = "1965.1.1"
+			ideology = social_democrat_subtype
+			traits = {
+				CAN_smooth_talking_charmer CAN_hedonist
+			}
+		}
+		create_country_leader = {
+			name = "George VI"
+			picture = "gfx/leaders/CAN/Portrait_Canada_King_GeorgeVI.tga"
+			expire = "1965.1.1"
+			ideology = social_liberal_subtype
+			traits = {
+				CAN_smooth_talking_charmer CAN_hedonist
+			}
+		}
+		create_country_leader = {
+			name = "George VI"
+			picture = "gfx/leaders/CAN/Portrait_Canada_King_GeorgeVI.tga"
+			expire = "1965.1.1"
+			ideology = market_liberal_subtype
+			traits = {
+				CAN_smooth_talking_charmer CAN_hedonist
+			}
+		}
+		create_country_leader = {
+			name = "George VI"
+			picture = "gfx/leaders/CAN/Portrait_Canada_King_GeorgeVI.tga"
+			expire = "1965.1.1"
+			ideology = social_conservative_subtype
+			traits = {
+				CAN_smooth_talking_charmer CAN_hedonist
+			}
+		}
+		create_country_leader = {
+			name = "George VI"
+			picture = "gfx/leaders/CAN/Portrait_Canada_King_GeorgeVI.tga"
+			expire = "1965.1.1"
+			ideology = authoritarian_democrat_subtype
+			traits = {
+				CAN_smooth_talking_charmer CAN_hedonist
+			}
+		}
+		create_country_leader = {
+			name = "George VI"
+			picture = "gfx/leaders/CAN/Portrait_Canada_King_GeorgeVI.tga"
+			expire = "1965.1.1"
+			ideology = paternal_autocrat_subtype
+			traits = {
+				CAN_smooth_talking_charmer CAN_hedonist
+			}
+		}
+	}
+}
+
+CAN_create_republic = {
+	if = {
+		limit = { has_country_flag = CAN_ccf_leader_coldwell }
+		create_country_leader = {
+			name = "Major James Coldwell"
+			picture = "gfx/leaders/CAN/Portrait_Canada_Major_James_Coldwell.tga"
+			expire = "1965.1.1"
+			ideology = social_democrat_subtype
+		}
+	}
+	else = {
+		create_country_leader = {
+			name = "J.S. Woodsworth"
+			picture = "gfx/leaders/CAN/Portrait_Canada_JS_Woodsworth.tga"
+			expire = "1965.1.1"
+			ideology = social_democrat_subtype
+		}
+	}
+	create_country_leader = {
+		name = "Louis St. Laurent"
+		picture = "gfx/leaders/CAN/Portrait_Canada_Louis_St_Laurent.tga"
+		expire = "1965.1.1"
+		ideology = social_liberal_subtype
+	}
+	if = {
+		limit = { has_country_flag = CAN_lib_leader_stlaurent }
+		create_country_leader = {
+			name = "Charles Gavan Power"
+			picture = "gfx/leaders/CAN/Portrait_Canada_Charles_Gavan_Power.tga"
+			expire = "1965.1.1"
+			ideology = market_liberal_subtype
+		}
+	}
+	else = {
+		create_country_leader = {
+			name = "William Lyon Mackenzie King"
+			picture = "gfx/leaders/CAN/Portrait_Canada_William_Lyon_Mackenzie_King.tga"
+			expire = "1965.1.1"
+			ideology = market_liberal_subtype
+		}
+	}
+	if = {
+		limit = { has_country_flag = CAN_cons_leader_bracken }
+		create_country_leader = {
+			name = "John Bracken"
+			picture = "gfx/leaders/CAN/Portrait_Canada_John_Bracken.tga"
+			expire = "1965.1.1"
+			ideology = social_conservative_subtype
+		}
+	}
+	else_if = {
+		limit = { has_country_flag = CAN_cons_leader_manion }
+		create_country_leader = {
+			name = "Robert Manion"
+			picture = "gfx/leaders/CAN/Portrait_Canada_Robert_Manion.tga"
+			expire = "1965.1.1"
+			ideology = social_conservative_subtype
+		}
+	}
+	else = {
+		create_country_leader = {
+			name = "R.B. Bennett"
+			picture = "gfx/leaders/CAN/Portrait_Canada_RB_Bennett.tga"
+			expire = "1965.1.1"
+			ideology = social_conservative_subtype
+		}
+	}
+	if = {
+		limit = {
+			OR = {
+				is_subject = yes
+				country_exists = GBR
+			}
+		}
+		set_party_name = {
+			ideology = authoritarian_democrat
+			long_name = CAN_social_credit_party_long
+			name = CAN_social_credit_party
+		}
+		create_country_leader = {
+			name = "John Horne Blackmore"
+			picture = "gfx/leaders/CAN/Portrait_Canada_JH_Blackmore.tga"
+			expire = "1965.1.1"
+			ideology = authoritarian_democrat_subtype
+		}
+	}
+	else = {
+		create_country_leader = {
+			name = "Arthur Meighen"
+			picture = "gfx/leaders/CAN/Portrait_Canada_Arthur_Meighen.tga"
+			expire = "1965.1.1"
+			ideology = authoritarian_democrat_subtype
+		}
+	}
+	create_country_leader = {
+		name = "Harry Crerar"
+		picture = "gfx/leaders/CAN/Portrait_Canada_Harry_Crerar.tga"
+		expire = "1965.1.1"
+		ideology = paternal_autocrat_subtype
+	}	
+}
+
