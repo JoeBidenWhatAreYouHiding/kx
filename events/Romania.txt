@@ -1,0 +1,2402 @@
+﻿###########################
+# Iron Guard Romania Events
+###########################
+# By wyandotte
+###########################
+
+# Germany oil related events are at the bottom
+add_namespace = romania
+
+### Introduction event
+country_event = {
+	id = romania.0
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.0" }
+	title = romania.0.t
+	desc = romania.0.d
+
+	is_triggered_only = yes
+
+	trigger = {
+		is_ai = no
+	}
+
+	option = {
+		name = romania.0.a
+	}
+}
+
+### Nicolae Iorga founds the Bucharest Circle
+country_event = {
+	id = romania.1
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.1" }
+	title = romania.1.t
+	desc = romania.1.d
+
+	trigger = {
+		tag = ROM
+		OR = {
+			has_government = national_populist
+			has_government = paternal_autocrat
+		}
+		NOT = {
+			country_exists = RRM
+		}
+	}
+
+	mean_time_to_happen = {
+		days = 70
+	}
+
+	fire_only_once = yes
+
+	option = {
+		name = romania.1.a # Iorga must be stopped
+
+		ai_chance = {
+			factor = 70
+		}
+
+		hidden_effect = {
+			country_event = {
+				id = romania.2
+				days = 100
+			}
+		}
+	}
+	option = {
+		name = romania.1.b # They don't sound like a threat
+
+		ai_chance = {
+			factor = 30
+		}
+
+		hidden_effect = {
+			country_event = {
+				id = romania.3
+				days = 30
+			}
+		}
+	}
+}
+
+### Breakup of the Bucharest Circle
+country_event = {
+	id = romania.2
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.2" }
+	title = romania.2.t
+	desc = romania.2.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.3.a # Execute Iorga
+
+		add_political_power = -60
+
+		add_timed_idea = {
+			idea = ROM_purged_bucharest_circle
+			days = 365
+		}
+	}
+}
+
+### The Bucharest Circle publishes pamphlets
+country_event = {
+	id = romania.3
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.3" }
+	title = romania.3.t
+	desc = romania.3.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.3.a # Break up the Circle
+
+		ai_chance = {
+			factor = 75
+		}
+
+		add_political_power = -100
+
+		add_timed_idea = {
+			idea = ROM_purged_bucharest_circle
+			days = 90
+		}
+
+		set_country_flag = bucharest_circle # Civil war almost inevitable
+	}
+	option = {
+		name = romania.3.b # Leave them be
+
+		add_political_power = 60
+
+		ai_chance = {
+			factor = 25
+		}
+
+		set_country_flag = bucharest_circle # Civil war almost inevitable
+		set_country_flag = did_not_purge_the_circle # Civil war comes sooner
+	}
+}
+
+### Union Day
+news_event = {
+	id = romania.4
+	title = romania.4.t
+	desc = romania.4.d
+	picture = GFX_news_event_006
+
+	is_triggered_only = yes
+
+	immediate = {
+		log = "[GetDateText]: [Root.GetName]: event romania.4"
+		hidden_effect = {
+			news_event = {
+				days = 365
+				id = romania.4
+			}
+		}
+	}
+
+	option = {
+		name = romania.4.a
+		add_political_power = 20
+	}
+}
+
+# romania.5 removed
+
+# romania.6 (The Remilitarisation of Oltenia) became event worldnews.56
+
+# A monarchist conspiracy
+country_event = {
+	id = romania.7
+	title = romania.7.t
+	desc = romania.7.d
+
+	trigger = {
+		tag = ROM
+
+		has_idea = ROM_royalist_threat
+		date > 1937.1.1
+
+		NOT = {
+			country_exists = RRM
+			country_exists = BAN
+		}
+
+		# No civil war if Romania is a puppet
+		is_subject = no
+
+		# Controls the base two provinces
+		78 = { is_owned_and_controlled_by = ROM }
+		79 = { is_owned_and_controlled_by = ROM }
+
+		# If Bucharest Circle was not immediately purged, or if the country is unstable
+		OR = {
+			has_country_flag = bucharest_circle
+			has_political_power < -200
+			has_stability < 0.30
+		}
+
+		# Only if the Iron Guard hasn't been ousted
+		OR = {
+			has_government = national_populist
+			has_government = paternal_autocrat
+		}
+	}
+
+	fire_only_once = yes
+
+	mean_time_to_happen = {
+		days = 150
+
+		modifier = {
+			factor = 0.8
+			has_country_flag = did_not_purge_the_circle
+		}
+	}
+
+	immediate = {
+		log = "[GetDateText]: [Root.GetName]: event romania.7"
+		hidden_effect = {
+			set_global_flag = romanian_civil_war
+			every_state = {
+				limit = { is_core_of = ROM }
+				add_core_of = RRM
+			}
+			every_state = {
+				limit = { is_claimed_by = ROM }
+				add_claim_by = RRM
+			}
+
+			if = {
+				limit = { is_in_faction_with = SER }
+				set_country_flag = ROM_left_faction_for_civil_war
+				leave_faction = yes
+				SER = {
+					remove_opinion_modifier = { target = ROOT modifier = Belgrade_Pact_joined_yay }
+					country_event = romania.70
+				}
+				BUL = {
+					remove_opinion_modifier = { target = ROOT modifier = Belgrade_Pact_joined_against_us }
+					country_event = romania.70
+				}
+				remove_opinion_modifier = { target = BUL modifier = Belgrade_Pact_anti_bulgaria }
+			}
+
+			if = {
+				limit = {
+					NOT = { is_in_faction_with = SER }
+					is_in_faction = yes
+				}
+				leave_faction = yes
+			}
+
+			set_temp_variable = { temp = num_equipment@infantry_equipment }
+			multiply_temp_variable = { temp = 0.5 }
+			send_equipment = { target = RRM type = infantry_equipment amount = temp }
+
+			set_temp_variable = { temp = num_equipment@artillery_equipment }
+			multiply_temp_variable = { temp = 0.5 }
+			send_equipment = { target = RRM type = artillery_equipment amount = temp }
+
+			set_temp_variable = { temp = num_equipment@support_equipment }
+			multiply_temp_variable = { temp = 0.5 }
+			send_equipment = { target = RRM type = support_equipment amount = temp }
+
+			RRM = {
+				transfer_state = 78 # Bessarabia
+				transfer_state = 79 # Moldova
+
+				if = {
+					limit = {
+						80 = { is_owned_and_controlled_by = ROM }
+					}
+					transfer_state = 80 # Northern Bucovina
+				}
+
+				if = {
+					limit = {
+						713 = { is_owned_and_controlled_by = ROM }
+					}
+					transfer_state = 713 # Southern Bucovina
+				}
+
+				if = {
+					limit = {
+						789 = { is_owned_and_controlled_by = ROM }
+					}
+					transfer_state = 789 # East Transylvania
+				}
+
+				if = {
+					limit = {
+						76 = { is_owned_and_controlled_by = ROM }
+					}
+					transfer_state = 76 # North Transylvania
+				}
+
+				transfer_technology = yes
+				set_capital = 79
+				add_manpower = 25000
+				country_event = { id = royalist.1 days = 2 }
+
+				# Add chiefs if ROM has them (to keep it balanced)
+				if = {
+					limit = {
+						ROM = { has_idea_with_trait = chief_of_army }
+					}
+					add_ideas = RRM_Constantin_Sanatescu_carm_ade
+				}
+				if = {
+					limit = {
+						ROM = { has_idea_with_trait = chief_of_navy }
+					}
+					add_ideas = RRM_Nicolae_Caranfil_cnav_sco
+				}
+				if = {
+					limit = {
+						ROM = { has_idea_with_trait = chief_of_air_force }
+					}
+					add_ideas = RRM_Gheorghe_Jienescu_cair_ade
+				}
+			}
+			country_event = {
+				id = romania.8
+				days = 7
+			}
+			country_event = {
+				id = romania.31
+				days = 17
+				random = 720
+			}
+			RRM = {
+				country_event = {
+					id = romania.32
+					days = 17
+					random = 720
+				}
+			}
+		}
+	}
+
+	option = {
+		name = romania.7.a # The traitors!
+		remove_ideas = ROM_royalist_threat
+		add_political_power = -200
+	}
+	option = {
+		name = romania.7.b # We will restore the monarchy!
+		trigger = { is_ai = no }
+		remove_ideas = ROM_royalist_threat
+		add_political_power = -200
+
+		# Workaround to prevent the player from deleting all units
+		hidden_effect = {
+			ROM = {
+				if = {
+					limit = {
+						num_divisions < 13 # Likely the player has deleted some or all divisions
+					}
+
+					# Just to be sure, delete all units of the default templates
+					delete_unit_template_and_units = {
+						division_template = "Divizie Infanterie"
+					}
+					delete_unit_template_and_units = {
+						division_template = "Divizie Infanterie II"
+					}
+					delete_unit_template_and_units = {
+						division_template = "Divizie Cavalerie"
+					}
+					delete_unit_template_and_units = {
+						division_template = "Divizie Cavalerie II"
+					}
+
+					load_oob = ROM
+				}
+			}
+		}
+
+		RRM = {
+			change_tag_from = ROM
+		}
+	}
+}
+
+# Serbia and Bulgaria notified
+country_event = {
+	id = romania.70
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.70" }
+	title = romania.70.t
+	desc = romania.70.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.70.a
+	}
+}
+
+# The monarchists rebelled
+country_event = {
+	id = romania.8
+	title = romania.8.t
+	desc = romania.8.d
+
+	is_triggered_only = yes
+
+	immediate = {
+		log = "[GetDateText]: [Root.GetName]: event romania.8"
+		hidden_effect = {
+			random_other_country = {
+				limit = {
+					NOT = {
+						tag = RRM
+					}
+				}
+				news_event = {
+					id = worldnews.65
+					hours = 6
+				}
+			}
+			SER = {
+				country_event = {
+					id = romania.10
+					days = 3
+					random = 24
+				}
+			}
+			AUS = {
+				country_event = {
+					id = romania.16
+					days = 3
+					random = 24
+				}
+			}
+			UKR = {
+				country_event = {
+					id = romania.19
+					days = 3
+					random = 24
+				}
+			}
+			RUS = {
+				country_event = {
+					id = romania.21
+					days = 8
+				}
+			}
+		}
+	}
+
+	option = {
+		name = romania.8.a # Death to the traitors!
+		clr_country_flag = SER_invited_to_belgradepact
+		RRM = {
+			declare_war_on = {
+				target = ROM
+				type = annex_everything
+			}
+		}
+	}
+}
+
+# romania.9 (The Romanian Civil War) became worldnews.65
+
+# Serbian intervention in the civil war?
+country_event = {
+	id = romania.10
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.10" }
+	title = romania.10.t
+	desc = romania.10.d
+
+	is_triggered_only = yes
+
+	trigger = {
+		is_subject = no
+	}
+
+	option = {
+		name = romania.10.a # Support the Legionnaries
+		ai_chance = {
+			factor = 5
+			modifier = {
+				factor = 0
+				OR = {
+					has_completed_focus = SER_crown_the_king
+					has_government = social_liberal
+					has_government = market_liberal
+					has_government = social_democrat
+				}
+			}
+			modifier = {
+				factor = 0.5
+				has_completed_focus = SER_keep_regent
+			}
+		}
+		ROM = {
+			add_opinion_modifier = {
+				target = SER
+				modifier = ROM_supported_us_in_civil_war
+			}
+		}
+		RRM = {
+			add_opinion_modifier = {
+				target = SER
+				modifier = ROM_supported_the_other_side_in_civil_war
+			}
+		}
+		hidden_effect = {
+			ROM = {
+				country_event = {
+					id = romania.11
+					hours = 6
+				}
+				save_event_target_as = volunteer_target
+			}
+		}
+		send_volunteers_to_TARGET = yes
+		set_country_flag = intervened_in_romanian_civil_war
+	}
+	option = {
+		name = romania.10.b # Support the Monarchists
+		ai_chance = {
+			factor = 5
+			modifier = {
+				factor = 0
+				has_government = national_populist
+			}
+		}
+		RRM = {
+			add_opinion_modifier = {
+				target = SER
+				modifier = ROM_supported_us_in_civil_war
+			}
+		}
+		ROM = {
+			add_opinion_modifier = {
+				target = SER
+				modifier = ROM_supported_the_other_side_in_civil_war
+			}
+		}
+		hidden_effect = {
+			RRM = {
+				country_event = {
+					id = romania.12
+					hours = 6
+				}
+				save_event_target_as = volunteer_target
+			}
+		}
+		send_volunteers_to_TARGET = yes
+		set_country_flag = intervened_in_romanian_civil_war
+		set_country_flag = serbia_supports_rrm
+	}
+	option = {
+		name = romania.10.c # Stay out of it
+		ai_chance = {
+			factor = 0
+		}
+		add_political_power = -50
+		set_country_flag = no_ROM_intervention
+	}
+	option = {
+		name = romania.10.e # Intervene directly for the Legionnaries
+		trigger = {
+			is_in_faction = no
+		}
+		ai_chance = {
+			factor = 45
+			modifier = {
+				factor = 0
+				OR = {
+					has_completed_focus = SER_crown_the_king
+					has_government = social_liberal
+					has_government = market_liberal
+					has_government = social_democrat
+				}
+			}
+			modifier = {
+				factor = 0.5
+				has_completed_focus = SER_keep_regent
+			}
+			modifier = {
+				factor = 0
+				OR = {
+					ROM = {
+						is_ai = no
+					}
+					RRM = {
+						is_ai = no
+					}
+				}
+			}
+		}
+		add_to_war = {
+			targeted_alliance = ROM
+			enemy = RRM
+		}
+		give_guarantee = ROM # To account for Bulgarian or Austrian attack
+		give_military_access = ROM
+		ROM = {
+			give_military_access = SER
+			country_event = {
+				id = romania.13 # Serbia supports us
+				hours = 6
+			}
+		}
+		RRM = {
+			country_event = {
+				id = romania.14 # Serbia supports the enemy
+				hours = 6
+			}
+		}
+		set_country_flag = intervened_in_romanian_civil_war
+	}
+	option = {
+		name = romania.10.f # Intervene directly for the Monarchists
+		trigger = {
+			is_in_faction = no
+		}
+		ai_chance = {
+			factor = 45
+			modifier = {
+				factor = 0
+				has_government = national_populist
+			}
+			modifier = {
+				factor = 0
+				OR = {
+					ROM = {
+						is_ai = no
+					}
+					RRM = {
+						is_ai = no
+					}
+				}
+			}
+		}
+		add_to_war = {
+			targeted_alliance = RRM
+			enemy = ROM
+		}
+		give_military_access = RRM
+		RRM = {
+			give_military_access = SER
+			country_event = {
+				id = romania.13 # Serbia supports us
+				hours = 6
+			}
+		}
+		ROM = {
+			country_event = {
+				id = romania.14 # Serbia supports the enemy
+				hours = 6
+			}
+		}
+		set_country_flag = intervened_in_romanian_civil_war
+		set_country_flag = serbia_supports_rrm
+	}
+}
+
+# ROM: Serbia sends us support
+country_event = {
+	id = romania.11
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.11" }
+	title = romania.11.t
+	desc = romania.11.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.11.a # Great
+	}
+}
+
+# RRM: Serbia sends us support
+country_event = {
+	id = romania.12
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.12" }
+	title = romania.12.t
+	desc = romania.12.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.12.a # Great
+	}
+}
+
+# Serbia intervenes on our side
+country_event = {
+	id = romania.13
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.13" }
+	title = romania.13.t
+	desc = romania.13.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.13.a # Great
+	}
+}
+
+# Serbia intervenes on the other side
+country_event = {
+	id = romania.14
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.14" }
+	title = romania.14.t
+	desc = romania.14.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.14.a # They will be defeated
+	}
+}
+
+# Serbia: intervention failed, end the war with Romania
+country_event = {
+	id = romania.15
+	title = romania.15.t
+	desc = romania.15.d
+
+	is_triggered_only = yes
+
+	trigger = {
+		has_country_flag = intervened_in_romanian_civil_war
+		OR = {
+			has_war_with = ROM
+			has_war_with = RRM
+		}
+		is_subject = no
+		OR = {
+			is_faction_leader = yes
+			is_in_faction = no
+		}
+	}
+
+	immediate = {
+		log = "[GetDateText]: [Root.GetName]: event romania.15"
+		every_enemy_country = {
+			limit = {
+				OR = {
+					tag = ROM
+					tag = RRM
+				}
+			}
+			save_event_target_as = white_peace_receiver
+		}
+	}
+
+	option = {
+		name = romania.15.a # This was a disaster.
+		white_peace_with_TARGET = yes
+		if = {
+			limit = {
+				AUS = {
+					has_war_with = ROOT
+					is_faction_leader = yes
+					has_country_flag = intervened_in_romanian_civil_war
+				}
+			}
+			AUS = { white_peace_with_ROOT = yes }
+		}
+	}
+}
+
+# Austrian intervention in the civil war?
+country_event = {
+	id = romania.16
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.16" }
+	title = romania.16.t
+	desc = romania.16.d
+
+	is_triggered_only = yes
+
+	trigger = {
+		is_subject = no
+		is_faction_leader = yes
+		has_war = no
+	}
+
+	option = {
+		name = romania.16.a # Support the Legionnaries
+		ai_chance = {
+			factor = 20
+		}
+		ROM = {
+			add_opinion_modifier = {
+				target = AUS
+				modifier = ROM_supported_us_in_civil_war
+			}
+		}
+		RRM = {
+			add_opinion_modifier = {
+				target = AUS
+				modifier = ROM_supported_the_other_side_in_civil_war
+			}
+		}
+		hidden_effect = {
+			ROM = {
+				country_event = {
+					id = romania.17
+					hours = 6
+				}
+				save_event_target_as = volunteer_target
+			}
+		}
+		send_volunteers_to_TARGET = yes
+		set_country_flag = intervened_in_romanian_civil_war
+	}
+	option = {
+		name = romania.16.b # Support the Monarchists
+		ai_chance = {
+			factor = 20
+		}
+		RRM = {
+			add_opinion_modifier = {
+				target = AUS
+				modifier = ROM_supported_us_in_civil_war
+			}
+		}
+		ROM = {
+			add_opinion_modifier = {
+				target = AUS
+				modifier = ROM_supported_the_other_side_in_civil_war
+			}
+		}
+		hidden_effect = {
+			RRM = {
+				country_event = {
+					id = romania.18
+					hours = 6
+				}
+				save_event_target_as = volunteer_target
+			}
+		}
+		send_volunteers_to_TARGET = yes
+		set_country_flag = intervened_in_romanian_civil_war
+	}
+	option = {
+		name = romania.16.c # Stay out of it
+		ai_chance = {
+			factor = 60
+		}
+		add_political_power = -40
+		set_country_flag = no_ROM_intervention
+	}
+}
+
+# ROM: Austria sends us support
+country_event = {
+	id = romania.17
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.17" }
+	title = romania.17.t
+	desc = romania.17.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.17.a # Great
+		add_equipment_to_stockpile = {
+			type = fighter_equipment
+			amount = 25
+			producer = AUS
+		}
+	}
+}
+
+# RRM: Austria sends us support
+country_event = {
+	id = romania.18
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.18" }
+	title = romania.18.t
+	desc = romania.18.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.18.a # Great
+		add_equipment_to_stockpile = {
+			type = fighter_equipment
+			amount = 25
+			producer = AUS
+		}
+	}
+}
+
+# Ukraine: Send help to the Monarchists?
+country_event = {
+	id = romania.19
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.19" }
+	title = romania.19.t
+	desc = romania.19.d
+
+	trigger = {
+		has_war = no
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.19.a # Of course
+		ai_chance = {
+			factor = 80
+		}
+		RRM = {
+			add_opinion_modifier = {
+				target = UKR
+				modifier = ROM_supported_us_in_civil_war
+			}
+		}
+		ROM = {
+			add_opinion_modifier = {
+				target = UKR
+				modifier = ROM_supported_the_other_side_in_civil_war
+			}
+		}
+		hidden_effect = {
+			RRM = {
+				country_event = {
+					id = romania.20
+					hours = 6
+				}
+				save_event_target_as = volunteer_target
+			}
+		}
+		send_volunteers_to_TARGET = yes
+		set_country_flag = intervened_in_romanian_civil_war
+	}
+	option = {
+		name = romania.19.b # We're not interested
+		ai_chance = {
+			factor = 20
+		}
+		add_political_power = -40
+		set_country_flag = no_RRM_intervention
+	}
+}
+
+# RRM: Ukraine sends us support
+country_event = {
+	id = romania.20
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.20" }
+	title = romania.20.t
+	desc = romania.20.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.20.a # Great
+	}
+}
+
+# Russian intervention in Civil War
+country_event = {
+	id = romania.21
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.21" }
+	title = romania.21.t
+	desc = romania.21.d
+
+	trigger = {
+		has_war = no
+		is_subject = no
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.21.a # Support the Iron Guard
+		trigger = {
+			has_government = national_populist
+		}
+		ai_chance = {
+			factor = 10
+		}
+		ROM = {
+			add_opinion_modifier = {
+				target = RUS
+				modifier = ROM_supported_us_in_civil_war
+			}
+		}
+		RRM = {
+			add_opinion_modifier = {
+				target = RUS
+				modifier = ROM_supported_the_other_side_in_civil_war
+			}
+		}
+		hidden_effect = {
+			ROM = {
+				country_event = {
+					id = romania.22
+					hours = 6
+				}
+				save_event_target_as = volunteer_target
+			}
+		}
+		send_volunteers_to_TARGET = yes
+		set_country_flag = intervened_in_romanian_civil_war
+	}
+
+	option = {
+		name = romania.21.b # Support the Monarchists
+		trigger = {
+			NOT = {
+				has_government = national_populist
+			}
+		}
+		ai_chance = {
+			factor = 70
+		}
+		RRM = {
+			add_opinion_modifier = {
+				target = RUS
+				modifier = ROM_supported_us_in_civil_war
+			}
+		}
+		ROM = {
+			add_opinion_modifier = {
+				target = RUS
+				modifier = ROM_supported_the_other_side_in_civil_war
+			}
+		}
+		hidden_effect = {
+			RRM = {
+				country_event = {
+					id = romania.23
+					hours = 6
+				}
+				save_event_target_as = volunteer_target
+			}
+		}
+		send_volunteers_to_TARGET = yes
+		set_country_flag = intervened_in_romanian_civil_war
+	}
+
+	option = {
+		name = romania.21.c # No interest
+		ai_chance = {
+			factor = 5
+		}
+		if = {
+			limit = { has_cosmetic_tag = RTS }
+			add_political_power = -40
+		}
+		set_country_flag = no_ROM_intervention
+	}
+}
+
+# ROM: Russia sends us support
+country_event = {
+	id = romania.22
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.22" }
+	title = romania.22.t
+	desc = romania.22.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.22.a # Great
+	}
+}
+
+# RRM: Russia sends us support
+country_event = {
+	id = romania.23
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.23" }
+	title = romania.23.t
+	desc = romania.23.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.23.a # Great
+	}
+}
+
+# The end of the Civil War: lessons learned
+country_event = {
+	id = romania.24
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.24" }
+	title = romania.24.t
+	desc = romania.24.d
+
+	trigger = {
+		has_country_flag = intervened_in_romanian_civil_war
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.24.a # Great!
+		army_experience = 10
+		navy_experience = 10
+		air_experience = 10
+
+		add_manpower = 500
+		add_political_power = 20
+		clr_country_flag = intervened_in_romanian_civil_war
+	}
+}
+
+# RRM: Corneliu Codreanu's dictatorship is defeated!
+country_event = {
+	id = romania.25
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.25" }
+	title = romania.25.t
+	desc = romania.25.d
+
+	trigger = {
+		tag = RRM
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.25.a # Long live Romania
+		custom_effect_tooltip = romania.25.tt
+		set_country_flag = RRM_has_won
+		hidden_effect = {
+			load_oob = RRM_victory
+			load_oob = RRM_victory_naval
+
+			# Remove all cores and claims of Iron Guard Romania
+			every_state = {
+				limit = {
+					OR = {
+						is_core_of = ROM
+						is_claimed_by = ROM
+					}
+				}
+				remove_core_of = ROM
+				remove_claim_by = ROM
+			}
+
+			country_event = {
+				id = romania.26
+				days = 3
+				random = 96
+			}
+		}
+	}
+}
+
+# The Iron Guard escapes to Serbia
+country_event = {
+	id = romania.26
+	title = romania.26.t
+	desc = romania.26.d
+
+	is_triggered_only = yes
+
+	immediate = {
+		log = "[GetDateText]: [Root.GetName]: event romania.26"
+		if = {
+			limit = {
+				SER = {
+					NOT = { has_country_flag = serbia_supports_rrm }
+				}
+			}
+			SER = { save_event_target_as = iron_guard_destination }
+		}
+		else_if = {
+			limit = {
+				ITA = { has_government = national_populist }
+			}
+			ITA = { save_event_target_as = iron_guard_destination }
+		}
+		else = {
+			NFA = { save_event_target_as = iron_guard_destination }
+		}
+	}
+
+	fire_only_once = yes
+
+	option = {
+		name = romania.26.a # They better not return
+		ai_chance = {
+			factor = 20
+		}
+		add_political_power = -20
+
+		# They may return in the future, so set Iron Guard leaders as party leaders
+		RRM_set_iron_guard_leaders = yes # custom effect from scripted effects
+	}
+
+	option = {
+		name = romania.26.b # Demand their extradiction
+		ai_chance = {
+			factor = 80
+		}
+		add_political_power = 20
+
+		event_target:iron_guard_destination = {
+			country_event = {
+				id = romania.27
+				days = 2
+			}
+		}
+	}
+}
+
+# SER/ITA/NFA: Romania demands extradition of Codreanu
+country_event = {
+	id = romania.27
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.27" }
+	title = romania.27.t
+	desc = romania.27.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.27.a # Extradite them!
+		ai_chance = {
+			factor = 90
+		}
+
+		add_political_power = -20
+		reverse_add_opinion_modifier = {
+			target = RRM
+			modifier = ROM_extradited_iron_guard
+		}
+		RRM = {
+			country_event = {
+				id = romania.28
+				days = 3
+			}
+		}
+	}
+
+	option = {
+		name = romania.27.b # They will stay here!
+		ai_chance = {
+			factor = 10
+		}
+
+		add_political_power = 20
+		reverse_add_opinion_modifier = {
+			target = RRM
+			modifier = ROM_kept_iron_guard
+		}
+		RRM = {
+			country_event = {
+				id = romania.29
+				days = 3
+			}
+		}
+
+		# They may return in the future, so set Iron Guard leaders as party leaders
+		RRM_set_iron_guard_leaders = yes # custom effect from scripted effects
+	}
+}
+
+# SER/ITA/NFA extradites the Iron Guard
+country_event = {
+	id = romania.28
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.28" }
+	title = romania.28.t
+	desc = romania.28.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.28.a # Hang them high
+
+		ai_chance = {
+			factor = 70
+		}
+		add_political_power = 40
+
+		# Disable all Iron Guard leaders
+		RRM_disable_iron_guard_leaders = yes # custom effect from scripted effects
+	}
+
+	option = {
+		name = romania.28.b # Imprison them
+
+		ai_chance = {
+			factor = 30
+		}
+		add_political_power = -80
+
+		# Though imprisoned, they may return in the future, so set Iron Guard leaders as party leaders
+		RRM_set_iron_guard_leaders = yes # custom effect from scripted effects
+	}
+}
+
+# SER/ITA/NFA doesn't extradite the Iron Guard
+country_event = {
+	id = romania.29
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.29" }
+	title = romania.29.t
+	desc = romania.29.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.29.a # They better not return!
+		effect_tooltip = {
+			RRM = {
+				add_opinion_modifier = {
+					target = SER
+					modifier = ROM_kept_iron_guard
+				}
+			}
+		}
+	}
+}
+
+# ROM: Royalist coup crushed!
+country_event = {
+	id = romania.30
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.30" }
+	title = romania.30.t
+	desc = romania.30.d
+
+	trigger = {
+		tag = ROM
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.30.a # Long live the Iron Guard
+		custom_effect_tooltip = romania.30.tt
+		hidden_effect = {
+			load_oob = ROM_victory
+
+			# Remove all cores and claims of Royalist Romania
+			every_state = {
+				limit = {
+					OR = {
+						is_core_of = RRM
+						is_claimed_by = RRM
+					}
+				}
+				remove_core_of = RRM
+				remove_claim_by = RRM
+			}
+		}
+	}
+}
+
+# Iron Guard Terror
+country_event = {
+	id = romania.31
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.31" }
+	title = romania.31.t
+	desc = romania.31.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.31.a # War is war
+		add_political_power = -20
+	}
+}
+
+# Monarchist Terror
+country_event = {
+	id = romania.32
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.32" }
+	title = romania.32.t
+	desc = romania.32.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.32.a # War is war
+		add_political_power = -20
+	}
+}
+
+# Hungary/Austria: Romania claims Transylvania
+country_event = {
+	id = romania.33
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.33" }
+	title = romania.33.t
+	desc = romania.33.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.33.a # Transylvania is Hungarian/Austrian!
+		effect_tooltip = {
+			add_opinion_modifier = {
+				target = ROM
+				modifier = ROM_claimed_transylvania
+			}
+		}
+	}
+}
+
+# Germany: Romania is nationalizing the oil industry, what shall we do?
+country_event = {
+	id = romania.34
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.34" }
+	title = romania.34.t
+	desc = romania.34.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.34.a # Bribe ministers
+		ai_chance = {
+			factor = 40
+		}
+		add_political_power = -50
+		hidden_effect = {
+			ROM = {
+				country_event = {
+					id = romania.35
+					days = 5
+				}
+			}
+		}
+	}
+	option = {
+		name = romania.34.b # Arrange an accident
+		ai_chance = {
+			factor = 40
+		}
+		add_political_power = -30
+		hidden_effect = {
+			ROM = {
+				country_event = {
+					id = romania.38
+					days = 5
+				}
+			}
+			country_event = {
+				id = romania.39 # Assassination failed
+				days = 6
+			}
+		}
+	}
+	option = {
+		name = romania.34.c # Do nothing
+		ai_chance = {
+			factor = 10
+		}
+	}
+}
+
+# Ministerial concerns
+country_event = {
+	id = romania.35
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.35" }
+	title = romania.35.t
+	desc = romania.35.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.35.a # Cowards
+		add_political_power = -20
+		hidden_effect = {
+			country_event = {
+				id = romania.36
+				days = 10
+			}
+		}
+	}
+}
+
+# Bribery scandal
+country_event = {
+	id = romania.36
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.36" }
+	title = romania.36.t
+	desc = romania.36.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.36.a # Nothing but lies
+		ai_chance = {
+			factor = 10
+		}
+		add_political_power = -20
+	}
+	option = {
+		name = romania.36.b # A.C. Cuza is a traitor!
+		ai_chance = {
+			factor = 90
+		}
+		add_political_power = -40
+		hidden_effect = {
+			country_event = {
+				id = romania.37
+				days = 10
+			}
+		}
+	}
+}
+
+# The execution of Prime Minister A.C. Cuza
+country_event = {
+	id = romania.37
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.37" }
+	title = romania.37.t
+	desc = romania.37.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.37.a # There is only one fate for enemies of the people
+		add_political_power = -20
+
+		remove_ideas_with_trait = head_of_government
+		add_ideas = ROM_Horia_Sima_hog_npo
+
+		set_country_flag = Alexander_Cuza_dead
+	}
+}
+
+# Assassination attempt
+country_event = {
+	id = romania.38
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.38" }
+	title = romania.38.t
+	desc = romania.38.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.38.a # A lone madman
+		ai_chance = {
+			factor = 1
+		}
+		add_political_power = 20
+	}
+	option = {
+		name = romania.38.b # A monarchist
+		ai_chance = {
+			factor = 20
+		}
+		add_political_power = -60
+		hidden_effect = {
+			country_event = {
+				id = romania.41
+				days = 5
+			}
+		}
+	}
+	option = {
+		name = romania.38.c # A foreign agent
+		ai_chance = {
+			factor = 80
+		}
+		add_political_power = -40
+		add_opinion_modifier = {
+			target = HUN
+			modifier = ROM_suspected_assassination
+		}
+		add_opinion_modifier = {
+			target = BUL
+			modifier = ROM_suspected_assassination
+		}
+		add_opinion_modifier = {
+			target = GER
+			modifier = ROM_suspected_assassination
+		}
+		add_opinion_modifier = {
+			target = AUS
+			modifier = ROM_suspected_assassination
+		}
+		add_opinion_modifier = {
+			target = UKR
+			modifier = ROM_suspected_assassination
+		}
+		add_opinion_modifier = {
+			target = FRA
+			modifier = ROM_suspected_assassination
+		}
+		add_opinion_modifier = {
+			target = RUS
+			modifier = ROM_suspected_assassination
+		}
+		hidden_effect = {
+			country_event = {
+				id = romania.42
+				days = 5
+			}
+		}
+	}
+}
+
+# Germany: Assassination failed
+country_event = {
+	id = romania.39
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.39" }
+	title = romania.39.t
+	desc = romania.39.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.39.a # It was worth a try
+	}
+}
+
+# Cuza protests against violence
+country_event = {
+	id = romania.40
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.40" }
+	title = romania.40.t
+	desc = romania.40.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.40.a # Stop this traitor!
+		hidden_effect = {
+			country_event = {
+				id = romania.37
+				days = 2
+			}
+		}
+	}
+}
+
+# Violence against Monarchists
+country_event = {
+	id = romania.41
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.41" }
+	title = romania.41.t
+	desc = romania.41.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.41.a # A.C. Cuza oders police to end violence
+		add_political_power = -20
+		add_manpower = -100
+		hidden_effect = {
+			country_event = {
+				id = romania.37 # Cuza is executed
+				days = 2
+			}
+		}
+	}
+	option = {
+		name = romania.41.b # Nothing is worse than traitors
+		add_political_power = -60
+		add_manpower = -500
+		hidden_effect = {
+			country_event = {
+				id = romania.40 # Cuza protests
+				days = 2
+			}
+		}
+	}
+}
+
+# Violence against foreigners
+country_event = {
+	id = romania.42
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.42" }
+	title = romania.42.t
+	desc = romania.42.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.42.a # A.C. Cuza oders police to end violence
+		add_political_power = -20
+		add_manpower = -100
+		hidden_effect = {
+			country_event = {
+				id = romania.37 # Cuza is executed
+				days = 2
+			}
+		}
+	}
+	option = {
+		name = romania.42.b # Foreigners are a plague
+		add_political_power = -60
+		add_manpower = -500
+		hidden_effect = {
+			country_event = {
+				id = romania.40 # Cuza protests
+				days = 2
+			}
+		}
+	}
+}
+
+# Germany: Romania nationalizes the oil fields
+country_event = {
+	id = romania.43
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.43" }
+	title = romania.43.t
+	desc = romania.43.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.43.a # We will be watching you
+		add_political_power = -10
+		add_opinion_modifier = {
+			target = ROM
+			modifier = ROM_nationalized_oil_fields
+		}
+	}
+}
+
+# Bulgaria: Romania demands a plebiscite in Dobrudzha
+country_event = {
+	id = romania.45
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.45" }
+	title = romania.45.t
+	desc = romania.45.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.45.a # No way
+
+		ai_chance = {
+			factor = 90
+		}
+
+		add_political_power = 50
+
+		hidden_effect = {
+			ROM = {
+				country_event = {
+					id = romania.46
+					days = 2
+				}
+			}
+		}
+	}
+	option = {
+		name = romania.45.b # Allow it, but rig the results
+
+		ai_chance = {
+			factor = 10
+		}
+
+		hidden_effect = {
+			ROM = {
+				country_event = {
+					id = romania.47
+					days = 2
+				}
+			}
+		}
+	}
+	option = {
+		name = romania.45.c # Allow it
+
+		ai_chance = {
+			factor = 1
+		}
+
+		random_list = {
+			50 = {
+				hidden_effect = {
+					ROM = {
+						country_event = {
+							id = romania.48
+							days = 7
+						}
+					}
+					} # People choose Romania
+				custom_effect_tooltip = romania.45.tt1
+			}
+			50 = {
+				hidden_effect = {
+					ROM = {
+						country_event = {
+							id = romania.49
+							days = 7
+						}
+					}
+					} # People choose Bulgaria
+				custom_effect_tooltip = romania.45.tt2
+			}
+		}
+	}
+}
+
+# Bulgaria refused the plebiscite
+country_event = {
+	id = romania.46
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.46" }
+	title = romania.46.t
+	desc = romania.46.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.46.a # Send the army
+
+		ai_chance = {
+			factor = 85
+		}
+
+		add_political_power = 100
+
+		declare_war_on = {
+			target = BUL
+			type = take_state
+			generator = {
+				772
+			}
+		}
+	}
+	option = {
+		name = romania.46.b # We can't do anything
+
+		ai_chance = {
+			factor = 15
+		}
+
+		add_political_power = -200
+	}
+}
+
+# Bulgaria rigs the results of the plebiscite
+country_event = {
+	id = romania.47
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.47" }
+	title = romania.47.t
+	desc = romania.47.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.47.a # Never mind
+
+		ai_chance = {
+			factor = 10
+		}
+
+		hidden_effect = {
+			random_list = {
+				10 = {
+					country_event = {
+						id = romania.48
+						days = 7
+					}
+					} # Go with Romania
+				90 = {
+					country_event = {
+						id = romania.49
+						days = 7
+					}
+					} # Stay with Bulgaria
+			}
+		}
+	}
+	option = {
+		name = romania.47.b # How dare they, send the army
+
+		ai_chance = {
+			factor = 90
+		}
+
+		add_political_power = 100
+
+		declare_war_on = {
+			target = BUL
+			type = take_state
+			generator = {
+				772
+			}
+		}
+	}
+}
+
+# People choose unification with Romania
+country_event = {
+	id = romania.48
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.48" }
+	title = romania.48.t
+	desc = romania.48.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.48.a # Great
+
+		add_political_power = 100
+
+		BUL = {
+			country_event = {
+				id = romania.50
+				days = 1
+			}
+			} # Bulgaria chooses: hand over or not
+	}
+}
+
+# People choose to remain in Bulgaria
+country_event = {
+	id = romania.49
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.49" }
+	title = romania.49.t
+	desc = romania.49.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.49.a # Awful
+
+		add_political_power = -40
+
+		hidden_effect = {
+			BUL = {
+				country_event = {
+					id = romania.53
+					days = 1
+				}
+			}
+			} # Bulgaria: Dobrudzha stays
+	}
+}
+
+# Bulgaria: The result of the plebiscite: People choose Romania
+country_event = {
+	id = romania.50
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.50" }
+	title = romania.50.t
+	desc = romania.50.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.50.a # Democracy has minuses
+
+		ai_chance = {
+			factor = 1
+		}
+
+		add_political_power = -20
+
+		ROM = {
+			transfer_state = 772
+		}
+
+		ROM = {
+			country_event = {
+				id = romania.51
+				hours = 2
+			}
+			} # Dobrudzha joins Romania.
+	}
+	option = {
+		name = romania.50.b # Refuse to transfer
+
+		ai_chance = {
+			factor = 99
+		}
+
+		add_political_power = 20
+
+		ROM = {
+			country_event = {
+				id = romania.52
+				days = 1
+			}
+			} # Bulgaria ignores the results
+	}
+}
+
+# Dobrudzha joins Romania
+country_event = {
+	id = romania.51
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.51" }
+	title = romania.51.t
+	desc = romania.51.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.51.a # Great.
+
+		effect_tooltip = {
+			transfer_state = 772
+		}
+	}
+}
+
+# Bulgaria refuses to cede Dobrudzha
+country_event = {
+	id = romania.52
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.52" }
+	title = romania.52.t
+	desc = romania.52.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.52.a # There's nothing we can do
+
+		ai_chance = {
+			factor = 15
+		}
+
+		add_political_power = -60
+	}
+	option = {
+		name = romania.52.b # How dare they
+
+		ai_chance = {
+			factor = 85
+		}
+
+		add_political_power = 100
+
+		declare_war_on = {
+			target = BUL
+			type = take_state
+			generator = {
+				772
+			}
+		}
+	}
+}
+
+# Dobrudzha stays in Bulgaria
+country_event = {
+	id = romania.53
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.53" }
+	title = romania.53.t
+	desc = romania.53.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.53.a # Great.
+	}
+}
+
+# Romania claims Transnistria
+country_event = {
+	id = romania.54
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.54" }
+	title = romania.54.t
+	desc = romania.54.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.54.a # Outrageous.
+	}
+}
+
+# Ukraine: Romanian invasion of Transnistria repelled, offer peace?
+country_event = {
+	id = romania.55
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.55" }
+	title = romania.55.t
+	desc = romania.55.d
+
+	trigger = {
+		tag = UKR
+		has_war_with = ROM
+		OR = {
+			is_in_faction = no
+			is_faction_leader = yes
+		}
+		ROM = {
+			OR = {
+				is_in_faction = no
+				is_faction_leader = yes
+			}
+			OR = {
+				owns_state = 78
+				owns_state = 79
+			}
+		}
+		surrender_progress < 0.2
+		OR = {
+			AND = {
+				controls_state = 78 # Bessarabia
+				controls_state = 79 # Moldova
+			}
+			ROM = { surrender_progress > 0.5 }
+		}
+	}
+
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = romania.55.a # Offer peace
+		ai_chance = {
+			factor = 100
+		}
+		add_state_core = 78
+		ROM = {
+			country_event = {
+				id = romania.56
+				hours = 6
+			}
+		}
+	}
+
+	option = {
+		name = romania.55.b # We fight on
+		trigger = {
+			is_ai = no
+		}
+		add_political_power = -100
+		add_state_core = 78
+	}
+}
+
+# Ukraine offers peace
+country_event = {
+	id = romania.56
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.56" }
+	title = romania.56.t
+	desc = romania.56.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.56.a # Accept
+		ai_chance = {
+			factor = 100
+		}
+		transfer_state = 78
+		UKR = {
+			white_peace_with_ROOT = yes
+			country_event = {
+				id = romania.57
+				hours = 2
+			}
+		}
+	}
+
+	option = {
+		name = romania.56.b # Refuse
+		trigger = {
+			is_ai = no
+		}
+		UKR = {
+			country_event = {
+				id = romania.58
+				hours = 6
+			}
+		}
+	}
+}
+
+# Ukraine: Romania accepted our peace offer!
+country_event = {
+	id = romania.57
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.57" }
+	title = romania.57.t
+	desc = romania.57.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.57.a # Great
+		effect_tooltip = {
+			transfer_state = 78
+		}
+	}
+}
+
+# Ukraine: Romania refused our peace offer!
+country_event = {
+	id = romania.58
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.58" }
+	title = romania.58.t
+	desc = romania.58.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.58.a # We march to Bucharest
+	}
+}
+
+# Romanian-Ukrainian war: Romania wins
+country_event = {
+	id = romania.59
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.59" }
+	title = romania.59.t
+	desc = romania.59.d
+
+	trigger = {
+		tag = ROM
+		has_war_with = UKR
+		OR = {
+			is_in_faction = no
+			is_faction_leader = yes
+		}
+		UKR = {
+			OR = {
+				is_in_faction = no
+				is_faction_leader = yes
+			}
+			OR = {
+				owns_state = 192
+				owns_state = 791
+			}
+		}
+		surrender_progress < 0.2
+		OR = {
+			AND = {
+				controls_state = 192 # Odessa
+				controls_state = 791 # Mogilev-Podolsky
+			}
+			UKR = { surrender_progress > 0.5 }
+		}
+	}
+
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = romania.59.a # Demilitarize Transnistria
+		ai_chance = {
+			factor = 5
+		}
+		add_political_power = -100
+		UKR = {
+			country_event = {
+				id = romania.60
+				hours = 6
+			}
+		}
+	}
+
+	option = {
+		name = romania.59.b # Claim Transnistria
+		ai_chance = {
+			factor = 95
+		}
+		UKR = {
+			country_event = {
+				id = romania.61
+				hours = 6
+			}
+		}
+	}
+
+	option = {
+		name = romania.59.c # We fight on
+		trigger = {
+			is_ai = no
+		}
+		add_political_power = -100
+	}
+}
+
+# Ukraine: Romania offers peace, demilitarize Transnistria
+country_event = {
+	id = romania.60
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.60" }
+	title = romania.60.t
+	desc = romania.60.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.60.a # We have no choice
+		ai_chance = {
+			factor = 100
+		}
+		FROM = {
+			white_peace_with_ROOT = yes
+			country_event = {
+				id = romania.62
+				hours = 2
+			}
+		}
+		if = {
+			limit = { owns_state = 192 }
+			192 = { set_demilitarized_zone = yes } # Odessa
+		}
+		if = {
+			limit = { owns_state = 791 }
+			791 = { set_demilitarized_zone = yes } # Mogilev-Podolsky
+		}
+	}
+
+	option = {
+		name = romania.60.b # Refuse
+		trigger = {
+			is_ai = no
+		}
+		add_political_power = -200
+		FROM = {
+			country_event = {
+				id = romania.63
+				hours = 6
+			}
+		}
+	}
+}
+
+# Ukraine: Romania offers peace, cede Transnistria
+country_event = {
+	id = romania.61
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.61" }
+	title = romania.61.t
+	desc = romania.61.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.61.a # Accept
+		ai_chance = {
+			factor = 90
+		}
+
+		FROM = {
+			white_peace_with_ROOT = yes
+			country_event = {
+				id = romania.62
+				hours = 2
+			}
+		}
+		if = {
+			limit = { owns_state = 192 }
+			FROM = { transfer_state = 192 } # Odessa
+		}
+		if = {
+			limit = { owns_state = 791 }
+			FROM = { transfer_state = 791 } # Mogilev-Podolsky
+		}
+	}
+
+	option = {
+		name = romania.61.b # Refuse
+		ai_chance = {
+			factor = 10
+		}
+		FROM = {
+			country_event = {
+				id = romania.63
+				hours = 6
+			}
+		}
+	}
+}
+
+# Romania: Ukraine accepted our peace offer
+country_event = {
+	id = romania.62
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.62" }
+	title = romania.62.t
+	desc = romania.62.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.62.a # Great
+	}
+}
+
+# Romania: Ukraine refused our peace offer
+country_event = {
+	id = romania.63
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.63" }
+	title = romania.63.t
+	desc = romania.63.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.63.a # Great
+	}
+}
+
+# Germany Oil Related Events
+#
+# Germany: Romania stops oil shipments
+country_event = {
+	id = romania.44
+	immediate = { log = "[GetDateText]: [Root.GetName]: event romania.44" }
+	title = romania.44.t
+	desc = romania.44.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = romania.44.a # Verdammt
+		add_political_power = -25
+		effect_tooltip = {
+			add_opinion_modifier = {
+				target = ROM
+				modifier = ROM_nationalized_oil_fields
+			}
+			add_opinion_modifier = {
+				target = ROM
+				modifier = ROM_stopped_oil_shipments_trade
+			}
+		}
+	}
+}
