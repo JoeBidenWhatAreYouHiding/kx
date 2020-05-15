@@ -38,6 +38,24 @@ is_fully_controlled_by_ROOT_and_is_not_core_of_ROOT = {
 	NOT = { is_core_of = ROOT }
 }
 
+is_possible_united_front_member = {
+	OR = {
+		is_han_chinese_tag = yes
+		tag = TAN
+		AND = {
+			tag = TIB
+			has_government = social_democrat
+			NOT = {
+				has_country_flag = attending_tokyo_conference
+				has_country_flag = tokyo_conference_ally
+				any_enemy_country = {
+					is_han_chinese_tag = yes
+				}
+			}
+		}
+	}
+}
+
 ##########################################
 # NPA/Federalists/KMT/Zhili/Fengtian
 ##########################################
@@ -47,8 +65,10 @@ is_ruled_by_pro_zhili = {
 		### factions override all alignments
 		AND = {
 			is_in_faction_with = QIE
-			NOT = {
-				QIE = { has_country_flag = QIE_manchu_restoration }
+			NOT = { has_country_flag = united_front_member }
+			QIE = {
+				is_faction_leader = yes
+				NOT = { has_country_flag = QIE_manchu_restoration }
 			}
 		}
 		### if not in faction, check tag-specific conditions
@@ -161,7 +181,12 @@ is_ruled_by_pro_zhili = {
 is_ruled_by_pro_manchu = {
 	QIE = { has_country_flag = QIE_manchu_restoration } #will not appear unless the Coup happens
 	OR = {
-		is_in_faction_with = QIE #factions override alignments
+		#factions override alignments
+		AND = {
+			is_in_faction_with = QIE
+			NOT = { has_country_flag = united_front_member }
+			QIE = { is_faction_leader = yes }
+		}
 		### if not in faction, check tag-specific conditions
 		AND = {
 			OR = {
@@ -239,7 +264,12 @@ is_ruled_by_pro_fengtian = {
 	}
 	OR = {
 		tag = FNG # always
-		is_in_faction_with = FNG # factions override all alignments
+		# factions override all alignments
+		AND = {
+			is_in_faction_with = FNG
+			NOT = { has_country_flag = united_front_member }
+			FNG = { is_faction_leader = yes }
+		}
 		### if not in faction, check tag-specific conditions
 		AND = {
 			OR = {
@@ -250,13 +280,16 @@ is_ruled_by_pro_fengtian = {
 				AND = {
 					OR = {
 						tag = JAP
-						is_in_faction_with = JAP
+						AND = {
+							is_in_faction_with = JAP
+							JAP = { is_faction_leader = yes }
+						}
 					}
 					FNG_JAP_hostile = no
 				}
 				AND = {
 					tag = ANQ
-					has_country_flag = ANQ_is_projapan
+					has_country_flag = ANQ_is_profengtian
 				}
 				AND = {
 					tag = SZC
@@ -303,7 +336,12 @@ is_ruled_by_kmt = {
 is_ruled_by_left_kmt = {
 	OR = {
 		tag = CHI # always
-		is_in_faction_with = CHI # factions override all alignments
+		# factions override all alignments
+		AND = {
+			is_in_faction_with = CHI
+			NOT = { has_country_flag = united_front_member }
+			CHI = { is_faction_leader = yes }
+		}
 		### if not in faction, check tag-specific conditions		
 		AND = {
 			OR = {
@@ -320,7 +358,7 @@ is_ruled_by_left_kmt = {
 				}
 				AND = {
 					tag = SZC
-					SZC_has_officer_government = yes
+					has_country_flag = SZC_alliance_CHI
 				}
 				AND = {
 					tag = HNN
@@ -348,18 +386,27 @@ is_ruled_by_left_kmt = {
 is_ruled_by_right_kmt = {
 	OR = {
 		### factions override all alignments
-		AND = {
-			is_in_faction_with = GXC
-			GXC = {
-				has_country_leader = {
-					name = "Li Zongren"
-					ruling_only = yes
+		if = {
+			limit = {
+				NOT = { has_country_flag = united_front_member }
+			}
+			AND = {
+				is_in_faction_with = GXC
+				GXC = {
+					has_country_leader = {
+						name = "Li Zongren"
+						ruling_only = yes
+					}
+					is_faction_leader = yes
 				}
 			}
-		}
-		AND = {
-			is_in_faction_with = YUN
-			YUN = { has_government = social_liberal }
+			AND = {
+				is_in_faction_with = YUN
+				YUN = { 
+					has_government = social_liberal 
+					is_faction_leader = yes
+				}
+			}
 		}
 		### if not in faction, check tag-specific conditions
 		AND = {
@@ -430,15 +477,32 @@ is_ruled_by_pro_kmt = { #will side with either wing
 is_ruled_by_federalists = {
 	OR = {
 		### factions override all alignments
-		AND = {
-			is_in_faction_with = GXC
-			GXC = {
-				OR = {
-					has_country_leader = {
-						name = "Chen Jiongming"
-						ruling_only = yes
+		if = {
+			limit = {
+				NOT = { has_country_flag = united_front_member }
+			}
+			AND = {
+				is_in_faction_with = GXC
+				GXC = {
+					OR = {
+						has_country_leader = {
+							name = "Chen Jiongming"
+							ruling_only = yes
+						}
+						has_cosmetic_tag = UPC
 					}
-					has_cosmetic_tag = UPC
+					is_faction_leader = yes
+				}
+			}
+			### factions override all alignments
+			AND = {
+				is_in_faction_with = SZC
+				SZC = {
+					OR = {
+						SZC_federalists_in_exile = yes
+						has_cosmetic_tag = UPC
+					}
+					is_faction_leader = yes
 				}
 			}
 		}
@@ -456,6 +520,14 @@ is_ruled_by_federalists = {
 						ruling_only = yes
 					}
 					has_cosmetic_tag = UPC
+				}
+			}
+			AND = {
+				tag = SZC
+				OR = {
+					SZC_federalists_in_exile = yes
+					has_cosmetic_tag = UPC
+					has_country_flag = SZC_alliance_GXC
 				}
 			}
 			AND = {
@@ -563,6 +635,18 @@ kmt_failure = {
 			}
 		}
 	}
+	else_if = {
+		limit = { tag = HNN }
+		OR = {
+			CHI = { has_country_flag = HNN_kmt_refuse }
+			HNN = {
+				NOT = {
+					has_government = social_democrat
+					has_government = social_liberal
+				}
+			}
+		}
+	}
 	else = { always = no }
 }
 
@@ -594,11 +678,11 @@ german_alligned_chinese_tag_controlled = {
 		tooltip = german_alligned_chinese_tag_controlled_tooltip
 		OR = {
 			is_controlled_by = LEP
-			is_controlled_by = AOG
 			AND = {
 				is_controlled_by = QIE
 				QIE = { has_country_flag = wu_intervenes_proLEP }
 			}
+			is_controlled_by = AOG
 		}
 	}
 }
