@@ -10,5 +10,5 @@ dependencies={
 	"Kaiserreich Dev Build"
 	"Kaiserreich"
 }
-supported_version="1.9.1"
+supported_version="1.9.*"
 path="C:/Users/User/Documents/Paradox Interactive/Hearts of Iron IV/mod/kx"
