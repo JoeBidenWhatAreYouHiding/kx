@@ -1,4 +1,4 @@
-name="Kaiserredux"
+name ="Kaiserredux"
 version="0.01"
 tags={
 	"Alternative History"
@@ -7,7 +7,6 @@ tags={
 	"National Focuses"
 }
 dependencies={
-	"Kaiserreich Dev Build"
 	"Kaiserreich"
 }
 supported_version="1.9.*"
