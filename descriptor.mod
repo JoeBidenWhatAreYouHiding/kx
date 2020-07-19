@@ -7,6 +7,7 @@ tags={
 	"National Focuses"
 }
 dependencies={
+	"Kaiserreich Dev Build"
 	"Kaiserreich"
 	"Kaiserreich Dev Build"
 }
