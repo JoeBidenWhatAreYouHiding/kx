@@ -1,0 +1,291 @@
+on_actions = {
+	on_startup = {
+		effect = {
+			PRI = {
+				country_event = {
+					id = pri.205
+					days = 1433
+				}
+			}
+		}
+	}
+	
+	#ROOT is winner #FROM gets annexed - For civil wars on_civil_war_end is also fired
+	on_annex = {
+		effect = {
+			if = {
+				limit = {
+					FROM = { has_country_flag = ACW_has_deal_with_devil }
+				}
+				clr_global_flag = ACW_deal_with_devil
+				FROM = { clr_country_flag = ACW_has_deal_with_devil }
+				every_country = {
+					limit = { has_country_flag = ACW_deal_with_devil_@FROM }
+					clr_country_flag = ACW_has_deal_with_devil
+					clr_country_flag = ACW_deal_with_devil_@FROM
+					FROM = { clr_country_flag = ACW_deal_with_devil_@PREV }
+				}
+			}
+			if = {
+				limit = {
+					tag = USA
+					FROM = {
+						OR = {
+							is_american_tag = yes
+							tag = CAN
+						}
+					}
+				}
+				country_event = {
+					id = ustates.124 #America is Reunited
+					days = 10
+				}
+			}
+		}
+	}
+
+	# ROOT is capitulated country, FROM is winner
+	on_capitulation = {
+		effect = {
+			### JAP-INT peace over HAW
+			if = {
+				limit = {
+					tag = HAW
+					has_war_with = JAP
+					is_in_faction = yes
+				}
+				JAP = { activate_mission = JAP_hold_hawaii }
+			}
+		}
+	}
+
+	#FROM is war target
+	on_declare_war = {
+		effect = {
+			# Clear ceasefire global flag
+			if = {
+				limit = {
+					has_global_flag = PSA_rockies_ceasefire
+					OR = {
+						tag = USA
+						tag = CAL
+						tag = TEX
+						tag = CSA
+						tag = COR
+						tag = WCC
+					}
+					FROM = {
+						OR = {
+							tag = USA
+							tag = CAL
+							tag = TEX
+							tag = CSA
+							tag = COR
+							tag = WCC
+						}
+					}
+				}
+				clr_global_flag = PSA_rockies_ceasefire
+			}
+			
+			# Clear Deal with the Devil flags
+			if = {
+				limit = {
+					FROM = {
+						has_country_flag = ACW_has_deal_with_devil
+						has_country_flag = ACW_deal_with_devil_@ROOT
+					}
+				}
+				clr_global_flag = ACW_deal_with_devil
+				FROM = {
+					clr_country_flag = ACW_has_deal_with_devil
+					clr_country_flag = ACW_deal_with_devil_@ROOT
+				}
+				ROOT = {
+					clr_country_flag = ACW_has_deal_with_devil
+					clr_country_flag = ACW_deal_with_devil_@FROM
+				}
+				if = {
+					limit = {
+						CAN = {
+							has_country_flag = CAN_deal_with_devil_@ROOT
+							NOT = {
+								has_war_with = ROOT
+								has_war_with = FROM
+							}
+						}
+					}
+					save_event_target_as = can_ally
+					FROM = { save_event_target_as = can_enemy }
+					CAN = {
+						country_event = { id = amcivwar.526 hours = 4 }
+					}
+				}
+				else_if = {
+					limit = {
+						CAN = {
+							has_country_flag = CAN_deal_with_devil_@FROM
+							NOT = {
+								has_war_with = ROOT
+								has_war_with = FROM
+							}
+						}
+					}
+					save_event_target_as = can_enemy
+					FROM = { save_event_target_as = can_ally }
+					CAN = {
+						country_event = { id = amcivwar.526 hours = 4 }
+					}
+				}
+			}
+
+			# Attacking an American country post-ACW while it's in recovery
+			if = {
+				limit = {
+					ROOT = {
+						NOT = {
+							tag = USA
+							tag = CAL
+							tag = TEX
+							tag = CSA
+							tag = COR
+							tag = WCC
+						}
+					}
+					FROM = {
+						OR = {
+							tag = USA
+							tag = CAL
+							tag = TEX
+							tag = CSA
+							tag = COR
+							tag = WCC
+						}
+						OR = {
+							has_idea = USA_civil_war_war_aftermath_idea
+							has_idea = USA_civil_war_war_aftermath_idea2
+							has_idea = USA_civil_war_war_aftermath_idea3
+							has_idea = USA_civil_war_war_aftermath_idea4
+							has_idea = USA_civil_war_war_aftermath_idea5
+						}
+						NOT = { has_country_flag = ACW_attacked_during_recovery }
+					}
+				}
+				FROM = {
+					set_country_flag = ACW_attacked_during_recovery
+					country_event = amcivwar.615
+				}
+			}
+		}
+	}
+
+	on_government_change = {
+		effect = {
+			if = {
+				limit = {
+					tag = HAW
+					OR = {
+						has_country_flag = HAW_monarchy_restored
+						has_country_flag = HAW_republic_declared
+						has_country_flag = HAW_revolution_commune_declared
+					}
+				}
+				if = {
+					limit = {
+						has_country_flag = HAW_revolution_commune_declared
+						has_socialist_government = no
+					}
+					clr_country_flag = HAW_revolution_commune_declared
+					set_country_flag = HAW_republic_declared
+				}
+				else_if = {
+					limit = {
+						NOT = { has_country_flag = HAW_revolution_commune_declared }
+						has_socialist_government = yes
+					}
+					set_country_flag = HAW_revolution_commune_declared
+					clr_country_flag = HAW_monarchy_restored
+					clr_country_flag = HAW_republic_declared
+				}
+				else_if = {
+					limit = {
+						has_country_flag = HAW_monarchy_restored
+						has_elected_government = no
+					}
+					clr_country_flag = HAW_monarchy_restored
+					set_country_flag = HAW_republic_declared
+				}
+			}
+		}
+	}
+	
+	on_new_term_election = {
+		effect = {
+			### Pacific States of America ###
+			if = {
+				limit = { tag = CAL }
+				country_event = pacificstates.6
+				country_event = pacificstates.11
+				country_event = pacificstates.16
+				country_event = pacificstates.21
+			}
+			### Combined Syndicates of America ###
+			if = {
+				limit = { tag = CSA }
+				country_event = csa.30
+				country_event = csa.33
+				country_event = csa.36
+				country_event = csa.51
+			}
+			### Hawaii ###
+			if = {
+				limit = { tag = HAW }
+				country_event = hawaii.27
+				country_event = hawaii.34
+				country_event = hawaii.64
+			}
+			### New England ###
+			if = {
+				limit = { tag = NEE }
+				country_event = newengland.24
+				country_event = newengland.28
+				country_event = newengland.32
+				country_event = newengland.37
+			}
+			### American Union State ###
+			if = {
+				limit = { tag = TEX }
+				country_event = unionstate.10
+			}
+			### United States of America ###
+			if = {
+				limit = { tag = USA }
+				country_event = ustates.34
+				country_event = ustates.203
+				country_event = ustates.207
+				country_event = ustates.213
+				country_event = ustates.218
+			}
+		}
+	}
+
+	on_peace = {
+		effect = {
+			#Remove emergency USA units
+			if = {
+				limit = {
+					OR = {
+						tag = USA
+						tag = CAL
+						tag = TEX
+						tag = CSA
+						tag = COR
+						tag = WCC
+					}
+					has_country_flag = ACW_attacked_during_recovery
+				}
+				country_event = { id = amcivwar.616 days = 2 random_days = 3 }
+			}
+		}
+	}
+}

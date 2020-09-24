@@ -1,0 +1,939 @@
+###########################
+# Spain-FAI Focus Tree
+# By Rylock
+###########################
+
+focus_tree = {
+	id = CNT_focus
+	country = {
+		factor = 0
+		modifier = {
+			add = 10
+			tag = CNT
+		}
+	}
+	default = no
+	continuous_focus_position = { x = 525 y = 1000 }
+
+	### Rise to Power
+
+	focus = {
+		id = CNT_election_success
+		icon = GFX_goal_white_star
+		available = {
+			OR = {
+				custom_trigger_tooltip = {
+					tooltip = CNT_won_election
+					has_country_flag = election_success
+				}
+				custom_trigger_tooltip = {
+					tooltip = CNT_released_after_annexation
+					has_country_flag = released_after_annexation
+				}
+			}
+		}
+		mutually_exclusive = { focus = CNT_aftermath_of_civil_war }
+		x = 7
+		y = 0
+		cost = 2
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		bypass = {
+			has_country_flag = released_after_annexation
+		}
+
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus CNT_election_success"
+			add_political_power = 200
+		}
+		search_filters = { FOCUS_FILTER_POLITICAL }
+	}
+
+	focus = {
+		id = CNT_aftermath_of_civil_war
+		icon = GFX_goal_generic_major_war
+		available = {
+			custom_trigger_tooltip = {
+				tooltip = SPR_civil_war_happened
+				has_global_flag = spanish_civil_war
+			}
+			NOT = { country_exists = SPR }
+			NOT = { country_exists = CAR }
+		}
+		mutually_exclusive = { focus = CNT_election_success }
+		relative_position_id = CNT_election_success
+		x = 2
+		y = 0
+		cost = 2
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus CNT_aftermath_of_civil_war"
+			country_event = sprc.220
+		}
+	}
+
+	focus = {
+		id = CNT_consolidating_spain
+		icon = GFX_goal_anarcho_communism
+		prerequisite = {
+			focus = CNT_election_success
+			focus = CNT_aftermath_of_civil_war
+		}
+		relative_position_id = CNT_election_success
+		x = 1
+		y = 1
+		cost = 10
+		ai_will_do = {
+			factor = 100
+		}
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus CNT_consolidating_spain"
+			if = {
+				limit = { has_idea = SPR_social_breakdown }
+				remove_ideas = SPR_social_breakdown
+			}
+			if = {
+				limit = { has_idea = SPR_social_breakdown_2 }
+				remove_ideas = SPR_social_breakdown_2
+			}
+			if = {
+				limit = { has_idea = SPR_social_breakdown_3 }
+				remove_ideas = SPR_social_breakdown_3
+			}
+			custom_effect_tooltip = CAR_remove_cores_SPR
+			custom_effect_tooltip = CAR_remove_cores_CAR
+			hidden_effect = {
+				every_state = {
+					limit = { is_core_of = SPR }
+					add_core_of = CNT
+					remove_core_of = SPR
+				}
+				every_state = {
+					limit = { is_core_of = CAR }
+					add_core_of = CNT
+					remove_core_of = CAR
+				}
+				every_state = {
+					limit = {
+						is_claimed_by = SPR
+						NOT = { is_core_of = CNT }
+						NOT = { is_claimed_by = CNT }
+					}
+					add_claim_by = CNT
+				}
+				every_state = {
+					limit = { is_claimed_by = SPR }
+					remove_claim_by = SPR
+				}
+				every_state = {
+					limit = { is_claimed_by = CAR }
+					remove_claim_by = CAR
+				}
+				country_event = sprc.326
+			}
+		}
+		search_filters = { FOCUS_FILTER_ANNEXATION }
+	}
+
+
+### Internal Policies
+
+	focus = {
+		id = CNT_domestic_focus
+		icon = GFX_goal_generic_dangerous_deal
+		prerequisite = { focus = CNT_consolidating_spain }
+		relative_position_id = CNT_election_success
+		x = -6
+		y = 2
+		cost = 10
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus CNT_domestic_focus"
+			add_ideas = CNT_domestic_focus
+		}
+		search_filters = { FOCUS_FILTER_STABILITY }
+	}
+
+	focus = {
+		id = CNT_oppress_opposition
+		icon = GFX_goal_generic_political_pressure
+		prerequisite = { focus = CNT_domestic_focus }
+		mutually_exclusive = { focus = CNT_reconcile_opposition }
+		relative_position_id = CNT_election_success
+		x = -7
+		y = 3
+		cost = 10
+
+		ai_will_do = {
+			factor = 60
+		}
+
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus CNT_oppress_opposition"
+			add_political_power = -50
+			add_stability = 0.05
+		}
+		search_filters = { FOCUS_FILTER_POLITICAL FOCUS_FILTER_STABILITY }
+	}
+
+	focus = {
+		id = CNT_reconcile_opposition
+		icon = GFX_goal_generic_national_unity
+		prerequisite = { focus = CNT_domestic_focus }
+		mutually_exclusive = { focus = CNT_oppress_opposition }
+		relative_position_id = CNT_election_success
+		x = -5
+		y = 3
+		cost = 10
+		ai_will_do = {
+			factor = 100
+		}
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus CNT_reconcile_opposition"
+			add_political_power = 50
+			add_stability = -0.05
+		}
+		search_filters = { FOCUS_FILTER_POLITICAL FOCUS_FILTER_STABILITY }
+	}
+
+	focus = {
+		id = CNT_home_rule
+		icon = GFX_goal_generic_major_alliance
+		prerequisite = {
+			focus = CNT_oppress_opposition
+			focus = CNT_reconcile_opposition
+		}
+		relative_position_id = CNT_election_success
+		x = -6
+		y = 4
+		cost = 10
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus CNT_home_rule"
+			add_political_power = 100
+			add_stability = 0.10
+		}
+		search_filters = { FOCUS_FILTER_POLITICAL FOCUS_FILTER_STABILITY }
+	}
+
+	### Industrial Reforms
+
+	focus = {
+		id = CNT_industrial_focus
+		icon = GFX_goal_generic_production
+		prerequisite = { focus = CNT_consolidating_spain }
+		relative_position_id = CNT_election_success
+		x = -2
+		y = 2
+		cost = 10
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus CNT_industrial_focus"
+			add_ideas = CNT_industrial_focus
+		}
+		search_filters = { FOCUS_FILTER_INDUSTRY }
+	}
+
+	focus = {
+		id = CNT_industry_focus_1
+		icon = GFX_goal_FRA_develop_CNT
+		prerequisite = { focus = CNT_industrial_focus }
+		available = {
+			OR = {
+				165 = { is_owned_and_controlled_by = CNT } #Catalonia
+				166 = { is_owned_and_controlled_by = CNT } #Aragon
+				167 = { is_owned_and_controlled_by = CNT } #Valencia
+			}
+		}
+		relative_position_id = CNT_election_success
+		x = -3
+		y = 3
+		cost = 10
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		bypass = {
+			NOT = { owns_state = 165 }
+			NOT = { owns_state = 166 }
+			NOT = { owns_state = 167 }
+		}
+
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus CNT_industry_focus_1"
+			165 = {
+				add_extra_state_shared_building_slots = 2
+				add_building_construction = { type = industrial_complex level = 2 instant_build = yes }
+			}
+			166 = {
+				add_extra_state_shared_building_slots = 1
+				add_building_construction = { type = industrial_complex level = 1 instant_build = yes }
+			}
+		}
+		search_filters = { FOCUS_FILTER_INDUSTRY }
+	}
+
+	focus = {
+		id = CNT_industry_focus_2
+		icon = GFX_goal_FRA_develop_CNT
+		prerequisite = { focus = CNT_industry_focus_1 }
+		available = {
+			OR = {
+				172 = { is_owned_and_controlled_by = CNT } #Navarre
+				176 = { is_owned_and_controlled_by = CNT } #Castille
+				171 = { is_owned_and_controlled_by = CNT } #Galicia
+				174 = { is_owned_and_controlled_by = CNT } #Leon
+			}
+		}
+		relative_position_id = CNT_election_success
+		x = -3
+		y = 4
+		cost = 10
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		bypass = {
+			NOT = { owns_state = 172 }
+			NOT = { owns_state = 176 }
+			NOT = { owns_state = 171 }
+			NOT = { owns_state = 174 }
+		}
+
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus CNT_industry_focus_2"
+			172 = {
+				add_extra_state_shared_building_slots = 1
+				add_building_construction = { type = dockyard level = 1 instant_build = yes }
+			}
+			174 = {
+				add_extra_state_shared_building_slots = 1
+				add_building_construction = { type = dockyard level = 1 instant_build = yes }
+			}
+		}
+		search_filters = { FOCUS_FILTER_INDUSTRY }
+	}
+
+	focus = {
+		id = CNT_industry_focus_3
+		icon = GFX_goal_FRA_develop_CNT
+		prerequisite = { focus = CNT_industry_focus_2 }
+		available = {
+			OR = {
+				41 = { is_owned_and_controlled_by = CNT } #Madrid
+				175 = { is_owned_and_controlled_by = CNT } #La Mancha
+			}
+		}
+		relative_position_id = CNT_election_success
+		x = -3
+		y = 5
+		cost = 10
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		bypass = {
+			NOT = { owns_state = 41 }
+			NOT = { owns_state = 175 }
+		}
+
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus CNT_industry_focus_3"
+			41 = {
+				add_extra_state_shared_building_slots = 1
+				add_building_construction = { type = arms_factory level = 1 instant_build = yes }
+			}
+			175 = {
+				add_extra_state_shared_building_slots = 1
+				add_building_construction = { type = arms_factory level = 1 instant_build = yes }
+			}
+		}
+		search_filters = { FOCUS_FILTER_INDUSTRY }
+	}
+
+	focus = {
+		id = CNT_mining_focus_1
+		icon = GFX_goal_chromium
+		prerequisite = { focus = CNT_industrial_focus }
+		available = {
+			169 = { is_owned_and_controlled_by = CNT }
+		}
+		relative_position_id = CNT_election_success
+		x = -1
+		y = 3
+		cost = 10
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		bypass = {
+			NOT = { owns_state = 169}
+		}
+
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus CNT_mining_focus_1"
+			169 = {
+				add_building_construction = { type = infrastructure level = 2 instant_build = yes }
+				add_resource = { type = chromium amount = 8 }
+			}
+		}
+		search_filters = { FOCUS_FILTER_INDUSTRY }
+	}
+
+	focus = {
+		id = CNT_mining_focus_2
+		icon = GFX_focus_generic_tungsten
+		prerequisite = { focus = CNT_mining_focus_1 }
+		available = {
+			170 = { is_owned_and_controlled_by = CNT }
+		}
+		relative_position_id = CNT_election_success
+		x = -1
+		y = 4
+		cost = 10
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		bypass = {
+			NOT = { owns_state = 170}
+		}
+
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus CNT_mining_focus_2"
+			170 = {
+				add_building_construction = { type = infrastructure level = 2 instant_build = yes }
+				add_resource = { type = tungsten amount = 16 }
+			}
+		}
+		search_filters = { FOCUS_FILTER_INDUSTRY }
+	}
+
+	focus = {
+		id = CNT_mining_focus_3
+		icon = GFX_focus_generic_aluminum
+		prerequisite = { focus = CNT_mining_focus_2 }
+		available = {
+			41 = { is_owned_and_controlled_by = CNT }
+		}
+		relative_position_id = CNT_election_success
+		x = -1
+		y = 5
+		cost = 10
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		bypass = {
+			NOT = { owns_state = 41 }
+		}
+
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus CNT_mining_focus_3"
+			41 = {
+				add_building_construction = { type = infrastructure level = 2 instant_build = yes }
+				add_resource = { type = aluminium amount = 8 }
+			}
+		}
+		search_filters = { FOCUS_FILTER_INDUSTRY }
+	}
+
+	focus = {
+		id = CNT_helping_hand_focus
+		icon = GFX_goal_generic_national_unity
+		prerequisite = { focus = CNT_industry_focus_3 }
+		prerequisite = { focus = CNT_mining_focus_3 }
+		relative_position_id = CNT_election_success
+		x = -2
+		y = 6
+		cost = 10
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus CNT_helping_hand_focus"
+			remove_ideas = SPR_black_monday
+		}
+		search_filters = { FOCUS_FILTER_POLITICAL }
+	}
+
+	### Technology
+	focus = {
+		id = CNT_militia_focus
+		icon = GFX_goal_generic_military_sphere
+		prerequisite = { focus = CNT_industrial_focus }
+		prerequisite = { focus = CNT_military_focus }
+		relative_position_id = CNT_election_success
+		x = 1
+		y = 3
+		cost = 10
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus CNT_militia_focus"
+			add_ideas = CNT_militia_focus
+		}
+		search_filters = { FOCUS_FILTER_MANPOWER }
+	}
+
+	focus = {
+		id = CNT_radio_focus
+		prerequisite = { focus = CNT_militia_focus }
+		icon = GFX_goal_generic_radar
+		relative_position_id = CNT_election_success
+		x = 1
+		y = 4
+		cost = 10
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus CNT_radio_focus"
+			add_ideas = CNT_radio_focus
+			add_research_slot = 1
+		}
+		search_filters = { FOCUS_FILTER_RESEARCH FOCUS_FILTER_STABILITY }
+	}
+
+	focus = {
+		id = CNT_propaganda_focus
+		icon = GFX_goal_generic_propaganda
+		prerequisite = { focus = CNT_radio_focus }
+		relative_position_id = CNT_election_success
+		x = 1
+		y = 5
+		cost = 10
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus CNT_propaganda_focus"
+			add_ideas = CNT_propaganda_focus
+		}
+		search_filters = { FOCUS_FILTER_WAR_SUPPORT FOCUS_FILTER_ARMY_BONUS }
+	}
+
+	focus = {
+		id = CNT_school_focus
+		icon = GFX_focus_research
+		prerequisite = { focus = CNT_propaganda_focus }
+		relative_position_id = CNT_election_success
+		x = 1
+		y = 6
+		cost = 10
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus CNT_school_focus"
+			add_research_slot = 1
+		}
+		search_filters = { FOCUS_FILTER_RESEARCH }
+	}
+
+	### Military Reforms
+
+	focus = {
+		id = CNT_military_focus
+		icon = GFX_goal_generic_fortify_city
+		prerequisite = { focus = CNT_consolidating_spain }
+		relative_position_id = CNT_election_success
+		x = 4
+		y = 2
+		cost = 10
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus CNT_military_focus"
+			add_ideas = CNT_military_focus
+		}
+		search_filters = { FOCUS_FILTER_ARMY_BONUS }
+	}
+
+	focus = {
+		id = CNT_standing_army_focus
+		icon = GFX_goal_generic_build_tank
+		prerequisite = { focus = CNT_military_focus }
+		mutually_exclusive = { focus = CNT_mobile_army_focus }
+		relative_position_id = CNT_election_success
+		x = 3
+		y = 3
+		cost = 10
+
+		ai_will_do = {
+			factor = 20
+			modifier = {
+				factor = 0
+				already_has_other_doctrine_SF = yes
+			}
+		}
+
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus CNT_standing_army_focus"
+			add_tech_bonus = {
+				name = CNT_standing_army_focus
+				bonus = 1
+				uses = 1
+				category = cat_superior_firepower
+			}
+		}
+		search_filters = { FOCUS_FILTER_RESEARCH }
+	}
+
+	focus = {
+		id = CNT_infantry_weapon_focus
+		icon = GFX_goal_generic_small_arms
+		prerequisite = {
+			focus = CNT_standing_army_focus
+			focus = CNT_mobile_army_focus
+		}
+		relative_position_id = CNT_election_success
+		x = 3
+		y = 4
+		cost = 10
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus CNT_infantry_weapon_focus"
+			add_tech_bonus = {
+				name = CNT_infantry_weapon_focus
+				bonus = 1
+				uses = 1
+				category = infantry_weapons
+			}
+		}
+		search_filters = { FOCUS_FILTER_RESEARCH }
+	}
+
+	focus = {
+		id = CNT_artillery_focus
+		icon = GFX_goal_generic_army_artillery2
+		prerequisite = { focus = CNT_infantry_weapon_focus }
+		relative_position_id = CNT_election_success
+		x = 3
+		y = 5
+		cost = 10
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus CNT_artillery_focus"
+			add_tech_bonus = {
+				name = CNT_artillery_focus
+				bonus = 1
+				uses = 1
+				category = artillery
+			}
+		}
+		search_filters = { FOCUS_FILTER_RESEARCH }
+	}
+
+	focus = {
+		id = CNT_mobile_army_focus
+		icon = GFX_goal_generic_production2
+		prerequisite = { focus = CNT_military_focus }
+		mutually_exclusive = { focus = CNT_standing_army_focus }
+		relative_position_id = CNT_election_success
+		x = 5
+		y = 3
+		cost = 10
+
+		ai_will_do = {
+			factor = 80
+			modifier = {
+				factor = 0
+				already_has_other_doctrine_MW = yes
+			}
+		}
+
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus CNT_mobile_army_focus"
+			add_tech_bonus = {
+				name = CNT_mobile_army_focus
+				bonus = 1
+				uses = 1
+				category = cat_mobile_warfare
+			}
+		}
+		search_filters = { FOCUS_FILTER_RESEARCH }
+	}
+
+	focus = {
+		id = CNT_motorisation_focus
+		icon = GFX_goal_generic_army_motorized
+		prerequisite = {
+			focus = CNT_standing_army_focus
+			focus = CNT_mobile_army_focus
+		}
+		relative_position_id = CNT_election_success
+		x = 5
+		y = 4
+		cost = 10
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus CNT_motorisation_focus"
+			add_tech_bonus = {
+				name = CNT_motorisation_focus
+				bonus = 1
+				uses = 1
+				technology = motorised_infantry
+			}
+		}
+		search_filters = { FOCUS_FILTER_RESEARCH }
+	}
+
+	focus = {
+		id = CNT_tank_focus
+		icon = GFX_goal_generic_army_tanks
+		prerequisite = { focus = CNT_motorisation_focus }
+		relative_position_id = CNT_election_success
+		x = 5
+		y = 5
+		cost = 10
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus CNT_tank_focus"
+			add_tech_bonus = {
+				name = CNT_tank_focus
+				bonus = 1
+				uses = 1
+				category = armor
+			}
+		}
+		search_filters = { FOCUS_FILTER_RESEARCH }
+	}
+
+	focus = {
+		id = CNT_army_innovation_focus
+		icon = GFX_goal_generic_army_doctrines
+		prerequisite = {
+			focus = CNT_artillery_focus
+			focus = CNT_tank_focus
+		}
+		relative_position_id = CNT_election_success
+		x = 4
+		y = 6
+		cost = 10
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus CNT_army_innovation_focus"
+			add_ideas = CNT_army_innovation_focus
+		}
+	}
+
+	### Foreign Policies
+
+	focus = {
+		id = CNT_foreign_focus
+		icon = GFX_goal_generic_position_armies
+		prerequisite = { focus = CNT_consolidating_spain }
+		relative_position_id = CNT_election_success
+		x = 8
+		y = 2
+		cost = 1
+
+		ai_will_do = {
+			factor = 1000
+		}
+
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus CNT_foreign_focus"
+			add_ideas = CNT_foreign_focus
+		}
+		search_filters = { FOCUS_FILTER_WAR_SUPPORT FOCUS_FILTER_ANNEXATION }
+	}
+
+	focus = {
+		id = CNT_join_france
+		icon = GFX_goal_comfrance
+		available = {
+			is_subject = no
+			is_in_faction = no
+			FRA = { is_faction_leader = yes }
+			OR = {
+				has_war = no
+				any_enemy_country = { has_war_with = FRA }
+			}
+		}
+		prerequisite = { focus = CNT_foreign_focus }
+		relative_position_id = CNT_election_success
+		x = 7
+		y = 3
+		cost = 10
+
+		ai_will_do = {
+			factor = 1000
+		}
+
+		bypass = {
+			is_in_faction = yes
+		}
+
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus CNT_join_france"
+			### TODO: add event
+			FRA = {
+				add_to_faction = CNT
+			}
+			add_ai_strategy = {
+				type = alliance
+				id = "FRA"
+				value = 200
+			}
+		}
+	}
+
+	focus = {
+		id = CNT_join_french_war
+		icon = GFX_goal_generic_major_war
+		available = {
+			is_subject = no
+			has_war = no
+			has_socialist_government = yes
+			FRA = {
+				has_socialist_government = yes
+				has_war_with = GER
+			}
+		}
+		prerequisite = { focus = CNT_join_france }
+		relative_position_id = CNT_election_success
+		x = 7
+		y = 4
+		cost = 2
+
+		ai_will_do = {
+			factor = 80
+		}
+
+		will_lead_to_war_with = GER
+
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus CNT_join_french_war"
+			declare_war_on = {
+				target = GER
+				type = annex_everything
+			}
+		}
+		search_filters = { FOCUS_FILTER_ANNEXATION }
+	}
+
+	focus = {
+		id = CNT_portugal
+		icon = GFX_goal_portugal
+		available = {
+			is_subject = no
+			controls_all_owned_states = yes
+			has_socialist_government = yes
+			country_exists = POR
+			POR = {
+				is_subject = no
+				has_socialist_government = no
+			}
+		}
+		prerequisite = { focus = CNT_foreign_focus }
+		relative_position_id = CNT_election_success
+		x = 9
+		y = 3
+		cost = 3
+		will_lead_to_war_with = POR
+
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0
+				has_war = yes
+				any_enemy_country = {
+					strength_ratio = { tag = CNT ratio > 0.75 }
+				}
+			}
+			modifier = {
+				factor = 0
+				strength_ratio = { tag = POR ratio < 2.0 }
+			}
+			modifier = {
+				factor = 0
+				is_in_faction = no
+				POR = { is_in_faction = yes }
+			}
+			modifier = {
+				factor = 10
+				POR = {
+					is_in_faction = no
+					OR = {
+						NOT = { is_guaranteed_by = CAN }
+						CAN = { has_war_with = GER }
+						CAN = { has_war_with = ENG }
+						CAN = { has_war_with = FRA }
+					}
+				}
+			}
+		}
+
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus CNT_portugal"
+			add_political_power = 50
+			create_wargoal = {
+				type = annex_everything
+				target = POR
+			}
+		}
+		search_filters = { FOCUS_FILTER_ANNEXATION FOCUS_FILTER_POLITICAL }
+	}
+}
+

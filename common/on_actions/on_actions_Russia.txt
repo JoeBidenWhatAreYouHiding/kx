@@ -1,0 +1,217 @@
+on_actions = {
+	on_startup = {
+		effect = {
+			#Russian integration arrays
+			for_each_scope_loop = {
+				array = UKR.owned_states
+				if = {
+					limit = { region = 130 } #Western Ukraine
+					add_to_array = { global.RUS_western_ukraine_region = THIS }
+				}
+				if = {
+					limit = { region = 165 } #Eastern Ukraine
+					add_to_array = { global.RUS_eastern_ukraine_region = THIS }
+				}
+			}
+			for_each_scope_loop = {
+				array = DKB.owned_states
+				add_to_array = { global.RUS_kuban_region = THIS }
+			}
+			for_each_scope_loop = {
+				array = ALO.owned_states
+				add_to_array = { global.RUS_kazakhstan_region = THIS }
+			}
+			for_each_scope_loop = {
+				array = TRK.owned_states
+				add_to_array = { global.RUS_turkestan_region = THIS }
+			}
+		}
+	}
+
+	#ROOT is winner #FROM gets annexed - For civil wars on_civil_war_end is also fired
+	on_annex = {
+		effect = {
+			if = {
+				limit = {
+					tag = TRK
+					FROM = { tag = ALO }
+				}
+				country_event = {
+					id = turkestan.9
+					days = 30
+					random = 720
+				}
+			}
+		}
+	}
+
+	# ROOT is capitulated country, FROM is winner
+	on_capitulation = {
+		effect = {
+			#Russian-Bulgarian alliance
+			if = {
+				limit = {
+					tag = BUL
+					is_in_faction_with = RUS
+					NOT = {
+						any_of_scopes = {
+							array = RUS.faction_members
+							is_subject = no
+						}
+					}
+				}
+				RUS = {
+					country_event = { id = bulgaria.99 months = 2 }
+				}
+			}
+
+			# Disband the Russian Academy of Sciences
+			if = {
+				limit = {
+					tag = RUS
+					is_in_tech_sharing_group = russian_research
+				}
+				remove_from_tech_sharing_group = russian_research
+				every_other_country = {
+					limit = { is_in_tech_sharing_group = russian_research }
+					remove_from_tech_sharing_group = russian_research
+				}
+			}
+		}
+	}
+
+	on_declare_war = {
+		effect = {
+			# Great Patriotic War (event)
+			if = {
+				limit = {
+					OR = {
+						AND = {
+							tag = RUS
+							FROM = {
+								OR = {
+									tag = GER
+									tag = FRA
+								}
+							}
+						}
+						AND = {
+							OR = {
+								tag = GER
+								tag = FRA
+							}
+							FROM = { tag = RUS }
+						}
+					}
+				}
+				RUS = {
+					country_event = {
+						id = rusfor.51
+						days = 3
+					}
+				}
+			}
+		}
+	}
+
+	#ROOT is winner #FROM is loser
+	on_peaceconference_ended = {
+		effect = {
+			if = {
+				limit = {
+					ROOT = { tag = SOV }
+					FROM = { tag = RUS }
+				}
+				ROOT = {
+					country_event = { id = russia.1949 days = 1 random = 30 }
+				}
+			}
+			if = {
+				limit = {
+					ROOT = { tag = RUS }
+					FROM = { tag = SOV }
+				}
+				ROOT = {
+					country_event = { id = russia.1951 days = 1 random = 30 }
+				}
+			}
+		}
+	}
+	
+	#ROOT is new controller #FROM is old controller #FROM.FROM is state ID
+	on_state_control_changed = {
+		effect = {
+			### RUS/SOV control array
+			if = {
+				limit = {
+					OR = {
+						tag = RUS
+						tag = SOV
+					}
+					NOT = { is_in_array = { ROOT.enemy_controlled_states = FROM.FROM } }
+					FROM.FROM = {
+						owner = { has_war_with = ROOT }
+						OR = {
+							is_on_continent = europe
+							is_on_continent = middle_east
+						}
+					}
+				}
+				set_country_flag = has_enemy_control_array
+				add_to_array = { ROOT.enemy_controlled_states = FROM.FROM }
+			}
+
+			### A New 1812/1328 (event)
+			if = {
+				limit = {
+					FROM = { tag = RUS }
+					FROM.FROM = {
+						OR = {
+							state = 252
+							state = 255
+							state = 205
+							state = 242
+							state = 246
+						}
+					}
+				}
+				FROM = {
+					country_event = {
+						id = rusfor.51
+						hours = 6
+					}
+				}
+			}
+
+			# Fall of Yekaterinburg (event)
+			if = {
+				limit = {
+					tag = SOV
+					FROM = { tag = RUS }
+					FROM.FROM = { state = 653 } #Yekaterinburg
+					ROOT = { controls_province = 6338 }
+				}
+				country_event = russia.1947
+				FROM = { country_event = russia.1948 }
+			}
+			
+			# RUS-FIN peace
+			if = {
+				limit = {
+					OR = {
+						is_russian_tag = yes
+						tag = FIN
+					}
+					has_war_with = FROM
+					FROM = {
+						OR = {
+							is_russian_tag = yes
+							tag = FIN
+						}
+					}
+				}
+				FIN = { country_event = rusfor.1232 }
+			}
+		}
+	}
+}

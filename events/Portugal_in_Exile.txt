@@ -1,0 +1,606 @@
+﻿###########################
+# Portugal in Exile Events
+# Don't merge this file into the base Portugal file, it's separate to avoid merge issues
+###########################
+
+add_namespace = portugal_exile
+
+country_event = { #Portugal's Last Stand
+	id = portugal_exile.1
+	immediate = { log = "[GetDateText]: [Root.GetName]: event portugal_exile.1" }
+	title = portugal_exile.1.t
+	desc = portugal_exile.1.d
+
+	fire_only_once = yes
+	is_triggered_only = yes
+
+	option = {
+		name = portugal_exile.1.a
+		add_war_support = 0.2
+		add_ideas = POR_last_stand
+	}
+}
+
+country_event = { #The Fall of Portugal
+	id = portugal_exile.2
+	immediate = { log = "[GetDateText]: [Root.GetName]: event portugal_exile.2" }
+	title = portugal_exile.2.t
+	desc = portugal_exile.2.d
+
+	fire_only_once = yes
+	is_triggered_only = yes
+
+	trigger = {
+		NOT = {
+			controls_state = 112 #Lisbon
+			controls_state = 179 #Beja
+			controls_state = 180 #Porto
+			controls_state = 181 #Guarda
+		}
+	}
+
+	option = {
+		name = portugal_exile.2.a
+		### Remove the idea
+		remove_ideas = POR_last_stand
+
+		### End the Bush War, if it's ongoing
+		MAF = {
+			if = {
+				limit = { has_idea = MAF_border_shit_show }
+				country_event = portugal_exile.6
+			}
+		}
+
+		### Transfer all mainland states to whoever controls Lisbon (or its overlord if a subject)
+		every_owned_state = {
+			limit = {
+				OR = {
+					region = 236 #Southern Iberia
+					region = 237 #Western Iberia
+				}
+			}
+			112 = {
+				controller = {
+					if = {
+						limit = { is_subject = yes }
+						overlord = { transfer_state = PREV.PREV.PREV }
+					}
+					else = {
+						transfer_state = PREV.PREV
+					}
+				}
+			}
+		}
+
+		### Peace out whoever controls Lisbon and POR, if POR is not in the Entente
+		if = {
+			limit = { is_valid_peace_target = yes }
+			112 = {
+				controller = { white_peace_with_ROOT = yes }
+			}
+			### Prompt POR to join the Entente, if it exists
+			hidden_effect = {
+				if = {
+					limit = {
+						ENT = { is_faction_leader = yes }
+					}
+					country_event = {
+						id = portugal_exile.3
+						days = 2
+					}
+				}
+			}
+		}
+
+		hidden_effect = {
+			### Notify the owner of Lisbon
+			112 = {
+				owner = { country_event = portugal_exile.7 }
+			}
+
+			### Macau is seized by LEC, JAP, or whoever controls Yuehai
+			if = {
+				limit = {
+					country_exists = LEC
+					LEC = {
+						owns_state = 326 #Hong Kong
+						is_subject = no
+						has_war = no
+					}
+				}
+				LEC = {
+					country_event = {
+						id = portugal_exile.9
+						days = 2
+					}
+				}
+			}
+			else_if = {
+				limit = {
+					NOT = { has_global_flag = JAP_Fading_Sun }
+					country_exists = JAP
+					JAP = {
+						any_enemy_country = {
+							OR = {
+								is_chinese_tag = yes
+								tag = GEA
+								tag = INC
+							}
+						}
+					}
+				}
+				JAP = {
+					country_event = {
+						id = portugal_exile.9
+						days = 2
+					}
+				}
+			}
+			else = {
+				593 = {
+					owner = {
+						country_event = {
+							id = portugal_exile.9
+							days = 2
+						}
+					}
+				}
+			}
+
+			### Goa is seized by whoever controls Kolhapur
+			868 = {
+				owner = {
+					country_event = {
+						id = portugal_exile.10
+						days = 2
+					}
+				}
+			}
+
+			### Timor is seized by whoever controls West Timor
+			1017 = {
+				owner = {
+					country_event = {
+						id = portugal_exile.11
+						days = 2
+					}
+				}
+			}
+
+			### Fire the news event
+			news_event = {
+				id = portugal_exile.13
+				days = 1
+			}
+		}
+	}
+}
+
+country_event = { #Rejoin the Entente? (POR)
+	id = portugal_exile.3
+	immediate = { log = "[GetDateText]: [Root.GetName]: event portugal_exile.3" }
+	title = portugal_exile.3.t
+	desc = portugal_exile.3.d
+	picture = GFX_report_event_POR_entente
+
+	is_triggered_only = yes
+
+	trigger = {
+		ENT = { is_faction_leader = yes }
+	}
+
+	option = {
+		name = portugal_exile.3.a
+		ENT = {
+			country_event = {
+				id = portugal_exile.4
+				days = 1
+			}
+		}
+	}
+
+	option = {
+		name = portugal_exile.3.b
+		trigger = {
+			is_ai = no
+		}
+	}
+}
+
+country_event = { #An Old Ally's Plight (ENT)
+	id = portugal_exile.4
+	immediate = { log = "[GetDateText]: [Root.GetName]: event portugal_exile.4" }
+	title = portugal_exile.4.t
+	desc = portugal_exile.4.d
+	picture = GFX_report_event_POR_entente
+
+	is_triggered_only = yes
+
+	trigger = {
+		is_faction_leader = yes
+		country_exists = FROM
+	}
+
+	option = {
+		name = portugal_exile.4.a
+		add_to_faction = FROM
+		hidden_effect = {
+			FROM = {
+				country_event = portugal_exile.5
+			}
+		}
+	}
+
+	option = {
+		name = portugal_exile.4.b
+		trigger = {
+			is_ai = no
+		}
+		hidden_effect = {
+			FROM = {
+				country_event = portugal_exile.5
+			}
+		}
+	}
+}
+
+country_event = { #ENT responds (POR)
+	id = portugal_exile.5
+	immediate = { log = "[GetDateText]: [Root.GetName]: event portugal_exile.5" }
+
+	title = {
+		text = portugal_exile.5.t.accept
+		trigger = { is_in_faction_with = FROM }
+	}
+	title = {
+		text = portugal_exile.5.t.refuse
+		trigger = { NOT = { is_in_faction_with = FROM } }
+	}
+
+	desc = {
+		text = portugal_exile.5.d.accept
+		trigger = { is_in_faction_with = FROM }
+	}
+	desc = {
+		text = portugal_exile.5.d.refuse
+		trigger = { NOT = { is_in_faction_with = FROM } }
+	}
+
+	picture = GFX_report_event_generic_diplomacy1
+
+	is_triggered_only = yes
+
+	option = {
+		name = portugal_exile.5.a
+		trigger = {
+			is_in_faction_with = FROM
+		}
+		add_political_power = 25
+		add_opinion_modifier = {
+			target = FROM
+			modifier = KR_close_allies
+		}
+	}
+
+	option = {
+		name = portugal_exile.5.b
+		trigger = {
+			NOT = { is_in_faction_with = FROM }
+		}
+		add_political_power = -25
+		add_opinion_modifier = {
+			target = FROM
+			modifier = KR_outraged
+		}
+	}
+}
+
+country_event = { #The Portuguese Collapse (MAF)
+	id = portugal_exile.6
+	immediate = { log = "[GetDateText]: [Root.GetName]: event portugal_exile.6" }
+	title = portugal_exile.6.t
+
+	desc = {
+		text = portugal_exile.6.d.peace
+		trigger = {
+			NOT = { has_war_with = POR }
+		}
+	}
+	desc = {
+		text = portugal_exile.6.d.war
+		trigger = { has_war_with = POR }
+	}
+
+	picture = GFX_report_event_POR_entente
+
+	is_triggered_only = yes
+
+	option = {
+		name = portugal_exile.6.a
+		trigger = {
+			NOT = { has_war_with = POR }
+		}
+		add_political_power = 50
+		add_stability = 0.1
+		remove_ideas = MAF_border_shit_show
+	}
+
+	option = {
+		name = portugal_exile.6.b
+		trigger = { has_war_with = POR }
+		add_political_power = 50
+		add_stability = 0.1
+		remove_ideas = MAF_border_shit_show
+		POR = {
+			every_owned_state = {
+				limit = {
+					is_on_continent = africa
+					OR = {
+						region = 139 #South Africa
+						region = 188 #East Africa
+						region = 190 #Middle Africa
+					}
+				}
+				ROOT = { transfer_state = PREV }
+			}
+			white_peace_with_ROOT = yes
+		}
+	}
+}
+
+country_event = { #The Portuguese Collapse (CNT)
+	id = portugal_exile.7
+	immediate = { log = "[GetDateText]: [Root.GetName]: event portugal_exile.7" }
+	title = portugal_exile.7.t
+	desc = portugal_exile.7.d
+	picture = GFX_report_event_POR_entente
+
+	is_triggered_only = yes
+
+	option = {
+		name = portugal_exile.7.a
+		add_political_power = 50
+		country_event = {
+			id = portugal_exile.8
+			days = 2
+		}
+	}
+}
+
+country_event = { #The Fate of Portugal
+	id = portugal_exile.8
+	immediate = { log = "[GetDateText]: [Root.GetName]: event portugal_exile.8" }
+	title = portugal_exile.8.t
+	desc = portugal_exile.8.d
+	picture = GFX_report_event_POR_entente
+
+	is_triggered_only = yes
+
+	option = {
+		name = portugal_exile.8.a
+		trigger = {
+			NOT = { tag = CNT }
+		}
+		custom_effect_tooltip = POR_socialist_puppet_tooltip
+		hidden_effect = {
+			create_dynamic_country = {
+				original_tag = POR
+				copy_tag = POR
+				create_country_leader = {
+					name = "Bento António Gonçalves"
+					picture = "gfx/leaders/POR/Portrait_Portugal_Bento_Goncalves.tga"
+					expire = "1965.1.1"
+					ideology = totalist_subtype
+				}
+				create_country_leader = {
+					name = "Manuel Joaquim de Sousa"
+					picture = "gfx/leaders/Generic/Portrait_Europe_Generic_new_3.tga"
+					expire = "1965.1.1"
+					ideology = syndicalist_subtype
+				}
+				create_country_leader = {
+					name = "Amílcar Ramada Curto"
+					picture = "gfx/leaders/POR/Portrait_POR_Amilcar_Ramada_Curto.tga"
+					expire = "1965.1.1"
+					ideology = radical_socialist_subtype
+				}
+				create_country_leader = {
+					name = "José Domingues dos Santos"
+					picture = "gfx/leaders/POR/Portrait_POR_José_Domingues_dos_Santos.tga"
+					expire = "1965.1.1"
+					ideology = social_democrat_subtype
+				}
+				create_country_leader = {
+					name = "Liberato Pinto"
+					picture = "gfx/leaders/POR/Portrait_POR_Liberato_Pinto.tga"
+					expire = "1965.1.1"
+					ideology = social_liberal_subtype
+				}
+				create_country_leader = {
+					name = "Antonio Granjo"
+					picture = "gfx/leaders/POR/Portrait_Portugal_Antonio_Granjo.tga"
+					expire = "1965.1.1"
+					ideology = market_liberal_subtype
+				}
+				create_country_leader = {
+					name = "Francisco da Cunha Leal"
+					picture = "gfx/leaders/POR/Portrait_POR_Francisco_da_Cunha_Leal.tga"
+					expire = "1965.1.1"
+					ideology = social_conservative_subtype
+				}
+				create_country_leader = {
+					name = "Antonio de Oliveira Salazar"
+					picture = "gfx/leaders/POR/Portrait_Portugal_Antonio_Carmona.tga"
+					expire = "1965.1.1"
+					ideology = paternal_autocrat_subtype
+				}
+				create_country_leader = {
+					name = "Antonio Oscar Fragoso Carmona"
+					picture = "gfx/leaders/POR/Portrait_Portugal_Antonio_Carmona.tga"
+					expire = "1965.1.1"
+					ideology = paternal_autocrat_subtype
+				}
+				create_country_leader = {
+					name = "Francisco Rolão Preto"
+					picture = "gfx/leaders/POR/Portrait_POR_Francisco_Rolao_Preto.tga"
+					expire = "1965.1.1"
+					ideology = national_populist_subtype
+				}
+				set_temp_variable = { tag_to_release = THIS }
+			}
+			add_to_temp_array = { target_cores_to_release = POR }
+			release_targeted_tag_from_core_regions = yes
+			var:tag_to_release = { set_cosmetic_tag = RPO }
+		}
+	}
+
+	option = {
+		name = portugal_exile.8.b
+		trigger = {
+			tag = CNT
+		}
+		occupy_medium_country = yes
+		set_country_flag = POR_CONQ
+		add_state_claim = 112 #Lisbon
+		add_state_claim = 179 #Beja
+		add_state_claim = 180 #Porto
+		add_state_claim = 181 #Guarda
+		add_state_claim = 697 #Madeira
+		add_state_claim = 698 #Azores
+	}
+
+	option = { #occupy
+		name = annex.occupation
+		trigger = { is_ai = no }
+		set_country_flag = POR_CONQ
+		occupy_medium_country = yes
+	}
+}
+
+country_event = { #Seizure of Macau?
+	id = portugal_exile.9
+	immediate = { log = "[GetDateText]: [Root.GetName]: event portugal_exile.9" }
+	title = portugal_exile.9.t
+	desc = portugal_exile.9.d
+	picture = GFX_report_event_POR_entente
+
+	is_triggered_only = yes
+
+	option = {
+		name = portugal_exile.seize
+		transfer_state = 729
+		hidden_effect = {
+			POR = {
+				country_event = {
+					id = portugal_exile.12
+					days = 3
+				}
+			}
+		}
+	}
+
+	option = {
+		name = portugal_exile.dont_seize
+		trigger = { is_ai = no }
+	}
+}
+
+country_event = { #Seizure of Goa?
+	id = portugal_exile.10
+	immediate = { log = "[GetDateText]: [Root.GetName]: event portugal_exile.10" }
+	title = portugal_exile.10.t
+	desc = portugal_exile.10.d
+	picture = GFX_report_event_POR_entente
+
+	is_triggered_only = yes
+
+	option = {
+		name = portugal_exile.seize
+		transfer_state = 321
+		hidden_effect = {
+			POR = {
+				country_event = {
+					id = portugal_exile.12
+					days = 3
+				}
+			}
+		}
+	}
+
+	option = {
+		name = portugal_exile.dont_seize
+		trigger = { is_ai = no }
+	}
+}
+
+country_event = { #Seizure of Timor?
+	id = portugal_exile.11
+	immediate = { log = "[GetDateText]: [Root.GetName]: event portugal_exile.11" }
+	title = portugal_exile.11.t
+	desc = portugal_exile.11.d
+	picture = GFX_report_event_POR_entente
+
+	is_triggered_only = yes
+
+	option = {
+		name = portugal_exile.seize
+		transfer_state = 721
+		transfer_state = 972
+		if = {
+			limit = { tag = INS }
+			add_state_core = 721
+			add_state_core = 972
+		}
+		hidden_effect = {
+			POR = {
+				country_event = {
+					id = portugal_exile.12
+					days = 3
+				}
+			}
+		}
+	}
+
+	option = {
+		name = portugal_exile.dont_seize
+		trigger = { is_ai = no }
+	}
+}
+
+country_event = { #Eastern Possessions Seized!
+	id = portugal_exile.12
+	immediate = { log = "[GetDateText]: [Root.GetName]: event portugal_exile.12" }
+	title = portugal_exile.12.t
+	desc = portugal_exile.12.d
+	picture = GFX_report_event_POR_entente
+
+	fire_only_once = yes
+	is_triggered_only = yes
+
+	option = {
+		name = portugal_exile.12.a
+	}
+}
+
+news_event = { #Collapse of the Portuguese Empire
+	id = portugal_exile.13
+	immediate = { log = "[GetDateText]: [Root.GetName]: event portugal_exile.13" }
+	title = portugal_exile.13.t
+	desc = portugal_exile.13.d
+	picture = GFX_news_event_city_captured
+
+	is_triggered_only = yes
+
+	major = yes
+	show_major = {
+		NOT = {
+			tag = POR
+			owns_state = 112
+		}
+	}
+
+	option = {
+		name = portugal_exile.13.a
+	}
+}

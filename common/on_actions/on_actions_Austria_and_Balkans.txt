@@ -1,0 +1,279 @@
+on_actions = {
+	on_startup = {
+		effect = {
+			#Transylvanian state array
+			for_each_scope_loop = {
+				array = HUN.owned_states
+				if = {
+					limit = { is_core_of = TRS }
+					add_to_array = { global.ROM_transylvania_states = THIS }
+				}
+			}
+		}
+	}
+
+	#ROOT is winner #FROM is loser
+	on_annex = {
+		effect = {
+			if = {
+				limit = { tag = ROM }
+				country_event = romania.49
+			}
+			# end the Balkan War if peace event ignored/missed
+			if = {
+				limit = {
+					is_in_faction_with = SER
+					FROM = { tag = BUL }
+					SER = { has_country_flag = SER_founded_belgradepact }
+					has_global_flag = balkan_war_started
+					NOT = { has_global_flag = balkan_war_ended }
+				}
+				set_global_flag = balkan_war_ended
+			}
+			if = {
+				limit = {
+					tag = BUL
+					FROM = { tag = SER }
+					SER = { has_country_flag = SER_founded_belgradepact }
+					has_global_flag = balkan_war_started
+					NOT = { has_global_flag = balkan_war_ended }
+				}
+				set_global_flag = balkan_war_ended
+			}
+			if = {
+				limit = {
+					tag = SER
+					FROM = { tag = BUL }
+				}
+				country_event = { id = serbia.23 days = 5 random_days = 7 }
+			}
+			if = {
+				limit = {
+					FROM = { is_in_tech_sharing_group = balkan_research }
+				}
+				FROM = { remove_from_tech_sharing_group = balkan_research }
+			}
+			if = {
+				limit = {
+					FROM = { has_idea = SER_balkan_research_idea }
+				}
+				FROM = { remove_ideas = SER_balkan_research_idea }
+			}
+			# remove German intervention flags
+			FROM = {
+				if = {
+					limit = { has_country_flag = AUS_intervened_in_weltkrieg }
+					clr_country_flag = AUS_intervened_in_weltkrieg
+				}
+				if = {
+					limit = { has_country_flag = AUS_former_faction_member }
+					clr_country_flag = AUS_former_faction_member
+				}
+			}
+		}
+	}
+
+	#FROM is war target
+	on_declare_war = {
+		effect = {
+			# Belgrade Pact attacks Hungary during the Ausgleich War
+			if = {
+				limit = {
+					ROOT = {
+						OR = {
+							tag = ROM
+							tag = SER
+						}
+					}
+					FROM = {
+						tag = HUN
+						has_war_with = AUS
+					}
+				}
+				AUS = { country_event = ausgleich.new.702 }
+			}
+			# Remove from the Balkan Research Initiative
+			if = {
+				limit = {
+					FROM = {
+						OR = {
+							is_in_tech_sharing_group = balkan_research
+							has_idea = SER_balkan_research_idea
+						}
+					}
+				}
+				country_event = serbia.37
+			}
+			# Remove from the Balkan economic union
+			if = {
+				limit = {
+					is_in_array = { global.balkan_economic_union = ROOT }
+					is_in_array = { global.balkan_economic_union = FROM }
+				}
+				country_event = pact.305
+			}
+		}
+	}
+	
+	on_government_change = {
+		effect = {
+			if = {
+				limit = {
+					tag = BUL
+					has_country_flag = cannot_have_extensive_conscription
+					NOT = { has_government = social_conservative }
+				}
+				clr_country_flag = cannot_have_extensive_conscription
+			}
+			if = {
+				limit = {
+					has_socialist_government = yes
+					OR = {
+						is_in_array = { global.balkan_economic_union = ROOT }
+						has_idea = BP_economic_council_1
+						has_idea = BP_economic_council_2
+						has_idea = BP_economic_council_3
+						has_idea = BP_economic_council_upgraded_1
+						has_idea = BP_economic_council_upgraded_2
+						has_idea = BP_economic_council_upgraded_3
+					}
+				}
+				country_event = pact.305
+			}
+		}
+	}
+
+	on_new_term_election = {
+		effect = {
+			### Albania ###
+			if = {
+				limit = { tag = ALB }
+				country_event = albania.3
+				country_event = albania.30
+			}
+			### Austria ###
+			if = {
+				limit = { tag = AUS }
+				country_event = aus.elections.100
+			}
+			### Greece ###
+			if = {
+				limit = { tag = GRE }
+				country_event = gre.50 #Pre-Monarchy referendum
+				country_event = gre.51 #Post-Monarchist Victory
+				country_event = gre.52 #Post-Republican Victory
+			}
+			### Romania ###
+			if = {
+				limit = { tag = ROM }
+				country_event = romania.106
+				country_event = romania.133
+			}
+			### Serbia ###
+			if = {
+				limit = { tag = SER }
+				country_event = serbia.22
+			}
+		}
+	}
+
+	#FROM is country getting invited.
+	on_offer_join_faction = {
+		effect = {
+			FROM = {
+				if = {
+					limit = {
+						OR = {
+							is_in_tech_sharing_group = balkan_research
+							has_idea = SER_balkan_research_idea
+						}
+						NOT = {
+							is_in_faction_with = SER
+							SER = { is_faction_leader = yes }
+						}
+					}
+					country_event = { id = serbia.37 days = 2 }
+				}
+			}
+		}
+	}
+
+	#ROOT is winner #FROM is loser
+	on_peaceconference_ended = {
+		effect = {
+			if = {
+				limit = { tag = ROM }
+				country_event = romania.49
+			}
+			if = {
+				limit = { tag = SER }
+				country_event = { id = serbia.23 days = 5 random_days = 7 }
+			}
+			if = {
+				limit = {
+					FROM = { tag = HUN }
+				}
+				country_event = { id = ausgleich.new.807 days = 1 random_days = 2 }
+			}
+		}
+	}
+
+	#ROOT is new controller #FROM is old controller #FROM.FROM is state ID
+	on_state_control_changed = {
+		effect = {
+			#UKR-ROM peace deal
+			if = {
+				limit = {
+					has_war_with = FROM
+					OR = {
+						ROOT = { tag = UKR }
+						FROM = { tag = ROM }
+					}
+					OR = {
+						ROOT = { tag = ROM }
+						FROM = { tag = UKR }
+					}
+				}
+				country_event = { id = romania.55 hours = 6 }
+				country_event = { id = romania.56 hours = 6 }
+			}
+			#Serbian Chetniks
+			if = {
+				limit = {
+					tag = SER
+					FROM.FROM = { state = 104 }
+				}
+				country_event = { id = serbia.42 hours = 8 }
+			}
+		}
+	}
+
+	on_war = {
+		effect = {
+			# Albania war with Serbia
+			if = {
+				limit = {
+					tag = ALB
+					has_war_with = SER
+					765 = {
+						is_core_of = ALB
+					}
+					SER = {
+						owns_state = 765
+					}
+				}
+				country_event = albania.38
+			}
+			# Remove from the Balkan economic union
+			if = {
+				limit = {
+					is_in_array = { global.balkan_economic_union = ROOT }
+					any_enemy_country = {
+						is_in_array = { global.balkan_economic_union = THIS }
+					}
+				}
+				country_event = pact.305
+			}
+		}
+	}
+}

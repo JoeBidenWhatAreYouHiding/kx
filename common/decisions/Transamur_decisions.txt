@@ -1,17 +1,17 @@
+# made by indvst
+
 TRM_japanese_influence = {
 
 	TRM_visit_from_japan = {
 		allowed = { always = no } #manually activated
 		available = {
-			hidden_trigger = {
-				always = no
-			}
+			has_global_flag = TRM_relations_JAP_broke
 		}
 
 		days_mission_timeout = 90
 
 		cancel_trigger = {
-			NOT = { is_subject_of = JAP }
+			has_global_flag = TRM_relations_JAP_broke
 		}
 
 		timeout_effect = {
@@ -24,6 +24,7 @@ TRM_japanese_influence = {
 			}
 			hidden_effect = {
 				activate_mission = TRM_visit_from_japan
+				TRM_recalculate_japanese_effects = yes
 			}
 		}
 	}
@@ -34,8 +35,7 @@ TRM_japanese_influence = {
 		}
 
 		visible = {
-			has_completed_focus = TRM_Jap_Inv2
-			is_subject_of = JAP
+			NOT = { has_global_flag = TRM_relations_JAP_broke }
 		}
 
 		cost = 50
@@ -58,26 +58,25 @@ TRM_japanese_influence = {
 				idea = TRM_JAP_CONS
 				days = 90
 			}
+			TRM_recalculate_japanese_effects = yes
 		}
 	}
 
 	TRM_support_anti_japanese_rally = {
 		visible = {
-			is_subject_of = JAP
+			TRM_JAP_hostile = no
 			NOT = { has_government = authoritarian_democrat }
 		}
-
+		available = {
+			NOT = { has_country_flag = TRM_Semyonov_Coup }
+		}
+		
 		cost = 50
 		days_remove = 7
-		days_re_enable = 30
+		days_re_enable = 60
 
 		ai_will_do = {
-			factor = 0
-			modifier = {
-				set_temp_variable = { TRM_zaibatsu_factor = ROOT.party_popularity@authoritarian_democrat }
-				multiply_temp_variable = { TRM_zaibatsu_factor = 10 }
-				add = TRM_zaibatsu_factor
-			}
+			factor = 10
 			modifier = {
 				add = -10
 				has_political_power < 100
@@ -90,6 +89,7 @@ TRM_japanese_influence = {
 				ideology = authoritarian_democrat
 				popularity = -0.05
 			}
+			TRM_recalculate_japanese_effects = yes
 		}
 	}
 
@@ -160,8 +160,12 @@ TRM_japanese_influence = {
 
 		visible = {
 			has_idea = TRM_dream
-			has_completed_focus = TRM_Claim_Russia
-			is_subject_of = JAP
+			has_completed_focus = TRM_Claim_West_Sib
+			OR = {
+				is_subject_of = JAP
+				is_in_faction_with = JAP
+				has_idea = TRM_oblastniki_influence_idea
+			}
 		}
 
 		cost = 0
@@ -199,9 +203,1162 @@ TRM_japanese_influence = {
 					days = 1
 				}
 			}
+			hidden_effect = {
+				TRM = {
+					remove_ideas = TRM_JAP_INF_START
+					remove_ideas = TRM_JAP_INF_TRADE
+					remove_ideas = TRM_JAP_DEP_1
+					remove_ideas = TRM_JAP_DEP_2
+					remove_ideas = TRM_JAP_DEP_3
+					remove_ideas = TRM_JAP_NAV_MIS
+					remove_ideas = TRM_JAP_MIL_MIS
+					remove_ideas = TRM_JAP_CONS
+					remove_ideas = hino_automobile
+					remove_ideas = nakajima_factory_vladivostok
+					remove_ideas = TRM_japanese_influence_idea
+					remove_dynamic_modifier = { modifier = TRM_japanese_influence_modifier }
+				}
+			JAP = {
+				remove_ideas = TRM_japanese_profits
+				remove_dynamic_modifier = { modifier = TRM_japanese_profits_modifier }
+			}
+			clear_variable = TRM_japanese_political_power
+			clear_variable = TRM_japanese_stability
+			clear_variable = TRM_japanese_war_support
+			clear_variable = TRM_japanese_max_efficiency
+			clear_variable = TRM_japanese_construction_speed
+			clear_variable = TRM_japanese_factory_output
+			clear_variable = JAP_transamur_factory_output
+			clear_variable = JAP_transamur_resource_gain
+			}
 		}
 	}
 }
+TRM_oblastniki_influence = {
+	
+	TRM_destroy_separatism = {
+		visible = {
+			OR = {
+				has_socialist_government = yes
+				has_government = authoritarian_democrat
+			}
+		}
+		cost = 25
+		days_remove = 1
+		fire_only_once = yes
+		
+		ai_will_do = {
+			factor = 100
+		}
+		
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRM_oblastnik_council"
+			remove_ideas = TRM_oblastniki_influence_idea
+			hidden_effect = {
+				remove_dynamic_modifier = { modifier = TRM_oblastniki_influence_modifier }
+				clear_variable = TRM_oblastniki_stability
+				clear_variable = TRM_oblastniki_war_support
+				clear_variable = TRM_oblastniki_resource_gain
+				clear_variable = TRM_oblastniki_conscription
+			}
+			set_country_flag = TRM_oblastniki_banned
+			clr_country_flag = TRM_oblastniki_operate
+		}
+	}
+	
+	TRM_oblastniki_committee = {
+		allowed = { always = no } #manually activated
+		available = {
+			has_country_flag = TRM_oblastniki_banned
+		}
+
+		days_mission_timeout = 30
+
+		cancel_trigger = {
+			has_country_flag = TRM_oblastniki_banned
+		}
+
+		timeout_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision timeout TRM_oblastniki_committee"
+			add_political_power = 40
+			add_stability = -0.02
+			add_popularity = {
+				ideology = social_liberal
+				popularity = 0.02
+			}
+			hidden_effect = {
+				activate_mission = TRM_oblastniki_committee
+				TRM_recalculate_oblastniki_effects = yes
+			}
+		}
+	}
+	TRM_give_promises = {
+		visible = {
+			has_country_flag = TRM_oblastniki_operate
+			NOT = { has_government = social_liberal }
+		}
+
+		cost = 50
+		days_remove = 7
+		days_re_enable = 30
+
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				check_variable = { ROOT.party_popularity@social_liberal < 0.3 }
+			}
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRM_give_promises"
+			add_popularity = {
+				ideology = social_liberal
+				popularity = -0.03
+			}
+			TRM_recalculate_oblastniki_effects = yes
+		}
+	}
+	TRM_oblastnik_council = {
+		visible = {
+			has_country_flag = TRM_oblastniki_operate
+			NOT = { has_government = social_liberal }
+		}
+		cost = 150
+		days_remove = 7
+		fire_only_once = yes
+		
+		ai_will_do = {
+			factor = 100
+		}
+		
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRM_oblastnik_council"
+			add_popularity = {
+				ideology = social_liberal
+				popularity = -0.1
+			}
+			TRM_recalculate_oblastniki_effects = yes
+		}
+	}
+	TRM_open_chita_assembly = {
+		visible = {
+			has_country_flag = TRM_oblastniki_operate
+			NOT = { has_government = social_liberal }
+		}
+		available = {
+			563 = { is_owned_and_controlled_by = ROOT }
+		}
+		cost = 75
+		days_remove = 2
+		fire_only_once = yes
+		
+		ai_will_do = {
+			factor = 100
+		}
+		
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRM_open_chita_assembly"
+			add_popularity = {
+				ideology = social_liberal
+				popularity = -0.03
+			}
+			TRM_recalculate_oblastniki_effects = yes
+		}
+	}
+	TRM_open_irkutsk_assembly = {
+		visible = {
+			has_country_flag = TRM_oblastniki_operate
+			NOT = { has_government = social_liberal }
+		}
+		available = {
+			566 = { is_owned_and_controlled_by = ROOT }
+		}
+		cost = 75
+		days_remove = 2
+		fire_only_once = yes
+		
+		ai_will_do = {
+			factor = 100
+		}
+		
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRM_open_irkutsk_assembly"
+			add_popularity = {
+				ideology = social_liberal
+				popularity = -0.03
+			}
+			TRM_recalculate_oblastniki_effects = yes
+		}
+	}
+	TRM_open_krasnoyarsk_assembly = {
+		visible = {
+			has_country_flag = TRM_oblastniki_operate
+			NOT = { has_government = social_liberal }
+		}
+		available = {
+			568 = { is_owned_and_controlled_by = ROOT }
+		}
+		cost = 75
+		days_remove = 2
+		fire_only_once = yes
+		
+		ai_will_do = {
+			factor = 100
+		}
+		
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRM_open_krasnoyarsk_assembly"
+			add_popularity = {
+				ideology = social_liberal
+				popularity = -0.03
+			}
+			TRM_recalculate_oblastniki_effects = yes
+		}
+	}
+	TRM_open_scheglovsk_assembly = {
+		visible = {
+			has_country_flag = TRM_oblastniki_operate
+			NOT = { has_government = social_liberal }
+		}
+		available = {
+			569 = { is_owned_and_controlled_by = ROOT }
+		}
+		cost = 75
+		days_remove = 2
+		fire_only_once = yes
+		
+		ai_will_do = {
+			factor = 100
+		}
+		
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRM_open_scheglovsk_assembly"
+			add_popularity = {
+				ideology = social_liberal
+				popularity = -0.03
+			}
+			TRM_recalculate_oblastniki_effects = yes
+		}
+	}
+	TRM_open_novonikolaevsk_assembly = {
+		visible = {
+			has_country_flag = TRM_oblastniki_operate
+			NOT = { has_government = social_liberal }
+		}
+		available = {
+			570 = { is_owned_and_controlled_by = ROOT }
+		}
+		cost = 75
+		days_remove = 2
+		fire_only_once = yes
+		
+		ai_will_do = {
+			factor = 100
+		}
+		
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRM_open_novonikolaevsk_assembly"
+			add_popularity = {
+				ideology = social_liberal
+				popularity = -0.03
+			}
+			TRM_recalculate_oblastniki_effects = yes
+		}
+	}
+	TRM_open_barnaul_assembly = {
+		visible = {
+			has_country_flag = TRM_oblastniki_operate
+			NOT = { has_government = social_liberal }
+		}
+		available = {
+			40 = { is_owned_and_controlled_by = ROOT }
+		}
+		cost = 75
+		days_remove = 2
+		fire_only_once = yes
+		
+		ai_will_do = {
+			factor = 100
+		}
+		
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRM_open_barnaul_assembly"
+			add_popularity = {
+				ideology = social_liberal
+				popularity = -0.03
+			}
+			TRM_recalculate_oblastniki_effects = yes
+		}
+	}
+	TRM_open_omsk_assembly = {
+		visible = {
+			has_country_flag = TRM_oblastniki_operate
+			NOT = { has_government = social_liberal }
+		}
+		available = {
+			571 = { is_owned_and_controlled_by = ROOT }
+		}
+		cost = 75
+		days_remove = 2
+		fire_only_once = yes
+		
+		ai_will_do = {
+			factor = 100
+		}
+		
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRM_open_omsk_assembly"
+			add_popularity = {
+				ideology = social_liberal
+				popularity = -0.03
+			}
+			TRM_recalculate_oblastniki_effects = yes
+		}
+	}
+	TRM_open_ekaterinburg_assembly = {
+		visible = {
+			has_country_flag = TRM_oblastniki_operate
+			NOT = { has_government = social_liberal }
+		}
+		available = {
+			653 = { is_owned_and_controlled_by = ROOT }
+		}
+		cost = 75
+		days_remove = 2
+		fire_only_once = yes
+		
+		ai_will_do = {
+			factor = 100
+		}
+		
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRM_open_ekaterinburg_assembly"
+			add_popularity = {
+				ideology = social_liberal
+				popularity = -0.03
+			}
+			TRM_recalculate_oblastniki_effects = yes
+		}
+	}
+	TRM_open_chelyabinsk_assembly = {
+		visible = {
+			has_country_flag = TRM_oblastniki_operate
+			NOT = { has_government = social_liberal }
+		}
+		available = {
+			572 = { is_owned_and_controlled_by = ROOT }
+		}
+		cost = 75
+		days_remove = 2
+		fire_only_once = yes
+		
+		ai_will_do = {
+			factor = 100
+		}
+		
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRM_open_chelyabinsk_assembly"
+			add_popularity = {
+				ideology = social_liberal
+				popularity = -0.03
+			}
+			TRM_recalculate_oblastniki_effects = yes
+		}
+	}
+}
+
+TRM_Siberian_Insurgency = {
+	
+	TRM_control_Kirensk = {
+			icon = oppression
+			
+			visible = {
+				575 = { 
+					is_demilitarized_zone = yes
+					is_owned_and_controlled_by = SOV
+				}
+			}
+			available = {
+				566 = { 
+					is_owned_and_controlled_by = ROOT
+				}
+			}
+			selectable_mission = yes
+			cost = 10
+			days_remove = 3
+			fire_only_once = yes
+			
+			ai_will_do = {
+				factor = 1000
+			}
+			highlight_states = { state = 575 }
+			remove_effect = {
+				TRM = {
+					transfer_state = 575
+					transfer_state = 644
+					add_popularity = {
+						ideology = social_liberal
+						popularity = 0.02
+					}
+				}
+				575 = {
+					set_demilitarized_zone = no
+					add_core_of = TRM
+					remove_core_of = SOV
+				}
+				644 = {
+					set_demilitarized_zone = no
+					add_core_of = TRM
+					remove_core_of = SOV
+				}
+			}
+	}
+	TRM_control_Yeniseysk = {
+			icon = oppression
+			
+			visible = {
+				576 = { 
+					is_demilitarized_zone = yes
+					is_owned_and_controlled_by = SOV
+				}
+			}
+			available = {
+				575 = { 
+					is_demilitarized_zone = no
+					is_owned_and_controlled_by = ROOT
+				}
+			}
+			selectable_mission = yes
+			cost = 10
+			days_remove = 3
+			fire_only_once = yes
+			
+			ai_will_do = {
+				factor = 1000
+			}
+			highlight_states = { state = 576 }
+			remove_effect = {
+				TRM = {
+					transfer_state = 576
+					add_popularity = {
+						ideology = social_liberal
+						popularity = 0.02
+					}
+				}
+				576 = {
+					set_demilitarized_zone = no
+					add_core_of = TRM
+					remove_core_of = SOV
+				}
+			}
+	}
+		
+	TRM_control_Bratsk = {
+			icon = oppression
+			
+			visible = {
+				567 = { 
+					is_demilitarized_zone = yes
+					is_owned_and_controlled_by = SOV
+				}
+			}
+			available = {
+				575 = { 
+					is_demilitarized_zone = no
+					is_owned_and_controlled_by = ROOT
+				}
+				566 = { 
+					is_demilitarized_zone = no
+					is_owned_and_controlled_by = ROOT
+				}
+			}
+			selectable_mission = yes
+			cost = 10
+			days_remove = 3
+			fire_only_once = yes
+			
+			ai_will_do = {
+				factor = 1000
+			}
+			highlight_states = { state = 567 }
+			remove_effect = {
+				TRM = {
+					transfer_state = 567
+					add_popularity = {
+						ideology = social_liberal
+						popularity = 0.02
+					}
+				}
+				567 = {
+					set_demilitarized_zone = no
+					add_core_of = TRM
+					remove_core_of = SOV
+				}
+			}
+	}
+	
+	TRM_control_Krasnoyarsk = {
+			icon = oppression
+			
+			visible = {
+				568 = { 
+					is_demilitarized_zone = yes
+					is_owned_and_controlled_by = SOV
+				}
+			}
+			available = {
+				567 = { 
+					is_demilitarized_zone = no
+					is_owned_and_controlled_by = ROOT
+				}
+			}
+			selectable_mission = yes
+			cost = 15
+			days_remove = 3
+			fire_only_once = yes
+			
+			ai_will_do = {
+				factor = 1000
+			}
+			highlight_states = { state = 568 }
+			remove_effect = {
+				TRM = {
+					transfer_state = 568
+					transfer_state = 811
+					add_popularity = {
+						ideology = social_liberal
+						popularity = 0.03
+					}
+				}
+				568 = { 
+					set_demilitarized_zone = no
+					add_core_of = TRM
+					remove_core_of = SOV
+				}
+				811 = { 
+					set_demilitarized_zone = no
+					add_core_of = TRM
+					remove_core_of = SOV
+				}
+			}
+		}
+	TRM_control_Tomsk = {
+			icon = oppression
+			
+			visible = {
+				578 = { 
+					is_demilitarized_zone = yes
+					is_owned_and_controlled_by = SOV
+				}
+			}
+			available = {
+				567 = { 
+					is_demilitarized_zone = no
+					is_owned_and_controlled_by = ROOT
+				}
+				568 = { 
+					is_demilitarized_zone = no
+					is_owned_and_controlled_by = ROOT
+				}
+				811 = { 
+					is_demilitarized_zone = no
+					is_owned_and_controlled_by = ROOT
+				}
+			}
+			selectable_mission = yes
+			cost = 10
+			days_remove = 3
+			fire_only_once = yes
+			
+			ai_will_do = {
+				factor = 1000
+			}
+			highlight_states = { state = 578 }
+			remove_effect = {
+				TRM = {
+					transfer_state = 578
+					add_popularity = {
+						ideology = social_liberal
+						popularity = 0.02
+					}
+				}
+				578 = { 
+					set_demilitarized_zone = no
+					add_core_of = TRM
+					remove_core_of = SOV
+				}
+			}
+		}
+	TRM_control_Scheglovsk = {
+		icon = oppression
+			
+			visible = {
+				569 = { 
+					is_demilitarized_zone = yes
+					is_owned_and_controlled_by = SOV
+				}
+			}
+			available = {
+				567 = { 
+					is_demilitarized_zone = no
+					is_owned_and_controlled_by = ROOT
+				}
+				568 = { 
+					is_demilitarized_zone = no
+					is_owned_and_controlled_by = ROOT
+				}
+				811 = { 
+					is_demilitarized_zone = no
+					is_owned_and_controlled_by = ROOT
+				}
+			}
+			selectable_mission = yes
+			cost = 10
+			days_remove = 3
+			fire_only_once = yes
+			
+			ai_will_do = {
+				factor = 1000
+			}
+			highlight_states = { state = 569 }
+			remove_effect = {
+				TRM = {
+					transfer_state = 569
+					add_popularity = {
+						ideology = social_liberal
+						popularity = 0.02
+					}
+				}
+				569 = { 
+					set_demilitarized_zone = no
+					add_core_of = TRM
+					remove_core_of = SOV
+				}
+			}
+		}
+	TRM_control_Ulala = {
+			icon = oppression
+			
+			visible = {
+				654 = { 
+					is_demilitarized_zone = yes
+					is_owned_and_controlled_by = SOV
+				}
+			}
+			available = {
+				567 = { 
+					is_demilitarized_zone = no
+					is_owned_and_controlled_by = ROOT
+				}
+				568 = { 
+					is_demilitarized_zone = no
+					is_owned_and_controlled_by = ROOT
+				}
+				811 = { 
+					is_demilitarized_zone = no
+					is_owned_and_controlled_by = ROOT
+				}
+			}
+			selectable_mission = yes
+			cost = 5
+			days_remove = 3
+			fire_only_once = yes
+			
+			ai_will_do = {
+				factor = 1000
+			}
+			highlight_states = { state = 654 }
+			remove_effect = {
+				TRM = {
+					transfer_state = 654
+					add_popularity = {
+						ideology = social_liberal
+						popularity = 0.02
+					}
+				}
+				654 = { 
+					set_demilitarized_zone = no
+					add_core_of = TRM
+					remove_core_of = SOV
+				}
+			}
+		}
+	TRM_control_Surgut = {
+		icon = oppression
+			
+			visible = {
+				577 = { 
+					is_demilitarized_zone = yes
+					is_owned_and_controlled_by = SOV
+				}
+			}
+			available = {
+				578 = { 
+					is_demilitarized_zone = no
+					is_owned_and_controlled_by = ROOT
+				}
+			}
+			selectable_mission = yes
+			cost = 10
+			days_remove = 3
+			fire_only_once = yes
+			
+			ai_will_do = {
+				factor = 1000
+			}
+			highlight_states = { state = 577 }
+			remove_effect = {
+				TRM = {
+					transfer_state = 577
+					transfer_state = 516
+					add_popularity = {
+						ideology = social_liberal
+						popularity = 0.02
+					}
+				}
+				577 = { 
+					set_demilitarized_zone = no
+					add_core_of = TRM
+					remove_core_of = SOV
+				}
+				516 = { 
+					set_demilitarized_zone = no
+					add_core_of = TRM
+					remove_core_of = SOV
+				}
+			}
+		}
+	TRM_control_Novonikolaevsk = {
+		icon = oppression
+			
+			visible = {
+				570 = { 
+					is_demilitarized_zone = yes
+					is_owned_and_controlled_by = SOV
+				}
+			}
+			available = {
+				569 = { 
+					is_demilitarized_zone = no
+					is_owned_and_controlled_by = ROOT
+				}
+			}
+			selectable_mission = yes
+			cost = 20
+			days_remove = 3
+			fire_only_once = yes
+			
+			ai_will_do = {
+				factor = 1000
+			}
+			highlight_states = { state = 570 }
+			remove_effect = {
+				TRM = {
+					transfer_state = 570
+					add_popularity = {
+						ideology = social_liberal
+						popularity = 0.02
+					}
+				}
+				570 = { 
+					set_demilitarized_zone = no
+					add_core_of = TRM
+					remove_core_of = SOV
+				}
+			}
+		}
+	TRM_control_Barnaul = {
+		icon = oppression
+			
+			visible = {
+				40 = { 
+					is_demilitarized_zone = yes
+					is_owned_and_controlled_by = SOV
+				}
+			}
+			available = {
+				569 = { 
+					is_demilitarized_zone = no
+					is_owned_and_controlled_by = ROOT
+				}
+			}
+			selectable_mission = yes
+			cost = 15
+			days_remove = 3
+			fire_only_once = yes
+			
+			ai_will_do = {
+				factor = 1000
+			}
+			highlight_states = { state = 40 }
+			remove_effect = {
+				TRM = {
+					transfer_state = 40
+					add_popularity = {
+						ideology = social_liberal
+						popularity = 0.02
+					}
+				}
+				40 = { 
+					set_demilitarized_zone = no
+					add_core_of = TRM
+					remove_core_of = SOV
+				}
+			}
+		}
+	TRM_control_Omsk = {
+		icon = oppression
+			
+			visible = {
+				571 = { 
+					is_demilitarized_zone = yes
+					is_owned_and_controlled_by = SOV
+				}
+			}
+			available = {
+				570 = { 
+					is_demilitarized_zone = no
+					is_owned_and_controlled_by = ROOT
+				}
+			}
+			selectable_mission = yes
+			cost = 20
+			days_remove = 3
+			fire_only_once = yes
+			
+			ai_will_do = {
+				factor = 1000
+			}
+			highlight_states = { state = 571 }
+			remove_effect = {
+				TRM = {
+					transfer_state = 571
+					add_popularity = {
+						ideology = social_liberal
+						popularity = 0.04
+					}
+				}
+				571 = { 
+					set_demilitarized_zone = no
+					add_core_of = TRM
+					remove_core_of = SOV
+				}
+			}
+		}
+	TRM_control_Pavlodar = {
+		icon = oppression
+			
+			visible = {
+				588 = { 
+					is_demilitarized_zone = yes
+					is_owned_and_controlled_by = SOV
+				}
+			}
+			available = {
+				40 = { 
+					is_demilitarized_zone = no
+					is_owned_and_controlled_by = ROOT
+				}
+			}
+			selectable_mission = yes
+			cost = 10
+			days_remove = 3
+			fire_only_once = yes
+			
+			ai_will_do = {
+				factor = 1000
+			}
+			highlight_states = { state = 588 }
+			remove_effect = {
+				TRM = {
+					transfer_state = 588
+					add_popularity = {
+						ideology = social_liberal
+						popularity = 0.01
+					}
+				}
+				588 = { 
+					set_demilitarized_zone = no
+					add_core_of = TRM
+					remove_core_of = SOV
+				}
+			}
+		}
+	TRM_control_Tyumen = {
+		icon = oppression
+			
+			visible = {
+				403 = { 
+					is_demilitarized_zone = yes
+					is_owned_and_controlled_by = SOV
+				}
+			}
+			available = {
+				571 = { 
+					is_demilitarized_zone = no
+					is_owned_and_controlled_by = ROOT
+				}
+			}
+			selectable_mission = yes
+			cost = 15
+			days_remove = 3
+			fire_only_once = yes
+			
+			ai_will_do = {
+				factor = 1000
+			}
+			highlight_states = { state = 403 }
+			remove_effect = {
+				TRM = {
+					transfer_state = 403
+					add_popularity = {
+						ideology = social_liberal
+						popularity = 0.02
+					}
+				}
+				403 = { 
+					set_demilitarized_zone = no
+					add_core_of = TRM
+					remove_core_of = SOV
+				}
+			}
+		}
+	TRM_control_Akmolinsk = {
+		icon = oppression
+			
+			visible = {
+				590 = { 
+					is_demilitarized_zone = yes
+					is_owned_and_controlled_by = SOV
+				}
+			}
+			available = {
+				588 = { 
+					is_demilitarized_zone = no
+					is_owned_and_controlled_by = ROOT
+				}
+			}
+			selectable_mission = yes
+			cost = 10
+			days_remove = 3
+			fire_only_once = yes
+			
+			ai_will_do = {
+				factor = 1000
+			}
+			highlight_states = { state = 590 }
+			remove_effect = {
+				TRM = {
+					transfer_state = 590
+					add_popularity = {
+						ideology = social_liberal
+						popularity = 0.02
+					}
+				}
+				590 = { 
+					set_demilitarized_zone = no
+					add_core_of = TRM
+					remove_core_of = SOV
+				}
+			}
+		}
+	TRM_control_Ekaterinburg = {
+		icon = oppression
+			
+			visible = {
+				653 = { 
+					is_demilitarized_zone = yes
+					is_owned_and_controlled_by = SOV
+				}
+			}
+			available = {
+				403 = { 
+					is_demilitarized_zone = no
+					is_owned_and_controlled_by = ROOT
+				}
+			}
+			selectable_mission = yes
+			cost = 25
+			days_remove = 3
+			fire_only_once = yes
+			
+			ai_will_do = {
+				factor = 1000
+			}
+			highlight_states = { state = 653 }
+			remove_effect = {
+				TRM = {
+					transfer_state = 653
+					add_popularity = {
+						ideology = social_liberal
+						popularity = 0.05
+					}
+				}
+				653 = { 
+					set_demilitarized_zone = no
+					add_core_of = TRM
+					remove_core_of = SOV
+				}
+			}
+		}
+	TRM_control_Chelyabinsk = {
+		icon = oppression
+			
+			visible = {
+				572 = { 
+					is_demilitarized_zone = yes
+					is_owned_and_controlled_by = SOV
+				}
+			}
+			available = {
+				403 = { 
+					is_demilitarized_zone = no
+					is_owned_and_controlled_by = ROOT
+				}
+			}
+			selectable_mission = yes
+			cost = 20
+			days_remove = 3
+			fire_only_once = yes
+			
+			ai_will_do = {
+				factor = 1000
+			}
+			highlight_states = { state = 572 }
+			remove_effect = {
+				TRM = {
+					transfer_state = 572
+					add_popularity = {
+						ideology = social_liberal
+						popularity = 0.03
+					}
+				}
+				572 = { 
+					set_demilitarized_zone = no
+					add_core_of = TRM
+					remove_core_of = SOV
+				}
+			}
+		}
+	TRM_control_Tobolsk = {
+		icon = oppression
+			
+			visible = {
+				580 = { 
+					is_demilitarized_zone = yes
+					is_owned_and_controlled_by = SOV
+				}
+			}
+			available = {
+				403 = { 
+					is_demilitarized_zone = no
+					is_owned_and_controlled_by = ROOT
+				}
+			}
+			selectable_mission = yes
+			cost = 5
+			days_remove = 3
+			fire_only_once = yes
+			
+			ai_will_do = {
+				factor = 1000
+			}
+			highlight_states = { state = 580 }
+			remove_effect = {
+				TRM = {
+					transfer_state = 580
+					add_popularity = {
+						ideology = social_liberal
+						popularity = 0.01
+					}
+				}
+				580 = { 
+					set_demilitarized_zone = no
+					add_core_of = TRM
+					remove_core_of = SOV
+				}
+			}
+		}
+	TRM_control_Obdorsk = {
+		icon = oppression
+			
+			visible = {
+				579 = { 
+					is_demilitarized_zone = yes
+					is_owned_and_controlled_by = SOV
+				}
+			}
+			available = {
+				403 = { 
+					is_demilitarized_zone = no
+					is_owned_and_controlled_by = ROOT
+				}
+			}
+			selectable_mission = yes
+			cost = 5
+			days_remove = 3
+			fire_only_once = yes
+			
+			ai_will_do = {
+				factor = 1000
+			}
+			highlight_states = { state = 579 }
+			remove_effect = {
+				TRM = {
+					transfer_state = 579
+					add_popularity = {
+						ideology = social_liberal
+						popularity = 0.01
+					}
+				}
+				579 = { 
+					set_demilitarized_zone = no
+					add_core_of = TRM
+					remove_core_of = SOV
+				}
+			}
+		}
+	TRM_control_Kustanai = {
+		icon = oppression
+			
+			visible = {
+				583 = { 
+					is_demilitarized_zone = yes
+					is_owned_and_controlled_by = SOV
+				}
+			}
+			available = {
+				590 = { 
+					is_demilitarized_zone = no
+					is_owned_and_controlled_by = ROOT
+				}
+			}
+			selectable_mission = yes
+			cost = 10
+			days_remove = 3
+			fire_only_once = yes
+			
+			ai_will_do = {
+				factor = 1000
+			}
+			highlight_states = { state = 583 }
+			remove_effect = {
+				TRM = {
+					transfer_state = 583
+					add_popularity = {
+						ideology = social_liberal
+						popularity = 0.01
+					}
+				}
+				583 = { 
+					set_demilitarized_zone = no
+					add_core_of = TRM
+					remove_core_of = SOV
+				}
+			}
+		}
+	}
 
 TRM_russian_expansion = {
 	TRM_relocate_capital_1 = {
@@ -398,202 +1555,6 @@ TRM_russian_expansion = {
 		}
 	}
 }
-
-RUS_Integration_decisions = {
-	TRM_integrate_baikal = {
-		allowed = { tag = TRM }
-		available = {
-			NOT = { has_country_flag = TRM_Coring_State }
-			565 = { is_owned_and_controlled_by = ROOT }
-			566 = { is_owned_and_controlled_by = ROOT }
-			575 = { is_owned_and_controlled_by = ROOT }
-			563 = { is_owned_and_controlled_by = ROOT }
-			564 = { is_owned_and_controlled_by = ROOT }
-		}
-
-		visible = {
-			OR = {
-				565 = { is_owned_and_controlled_by = ROOT }
-				566 = { is_owned_and_controlled_by = ROOT }
-				575 = { is_owned_and_controlled_by = ROOT }
-				563 = { is_owned_and_controlled_by = ROOT }
-				564 = { is_owned_and_controlled_by = ROOT }
-			}
-		}
-
-		highlight_state_targets = {
-			state = 566
-		}
-
-		cost = 50
-		days_remove = 50
-		fire_only_once = yes
-
-		ai_will_do = {
-			factor = 1000
-		}
-
-		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision TRM_integrate_baikal"
-			set_country_flag = TRM_Coring_State
-		}
-		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove TRM_integrate_baikal"
-			clr_country_flag = TRM_Coring_State
-			565 = { add_core_of = TRM }
-			566 = {	add_core_of = TRM }
-			575 = {	add_core_of = TRM }
-			563 = {	add_core_of = TRM }
-			564 = {	add_core_of = TRM }
-
-		}
-	}
-
-	TRM_integrate_siberia = {
-		allowed = { tag = TRM }
-		available = {
-			NOT = { has_country_flag = TRM_Coring_State }
-			567 = { is_owned_and_controlled_by = ROOT }
-			516 = { is_owned_and_controlled_by = ROOT }
-			576 = { is_owned_and_controlled_by = ROOT }
-			568 = { is_owned_and_controlled_by = ROOT }
-			577 = { is_owned_and_controlled_by = ROOT }
-			578 = { is_owned_and_controlled_by = ROOT }
-			569 = { is_owned_and_controlled_by = ROOT }
-			570 = { is_owned_and_controlled_by = ROOT }
-			580 = { is_owned_and_controlled_by = ROOT }
-			40 = { is_owned_and_controlled_by = ROOT }
-			588 = { is_owned_and_controlled_by = ROOT }
-			571 = { is_owned_and_controlled_by = ROOT }
-			590 = { is_owned_and_controlled_by = ROOT }
-			403 = { is_owned_and_controlled_by = ROOT }
-			653 = { is_owned_and_controlled_by = ROOT }
-			572 = { is_owned_and_controlled_by = ROOT }
-			583 = { is_owned_and_controlled_by = ROOT }
-			654 = { is_owned_and_controlled_by = ROOT }
-			811 = { is_owned_and_controlled_by = ROOT }
-		}
-
-		visible = {
-			OR = {
-				567 = { is_owned_and_controlled_by = ROOT }
-				516 = { is_owned_and_controlled_by = ROOT }
-				576 = { is_owned_and_controlled_by = ROOT }
-				568 = { is_owned_and_controlled_by = ROOT }
-				577 = { is_owned_and_controlled_by = ROOT }
-				578 = { is_owned_and_controlled_by = ROOT }
-				569 = { is_owned_and_controlled_by = ROOT }
-				570 = { is_owned_and_controlled_by = ROOT }
-				580 = { is_owned_and_controlled_by = ROOT }
-				40 = { is_owned_and_controlled_by = ROOT }
-				588 = { is_owned_and_controlled_by = ROOT }
-				571 = { is_owned_and_controlled_by = ROOT }
-				590 = { is_owned_and_controlled_by = ROOT }
-				403 = { is_owned_and_controlled_by = ROOT }
-				653 = { is_owned_and_controlled_by = ROOT }
-				572 = { is_owned_and_controlled_by = ROOT }
-				583 = { is_owned_and_controlled_by = ROOT }
-				654 = { is_owned_and_controlled_by = ROOT }
-				811 = { is_owned_and_controlled_by = ROOT }
-			}
-		}
-
-		highlight_state_targets = {
-			state = 570
-		}
-
-		cost = 70
-		days_remove = 70
-		fire_only_once = yes
-
-		ai_will_do = {
-			factor = 1000
-		}
-
-		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision TRM_integrate_siberia"
-			set_country_flag = TRM_Coring_State
-		}
-		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove TRM_integrate_siberia"
-			clr_country_flag = TRM_Coring_State
-			567 = { add_core_of = TRM }
-			516 = { add_core_of = TRM }
-			576 = { add_core_of = TRM }
-			568 = { add_core_of = TRM }
-			577 = { add_core_of = TRM }
-			578 = { add_core_of = TRM }
-			569 = { add_core_of = TRM }
-			570 = { add_core_of = TRM }
-			580 = { add_core_of = TRM }
-			573 = { add_core_of = TRM }
-			582 = { add_core_of = TRM }
-			40 = { add_core_of = TRM }
-			588 = { add_core_of = TRM }
-			571 = { add_core_of = TRM }
-			590 = { add_core_of = TRM }
-			403 = { add_core_of = TRM }
-			653 = { add_core_of = TRM }
-			572 = { add_core_of = TRM }
-			583 = { add_core_of = TRM }
-			581 = { add_core_of = TRM }
-			654 = { add_core_of = TRM }
-			811 = { add_core_of = TRM }
-
-		}
-	}
-	RUS_Integrate_Poland = {
-		icon = eng_trade_unions_demand
-
-		available = {
-			all_of_scopes = {
-				array = POL.core_states
-				OR = {
-					NOT = { region = 38 } #Poland
-					is_fully_controlled_by = ROOT
-				}
-			}
-		}
-
-		visible = {
-			any_of_scopes = {
-				array = POL.core_states
-				region = 38 #White Ruthenia
-				is_fully_controlled_by_ROOT_and_is_not_core_of_ROOT = yes
-			}
-		}
-
-		cost = 175
-		days_remove = 200
-		fire_only_once = yes
-
-		modifier = {
-			production_factory_max_efficiency_factor = -0.1
-			industrial_capacity_factory = -0.1
-			local_resources_factor = -0.1
-			consumer_goods_factor = 0.1
-		}
-
-		highlight_state_targets = { state = 10 } #Warsaw
-
-		ai_will_do = {
-			factor = 75
-		}
-
-		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_Integrate_Poland"
-			every_owned_state = {
-				limit = {
-					region = 38 #White Ruthenia
-					is_core_of = POL
-				}
-				hidden_effect = { remove_claim_by = ROOT }
-				add_core_of = ROOT
-			}
-		}
-	}
-}
-
 TRM_Mlad_cat = {
 	TRM_Denounce_RUS = {
 		allowed = { tag = TRM }
@@ -658,7 +1619,7 @@ TRM_Mlad_cat = {
 		available = {
 			country_exists = RUS
 			RUS = {
-				has_completed_focus = RUS_Restore_The_Monarchy
+				has_country_flag = RUS_monarchy_restored
 			}
 			NOT = { has_country_flag = TRM_already_denouncing_nation }
 			has_completed_focus = TRM_modern_bog
@@ -799,3 +1760,5 @@ TRM_Mlad_cat = {
 		}
 	}
 }
+
+

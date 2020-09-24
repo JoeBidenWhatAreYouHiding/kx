@@ -1,0 +1,557 @@
+# AI scripted effects
+# By Rylock and Alpinia
+
+FROM_send_volunteers_to_ROOT = {
+	FROM = {
+		if = {
+			limit = {
+				NOT = { has_country_flag = sent_volunteers_@ROOT }
+			}
+
+			#unlock volunteers diplo action
+			if = {
+				limit = {
+					NOT = { has_country_flag = can_send_volunteers }
+				}
+				log = "[THIS.GetName]: unlocked AI volunteers"
+			}
+			else = {
+				log = "[THIS.GetName]: AI volunteers already unlocked"
+			}
+
+			#set variable if not set already, update count
+			if = {
+				limit = {
+					NOT = { has_variable = send_volunteers_count }
+				}
+				set_variable = { send_volunteers_count = 0 }
+			}
+			add_to_variable = { send_volunteers_count = 1 }
+
+			#add spare unit factor
+			if = {
+				limit = {
+					num_divisions < 32
+					num_divisions > 24
+					is_actual_major = no
+				}
+				log = "[THIS.GetName]: increased spare unit factor by 12"
+				set_country_flag = AI_increased_spare_factor_12
+				add_ai_strategy = {
+					type = spare_unit_factor
+					value = 12
+				}
+			}
+			else_if = {
+				limit = {
+					num_divisions < 24
+					num_divisions > 12
+					is_actual_major = no
+				}
+				log = "[THIS.GetName]: increased spare unit factor by 6"
+				set_country_flag = AI_increased_spare_factor_6
+				add_ai_strategy = {
+					type = spare_unit_factor
+					value = 6
+				}
+			}
+			else_if = {
+				limit = {
+					num_divisions < 12
+					num_divisions > 6
+					is_actual_major = no
+				}
+				log = "[THIS.GetName]: increased spare unit factor by 3"
+				set_country_flag = AI_increased_spare_factor_3
+				add_ai_strategy = {
+					type = spare_unit_factor
+					value = 3
+				}
+			}
+
+			#add strategies
+			log = "[THIS.GetName]: increased volunteer desire to [ROOT.GetName]"
+			add_ai_strategy = {
+				type = send_volunteers_desire
+				id = ROOT
+				value = 1000
+			}
+			add_ai_strategy = {
+				type = support
+				id = ROOT
+				value = 200
+			}
+
+			#set flag
+			set_country_flag = sent_volunteers_@ROOT
+		}
+	}
+}
+
+send_volunteers_to_TARGET = {
+	if = {
+		limit = {
+			NOT = { has_country_flag = sent_volunteers_@event_target:volunteer_target }
+		}
+
+		#unlock volunteers diplo action
+		if = {
+			limit = {
+				NOT = { has_country_flag = can_send_volunteers }
+			}
+			set_country_flag = can_send_volunteers
+			log = "[THIS.GetName]: unlocked AI volunteers"
+		}
+		else = {
+			log = "[THIS.GetName]: AI volunteers already unlocked"
+		}
+
+		#set variable if not set already, update count
+		if = {
+			limit = {
+				NOT = { has_variable = send_volunteers_count }
+			}
+			set_variable = { send_volunteers_count = 0 }
+		}
+		add_to_variable = { send_volunteers_count = 1 }
+
+		#add spare unit factor if necessary
+		if = {
+			limit = {
+				num_divisions < 32
+				num_divisions > 24
+				is_actual_major = no
+			}
+			log = "[THIS.GetName]: increased spare unit factor by 12"
+			set_country_flag = AI_increased_spare_factor_12
+			add_ai_strategy = {
+				type = spare_unit_factor
+				value = 12
+			}
+		}
+		else_if = {
+			limit = {
+				num_divisions < 24
+				num_divisions > 12
+				is_actual_major = no
+			}
+			log = "[THIS.GetName]: increased spare unit factor by 6"
+			set_country_flag = AI_increased_spare_factor_6
+			add_ai_strategy = {
+				type = spare_unit_factor
+				value = 6
+			}
+		}
+		else_if = {
+			limit = {
+				num_divisions < 12
+				num_divisions > 6
+				is_actual_major = no
+			}
+			log = "[THIS.GetName]: increased spare unit factor by 3"
+			set_country_flag = AI_increased_spare_factor_3
+			add_ai_strategy = {
+				type = spare_unit_factor
+				value = 3
+			}
+		}
+
+		#add strategies
+		log = "[THIS.GetName]: increased volunteer desire to [volunteer_target.GetName]"
+		add_ai_strategy = {
+			type = send_volunteers_desire
+			id = event_target:volunteer_target
+			value = 1000
+		}
+		add_ai_strategy = {
+			type = support
+			id = event_target:volunteer_target
+			value = 200
+		}
+
+		#set flag
+		set_country_flag = sent_volunteers_@event_target:volunteer_target
+	}
+}
+
+clear_volunteers_to_TARGET = {
+	#lock volunteers diplo action if no other volunteers
+	subtract_from_variable = { send_volunteers_count = 1 }
+	if = {
+		limit = {
+			check_variable = { send_volunteers_count < 1 }
+		}
+		clr_country_flag = can_send_volunteers
+		log = "[THIS.GetName]: locked AI volunteers"
+	}
+
+	#remove spare unit factor
+	if = {
+		limit = {
+			has_country_flag = AI_increased_spare_factor_12
+		}
+		log = "[THIS.GetName]: reduced spare unit factor by 12"
+		clr_country_flag = AI_increased_spare_factor_12
+		add_ai_strategy = {
+			type = spare_unit_factor
+			value = -12
+		}
+	}
+	else_if = {
+		limit = {
+			has_country_flag = AI_increased_spare_factor_6
+		}
+		log = "[THIS.GetName]: reduced spare unit factor by 6"
+		clr_country_flag = AI_increased_spare_factor_6
+		add_ai_strategy = {
+			type = spare_unit_factor
+			value = -6
+		}
+	}
+	else_if = {
+		limit = {
+			has_country_flag = AI_increased_spare_factor_3
+		}
+		log = "[THIS.GetName]: reduced spare unit factor by 3"
+		clr_country_flag = AI_increased_spare_factor_3
+		add_ai_strategy = {
+			type = spare_unit_factor
+			value = -3
+		}
+	}
+
+	#remove strategies
+	log = "[THIS.GetName]: removed volunteer desire to [volunteer_target.GetName]"
+	add_ai_strategy = {
+		type = send_volunteers_desire
+		id = event_target:volunteer_target
+		value = -1000
+	}
+	add_ai_strategy = {
+		type = support
+		id = event_target:volunteer_target
+		value = -200
+	}
+
+	#clear flag
+	clr_country_flag = sent_volunteers_@event_target:volunteer_target
+}
+
+clear_volunteers_to_PREV = {
+	#lock volunteers diplo action if no other volunteers
+	subtract_from_variable = { send_volunteers_count = 1 }
+	if = {
+		limit = {
+			check_variable = { send_volunteers_count < 1 }
+		}
+		clr_country_flag = can_send_volunteers
+		log = "[THIS.GetName]: locked AI volunteers"
+	}
+
+	#remove spare unit factor
+	if = {
+		limit = {
+			has_country_flag = AI_increased_spare_factor_12
+		}
+		log = "[THIS.GetName]: reduced spare unit factor by 12"
+		clr_country_flag = AI_increased_spare_factor_12
+		add_ai_strategy = {
+			type = spare_unit_factor
+			value = -12
+		}
+	}
+	else_if = {
+		limit = {
+			has_country_flag = AI_increased_spare_factor_6
+		}
+		log = "[THIS.GetName]: reduced spare unit factor by 6"
+		clr_country_flag = AI_increased_spare_factor_6
+		add_ai_strategy = {
+			type = spare_unit_factor
+			value = -6
+		}
+	}
+	else_if = {
+		limit = {
+			has_country_flag = AI_increased_spare_factor_3
+		}
+		log = "[THIS.GetName]: reduced spare unit factor by 3"
+		clr_country_flag = AI_increased_spare_factor_3
+		add_ai_strategy = {
+			type = spare_unit_factor
+			value = -3
+		}
+	}
+
+	#remove strategies
+	log = "[THIS.GetName]: removed volunteer desire to [PREV.GetName]"
+	add_ai_strategy = {
+		type = send_volunteers_desire
+		id = PREV
+		value = -1000
+	}
+	add_ai_strategy = {
+		type = support
+		id = PREV
+		value = -200
+	}
+
+	#clear flag
+	clr_country_flag = sent_volunteers_@PREV
+}
+
+clear_all_volunteers = {
+	every_country = {
+		limit = { has_country_flag = sent_volunteers_@PREV }
+		recall_volunteers_from = PREV
+		clear_volunteers_to_PREV = yes
+	}
+}
+
+clear_all_sent_volunteers = {
+	every_country = {
+		limit = {
+			ROOT = { has_country_flag = sent_volunteers_@PREV }
+		}
+		ROOT = {
+			recall_volunteers_from = PREV
+			clear_volunteers_to_PREV = yes
+		}
+	}
+}
+
+### For use in decisions ###
+setup_decision_attack_AI = {
+	hidden_effect = {
+		add_ai_strategy = {
+			type = prepare_for_war
+			id = FROM
+			value = 1000
+		}
+		FROM = {
+			add_ai_strategy = {
+				type = prepare_for_war
+				id = ROOT
+				value = 1000
+			}
+			if = {
+				limit = { is_in_faction = yes }
+				var:faction_leader = {
+					set_variable = { ROOT.ai_strategy_target_@FROM = THIS }
+					add_ai_strategy = {
+						type = prepare_for_war
+						id = ROOT
+						value = 1000
+					}
+				}
+			}
+			else_if = {
+				limit = { is_subject = yes }
+				overlord = {
+					set_variable = { ROOT.ai_strategy_target_@FROM = THIS }
+					add_ai_strategy = {
+						type = prepare_for_war
+						id = ROOT
+						value = 1000
+					}
+				}
+			}
+		}
+	}
+}
+
+clear_decision_attack_AI = {
+	hidden_effect = {
+		add_ai_strategy = {
+			type = prepare_for_war
+			id = FROM
+			value = -1000
+		}
+		FROM = {
+			add_ai_strategy = {
+				type = prepare_for_war
+				id = ROOT
+				value = -1000
+			}
+			if = {
+				limit = { has_variable = ROOT.ai_strategy_target_@FROM }
+				var:ROOT.ai_strategy_target_@FROM = {
+					add_ai_strategy = {
+						type = prepare_for_war
+						id = ROOT
+						value = -1000
+					}
+				}
+				clear_variable = ROOT.ai_strategy_target_@FROM
+			}
+		}
+	}
+}
+
+
+### Chinese United Front ###
+setup_united_front_AI = {
+	every_country = {
+		limit = { is_in_faction_with = ROOT }
+		setup_united_front_AI_PREV = yes
+		if = {
+			limit = { is_major = no }
+			set_country_flag = united_front_major
+			set_major = yes
+		}
+	}
+}
+
+setup_united_front_AI_PREV = {
+	hidden_effect = {
+		every_country = {
+			limit = { is_in_faction_with = PREV }
+			if = {
+				limit = {
+					NOT = { has_country_flag = united_front_AI_@PREV }
+				}
+				set_country_flag = united_front_AI_@PREV
+				add_ai_strategy = {
+					type = spare_unit_factor
+					value = 12
+				}
+				add_ai_strategy = {
+					type = protect
+					id = PREV
+					value = 200
+				}
+				add_ai_strategy = {
+					type = support
+					id = PREV
+					value = 200
+				}
+			}
+		}
+		every_country = {
+			limit = {
+				OR = {
+					tag = JAP
+					is_working_with_JAP = yes
+				}
+			}
+			ROOT = {
+				if = {
+					limit = {
+						NOT = { has_country_flag = united_front_AI_offensive_@PREV }
+					}
+					set_country_flag = united_front_AI_offensive_@PREV
+					add_ai_strategy = {
+						type = conquer
+						id = PREV
+						value = 200
+					}
+					add_ai_strategy = {
+						type = contain
+						id = PREV
+						value = 200
+					}
+				}
+			}
+		}
+	}
+}
+
+disable_united_front_AI = {
+	for_each_loop = {
+		array = countries
+		var:v = {
+			for_each_loop = {
+				array = countries
+				var:v = {
+					if = {
+						limit = {
+							has_country_flag = united_front_AI_@PREV
+						}
+						clr_country_flag = united_front_AI_@PREV
+						add_ai_strategy = {
+							type = spare_unit_factor
+							value = -12
+						}
+						add_ai_strategy = {
+							type = protect
+							id = PREV
+							value = -200
+						}
+						add_ai_strategy = {
+							type = support
+							id = PREV
+							value = -200
+						}
+					}
+					if = {
+						limit = {
+							has_country_flag = united_front_AI_offensive_@PREV
+						}
+						clr_country_flag = united_front_AI_offensive_@PREV
+						add_ai_strategy = {
+							type = conquer
+							id = PREV
+							value = -200
+						}
+						add_ai_strategy = {
+							type = contain
+							id = PREV
+							value = -200
+						}
+					}
+				}
+			}
+			if = {
+				limit = { has_country_flag = united_front_major }
+				clr_country_flag = united_front_major
+				set_major = no
+			}
+		}
+	}
+}
+
+set_JAP_FNG_hostile_AI = {
+	if = {
+		limit = {
+			NOT = { has_country_flag = JAP_FNG_AI_setup }
+		}
+		set_country_flag = JAP_FNG_AI_setup
+		add_ai_strategy = {
+			type = dont_defend_ally_borders
+			id = "FNG"
+			value = 1000
+		}
+		add_ai_strategy = {
+			type = prepare_for_war
+			id = "FNG"
+			value = 1000
+		}
+		add_ai_strategy = {
+			type = antagonize
+			id = "FNG"
+			value = 1000
+		}
+	}
+}
+
+clear_JAP_FNG_hostile_AI = {
+	if = {
+		limit = { has_country_flag = JAP_FNG_AI_setup }
+		clr_country_flag = JAP_FNG_AI_setup
+		add_ai_strategy = {
+			type = dont_defend_ally_borders
+			id = "FNG"
+			value = -1000
+		}
+		add_ai_strategy = {
+			type = prepare_for_war
+			id = "FNG"
+			value = -1000
+		}
+		add_ai_strategy = {
+			type = antagonize
+			id = "FNG"
+			value = -1000
+		}
+	}
+}

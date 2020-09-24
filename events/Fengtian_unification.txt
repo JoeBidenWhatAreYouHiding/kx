@@ -1,0 +1,5852 @@
+﻿add_namespace = fngshen
+add_namespace = fngconf
+
+### Shenyang Conference
+
+country_event = { #hidden conference starter event
+	id = fngshen.0
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngshen.0" }
+	hidden = yes
+
+	trigger = {
+		NOT = { has_country_flag = FNG_shenyang_conference }
+		NOT = { has_country_flag = FNG_conference_fired }
+		OR = {
+			ANQ = {
+				exists = yes
+				is_ruled_by_pro_fengtian = yes
+			}
+			GXC = {
+				exists = yes
+				GXC_has_federalist_government = yes
+			}
+			PRC = {
+				exists = yes
+				GXC_has_federalist_government = yes
+			}
+			SZC = {
+				exists = yes
+				SZC_federalists_in_exile = yes
+			}
+		}
+		QIE = {
+			exists = yes
+		}
+	}
+
+	is_triggered_only = yes
+
+	option = { #war already started, PRC-GXC not finished -> only for Anqing
+		trigger = {
+			has_war_with = QIE
+			ANQ = {
+				exists = yes
+				is_ruled_by_pro_fengtian = yes
+				has_country_flag = ANQ_peace
+				NOT = {
+					has_country_flag = ANQ_feng_aid_undecided
+				}
+			}
+		}
+		set_country_flag = FNG_shenyang_anq_only
+		country_event = {
+			id = fngshen.1
+			days = 1
+			random_hours = 12
+		}
+	}
+
+	option = { #wait for the GXC-PRC war to end and ANQ to have peace / SQI won League War and FNG did national irredentism
+		trigger = {
+			OR = {
+				GXC = {
+					GXC_has_federalist_government = yes
+					has_war_with = PRC
+				}
+				PRC = {
+					GXC_has_federalist_government = yes
+					has_war_with = GXC
+				}
+				ANQ = {
+					exists = yes
+					is_ruled_by_pro_fengtian = yes
+					NOT = { has_country_flag = ANQ_peace }
+				}
+				NOT = { has_country_flag = FNG_national_irredentism_flag }
+			}
+		}
+		country_event = {
+			id = fngshen.0
+			days = 5
+			random = 12
+		}
+	}
+
+	option = { #ANQ won League War and the GXC-PRC war is finished
+		trigger = {
+			has_country_flag = FNG_national_irredentism_flag
+			ANQ = {
+				exists = yes
+				is_ruled_by_pro_fengtian = yes
+				has_country_flag = ANQ_peace
+			}
+			NOT = {
+				GXC = {
+					GXC_has_federalist_government = yes
+					has_war_with = PRC
+				}
+				PRC = {
+					GXC_has_federalist_government = yes
+					has_war_with = GXC
+				}
+			}
+		}
+		country_event = fngshen.1
+	}
+
+	option = { #ANQ is not pro fengtian / does not exist
+		trigger = {
+			has_country_flag = FNG_national_irredentism_flag
+			NOT = {
+				ANQ = {
+					exists = yes
+					is_ruled_by_pro_fengtian = yes
+				}
+				GXC = {
+					GXC_has_federalist_government = yes
+					has_war_with = PRC
+				}
+				PRC = {
+					GXC_has_federalist_government = yes
+					has_war_with = GXC
+				}
+			}
+		}
+		set_country_flag = FNG_shenyang_no_allies
+		country_event = fngshen.4
+	}
+}
+
+country_event = { #A Conference in Shenyang
+	id = fngshen.1
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngshen.1" }
+	title = fngshen.1.t
+	desc = {
+		text = fngshen.1.d1
+		trigger = {
+			NOT = { has_country_flag = FNG_shenyang_anq_only }
+		}
+	}
+	desc = {
+		text = fngshen.1.d2
+		trigger = {
+			has_country_flag = FNG_shenyang_anq_only
+		}
+	}
+
+	picture = GFX_report_event_CHI_new_government
+
+	is_triggered_only = yes
+
+	trigger = {
+		NOT = { has_country_flag = FNG_conference_fired }
+	}
+
+	immediate = {
+		hidden_effect = {
+			set_country_flag = FNG_shenyang_conference
+		}
+	}
+
+	option = {
+		name = fngshen.1.a #Send the invites
+		hidden_effect = {
+			ANQ = {
+				if = {
+					limit = { is_ruled_by_pro_fengtian = yes }
+					country_event = {
+						id = fngshen.2
+						days = 1
+						random = 14
+					}
+					FNG = { set_country_flag = FNG_shenyang_ANQ } #they autoaccept
+				}
+			}
+			if = {
+				limit = {
+					has_country_flag = FNG_shenyang_anq_only
+				}
+				country_event = {
+					id = fngshen.7
+					days = 5
+				}
+			}
+			else = {
+				SQI = {
+					if = {
+						limit = { is_ruled_by_pro_fengtian = yes }
+						country_event = {
+							id = fngshen.2
+							days = 1
+							random = 14
+						}
+						FNG = { set_country_flag = FNG_shenyang_SQI } #they autoaccept
+					}
+				}
+				if = {
+					limit = {
+						OR = {
+							GXC = {
+								exists = yes
+								GXC_has_federalist_government = yes
+								NOT = { has_war_with = ROOT }
+							}
+							SZC = {
+								exists = yes
+								SZC_federalists_in_exile = yes
+								NOT = { has_war_with = ROOT }
+							}
+						}
+					}
+					country_event = {
+						id = fngshen.4
+						days = 8
+					}
+				}
+				else = { #if there are no federalists anymore
+					country_event = {
+						id = fngshen.7
+						days = 8
+					}
+				}
+			}
+		}
+	}
+}
+
+country_event = { #Go to the Shenyang Conference? (ANQ/SQI)
+	id = fngshen.2
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngshen.2" }
+	title = fngshen.2.t
+	desc = {
+		text = fngshen.2.ddef
+		trigger = {
+			FNG = { NOT = { has_country_flag = FNG_shenyang_anq_only } }
+		}
+	}
+	desc = {
+		text = fngshen.2.danq
+		trigger = {
+			FNG = { has_country_flag = FNG_shenyang_anq_only }
+		}
+	}
+
+	trigger = {
+		NOT = { has_country_flag = FNG_conference_fired }
+	}
+
+	is_triggered_only = yes
+
+	picture = GFX_report_event_CHI_warlords
+
+	option = {
+		name = fngshen.2.a #Send a delegation
+		add_political_power = 10
+		add_stability = 0.01
+		if = {
+			limit = {
+				FNG = { has_country_flag = FNG_shenyang_anq_only }
+			}
+			set_country_flag = ANQ_reclamation_deciding_fast
+		}
+		hidden_effect = {
+			FROM = {
+				country_event = {
+					id = fngshen.3
+					days = 2
+					random = 24
+				}
+			}
+		}
+	}
+}
+
+country_event = { #FROM attending the conference
+	id = fngshen.3
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngshen.3" }
+	title = fngshen.3.t
+	desc = {
+		text = fngshen.3.d
+		trigger = {
+			NOT = {
+				FROM = {
+					has_country_flag = SQI_projapan_anqing_puppet
+				}
+			}
+		}
+	}
+	desc = {
+		text = fngshen.3.d1
+		trigger = {
+			FROM = {
+				has_country_flag = SQI_projapan_anqing_puppet
+			}
+		}
+	}
+
+	picture = GFX_report_event_CHI_new_government
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngshen.3.a
+		add_political_power = 5
+	}
+}
+
+country_event = { #An Alliance with the Federalists?
+	id = fngshen.4
+	title = fngshen.4.t
+
+	desc = {
+		text = fngshen.4.d.no_allies
+		trigger = {
+			has_country_flag = FNG_shenyang_no_allies
+		}
+	}
+	desc = {
+		text = fngshen.4.d.conference
+		trigger = {
+			NOT = { has_country_flag = FNG_shenyang_no_allies }
+		}
+	}
+
+	picture = federalist_party_2
+
+	immediate = {
+		log = "[GetDateText]: [Root.GetName]: event fngshen.4"
+		if = {
+			limit = {
+				SZC = { SZC_federalists_in_exile = yes }
+			}
+			SZC = { save_event_target_as = FNG_shenyang_federalist_leader }
+		}
+		else = {
+			GXC = { save_event_target_as = FNG_shenyang_federalist_leader }
+		}
+	}
+
+	trigger = {
+		OR = {
+			GXC = {
+				exists = yes
+				GXC_has_federalist_government = yes
+			}
+			SZC = {
+				exists = yes
+				SZC_federalists_in_exile = yes
+			}
+		}
+		NOT = {
+			SZC = {
+				SZC_federalists_in_exile = yes
+				has_war_with = ROOT
+			}
+			GXC = {
+				GXC_has_federalist_government = yes
+				has_war_with = ROOT
+			}
+		}
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngshen.4.a #Yes
+		ai_chance = {
+			factor = 3
+			modifier = {
+				factor = 33
+				has_country_flag = FNG_shenyang_no_allies
+			}
+		}
+		hidden_effect = {
+			event_target:FNG_shenyang_federalist_leader = {
+				country_event = {
+					id = fngshen.5
+					days = 2
+					random = 24
+				}
+			}
+		}
+	}
+	option = {
+		name = fngshen.4.b #No
+		ai_chance = {
+			factor = 1
+		}
+		hidden_effect = {
+			if = {
+				limit = {
+					NOT = { has_country_flag = FNG_shenyang_no_allies }
+				}
+				country_event = {
+					id = fngshen.7
+					days = 10
+				}
+			}
+		}
+		clr_country_flag = FNG_shenyang_no_allies
+	}
+}
+
+country_event = { #An Offer From Fengtian (GXC)
+	id = fngshen.5
+	title = fngshen.5.t
+
+	desc = {
+		text = fngshen.5.d.no_allies
+		trigger = {
+			has_country_flag = FNG_shenyang_no_allies
+		}
+	}
+	desc = {
+		text = fngshen.5.d.conference
+		trigger = {
+			NOT = {
+				has_country_flag = FNG_shenyang_no_allies
+			}
+		}
+	}
+
+	picture = GFX_report_event_CHI_ambassador_announcement
+
+	is_triggered_only = yes
+
+	immediate = {
+		log = "[GetDateText]: [Root.GetName]: event fngshen.5"
+		hidden_effect = {
+			FROM = {
+				country_event = {
+					id = fngshen.6
+					days = 2
+					random = 24
+				}
+			}
+		}
+	}
+
+	option = {
+		name = fngshen.5.a #Yes
+		ai_chance = {
+			factor = 1
+			modifier = {
+				set_temp_variable = { FNG_jiongming_chance = FROM.party_popularity@market_liberal }
+				multiply_temp_variable = { FNG_jiongming_chance = -1 }
+				add = FNG_jiongming_chance
+			}
+		}
+		FROM = { set_country_flag = FNG_shenyang_@ROOT }
+	}
+	option = {
+		name = fngshen.5.b #No
+		ai_chance = {
+			factor = 1
+			modifier = {
+				add = FROM.party_popularity@market_liberal
+			}
+		}
+	}
+}
+
+country_event = { #Federalist Response
+	id = fngshen.6
+
+	title = {
+		text = fngshen.6.t.accepted
+		trigger = {
+			has_country_flag = FNG_shenyang_@FROM
+		}
+	}
+	title = {
+		text = fngshen.6.t.refused
+		trigger = {
+			NOT = { has_country_flag = FNG_shenyang_@FROM }
+		}
+	}
+	desc = {
+		text = fngshen.6.d.accepted
+		trigger = {
+			has_country_flag = FNG_shenyang_@FROM
+		}
+	}
+	desc = {
+		text = fngshen.6.d.refused
+		trigger = {
+			NOT = { has_country_flag = FNG_shenyang_@FROM }
+		}
+	}
+
+	picture = GFX_report_event_CHI_ambassador_announcement
+
+	is_triggered_only = yes
+
+	immediate = {
+		log = "[GetDateText]: [Root.GetName]: event fngshen.6"
+		clr_country_flag = FNG_shenyang_no_allies
+		hidden_effect = {
+			country_event = {
+				id = fngshen.7
+				days = 4
+			}
+		}
+	}
+
+	option = {
+		name = fngshen.6.a #Excellent
+		trigger = {
+			has_country_flag = FNG_shenyang_@FROM
+		}
+	}
+	option = {
+		name = fngshen.6.b #Their loss
+		trigger = {
+			NOT = { has_country_flag = FNG_shenyang_@FROM }
+		}
+	}
+}
+
+country_event = { #Start of the Shenyang Conference
+	id = fngshen.7
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngshen.7" }
+	title = fngshen.7.t
+	desc = fngshen.7.d
+
+	picture = GFX_report_event_CHI_new_government
+
+	is_triggered_only = yes
+
+	trigger = {
+		NOT = { has_country_flag = FNG_conference_fired }
+	}
+
+	option = {
+		name = fngshen.7.a
+		hidden_effect = {
+			if = {
+				limit = {
+					has_country_flag = FNG_shenyang_ANQ
+					has_country_flag = FNG_shenyang_SQI
+					NOT = { SQI = { has_country_flag = SQI_projapan_anqing_puppet } }
+				}
+				country_event = {
+					id = fngshen.8
+					days = 1
+					random = 47
+				}
+			}
+			else_if = {
+				limit = {
+					has_country_flag = FNG_shenyang_@event_target:FNG_shenyang_federalist_leader
+				}
+				country_event = {
+					id = fngshen.9
+					days = 1
+					random = 47
+				}
+			}
+			else = {
+				country_event = {
+					id = fngshen.10
+					days = 1
+					random = 47
+				}
+			}
+		}
+	}
+}
+
+country_event = { #Heated Discussions
+	id = fngshen.8
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngshen.8" }
+	title = fngshen.8.t
+	desc = fngshen.8.d
+
+	picture = GFX_report_event_QIE_soldiers_planning
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngshen.8.a #Cut it out, both of you
+		hidden_effect = {
+			if = {
+				limit = {
+					has_country_flag = FNG_shenyang_event_target:FNG_shenyang_federalist_leader
+				}
+				country_event = {
+					id = fngshen.9
+					hours = 12
+					random = 24
+				}
+			}
+			else = {
+				country_event = {
+					id = fngshen.10
+					hours = 12
+					random = 24
+				}
+			}
+		}
+	}
+}
+
+country_event = { #Federalists Press For Reform
+	id = fngshen.9
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngshen.9" }
+	title = fngshen.9.t
+	desc = fngshen.9.d
+
+	picture = federalist_party_3
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngshen.9.a #Make vague promises
+		add_political_power = -5
+		hidden_effect = {
+			country_event = {
+				id = fngshen.10
+				hours = 12
+				random = 24
+			}
+		}
+	}
+}
+
+country_event = { #Either Chen Supports Anti-concessionism
+	id = fngshen.10
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngshen.10" }
+	title = fngshen.10.t
+
+	desc = {
+		text = fngshen.10.d.ANQ
+		trigger = {
+			has_country_flag = FNG_shenyang_ANQ
+		}
+	}
+	desc = {
+		text = fngshen.10.d.GXC
+		trigger = {
+			NOT = { has_country_flag = FNG_shenyang_ANQ }
+		}
+	}
+
+	picture = GFX_report_event_LEC_shanghai_river
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngshen.10.a
+		hidden_effect = {
+			if = {
+				limit = {
+					has_country_flag = FNG_shenyang_ANQ
+					has_country_flag = FNG_shenyang_@event_target:FNG_shenyang_federalist_leader
+				}
+				country_event = {
+					id = fngshen.11
+					hours = 12
+					random = 24
+				}
+			}
+			else_if = {
+				limit = {
+					has_country_flag = FNG_shenyang_SQI
+					NOT = { SQI = { has_country_flag = SQI_projapan_anqing_puppet } }
+				}
+				country_event = {
+					id = fngshen.12
+					hours = 12
+					random = 24
+				}
+			}
+			else = {
+				country_event = {
+					id = fngshen.13
+					hours = 12
+					random = 24
+				}
+			}
+		}
+	}
+}
+
+country_event = { #The Chens Press For Anti-concessionism
+	id = fngshen.11
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngshen.11" }
+	title = fngshen.11.t
+	desc = fngshen.11.d
+
+	picture = GFX_report_event_ANQ_chen_tiaoyuan
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngshen.11.a
+		hidden_effect = {
+			if = {
+				limit = {
+					has_country_flag = FNG_shenyang_SQI
+					NOT = { SQI = { has_country_flag = SQI_projapan_anqing_puppet } }
+				}
+				country_event = {
+					id = fngshen.12
+					hours = 11
+					random = 24
+				}
+			}
+			else = {
+				country_event = {
+					id = fngshen.13
+					hours = 12
+					random = 24
+				}
+			}
+		}
+	}
+}
+
+country_event = { #Zongchang's Drunken Rants
+	id = fngshen.12
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngshen.12" }
+	title = fngshen.12.t
+	desc = fngshen.12.d
+
+	picture = GFX_report_event_generic_diplomacy2
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngshen.12.a
+		hidden_effect = {
+			country_event = {
+				id = fngshen.13
+				hours = 12
+				random = 24
+			}
+		}
+	}
+}
+
+country_event = { #Yang Yuting Urges Caution
+	id = fngshen.13
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngshen.13" }
+	title = fngshen.13.t
+	desc = fngshen.13.d
+
+	picture = GFX_report_event_FNG_japanese_at_shanhaiguan
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngshen.13.a
+		hidden_effect = {
+			country_event = {
+				id = fngshen.14
+				hours = 12
+				random = 24
+			}
+		}
+	}
+}
+
+country_event = { #The Point of Decision
+	id = fngshen.14
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngshen.14" }
+	title = fngshen.14.t
+	desc = fngshen.14.d
+
+	picture = GFX_report_event_CHI_official_announcement
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngshen.14.a #Yes
+		ai_chance = {
+			factor = 1
+			modifier = {
+				set_temp_variable = { FNG_accept_chance = ROOT.party_popularity@market_liberal }
+				multiply_temp_variable = { FNG_accept_chance = -1 }
+				add = FNG_accept_chance
+			}
+			modifier = {
+				add = 0.25
+				has_country_flag = FNG_shenyang_@event_target:FNG_shenyang_federalist_leader
+			}
+			modifier = {
+				add = 0.25
+				has_country_flag = FNG_shenyang_ANQ
+			}
+		}
+		set_country_flag = FNG_shenyang_anticoncessions
+		if = {
+			limit = { has_country_flag = FNG_shenyang_@event_target:FNG_shenyang_federalist_leader }
+			custom_effect_tooltip = FNG_federalist_allies
+			hidden_effect = {
+				country_event = {
+					id = fngshen.15
+					hours = 12
+					random = 24
+				}
+				country_event = {
+					id = fngshen.17
+					hours = 36
+					random = 24
+				}
+				event_target:FNG_shenyang_federalist_leader = {
+					country_event = {
+						id = fngshen.15
+						hours = 12
+						random = 24
+					}
+					country_event = {
+						id = fngshen.17
+						hours = 36
+						random = 24
+					}
+				}
+			}
+		}
+		hidden_effect = {
+			if = {
+				limit = { has_country_flag = FNG_shenyang_SQI }
+				SQI = {
+					country_event = {
+						id = fngshen.17
+						hours = 36
+						random = 24
+					}
+				}
+			}
+			if = {
+				limit = { has_country_flag = FNG_shenyang_ANQ }
+				country_event = {
+					id = fngshen.16
+					hours = 6
+					random = 30
+				}
+				ANQ = {
+					country_event = {
+						id = fngshen.17
+						hours = 36
+						random = 24
+					}
+				}
+			}
+		}
+	}
+	option = {
+		name = fngshen.14.b #No
+		ai_chance = {
+			factor = 1
+			modifier = {
+				add = party_popularity@market_liberal
+			}
+			modifier = {
+				add = -0.25
+				has_country_flag = FNG_shenyang_@event_target:FNG_shenyang_federalist_leader
+			}
+			modifier = {
+				add = -0.25
+				has_country_flag = FNG_shenyang_ANQ
+			}
+		}
+		if = {
+			limit = {
+				has_country_flag = FNG_shenyang_ANQ
+				has_country_flag = FNG_shenyang_@event_target:FNG_shenyang_federalist_leader
+			}
+			custom_effect_tooltip = FNG_anticoncessionists_angered
+			hidden_effect = {
+				country_event = {
+					id = fngshen.18
+					hours = 12
+					random = 24
+				}
+				ANQ = {
+					country_event = {
+						id = fngshen.20
+						hours = 36
+						random = 24
+					}
+				}
+			}
+		}
+		else_if = {
+			limit = { has_country_flag = FNG_shenyang_@event_target:FNG_shenyang_federalist_leader }
+			custom_effect_tooltip = FNG_federalists_angered
+			hidden_effect = {
+				country_event = {
+					id = fngshen.18
+					hours = 12
+					random = 24
+				}
+			}
+		}
+		else = {
+			custom_effect_tooltip = FNG_anqing_angered
+			hidden_effect = {
+				ANQ = {
+					country_event = {
+						id = fngshen.20
+						days = 1
+						random = 24
+					}
+				}
+			}
+		}
+	}
+}
+
+country_event = { #Federalist-Fengtian alliance
+	id = fngshen.15
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngshen.15" }
+	title = fngshen.15.t
+	desc = fngshen.15.d
+
+	picture = federalist_party_3
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngshen.15.a
+	}
+}
+
+country_event = { #Anqing Is Glad for our stance
+	id = fngshen.16
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngshen.16" }
+	title = fngshen.16.t
+	desc = fngshen.16.d
+
+	picture = GFX_report_event_ANQ_chen_tiaoyuan
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngshen.16.a
+		ANQ = {
+			country_event = {
+				id = anq.171
+				hours = 90
+				random = 24
+			}
+		}
+	}
+}
+
+country_event = { #End of the Conference
+	id = fngshen.17
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngshen.17" }
+	title = fngshen.17.t
+	desc = {
+		text = fngshen.17.d
+		trigger = {
+			NOT = { tag = ANQ }
+		}
+	}
+	desc = {
+		text = fngshen.17.danq
+		trigger = {
+			tag = ANQ
+		}
+	}
+
+	picture = GFX_report_event_CHI_new_government
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngshen.17.a #Yes
+		trigger = {
+			NOT = { tag = ANQ }
+		}
+		add_political_power = 20
+		add_stability = 0.02
+		if = {
+			limit = {
+				NOT = { tag = FNG }
+			}
+			set_country_flag = FNG_alliance
+			FNG = {
+				clr_country_flag = FNG_shenyang_@ROOT
+			}
+		}
+	}
+
+	option = { #Anqing has to make decision
+		name = fngshen.17.b
+		trigger = {
+			tag = ANQ
+		}
+		country_event = {
+			id = anq.171
+			hours = 90
+			random = 24
+		}
+	}
+}
+
+country_event = { #The Federalists Storm Off
+	id = fngshen.18
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngshen.18" }
+	title = fngshen.18.t
+	desc = fngshen.18.d
+
+	picture = federalist_party_2
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngshen.18.a
+		add_political_power = -10
+		add_stability = -0.01
+		hidden_effect = {
+			event_target:FNG_shenyang_federalist_leader = {
+				country_event = {
+					id = fngshen.19
+					days = 2
+					random = 48
+				}
+			}
+		}
+	}
+}
+
+country_event = { #Zuolin Refuses Our Demands
+	id = fngshen.19
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngshen.19" }
+	title = fngshen.19.t
+	desc = fngshen.19.d
+
+	picture = GFX_report_event_JAP_foreign_minister
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngshen.19.a
+		set_country_flag = FNG_hostile
+	}
+}
+
+country_event = { #Fengtian Refuses To Denounce The Concessions
+	id = fngshen.20
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngshen.20" }
+	title = fngshen.20.t
+	desc = fngshen.20.d
+
+	picture = GFX_report_event_JAP_foreign_minister_2
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngshen.20.a #decide reclamation
+		FNG = {
+			country_event = {
+				id = fngshen.21
+				hours = 12
+				random = 6
+			}
+		}
+		country_event = {
+			id = anq.171
+			hours = 90
+			random = 24
+		}
+	}
+}
+
+country_event = { #Tiaoyuan Denounces Fengtian
+	id = fngshen.21
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngshen.21" }
+	title = fngshen.21.t
+	desc = fngshen.21.d
+
+	picture = GFX_report_event_ANQ_chen_tiaoyuan
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngshen.21.a
+	}
+}
+
+### Unification Conference
+
+##Pre-Conference
+country_event = { #Preparing the National Conference
+	id = fngconf.1
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.1" }
+	title = fngconf.1.t
+	desc = fngconf.1.d
+
+	picture = GFX_report_event_CHI_new_government
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = fngconf.1.a
+		ai_chance = {
+			factor = 100
+		}
+		hidden_effect = {
+			for_each_scope_loop = {
+				array = global.china_tags_array
+				if = {
+					limit = {
+						FNG_can_attend_unification_conference = yes
+						NOT = {
+							tag = TIB
+							tag = MON
+							tag = ROOT
+						}
+						is_subject = no
+						OR = {
+							is_faction_leader = yes
+							is_in_faction = no
+						}
+						exists = yes
+					}
+					country_event = {
+						id = fngconf.2
+						days = 3
+						random = 24
+					}
+				}
+			}
+			country_event = {
+				id = fngconf.3
+				days = 2
+				random = 48
+			}
+			country_event = {
+				id = fngconf.4
+				days = 4
+				random = 48
+			}
+			JAP = {
+				country_event = {
+					id = fngconf.5
+					days = 5
+					random = 48
+				}
+			}
+			country_event = {
+				id = fngconf.6
+				days = 8
+				random = 48
+			}
+			country_event = {
+				id = fngconf.7
+				days = 10
+				random = 48
+			}
+			country_event = {
+				id = fngconf.8
+				days = 12
+				random = 48
+			}
+			country_event = {
+				id = fngconf.9
+				days = 14
+				random = 48
+			}
+		}
+	}
+
+	option = {
+		name = fngconf.1.b
+		ai_chance = {
+			factor = 0
+		}
+		set_global_flag = FNG_conference_failed
+	}
+}
+
+country_event = { #Attend the National Conference?
+	id = fngconf.2
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.2" }
+	title = fngconf.2.t
+	desc = fngconf.2.d
+
+	picture = GFX_report_event_CHI_new_government
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+		FNG_can_attend_unification_conference = yes
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.2.a #Yes
+		ai_chance = {
+			factor = 80
+			modifier = {
+				factor = 0.75
+				NOT = { has_country_flag = FNG_alliance }
+			}
+			modifier = {
+				factor = 1.25
+				strength_ratio = {
+					tag = FROM
+					ratio < 0.7
+				}
+			}
+		}
+		add_to_array = { FNG.FNG_conference_participants = ROOT }
+		hidden_effect = {
+			if = {
+				limit = { num_subjects > 0 }
+				for_each_loop = {
+					array = ROOT.subjects
+					add_to_array = { FNG.FNG_conference_participants = v }
+				}
+			}
+			if = {
+				limit = { is_faction_leader = yes }
+				for_each_scope_loop = {
+					array = global.china_tags_array
+					if = {
+						limit = {
+							is_in_faction_with = ROOT
+							exists = yes
+							NOT = { tag = ROOT }
+						}
+						country_event = {
+							id = fngconf.2
+							days = 1
+							random = 48
+						}
+					}
+				}
+			}
+		}
+		if = {
+			limit = { tag = event_target:FNG_federalist_leader }
+			set_global_flag = FNG_conference_federalists
+		}
+	}
+
+	option = {
+		name = fngconf.2.b #No
+		trigger = {
+			OR = {
+				NOT = { tag = ANQ }
+				has_country_flag = ANQ_abandons_reclamation
+				NOT = { has_country_flag = ANQ_is_profengtian }
+			}
+		}
+		ai_chance = {
+			factor = 20
+			modifier = {
+				factor = 2
+				NOT = { has_country_flag = FNG_alliance }
+			}
+			modifier = {
+				factor = 0.5
+				strength_ratio = {
+					tag = FROM
+					ratio < 0.7
+				}
+			}
+			modifier = {
+				factor = 0
+				NOT = { tag = ANQ }
+				is_ruled_by_pro_fengtian = yes
+			}
+			modifier = {
+				factor = 0
+				has_country_flag = FNG_alliance
+			}
+			modifier = {
+				factor = 0
+				has_country_flag = ANQ_is_profengtian
+			}
+			modifier = {
+				factor = 0
+				is_in_faction = yes
+				var:faction_leader = {
+					is_in_array = { FNG.FNG_conference_participants = THIS }
+				}
+			}
+		}
+		if = {
+			limit = {
+				tag = ANQ
+				has_country_flag = ANQ_is_profengtian
+			}
+			custom_effect_tooltip = anq_abandon_conference_tolerated_tt
+			ANQ_break_relations_fengtian = yes
+		}
+		else_if = {
+			limit = { is_ruled_by_pro_fengtian = yes }
+			custom_effect_tooltip = FNG_betrayal_tooltip
+			set_country_flag = FNG_hostile
+		}
+	}
+}
+
+country_event = { #The Zhili/Manchu Denounce Us
+	id = fngconf.3
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.3" }
+	title = fngconf.3.t
+
+	desc = {
+		text = fngconf.3.d.zhili
+		trigger = {
+			QIE = {
+				NOT = { has_country_flag = QIE_manchu_restoration }
+			}
+		}
+	}
+	desc = {
+		text = fngconf.3.d.manchu
+		trigger = {
+			QIE = {
+				has_country_flag = QIE_manchu_restoration
+			}
+		}
+	}
+
+	trigger = {
+		OR = {
+			country_exists = QIE
+			country_exists = LEP
+		}
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	picture = GFX_report_event_CHI_ambassador_announcement
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.3.a
+	}
+}
+
+country_event = { #The KMT Denounces Us
+	id = fngconf.4
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.4" }
+	title = fngconf.4.t
+	desc = fngconf.4.d
+
+	picture = GFX_report_event_CHI_successful_northern_expedition_flag
+
+	trigger = {
+		OR = {
+			country_exists = CHI
+			AND = {
+				NOT = { country_exists = CHI }
+				country_exists = GXC
+				GXC = {
+					has_country_leader = {
+						name = "Chen Mingshu"
+						ruling_only = yes
+					}
+				}
+			}
+			AND = {
+				country_exists = YUN
+				YUN = {
+					has_country_leader = {
+						name = "Zhu Peide"
+						ruling_only = yes
+					}
+				}
+			}
+		}
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.4.a
+	}
+}
+
+country_event = { #Japan Demands Observer Status
+	id = fngconf.5
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.5" }
+
+	title = {
+		text = fngconf.5.t.JAP
+		trigger = {
+			tag = JAP
+		}
+	}
+	title = {
+		text = fngconf.5.t.FNG
+		trigger = {
+			NOT = { tag = JAP }
+		}
+	}
+
+	desc = {
+		text = fngconf.5.d.JAP
+		trigger = {
+			tag = JAP
+		}
+	}
+	desc = {
+		text = fngconf.5.d.FNG
+		trigger = {
+			NOT = { tag = JAP }
+		}
+	}
+
+	picture = GFX_report_event_JAP_foreign_minister
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = {
+			has_global_flag = FNG_conference_failed
+			has_global_flag = JAP_Fading_Sun
+		}
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.5.a
+		trigger = {
+			tag = JAP
+		}
+		ai_chance = {
+			factor = 100
+		}
+		FROM = {
+			country_event = {
+				id = fngconf.5
+				hours = 8
+				random = 16
+			}
+		}
+	}
+	option = {
+		name = fngconf.5.b
+		trigger = {
+			tag = JAP
+		}
+		ai_chance = {
+			factor = 0
+		}
+	}
+	option = {
+		name = fngconf.5.c
+		trigger = {
+			NOT = { tag = JAP }
+		}
+	}
+}
+
+country_event = { #Invite Chen Jiongming?
+	id = fngconf.6
+	title = fngconf.6.t
+	desc = fngconf.6.d
+
+	picture = federalist_party_2
+
+	trigger = {
+		OR = {
+			AND = {
+				GXC = {
+					GXC_has_federalist_government = yes
+					NOT = { has_war_with = PRC }
+				}
+				NOT = { has_war_with = GXC }
+			}
+			AND = {
+				SZC = { SZC_federalists_in_exile = yes }
+				NOT = { has_war_with = SZC }
+			}
+		}
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	immediate = {
+		log = "[GetDateText]: [Root.GetName]: event fngconf.6"
+		hidden_effect = {
+			if = {
+				limit = {
+					GXC = { GXC_has_federalist_government = yes }
+				}
+				GXC = { save_global_event_target_as = FNG_federalist_leader }
+			}
+			else_if = {
+				limit = {
+					SZC = { has_focus_tree = Sichuan_Clique_Federalist }
+				}
+				SZC = { save_global_event_target_as = FNG_federalist_leader }
+			}
+		}
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.6.a #Yes
+		ai_chance = {
+			factor = 80
+		}
+		event_target:FNG_federalist_leader = {
+			country_event = {
+				id = fngconf.2
+				days = 4
+				random = 48
+			}
+		}
+	}
+	option = {
+		name = fngconf.6.b #No
+		ai_chance = {
+			factor = 20
+			modifier = {
+				factor = 0
+				event_target:FNG_federalist_leader = {
+					has_country_flag = FNG_alliance
+				}
+			}
+		}
+	}
+}
+
+country_event = { #Invite Song Qingling?
+	id = fngconf.7
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.7" }
+	title = fngconf.7.t
+	desc = fngconf.7.d
+
+	picture = GFX_report_event_CHI_speech
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = {
+			country_exists = CHI
+			has_global_flag = FNG_conference_failed
+		}
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.7.a #Yes
+		ai_chance = {
+			factor = 100
+		}
+		set_global_flag = FNG_conference_song
+		set_temp_variable = { CAPOP = -1 }
+		FNG_CAPOP = yes
+		set_temp_variable = { CCPOP = -1 }
+		FNG_CCPOP = yes
+		set_temp_variable = { ZCPOP = -1 }
+		FNG_ZCPOP = yes
+	}
+	option = {
+		name = fngconf.7.b #No
+		ai_chance = {
+			factor = 0
+		}
+	}
+}
+
+country_event = { #Japan Complains
+	id = fngconf.8
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.8" }
+	title = fngconf.8.t
+	desc = fngconf.8.d
+
+	picture = GFX_report_event_JAP_foreign_minister
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = {
+			has_global_flag = FNG_conference_failed
+			has_global_flag = JAP_Fading_Sun
+		}
+		OR = {
+			has_global_flag = FNG_conference_federalists
+			has_global_flag = FNG_conference_song
+		}
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.8.a
+	}
+}
+
+country_event = { #The Delegates Arrive / A Shattered Dream
+	id = fngconf.9
+
+	title = {
+		text = fngconf.9.t.conference
+		trigger = {
+			OR = {
+				check_variable = { FNG.FNG_conference_participants^num > 2 }
+				has_global_flag = FNG_conference_federalists
+			}
+		}
+	}
+	title = {
+		text = fngconf.9.t.conference_fails
+		trigger = {
+			NOT = { has_global_flag = FNG_conference_federalists }
+			check_variable = { FNG.FNG_conference_participants^num < 3 }
+		}
+	}
+
+	desc = {
+		text = fngconf.9.d.conference
+		trigger = {
+			OR = {
+				check_variable = { FNG.FNG_conference_participants^num > 2 }
+				has_global_flag = FNG_conference_federalists
+			}
+		}
+	}
+	desc = {
+		text = fngconf.9.d.conference_fails
+		trigger = {
+			NOT = { has_global_flag = FNG_conference_federalists }
+			check_variable = { FNG.FNG_conference_participants^num < 3 }
+		}
+	}
+
+	picture = GFX_report_event_SQI_zongchang_and_zuolin
+
+	immediate = {
+		log = "[GetDateText]: [Root.GetName]: event fngconf.9"
+		set_country_flag = FNG_show_and_tooltip
+	}
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.9.a
+		trigger = {
+			OR = {
+				check_variable = { FNG.FNG_conference_participants^num > 2 }
+				has_global_flag = FNG_conference_federalists
+			}
+		}
+		clr_country_flag = FNG_show_and_tooltip
+		hidden_effect = {
+			country_event = {
+				id = fngconf.10
+				days = 1
+			}
+		}
+	}
+
+	option = {
+		name = fngconf.9.b
+		trigger = {
+			NOT = { has_global_flag = FNG_conference_federalists }
+			check_variable = { FNG.FNG_conference_participants^num < 3 }
+		}
+		clr_country_flag = FNG_show_and_tooltip
+		set_global_flag = FNG_conference_failed
+		add_political_power = -100
+		set_variable = { FNG_legitimacy_level = 1 }
+		hidden_effect = { country_event = fngconf.76 }
+	}
+}
+
+### Starting Events
+
+country_event = { #The National Conference Begins
+	id = fngconf.10
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.10" }
+	title = fngconf.10.t
+	desc = fngconf.10.d
+
+	picture = federalist_party_1
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	major = yes
+	show_major = {
+		OR = {
+			tag = FNG
+			is_in_array = { FNG.FNG_conference_participants = THIS }
+		}
+	}
+
+	option = {
+		name = fngconf.10.a
+		trigger = {
+			tag = FNG
+		}
+		set_country_flag = FNG_conference_begun
+		hidden_effect = {
+			if = {
+				limit = {
+					is_in_array = { FNG.FNG_conference_participants = ANQ }
+				}
+				country_event = {
+					id = fngconf.11
+					days = 1
+				}
+			}
+			else = {
+				country_event = {
+					id = fngconf.12
+					days = 1
+				}
+			}
+		}
+	}
+
+	option = {
+		name = fngconf.10.a
+		trigger = {
+			NOT = { tag = FNG }
+		}
+	}
+}
+
+country_event = { #Tiaoyuan's Speech
+	id = fngconf.11
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.11" }
+	title = fngconf.11.t
+	desc = fngconf.11.d
+
+	picture = GFX_report_event_ANQ_chen_tiaoyuan
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	major = yes
+	show_major = {
+		OR = {
+			tag = FNG
+			is_in_array = { FNG.FNG_conference_participants = THIS }
+		}
+	}
+
+	option = {
+		name = fngconf.11.a
+		trigger = {
+			tag = FNG
+		}
+		hidden_effect = {
+			country_event = {
+				id = fngconf.12
+				days = 1
+			}
+		}
+	}
+
+	option = {
+		name = fngconf.11.a
+		trigger = {
+			NOT = { tag = FNG }
+		}
+	}
+}
+
+### First Phase - National Issues
+
+country_event = { #Question of the Constitution
+	id = fngconf.12
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.12" }
+	title = fngconf.12.t
+	desc = {
+		text = fngconf.12.d.federalist
+		trigger = {
+			has_global_flag = FNG_conference_federalists
+		}
+	}
+	desc = {
+		text = fngconf.12.d.no_federalist
+		trigger = {
+			NOT = { has_global_flag = FNG_conference_federalists }
+		}
+	}
+
+	picture = GFX_report_event_SQI_zongchang_and_zuolin
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	major = yes
+	show_major = {
+		OR = {
+			tag = FNG
+			is_in_array = { FNG.FNG_conference_participants = THIS }
+		}
+	}
+
+	option = {
+		name = fngconf.12.b #The debate begins
+		trigger = {
+			tag = FNG
+			has_global_flag = FNG_conference_federalists
+		}
+		hidden_effect = {
+			country_event = {
+				id = fngconf.13
+				days = 1
+				random = 24
+			}
+		}
+	}
+	option = {
+		name = fngconf.12.a #The constitution is proposed
+		trigger = {
+			tag = FNG
+			NOT = { has_global_flag = FNG_conference_federalists }
+		}
+		if = {
+			limit = {
+				has_global_flag = FNG_conference_song
+			}
+			hidden_effect = {
+				country_event = {
+					id = fngconf.16
+					hours = 8
+					random = 16
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				is_in_array = { FNG.FNG_conference_participants = ANQ }
+			}
+			hidden_effect = {
+				country_event = {
+					id = fngconf.19
+					hours = 8
+					random = 16
+				}
+			}
+		}
+		else = {
+			hidden_effect = {
+				country_event = {
+					id = fngconf.31
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+	option = {
+		name = fngconf.12.b
+		trigger = {
+			NOT = { tag = FNG }
+		}
+	}
+}
+
+country_event = { #Disagreements with the Federalists
+	id = fngconf.13
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.13" }
+	title = fngconf.13.t
+	desc = fngconf.13.d
+
+	picture = federalist_party_3
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	major = yes
+	show_major = {
+		OR = {
+			tag = FNG
+			is_in_array = { FNG.FNG_conference_participants = THIS }
+		}
+	}
+
+	option = {
+		name = fngconf.13.a
+		trigger = {
+			tag = FNG
+		}
+		hidden_effect = {
+			country_event = {
+				id = fngconf.14
+				days = 1
+				random = 24
+			}
+		}
+	}
+	option = {
+		name = fngconf.13.b
+		trigger = {
+			NOT = { tag = FNG }
+		}
+	}
+}
+
+country_event = { #A Compromise Is Reached
+	id = fngconf.14
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.14" }
+	title = fngconf.14.t
+
+	desc = {
+		text = fngconf.14.d.FNG
+		trigger = {
+			tag = FNG
+		}
+	}
+	desc = {
+		text = fngconf.14.d.others
+		trigger = {
+			NOT = { tag = FNG }
+		}
+	}
+
+	picture = GFX_report_event_generic_diplomacy3
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	major = yes
+	show_major = {
+		OR = {
+			tag = FNG
+			is_in_array = { FNG.FNG_conference_participants = THIS }
+		}
+	}
+
+	option = {
+		name = fngconf.14.a #Accept
+		trigger = {
+			tag = FNG
+		}
+		set_country_flag = FNG_conference_federalist_support
+		add_to_variable = { FNG_legitimacy_level = 1 }
+		hidden_effect = {
+			if = {
+				limit = { has_global_flag = FNG_conference_song }
+				country_event = {
+					id = fngconf.16
+					days = 2
+				}
+			}
+			else_if = {
+				limit = {
+					OR = {
+						has_global_flag = FNG_conference_federalists
+						is_in_array = { FNG.FNG_conference_participants = ANQ }
+					}
+				}
+				country_event = {
+					id = fngconf.19
+					hours = 8
+					random = 16
+				}
+			}
+			else = {
+				country_event = {
+					id = fngconf.31
+					hours = 8
+					random = 16
+				}
+				country_event = {
+					id = fngconf.32
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+	option = {
+		name = fngconf.14.b #Refuse
+		trigger = {
+			tag = FNG
+		}
+		hidden_effect = {
+			country_event = {
+				id = fngconf.15
+				hours = 8
+				random = 16
+			}
+			if = {
+				limit = { has_global_flag = FNG_conference_song }
+				country_event = {
+					id = fngconf.16
+					hours = 24
+					random = 16
+				}
+			}
+			else_if = {
+				limit = {
+					OR = {
+						has_global_flag = FNG_conference_federalists
+						is_in_array = { FNG.FNG_conference_participants = ANQ }
+					}
+				}
+				country_event = {
+					id = fngconf.19
+					hours = 24
+					random = 16
+				}
+			}
+			else = {
+				country_event = {
+					id = fngconf.31
+					hours = 24
+					random = 16
+				}
+				country_event = {
+					id = fngconf.32
+					hours = 24
+					random = 16
+				}
+			}
+		}
+	}
+	option = {
+		name = fngconf.14.c #Interesting
+		trigger = {
+			NOT = { tag = FNG }
+		}
+	}
+}
+
+country_event = { #Federalists Leave The Conference
+	id = fngconf.15
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.15" }
+	title = fngconf.15.t
+
+	desc = {
+		text = fngconf.15.d.rejected
+		trigger = {
+			NOT = {
+				is_in_faction_with = event_target:FNG_federalist_leader
+				event_target:FNG_federalist_leader = { has_country_flag = FNG_territory_betrayal }
+			}
+		}
+	}
+	desc = {
+		text = fngconf.15.d.rejected_feds
+		trigger = {
+			is_in_faction_with = event_target:FNG_federalist_leader
+			NOT = {
+				event_target:FNG_federalist_leader = { has_country_flag = FNG_territory_betrayal }
+			}
+		}
+	}
+	desc = {
+		text = fngconf.15.d.betrayed
+		trigger = {
+			NOT = { is_in_faction_with = event_target:FNG_federalist_leader }
+			event_target:FNG_federalist_leader = { has_country_flag = FNG_territory_betrayal }
+		}
+	}
+	desc = {
+		text = fngconf.15.d.betrayed_feds
+		trigger = {
+			is_in_faction_with = event_target:FNG_federalist_leader
+			event_target:FNG_federalist_leader = { has_country_flag = FNG_territory_betrayal }
+		}
+	}
+
+	picture = federalist_party_2
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	major = yes
+	show_major = {
+		OR = {
+			tag = FNG
+			is_in_array = { FNG.FNG_conference_participants = THIS }
+		}
+	}
+
+	option = {
+		name = fngconf.15.a
+		trigger = {
+			tag = FNG
+		}
+		clr_country_flag = FNG_territory_betrayal
+		clr_global_flag = FNG_conference_federalists
+		remove_from_array = { FNG.FNG_conference_participants = event_target:FNG_federalist_leader }
+		hidden_effect = {
+			for_each_scope_loop = {
+				array = global.china_tags_array
+				if = {
+					limit = {
+						is_in_faction_with = event_target:FNG_federalist_leader
+						exists = yes
+						NOT = { tag = ROOT }
+					}
+					remove_from_array = { FNG.FNG_conference_participants = THIS }
+				}
+			}
+		}
+	}
+
+	option = {
+		name = fngconf.15.b
+		trigger = {
+			NOT = { tag = FNG }
+		}
+	}
+}
+
+country_event = { #Song Qingling's Demands
+	id = fngconf.16
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.16" }
+	title = fngconf.16.t
+	desc = fngconf.16.d
+
+	picture = GFX_report_event_CHI_vote
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	major = yes
+	show_major = {
+		OR = {
+			tag = FNG
+			is_in_array = { FNG.FNG_conference_participants = THIS }
+		}
+	}
+
+	option = {
+		name = fngconf.16.a
+		trigger = {
+			tag = FNG
+		}
+		hidden_effect = {
+			country_event = {
+				id = fngconf.17
+				days = 1
+				random = 24
+			}
+		}
+	}
+
+	option = {
+		name = fngconf.16.a
+		trigger = {
+			NOT = { tag = FNG }
+		}
+	}
+}
+
+country_event = { #The Minsheng Negotiations
+	id = fngconf.17
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.17" }
+	title = fngconf.17.t
+	desc = fngconf.17.d
+
+	picture = GFX_report_event_CHI_worker
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	major = yes
+	show_major = {
+		OR = {
+			tag = FNG
+			is_in_array = { FNG.FNG_conference_participants = THIS }
+		}
+	}
+
+	option = {
+		name = fngconf.17.a #Yes
+		trigger = {
+			tag = FNG
+		}
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 1.6
+				has_country_flag = FNG_conference_federalist_support
+			}
+		}
+		hidden_effect = {
+			country_event = {
+				id = fngconf.18
+				days = 1
+			}
+		}
+	}
+	option = {
+		name = fngconf.17.b #No
+		trigger = {
+			tag = FNG
+		}
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 0.4
+				has_country_flag = FNG_conference_federalist_support
+			}
+		}
+		clr_global_flag = FNG_conference_song
+		hidden_effect = {
+			country_event = {
+				id = fngconf.18
+				hours = 8
+				random = 16
+			}
+		}
+	}
+	option = {
+		name = fngconf.17.c #Interesting
+		trigger = {
+			NOT = { tag = FNG }
+		}
+	}
+}
+
+country_event = { #Song's Response
+	id = fngconf.18
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.18" }
+
+	title = {
+		text = fngconf.18.t.success
+		trigger = {
+			has_global_flag = FNG_conference_song
+		}
+	}
+	title = {
+		text = fngconf.18.t.failure
+		trigger = {
+			NOT = { has_global_flag = FNG_conference_song }
+		}
+	}
+
+	desc = {
+		text = fngconf.18.d.success
+		trigger = {
+			has_global_flag = FNG_conference_song
+		}
+	}
+	desc = {
+		text = fngconf.18.d.failure
+		trigger = {
+			NOT = { has_global_flag = FNG_conference_song }
+		}
+	}
+
+	picture = GFX_report_event_CHI_speech
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	major = yes
+	show_major = {
+		OR = {
+			tag = FNG
+			is_in_array = { FNG.FNG_conference_participants = THIS }
+		}
+	}
+
+	option = {
+		name = fngconf.18.a
+		trigger = {
+			tag = FNG
+			has_global_flag = FNG_conference_song
+		}
+		set_country_flag = FNG_conference_song_support
+		add_to_variable = { FNG_legitimacy_level = 1 }
+		hidden_effect = {
+			if = {
+				limit = {
+					OR = {
+						has_global_flag = FNG_conference_federalists
+						is_in_array = { FNG.FNG_conference_participants = ANQ }
+					}
+				}
+				country_event = {
+					id = fngconf.19
+					hours = 8
+					random = 16
+				}
+			}
+			else = {
+				country_event = {
+					id = fngconf.31
+					hours = 8
+					random = 16
+				}
+				country_event = {
+					id = fngconf.32
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+	option = {
+		name = fngconf.18.b
+		trigger = {
+			tag = FNG
+			NOT = { has_global_flag = FNG_conference_song }
+		}
+		hidden_effect = {
+			if = {
+				limit = {
+					OR = {
+						has_global_flag = FNG_conference_federalists
+						is_in_array = { FNG.FNG_conference_participants = ANQ }
+					}
+				}
+				country_event = {
+					id = fngconf.19
+					hours = 8
+					random = 16
+				}
+			}
+			else = {
+				country_event = {
+					id = fngconf.31
+					hours = 8
+					random = 16
+				}
+				country_event = {
+					id = fngconf.32
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+	option = {
+		name = fngconf.18.a
+		trigger = {
+			NOT = { tag = FNG }
+			has_global_flag = FNG_conference_song
+		}
+	}
+	option = {
+		name = fngconf.18.b
+		trigger = {
+			NOT = {
+				tag = FNG
+				has_global_flag = FNG_conference_song
+			}
+		}
+	}
+}
+
+country_event = { #Promises of Anti-Concessionism (if ANQ alive or Feds allied)
+	id = fngconf.19
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.19" }
+	title = fngconf.19.t
+
+	desc = {
+		text = fngconf.19.d.ANQ
+		trigger = {
+			is_in_array = { FNG.FNG_conference_participants = ANQ }
+		}
+	}
+	desc = {
+		text = fngconf.19.d.feds_allied
+		trigger = {
+			NOT = {
+				is_in_array = { FNG.FNG_conference_participants = ANQ }
+			}
+			event_target:FNG_federalist_leader = { has_country_flag = FNG_alliance }
+		}
+	}
+	desc = {
+		text = fngconf.19.d.feds_not_allied
+		trigger = {
+			NOT = {
+				is_in_array = { FNG.FNG_conference_participants = ANQ }
+				event_target:FNG_federalist_leader = { has_country_flag = FNG_alliance }
+			}
+		}
+	}
+
+	picture = GFX_report_event_LEC_shanghai_river
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	major = yes
+	show_major = {
+		OR = {
+			tag = FNG
+			is_in_array = { FNG.FNG_conference_participants = THIS }
+		}
+	}
+
+	option = {
+		name = fngconf.19.a
+		trigger = {
+			tag = FNG
+		}
+		set_variable = { FNG_anticoncessionist_support = 1 }
+		hidden_effect = {
+			country_event = {
+				id = fngconf.20
+				days = 1
+				random = 24
+			}
+			country_event = {
+				id = fngconf.21
+				days = 2
+				random = 24
+			}
+			country_event = {
+				id = fngconf.22
+				days = 3
+				random = 24
+			}
+		}
+	}
+	option = {
+		name = fngconf.19.b
+		trigger = {
+			NOT = { tag = FNG }
+		}
+	}
+}
+
+country_event = { #Feds supports anti-concessionism (if they haven't before)
+	id = fngconf.20
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.20" }
+	title = fngconf.20.t
+	desc = fngconf.20.d
+
+	picture = GFX_report_event_LEC_shanghai_river
+
+	trigger = {
+		has_global_flag = FNG_conference_federalists
+		FNG = { controls_state = 608 }
+		NOT = {
+			has_global_flag = FNG_conference_failed
+			event_target:FNG_federalist_leader = { has_country_flag = FNG_alliance }
+		}
+	}
+
+	is_triggered_only = yes
+
+	major = yes
+	show_major = {
+		OR = {
+			tag = FNG
+			is_in_array = { FNG.FNG_conference_participants = THIS }
+		}
+	}
+
+	option = {
+		name = fngconf.20.a
+		trigger = {
+			tag = FNG
+		}
+		add_to_variable = { FNG_anticoncessionist_support = 1 }
+	}
+	option = {
+		name = fngconf.20.b
+		trigger = {
+			NOT = { tag = FNG }
+		}
+	}
+}
+
+country_event = { #Song Supports anti-concessionism (if present)
+	id = fngconf.21
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.21" }
+	title = fngconf.21.t
+	desc = fngconf.21.d
+
+	picture = GFX_report_event_LEC_shanghai_river
+
+	trigger = {
+		has_global_flag = FNG_conference_song
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	major = yes
+	show_major = {
+		OR = {
+			tag = FNG
+			is_in_array = { FNG.FNG_conference_participants = THIS }
+		}
+	}
+
+	option = {
+		name = fngconf.21.a
+		trigger = {
+			tag = FNG
+		}
+		add_to_variable = { FNG_anticoncessionist_support = 1 }
+	}
+	option = {
+		name = fngconf.21.a
+		trigger = {
+			NOT = { tag = FNG }
+		}
+	}
+}
+
+country_event = { #The Point of Decision
+	id = fngconf.22
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.22" }
+	title = fngconf.22.t
+
+	desc = {
+		text = fngconf.22.d.FNG
+		trigger = {
+			tag = FNG
+		}
+	}
+	desc = {
+		text = fngconf.22.d.others
+		trigger = {
+			NOT = { tag = FNG }
+		}
+	}
+
+	picture = GFX_report_event_CHI_official_announcement
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	major = yes
+	show_major = {
+		OR = {
+			tag = FNG
+			is_in_array = { FNG.FNG_conference_participants = THIS }
+		}
+	}
+
+	option = {
+		name = fngconf.22.a #Denounce the concessions
+		trigger = {
+			tag = FNG
+		}
+		ai_chance = {
+			factor = 1
+			modifier = {
+				add = FNG_anticoncessionist_support
+			}
+			modifier = {
+				set_temp_variable = { FNG_concession_accept_chance = FNG.party_popularity@market_liberal }
+				multiply_temp_variable = { FNG_concession_accept_chance = -1 }
+				add = FNG_concession_accept_chance
+			}
+		}
+		hidden_effect = {
+			JAP = {
+				country_event = {
+					id = fngconf.23
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+	option = {
+		name = fngconf.22.b #We cannot anger Japan
+		trigger = {
+			tag = FNG
+		}
+		ai_chance = {
+			factor = 1
+			modifier = {
+				set_temp_variable = { FNG_concession_refuse_chance_support = FNG_anticoncessionist_support }
+				multiply_temp_variable = { FNG_concession_refuse_chance_support = -0.3 }
+				add = FNG_concession_refuse_chance_support
+			}
+			modifier = {
+				add = FNG.party_popularity@market_liberal
+			}
+		}
+		hidden_effect = {
+			if = {
+				limit = { has_global_flag = FNG_conference_federalists }
+				event_target:FNG_federalist_leader = {
+					country_event = {
+						id = fngconf.26
+						hours = 8
+						random = 16
+					}
+				}
+			}
+			else_if = {
+				limit = {
+					is_in_array = { FNG.FNG_conference_participants = ANQ }
+				}
+				country_event = {
+					id = fngconf.28
+					hours = 8
+					random = 16
+				}
+			}
+			else = {
+				country_event = {
+					id = fngconf.31
+					hours = 8
+					random = 16
+				}
+				country_event = {
+					id = fngconf.32
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+	option = {
+		name = fngconf.22.c #A point of no return
+		trigger = {
+			NOT = { tag = FNG }
+		}
+	}
+}
+
+country_event = { #Danger in the Conference (JAP)
+	id = fngconf.23
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.23" }
+	title = fngconf.23.t
+	desc = fngconf.23.d
+
+	picture = GFX_report_event_JAP_ambassador_kisaburo
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.23.a #Use our influence to reverse course
+		ai_chance = {
+			factor = 60
+		}
+		hidden_effect = {
+			FROM = {
+				country_event = {
+					id = fngconf.24
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+	option = {
+		name = fngconf.23.b #Keep an eye, but do nothing
+		ai_chance = {
+			factor = 40
+		}
+		hidden_effect = {
+			FROM = {
+				country_event = {
+					id = fngconf.34
+					hours = 8
+					random = 16
+				}
+				country_event = {
+					id = fngconf.31
+					hours = 24
+					random = 16
+				}
+			}
+		}
+	}
+}
+
+country_event = { #A Strongly-Worded Letter
+	id = fngconf.24
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.24" }
+	title = fngconf.24.t
+	desc = fngconf.24.d
+
+	picture = GFX_report_event_JAP_politician
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.24.a #Very well. For now.
+		ai_chance = {
+			factor = 1
+			modifier = {
+				add = party_popularity@market_liberal
+			}
+		}
+		set_temp_variable = { CAPOP = 5 }
+		FNG_CAPOP = yes
+		FROM = {
+			country_event = {
+				id = fngconf.25
+				hours = 8
+				random = 16
+			}
+		}
+		hidden_effect = {
+			if = {
+				limit = { has_global_flag = FNG_conference_federalists }
+				event_target:FNG_federalist_leader = {
+					country_event = {
+						id = fngconf.26
+						hours = 8
+						random = 16
+					}
+				}
+			}
+			else_if = {
+				limit = {
+					is_in_array = { FNG.FNG_conference_participants = ANQ }
+				}
+				ANQ = {
+					country_event = {
+						id = fngconf.28
+						hours = 8
+						random = 16
+					}
+				}
+			}
+			else = {
+				country_event = {
+					id = fngconf.31
+					hours = 8
+					random = 16
+				}
+				country_event = {
+					id = fngconf.32
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+	option = {
+		name = fngconf.24.b #Refuse
+		ai_chance = {
+			factor = 1
+			modifier = {
+				set_temp_variable = { FNG_reject_chance = party_popularity@market_liberal }
+				multiply_temp_variable = { FNG_reject_chance = -1 }
+				add = FNG_reject_chance
+			}
+		}
+		set_temp_variable = { CAPOP = -5 }
+		FNG_CAPOP = yes
+		hidden_effect = {
+			FROM = {
+				country_event = {
+					id = fngconf.33
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+}
+
+country_event = { #Zuolin Backs Down (JAP)
+	id = fngconf.25
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.25" }
+	title = fngconf.25.t
+	desc = fngconf.25.d
+
+	picture = GFX_report_event_CHI_official_announcement
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.25.a
+		add_political_power = 40
+	}
+}
+
+country_event = { #Fengtian Accepts Japanese Concessions (GXC/SZC)
+	id = fngconf.26
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.26" }
+	title = fngconf.26.t
+	desc = fngconf.26.d
+
+	picture = GFX_report_event_CHI_official_announcement
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.26.a #This is an outrage!
+		FROM = {
+			country_event = {
+				id = fngconf.27
+				hours = 8
+				random = 16
+			}
+		}
+	}
+}
+
+country_event = { #Federalists Storm Out
+	id = fngconf.27
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.27" }
+	title = fngconf.27.t
+	desc = {
+		text = fngconf.27.d.feds_song
+		trigger = {
+			NOT = { is_in_faction_with = event_target:FNG_federalist_leader }
+			has_global_flag = FNG_conference_song
+		}
+	}
+	desc = {
+		text = fngconf.27.d.feds
+		trigger = {
+			NOT = {
+				is_in_faction_with = event_target:FNG_federalist_leader
+				has_global_flag = FNG_conference_song
+			}
+		}
+	}
+	desc = {
+		text = fngconf.27.d.feds_own_song
+		trigger = {
+			is_in_faction_with = event_target:FNG_federalist_leader
+			has_global_flag = FNG_conference_song
+		}
+	}
+	desc = {
+		text = fngconf.27.d.feds_own
+		trigger = {
+			is_in_faction_with = event_target:FNG_federalist_leader
+			NOT ={ has_global_flag = FNG_conference_song }
+		}
+	}
+
+	picture = federalist_party_2
+
+	trigger = {
+		has_global_flag = FNG_conference_federalists
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	major = yes
+	show_major = {
+		OR = {
+			tag = FNG
+			is_in_faction_with = event_target:FNG_federalist_leader
+			is_in_array = { FNG.FNG_conference_participants = THIS }
+		}
+		NOT = { tag = event_target:FNG_federalist_leader }
+	}
+
+	option = {
+		name = fngconf.27.a
+		trigger = {
+			tag = FNG
+		}
+		clr_global_flag = FNG_conference_federalists
+		set_global_flag = FNG_conference_federalists_left
+		remove_from_array = { FNG.FNG_conference_participants = event_target:FNG_federalist_leader }
+		hidden_effect = {
+			for_each_loop = {
+				array = global.china_tags_array
+				var:v = {
+					if = {
+						limit = {
+							is_in_faction_with = event_target:FNG_federalist_leader
+							exists = yes
+							NOT = { tag = ROOT }
+						}
+						remove_from_array = { FNG.FNG_conference_participants = THIS }
+					}
+				}
+			}
+			if = {
+				limit = { has_global_flag = FNG_conference_song }
+				clr_global_flag = FNG_conference_song
+				clr_country_flag = FNG_conference_song_support
+			}
+			if = {
+				limit = {
+					is_in_array = { FNG.FNG_conference_participants = ANQ }
+				}
+				ANQ = {
+					country_event = {
+						id = fngconf.28
+						days = 1
+						random = 24
+					}
+				}
+			}
+			else = {
+				country_event = {
+					id = fngconf.31
+					days = 1
+					random = 24
+				}
+				country_event = {
+					id = fngconf.32
+					days = 1
+					random = 24
+				}
+			}
+		}
+	}
+
+	option = {
+		name = fngconf.27.b
+		trigger = {
+			NOT = { tag = FNG }
+		}
+	}
+}
+
+country_event = { #Fengtian Accepts Japanese Concessions (ANQ)
+	id = fngconf.28
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.28" }
+	title = fngconf.28.t
+
+	picture = GFX_report_event_JAP_foreign_minister
+
+	desc = {
+		text = fngconf.28.d.feds
+		trigger = {
+			has_global_flag = FNG_conference_federalists_left
+		}
+	}
+	desc = {
+		text = fngconf.28.d.ANQ
+		trigger = {
+			NOT = { has_global_flag = FNG_conference_federalists_left }
+		}
+	}
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.28.a #Denounce Fengtian
+		ai_chance = {
+			factor = 0
+			modifier = {
+				add = 50
+				has_global_flag = FNG_conference_federalists_left
+			}
+			modifier = {
+				add = 25
+				has_completed_focus = ANQ_republican_focus
+			}
+			modifier = {
+				factor = 0
+				has_completed_focus = ANQ_panasian_legitimacy
+			}
+		}
+		custom_effect_tooltip = anq_denounce_fengtian_tt
+		hidden_effect = {
+			FNG = {
+				country_event = {
+					id = fngconf.29
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+
+	option = {
+		name = fngconf.28.b #Protest
+		ai_chance = {
+			factor = 50
+			modifier = {
+				add = -25
+				has_completed_focus = ANQ_republican_focus
+			}
+		}
+		hidden_effect = {
+			FNG = {
+				country_event = {
+					id = fngconf.30
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+}
+
+country_event = { #Tiaoyuan Denounces Zuolin
+	id = fngconf.29
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.29" }
+	title = fngconf.29.t
+	desc = {
+		text = fngconf.29.d.ANQ_song
+		trigger = {
+			has_global_flag = FNG_conference_song
+		}
+	}
+	desc = {
+		text = fngconf.29.d.ANQ
+		trigger = {
+			NOT = { has_global_flag = FNG_conference_song }
+		}
+	}
+
+	picture = GFX_report_event_ANQ_chen_tiaoyuan
+
+	trigger = {
+		is_in_array = { FNG.FNG_conference_participants = ANQ }
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	major = yes
+	show_major = {
+		OR = {
+			tag = FNG
+			is_in_array = { FNG.FNG_conference_participants = THIS }
+		}
+	}
+
+	option = {
+		name = fngconf.29.a
+		trigger = {
+			tag = FNG
+		}
+		remove_from_array = { FNG.FNG_conference_participants = ANQ }
+		hidden_effect = {
+			ANQ = {
+				#Scripted effect that takes cares of all flags and other things
+				ANQ_break_relations_fengtian = yes
+			}
+			if = {
+				limit = { has_global_flag = FNG_conference_song }
+				clr_global_flag = FNG_conference_song
+				clr_country_flag = FNG_conference_song_support
+			}
+			country_event = {
+				id = fngconf.31
+				days = 1
+				random = 24
+			}
+			country_event = {
+				id = fngconf.32
+				days = 1
+				random = 24
+			}
+		}
+	}
+
+	option = {
+		name = fngconf.29.b
+		trigger = {
+			NOT = { tag = FNG }
+		}
+	}
+}
+
+country_event = { #Anqing's Fury
+	id = fngconf.30
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.30" }
+	title = fngconf.30.t
+	desc = fngconf.30.d
+
+	picture = GFX_report_event_ANQ_chen_tiaoyuan
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+		is_in_array = { FNG.FNG_conference_participants = ANQ }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.30.a #He'll calm down, eventually
+		add_political_power = -30
+		hidden_effect = {
+			country_event = {
+				id = fngconf.31
+				days = 1
+				random = 24
+			}
+		}
+	}
+}
+
+country_event = { #The Conference Continues
+	id = fngconf.31
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.31" }
+	title = fngconf.31.t
+	desc = fngconf.31.d
+
+	picture = GFX_report_event_CHI_new_government
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+		check_variable = { FNG.FNG_conference_participants^num > 2 }
+	}
+
+	is_triggered_only = yes
+
+	major = yes
+	show_major = {
+		OR = {
+			tag = FNG
+			is_in_array = { FNG.FNG_conference_participants = THIS }
+		}
+	}
+
+	option = {
+		name = fngconf.31.a
+		trigger = {
+			tag = FNG
+		}
+		hidden_effect = {
+			for_each_loop = {
+				array = FNG.FNG_conference_participants
+				var:v = {
+					if = {
+						limit = {
+							OR = {
+								tag = ANQ
+								AND = {
+									FNG = { has_global_flag = FNG_conference_federalists }
+									OR = {
+										tag = event_target:FNG_federalist_leader
+										is_in_faction_with = event_target:FNG_federalist_leader
+									}
+								}
+							}
+							exists = yes
+						}
+						add_to_array = { FNG.FNG_conference_support = THIS }
+					}
+					if = {
+						limit = {
+							NOT = {
+								tag = ANQ
+								AND = {
+									FNG = { has_global_flag = FNG_conference_federalists }
+									OR = {
+										tag = event_target:FNG_federalist_leader
+										is_in_faction_with = event_target:FNG_federalist_leader
+									}
+								}
+							}
+							is_subject = no
+							exists = yes
+						}
+						country_event = {
+							id = fngconf.45
+							days = 1
+							random = 24
+						}
+					}
+				}
+			}
+			country_event = {
+				id = fngconf.46
+				days = 2
+				random = 24
+			}
+		}
+	}
+
+	option = {
+		name = fngconf.31.a
+		trigger = {
+			NOT = { tag = FNG }
+		}
+	}
+}
+
+country_event = { #The Conference Falls Apart
+	id = fngconf.32
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.32" }
+	title = fngconf.32.t
+
+	desc = {
+		text = fngconf.32.d.failure
+		trigger = {
+			FNG = {
+				controls_state = 608
+				NOT = {
+					has_country_leader = {
+						name = "Yang Yuting"
+						ruling_only = yes
+					}
+				}
+			}
+		}
+	}
+	desc = {
+		text = fngconf.32.d.cancelled
+		trigger = {
+			FNG = {
+				controls_state = 608
+				has_country_leader = {
+					name = "Yang Yuting"
+					ruling_only = yes
+				}
+			}
+		}
+	}
+	desc = {
+		text = fngconf.32.d.beijing_lost
+		trigger = {
+			NOT = {
+				FNG = { controls_state = 608 }
+			}
+		}
+	}
+
+	trigger = {
+		NOT = {
+			has_global_flag = FNG_conference_success
+			has_global_flag = FNG_conference_failed
+		}
+		OR = {
+			NOT = {
+				FNG = { controls_state = 608 }
+			}
+			check_variable = { FNG.FNG_conference_participants^num < 3 }
+		}
+	}
+
+	picture = GFX_report_event_CHI_protest
+
+	fire_only_once = yes
+	is_triggered_only = yes
+
+	major = yes
+	show_major = {
+		OR = {
+			tag = FNG
+			is_in_array = { FNG.FNG_conference_participants = THIS }
+		}
+	}
+
+	option = {
+		name = fngconf.32.a
+		trigger = {
+			tag = FNG
+		}
+		set_global_flag = FNG_conference_failed
+		hidden_effect = {
+			country_event = fngconf.76
+		}
+	}
+
+	option = {
+		name = fngconf.32.b
+		trigger = {
+			NOT = { tag = FNG }
+		}
+	}
+}
+
+country_event = { #Zuolin is Defiant (JAP)
+	id = fngconf.33
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.33" }
+	title = fngconf.33.t
+	desc = fngconf.33.d
+
+	picture = GFX_report_event_FNG_army1
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.33.a #Punish them
+		ai_chance = {
+			factor = 60
+		}
+		hidden_effect = {
+			FROM = {
+				country_event = {
+					id = fengtian.22
+					hours = 8
+					random = 16
+				}
+				country_event = {
+					id = fngconf.31
+					hours = 24
+					random = 24
+				}
+				country_event = {
+					id = fngconf.32
+					hours = 24
+					random = 24
+				}
+			}
+		}
+	}
+	option = {
+		name = fngconf.33.b #Force is the only answer
+		ai_chance = {
+			factor = 10
+		}
+		unlock_decision_tooltip = JAP_invade_manchuria
+		set_country_flag = JAP_invade_manchuria_unlocked
+		hidden_effect = {
+			set_JAP_FNG_hostile_AI = yes
+			FROM = {
+				country_event = {
+					id = fngconf.34
+					hours = 8
+					random = 16
+				}
+				country_event = {
+					id = fngconf.35
+					days = 5
+					random = 240
+				}
+				country_event = {
+					id = fngconf.31
+					hours = 24
+					random = 24
+				}
+				country_event = {
+					id = fngconf.32
+					hours = 24
+					random = 24
+				}
+			}
+		}
+	}
+	option = {
+		name = fngconf.33.c #Do nothing for now
+		ai_chance = {
+			factor = 20
+		}
+		hidden_effect = {
+			FROM = {
+				country_event = {
+					id = fngconf.31
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+}
+
+country_event = { #Japan Is Silent
+	id = fngconf.34
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.34" }
+	title = fngconf.34.t
+	desc = fngconf.34.d
+
+	picture = GFX_report_event_JAP_ambassador_kisaburo
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.30.a
+	}
+}
+
+country_event = { #Suspicious Troop Movements
+	id = fngconf.35
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.35" }
+	title = fngconf.35.t
+	desc = fngconf.35.d
+
+	picture = GFX_report_event_JAP_conscription
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.35.a
+	}
+}
+
+country_event = { #The Invasion Of Manchuria
+	id = fngconf.36
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.36" }
+	title = fngconf.36.t
+	desc = fngconf.36.d
+
+	picture = GFX_report_event_JAP_motorized
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.36.a
+		set_global_flag = FNG_relations_JAP_broke
+		set_potential_national_government = yes
+		FNG_CA_remove = yes
+		FNG_mantetsu_collapse = yes
+	}
+}
+
+country_event = { #Do we make demands?
+	id = fngconf.45
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.45" }
+	title = fngconf.45.t
+	desc = fngconf.45.d
+
+	picture = GFX_report_event_CHI_ambassador_announcement
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.45.a #A New League
+		trigger = {
+			tag = SQI
+			NOT = {
+				is_in_array = { FNG.FNG_conference_participants = ANQ }
+			}
+		}
+		FROM = { set_country_flag = FNG_demands_territory_@ROOT }
+	}
+	option = {
+		name = fngconf.45.b #Concessions
+		trigger = { tag = GXC }
+		FROM = { set_country_flag = FNG_demands_concessions_@ROOT }
+	}
+	option = {
+		name = fngconf.45.c #Guangxi
+		trigger = {
+			tag = YUN
+			NOT = { owns_state = 594 }
+		}
+		FROM = {
+			set_country_flag = FNG_demands_territory_@ROOT
+			set_global_flag = YUN_demands_guangxi
+		}
+	}
+	option = {
+		name = fngconf.45.e #Guizhou
+		trigger = {
+			tag = YUN
+			NOT = { owns_state = 1052 }
+		}
+		FROM = {
+			set_country_flag = FNG_demands_territory_@ROOT
+			set_global_flag = YUN_demands_guizhou
+		}
+	}
+	option = {
+		name = fngconf.45.f #Guangxi + Guizhou
+		trigger = {
+			tag = YUN
+			NOT = {
+				owns_state = 594
+				owns_state = 1052
+			}
+		}
+		FROM = {
+			set_country_flag = FNG_demands_territory_@ROOT
+			set_global_flag = YUN_demands_guangxi_guizhou
+		}
+	}
+	option = {
+		name = fngconf.45.g #Xinjiang
+		trigger = {
+			tag = XSM
+			NOT = { owns_state = 617 }
+		}
+		FROM = { set_country_flag = FNG_demands_territory_@ROOT }
+	}
+	option = {
+		name = fngconf.45.h #Eastern Shanxi
+		trigger = {
+			tag = SHX
+			NOT = { owns_state = 615 }
+		}
+		FROM = { set_country_flag = FNG_demands_territory_@ROOT }
+	}
+	option = {
+		name = fngconf.45.i #Henan
+		trigger = {
+			tag = SZC
+			has_government = paternal_autocrat
+			NOT = {
+				owns_state = 607
+				owns_state = 1048
+			}
+		}
+		FROM = { set_country_flag = FNG_demands_territory_@ROOT }
+	}
+	option = {
+		name = fngconf.45.j #Autonomy
+		trigger = {
+			NOT = { tag = GXC }
+		}
+		FROM = { set_country_flag = FNG_demands_autonomy_@ROOT }
+	}
+	option = {
+		name = fngconf.45.k #Give them unconditional support
+		FROM = {
+			country_event = {
+				id = fngconf.47
+				days = 6
+				random = 290
+			}
+		}
+	}
+}
+
+country_event = { #The Participants Present Their Demands
+	id = fngconf.46
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.46" }
+	title = fngconf.46.t
+	desc = fngconf.46.d
+
+	picture = GFX_report_event_CHI_warlords
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.46.a
+		set_country_flag = FNG_conference_second_phase
+		activate_mission = FNG_End_Of_The_Conference
+		hidden_effect = {
+			country_event = {
+				id = fngconf.77
+				days = 1
+			}
+		}
+	}
+}
+
+country_event = { #FROM Officially Supports Our Government
+	id = fngconf.47
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.47" }
+	title = fngconf.47.t
+
+	desc = {
+		text = fngconf.47.d.normal
+		trigger = {
+			NOT = { has_country_flag = FNG_reluctant_support }
+		}
+	}
+	desc = {
+		text = fngconf.47.d.reluctant
+		trigger = {
+			has_country_flag = FNG_reluctant_support
+		}
+	}
+
+	picture = GFX_report_event_CHI_ambassador_announcement
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.47.a
+		add_to_array = { FNG.FNG_conference_support = FROM }
+		clr_country_flag = FNG_reluctant_support
+		if = {
+			limit = {
+				event_target:FNG_active_negotiations_target = {
+					tag = FROM
+				}
+			}
+			clear_global_event_target = FNG_active_negotiations_target
+		}
+	}
+}
+
+country_event = { #FROM Demands Autonomy
+	id = fngconf.48
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.48" }
+	title = fngconf.48.t
+	desc = fngconf.48.d
+
+	picture = GFX_report_event_CHI_ambassador_announcement
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.48.a #Accept
+		ai_chance = {
+			factor = 50
+			modifier = {
+				add = event_target:FNG_active_negotiations_target.num_of_factories
+			}
+			modifier = {
+				set_temp_variable = { FNG_accept_chance_autonomy = FNG.FNG_conference_autonomy^num }
+				multiply_temp_variable = { FNG_accept_chance_autonomy = -5 }
+				add = FNG_accept_chance_autonomy
+			}
+		}
+		add_to_array = { FNG.FNG_conference_autonomy = event_target:FNG_active_negotiations_target }
+		hidden_effect = {
+			event_target:FNG_active_negotiations_target = {
+				country_event = {
+					id = fngconf.49
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+	option = {
+		name = fngconf.48.b #Refuse
+		ai_chance = {
+			factor = 50
+			modifier = {
+				set_temp_variable = { FNG_refuse_chance_autonomy = FNG.FNG_conference_autonomy^num }
+				multiply_temp_variable = { FNG_refuse_chance_autonomy = 5 }
+				add = FNG_refuse_chance_autonomy
+			}
+			modifier = {
+				set_temp_variable = { FNG_accept_chance_factories = event_target:FNG_active_negotiations_target.num_of_factories }
+				multiply_temp_variable = { FNG_accept_chance_factories = -1 }
+				add = FNG_accept_chance_factories
+			}
+		}
+		hidden_effect = {
+			event_target:FNG_active_negotiations_target = {
+				country_event = {
+					id = fngconf.50
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+}
+
+country_event = { #Fengtian Accepts Autonomy
+	id = fngconf.49
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.49" }
+	title = fngconf.49.t
+	desc = fngconf.49.d
+
+	picture = GFX_report_event_CHI_ambassador_announcement
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.49.a
+		add_political_power = 10
+		hidden_effect = {
+			FROM = {
+				country_event = {
+					id = fngconf.47
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+}
+
+country_event = { #Fengtian Refuses Autonomy
+	id = fngconf.50
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.50" }
+	title = fngconf.50.t
+	desc = fngconf.50.d
+
+	picture = GFX_report_event_CHI_ambassador_announcement
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.50.a #We have no choice
+		hidden_effect = {
+			FROM = {
+				set_country_flag = FNG_reluctant_support
+				country_event = {
+					id = fngconf.47
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+	option = {
+		name = fngconf.50.b #Leave the conference
+		remove_from_array = { FNG.FNG_conference_participants = ROOT }
+		set_country_flag = FNG_hostile
+		hidden_effect = {
+			FROM = {
+				country_event = {
+					id = fngconf.51
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+}
+
+country_event = { #FROM leaves the conference
+	id = fngconf.51
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.51" }
+	title = fngconf.51.t
+	desc = fngconf.51.d
+
+	picture = GFX_report_event_CHI_official_announcement
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.51.a
+		add_political_power = -5
+		clear_global_event_target = FNG_active_negotiations_target
+	}
+}
+
+country_event = { #Guangdong demands economic concessions
+	id = fngconf.52
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.52" }
+	title = fngconf.52.t
+	desc = fngconf.52.d
+
+	picture = federalist_party_3
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.48.a #Accept
+		ai_chance = {
+			factor = 50
+			modifier = {
+				add = FROM.num_of_factories
+			}
+		}
+		add_ideas = FNG_Economic_Concessions_To_Guangdong
+		hidden_effect = {
+			event_target:FNG_active_negotiations_target = {
+				country_event = {
+					id = fngconf.49
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+	option = {
+		name = fngconf.48.b #Refuse
+		ai_chance = {
+			factor = 50
+			modifier = {
+				set_temp_variable = { FNG_refuse_chance_factories = FROM.num_of_factories }
+				multiply_temp_variable = { FNG_refuse_chance_factories = -1 }
+				add = FNG_refuse_chance_factories
+			}
+		}
+		hidden_effect = {
+			event_target:FNG_active_negotiations_target = {
+				country_event = {
+					id = fngconf.50
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+}
+
+country_event = { #Fengtian Accepts Concessions
+	id = fngconf.53
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.53" }
+	title = fngconf.53.t
+	desc = fngconf.53.d
+
+	picture = GFX_report_event_CHI_ambassador_announcement
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.53.a
+		add_political_power = 25
+		add_ideas = FNG_Economic_Concessions
+		FROM = {
+			country_event = {
+				id = fngconf.47
+				hours = 8
+				random = 16
+			}
+		}
+	}
+}
+
+country_event = { #Fengtian Refuses Concessions
+	id = fngconf.54
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.54" }
+	title = fngconf.54.t
+	desc = fngconf.54.d
+
+	picture = GFX_report_event_CHI_official_announcement
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.54.a #We demand autonomy, then
+		hidden_effect = {
+			FROM = {
+				country_event = {
+					id = fngconf.48
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+	option = {
+		name = fngconf.54.b #Reluctantly support them
+		clear_global_event_target = FNG_active_negotiations_target
+		hidden_effect = {
+			FROM = {
+				set_country_flag = FNG_reluctant_support
+				country_event = {
+					id = fngconf.47
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+	option = {
+		name = fngconf.54.c #Leave the conference
+		remove_from_array = { FNG.FNG_conference_participants = ROOT }
+		set_country_flag = FNG_hostile
+		hidden_effect = {
+			FROM = {
+				country_event = {
+					id = fngconf.51
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+}
+
+country_event = { #FROM Demands Territory
+	id = fngconf.55
+	title = fngconf.55.t
+
+	desc = {
+		text = fngconf.55.d.SQI
+		trigger = {
+			event_target:FNG_active_negotiations_target = { tag = SQI }
+		}
+	}
+	desc = {
+		text = fngconf.55.d.YUN
+		trigger = {
+			event_target:FNG_active_negotiations_target = { tag = YUN }
+			OR = {
+				AND = {
+					has_global_flag = YUN_demands_guizhou
+					NOT = {
+						is_in_array = { FNG.FNG_conference_participants = HNN }
+					}
+				}
+				AND = {
+					has_global_flag = YUN_demands_guangxi
+					NOT = {
+						is_in_array = { FNG.FNG_conference_participants = GXC }
+					}
+				}
+				AND = {
+					has_global_flag = YUN_demands_guangxi_guizhou
+					NOT = {
+						is_in_array = { FNG.FNG_conference_participants = GXC }
+						is_in_array = { FNG.FNG_conference_participants = HNN }
+					}
+				}
+			}
+		}
+	}
+	desc = {
+		text = fngconf.55.d.YUN_HNN
+		trigger = {
+			event_target:FNG_active_negotiations_target = { tag = YUN }
+			OR = {
+				has_global_flag = YUN_demands_guangxi_guizhou
+				has_global_flag = YUN_demands_guizhou
+			}
+			is_in_array = { FNG.FNG_conference_participants = HNN }
+			NOT = {
+				AND = {
+					has_global_flag = YUN_demands_guangxi_guizhou
+					is_in_array = { FNG.FNG_conference_participants = HNN }
+					is_in_array = { FNG.FNG_conference_participants = GXC }
+				}
+			}
+		}
+	}
+	desc = {
+		text = fngconf.55.d.YUN_GXC
+		trigger = {
+			event_target:FNG_active_negotiations_target = { tag = YUN }
+			OR = {
+				has_global_flag = YUN_demands_guangxi_guizhou
+				has_global_flag = YUN_demands_guangxi
+			}
+			is_in_array = { FNG.FNG_conference_participants = GXC }
+			NOT = {
+				AND = {
+					has_global_flag = YUN_demands_guangxi_guizhou
+					is_in_array = { FNG.FNG_conference_participants = HNN }
+					is_in_array = { FNG.FNG_conference_participants = GXC }
+				}
+			}
+		}
+	}
+	desc = {
+		text = fngconf.55.d.YUN_GXC_HNN
+		trigger = {
+			event_target:FNG_active_negotiations_target = { tag = YUN }
+			has_global_flag = YUN_demands_guangxi_guizhou
+			is_in_array = { FNG.FNG_conference_participants = HNN }
+			is_in_array = { FNG.FNG_conference_participants = GXC }
+		}
+	}
+	desc = {
+		text = fngconf.55.d.SHX
+		trigger = {
+			event_target:FNG_active_negotiations_target = { tag = SHX }
+		}
+	}
+	desc = {
+		text = fngconf.55.d.SZC
+		trigger = {
+			event_target:FNG_active_negotiations_target = { tag = SZC }
+		}
+	}
+	desc = {
+		text = fngconf.55.d.XSM
+		trigger = {
+			event_target:FNG_active_negotiations_target = { tag = XSM }
+			NOT = {
+				is_in_array = { FNG.FNG_conference_participants = SIK }
+				is_in_array = { FNG.FNG_conference_participants = TAN }
+			}
+		}
+	}
+	desc = {
+		text = fngconf.55.d.XSM_SIK
+		trigger = {
+			event_target:FNG_active_negotiations_target = { tag = XSM }
+			is_in_array = { FNG.FNG_conference_participants = SIK }
+		}
+	}
+	desc = {
+		text = fngconf.55.d.XSM_TAN
+		trigger = {
+			event_target:FNG_active_negotiations_target = { tag = XSM }
+			is_in_array = { FNG.FNG_conference_participants = GXC }
+		}
+	}
+
+	picture = GFX_report_event_CHI_ambassador_announcement
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	immediate = {
+		log = "[GetDateText]: [Root.GetName]: event fngconf.55"
+		if = {
+			limit = {
+				event_target:FNG_active_negotiations_target = { tag = SQI }
+			}
+			set_temp_variable = { FNG.shandong_claim_strength = 0 }
+			for_each_scope_loop = {
+				array = LEP.core_states
+				if = {
+					limit = {
+						is_controlled_by = SQI
+					}
+					add_to_temp_variable = { FNG.shandong_claim_strength = 1 }
+					if = {
+						limit = {
+							state = 1044 #Nanchang
+						}
+						add_to_temp_variable = { FNG.shandong_claim_strength = 5 }
+					}
+					if = {
+						limit = {
+							state = 613 #Nanjing
+						}
+						add_to_temp_variable = { FNG.shandong_claim_strength = 10 }
+					}
+				}
+			}
+			for_each_scope_loop = {
+				array = HNN.core_states
+				if = {
+					limit = {
+						is_controlled_by = SQI
+					}
+					add_to_temp_variable = { FNG.shandong_claim_strength = 2 }
+					if = {
+						limit = {
+							state = 602 #Changsha
+						}
+						add_to_temp_variable = { FNG.shandong_claim_strength = 5 }
+					}
+				}
+			}
+			for_each_scope_loop = {
+				array = GXC.core_states
+				if = {
+					limit = {
+						is_controlled_by = SQI
+					}
+					add_to_temp_variable = { FNG.shandong_claim_strength = 2 }
+					if = {
+						limit = {
+							state = 594 #Nanning
+						}
+						add_to_temp_variable = { FNG.shandong_claim_strength = 5 }
+					}
+					if = {
+						limit = {
+							state = 592 #Guangzhou
+						}
+						add_to_temp_variable = { FNG.shandong_claim_strength = 10 }
+					}
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				event_target:FNG_active_negotiations_target = { tag = SZC }
+			}
+			add_to_temp_array = { FNG.sichuan_claimed_states = 607 }
+			add_to_temp_array = { FNG.sichuan_claimed_states = 620 }
+			add_to_temp_array = { FNG.sichuan_claimed_states = 799 }
+			add_to_temp_array = { FNG.sichuan_claimed_states = 1048 }
+			add_to_temp_array = { FNG.sichuan_claimed_states = 1058 }
+			add_to_temp_array = { FNG.sichuan_claimed_states = 1059 }
+
+			set_temp_variable = { FNG.sichuan_claim_strength = 0 }
+			for_each_scope_loop = {
+				array = FNG.sichuan_claimed_states
+				if = {
+					limit = {
+						is_controlled_by = SZC
+					}
+					add_to_temp_variable = { FNG.sichuan_claim_strength = 2 }
+					if = {
+						limit = {
+							state = 607 #Luoyang
+						}
+						add_to_temp_variable = { FNG.sichuan_claim_strength = 5 }
+					}
+					if = {
+						limit = {
+							state = 1048 #Wuhan
+						}
+						add_to_temp_variable = { FNG.sichuan_claim_strength = 10 }
+					}
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				event_target:FNG_active_negotiations_target = { tag = YUN }
+				OR = {
+					has_global_flag = YUN_demands_guangxi
+					has_global_flag = YUN_demands_guangxi_guizhou
+				}
+			}
+			if = {
+				limit = {
+					OR = {
+						has_global_flag = YUN_demands_guangxi
+						has_global_flag = YUN_demands_guangxi_guizhou
+					}
+				}
+				add_to_temp_array = { FNG.yunnan_claimed_states = 594 }
+				add_to_temp_array = { FNG.yunnan_claimed_states = 599 }
+				add_to_temp_array = { FNG.yunnan_claimed_states = 1053 }
+				add_to_temp_array = { FNG.yunnan_claimed_states = 1054 }
+				add_to_temp_array = { FNG.yunnan_claimed_states = 1055 }
+				add_to_temp_array = { FNG.yunnan_claimed_states = 1056 }
+			}
+			if = {
+				limit = {
+					OR = {
+						has_global_flag = YUN_demands_guizhou
+						has_global_flag = YUN_demands_guangxi_guizhou
+					}
+				}
+				add_to_temp_array = { FNG.yunnan_claimed_states = 1052 }
+			}
+
+			set_temp_variable = { FNG.yunnan_claim_strength = 0 }
+			for_each_scope_loop = {
+				array = FNG.yunnan_claimed_states
+				if = {
+					limit = {
+						is_controlled_by = YUN
+					}
+					add_to_temp_variable = { FNG.yunnan_claim_strength = 2 }
+					if = {
+						limit = {
+							state = 594 #Nanning
+						}
+						add_to_temp_variable = { FNG.yunnan_claim_strength = 5 }
+					}
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				event_target:FNG_active_negotiations_target = { tag = XSM }
+			}
+			set_temp_variable = { FNG.ma_claim_strength = 0 }
+			for_each_scope_loop = {
+				array = SIK.core_states
+				if = {
+					limit = {
+						is_controlled_by = SQI
+					}
+					add_to_temp_variable = { FNG.ma_claim_strength = 2 }
+					if = {
+						limit = {
+							state = 617 #Dihua
+						}
+						add_to_temp_variable = { FNG.ma_claim_strength = 5 }
+					}
+					if = {
+						limit = {
+							state = 1083 #Kumul
+						}
+						add_to_temp_variable = { FNG.ma_claim_strength = 5 }
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = fngconf.55.a #Accept
+		ai_chance = {
+			factor = 20
+			modifier = {
+				add = event_target:FNG_active_negotiations_target.num_of_factories
+			}
+			modifier = {
+				add = FNG.sichuan_claim_strength
+				event_target:FNG_active_negotiations_target = { tag = SZC }
+			}
+			modifier = {
+				add = FNG.shandong_claim_strength
+				event_target:FNG_active_negotiations_target = { tag = SQI }
+			}
+			modifier = {
+				add = FNG.yunnan_claim_strength
+				OR = {
+					has_global_flag = YUN_demands_guangxi
+					has_global_flag = YUN_demands_guangxi_guizhou
+				}
+				event_target:FNG_active_negotiations_target = { tag = YUN }
+			}
+			modifier = {
+				add = FNG.ma_claim_strength
+				event_target:FNG_active_negotiations_target = { tag = XSM }
+			}
+			modifier = {
+				add = 20
+				event_target:FNG_active_negotiations_target = {
+					tag = SHX
+					controls_state = 615
+				}
+			}
+			modifier = {
+				add = 20
+				has_global_flag = YUN_demands_guizhou
+				event_target:FNG_active_negotiations_target = {
+					tag = YUN
+					controls_state = 1052
+				}
+			}
+		}
+		event_target:FNG_active_negotiations_target = {
+			if = {
+				limit = {
+					tag = SQI
+				}
+				for_each_scope_loop = {
+					array = LEP.core_states
+					clear_variable = ambition_area_@ROOT
+					add_claim_by = PREV
+					set_variable = { ambition_area_@PREV = 1 }
+				}
+				if = {
+					limit = {
+						NOT = {
+							is_in_array = { FNG.FNG_conference_participants = HNN }
+						}
+					}
+					for_each_scope_loop = {
+						array = HNN.core_states
+						clear_variable = ambition_area_@ROOT
+						add_claim_by = PREV
+						set_variable = { ambition_area_@PREV = 1 }
+					}
+				}
+				if = {
+					limit = {
+						NOT = {
+							is_in_array = { FNG.FNG_conference_participants = GXC }
+						}
+					}
+					for_each_scope_loop = {
+						array = GXC.core_states
+						clear_variable = ambition_area_@ROOT
+						add_claim_by = PREV
+						set_variable = { ambition_area_@PREV = 1 }
+					}
+				}
+			}
+			else_if = {
+				limit = {
+					tag = SHX
+				}
+				615 = {
+					clear_variable = ambition_area_@ROOT
+					add_claim_by = PREV
+					set_variable = { ambition_area_@PREV = 1 }
+				}
+			}
+			else_if = {
+				limit = {
+					tag = YUN
+				}
+				for_each_scope_loop = {
+					array = yunnan_claimed_states
+					clear_variable = ambition_area_@ROOT
+					add_claim_by = PREV
+					set_variable = { ambition_area_@PREV = 1 }
+				}
+				if = {
+					limit = {
+						OR = {
+							has_global_flag = YUN_demands_guangxi_guizhou
+							has_global_flag = YUN_demands_guizhou
+						}
+						is_in_array = { FNG.FNG_conference_participants = HNN }
+						NOT = {
+							AND = {
+								has_global_flag = YUN_demands_guangxi_guizhou
+								is_in_array = { FNG.FNG_conference_participants = HNN }
+								is_in_array = { FNG.FNG_conference_participants = GXC }
+							}
+						}
+					}
+					HNN = {
+						country_event = {
+							id = fngconf.59
+							hours = 8
+							random = 16
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						OR = {
+							has_global_flag = YUN_demands_guangxi_guizhou
+							has_global_flag = YUN_demands_guangxi
+						}
+						is_in_array = { FNG.FNG_conference_participants = GXC }
+					}
+					GXC = {
+						country_event = {
+							id = fngconf.59
+							hours = 8
+							random = 16
+						}
+					}
+				}
+			}
+			else_if = {
+				limit = {
+					tag = SZC
+				}
+				for_each_scope_loop = {
+					array = sichuan_claimed_states
+					clear_variable = ambition_area_@ROOT
+					add_claim_by = PREV
+					set_variable = { ambition_area_@PREV = 1 }
+				}
+			}
+			else_if = {
+				limit = {
+					tag = XSM
+				}
+				for_each_scope_loop = {
+					array = SIK.core_states
+					clear_variable = ambition_area_@ROOT
+					add_claim_by = PREV
+					set_variable = { ambition_area_@PREV = 1 }
+				}
+			}
+		}
+		event_target:FNG_active_negotiations_target = {
+			country_event = {
+				id = fngconf.56
+				hours = 8
+				random = 16
+			}
+		}
+	}
+	option = {
+		name = fngconf.55.b #Offer autonomy instead
+		ai_chance = {
+			factor = 10
+			modifier = {
+				add = FROM.num_of_factories
+			}
+			modifier = {
+				set_temp_variable = { FNG_offer_autonomy_chance = FNG.FNG_conference_autonomy^num }
+				multiply_temp_variable = { FNG_offer_autonomy_chance = -1 }
+				add = FNG_offer_autonomy_chance
+			}
+		}
+		event_target:FNG_active_negotiations_target = {
+			country_event = {
+				id = fngconf.57
+				hours = 8
+				random = 16
+			}
+		}
+	}
+	option = {
+		name = fngconf.55.c #Refuse
+		ai_chance = {
+			factor = 70
+			modifier = {
+				set_temp_variable = { FNG_refuse_chance_factories = FROM.num_of_factories }
+				multiply_temp_variable = { FNG_refuse_chance_factories = -1 }
+				add = FNG_refuse_chance_factories
+			}
+			modifier = {
+				set_temp_variable = { FNG_refuse_chance_autonomy = FNG.FNG_conference_autonomy^num }
+				multiply_temp_variable = { FNG_refuse_chance_autonomy = 5 }
+				add = FNG_refuse_chance_autonomy
+			}
+			modifier = {
+				set_temp_variable = { FNG_refuse_chance_sichuan = FNG.sichuan_claim_strength }
+				multiply_temp_variable = { FNG_refuse_chance_sichuan = -1 }
+				add = FNG_refuse_chance_sichuan
+
+				event_target:FNG_active_negotiations_target = { tag = SZC }
+			}
+			modifier = {
+				set_temp_variable = { FNG_refuse_chance_shandong = FNG.shandong_claim_strength }
+				multiply_temp_variable = { FNG_refuse_chance_shandong = -1 }
+				add = FNG_refuse_chance_shandong
+
+				event_target:FNG_active_negotiations_target = { tag = SQI }
+			}
+			modifier = {
+				set_temp_variable = { FNG_refuse_chance_yunnan = FNG.yunnan_claim_strength }
+				multiply_temp_variable = { FNG_refuse_chance_yunnan = -1 }
+				add = FNG_refuse_chance_yunnan
+
+				event_target:FNG_active_negotiations_target = { tag = YUN }
+			}
+			modifier = {
+				set_temp_variable = { FNG_refuse_chance_ma = FNG.ma_claim_strength }
+				multiply_temp_variable = { FNG_refuse_chance_ma = -1 }
+				add = FNG_refuse_chance_ma
+
+				event_target:FNG_active_negotiations_target = { tag = XSM }
+			}
+			modifier = {
+				add = -20
+				event_target:FNG_active_negotiations_target = {
+					tag = SHX
+					controls_state = 615
+				}
+			}
+			modifier = {
+				add = -20
+				has_global_flag = YUN_demands_guizhou
+				event_target:FNG_active_negotiations_target = {
+					tag = YUN
+					controls_state = 1052
+				}
+			}
+		}
+		event_target:FNG_active_negotiations_target = {
+			country_event = {
+				id = fngconf.58
+				hours = 8
+				random = 16
+			}
+		}
+	}
+}
+
+country_event = { #Fengtian Accepts Our Territorial Demands
+	id = fngconf.56
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.56" }
+	title = fngconf.56.t
+	desc = fngconf.56.d
+
+	picture = GFX_report_event_SQI_zongchang_and_zuolin
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.56.a #Wonderful
+		FROM = {
+			every_owned_state = {
+				limit = {
+					is_claimed_by = ROOT
+					NOT = { has_variable = ambition_area_@ROOT }
+				}
+				ROOT = { transfer_state = PREV }
+			}
+			hidden_effect = {
+				country_event = {
+					id = fngconf.47
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+}
+
+country_event = { #Fengtian Refuses Territory, Offers Autonomy
+	id = fngconf.57
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.57" }
+	title = fngconf.57.t
+
+	desc = {
+		text = fngconf.57.d.offered
+		trigger = {
+			NOT = { has_country_flag = FNG_territory_rejected }
+		}
+	}
+	desc = {
+		text = fngconf.57.d.territory_rejected
+		trigger = {
+			has_country_flag = FNG_territory_rejected
+		}
+	}
+
+	picture = GFX_report_event_CHI_ambassador_announcement
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.57.a #Accept
+		clr_country_flag = FNG_territory_rejected
+		add_to_array = { FNG.FNG_conference_autonomy = ROOT }
+		FROM = {
+			hidden_effect = {
+				country_event = {
+					id = fngconf.47
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+	option = {
+		name = fngconf.57.b #We will have our demands
+		clr_country_flag = FNG_territory_rejected
+		remove_from_array = { FNG.FNG_conference_participants = ROOT }
+		set_country_flag = FNG_hostile
+		hidden_effect = {
+			FROM = {
+				country_event = {
+					id = fngconf.51
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+}
+
+country_event = { #Fengtian Refuses Our Demands
+	id = fngconf.58
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.58" }
+	title = fngconf.58.t
+	desc = fngconf.58.d
+
+	picture = GFX_report_event_CHI_official_announcement
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.58.a #Accept
+		hidden_effect = {
+			FROM = {
+				country_event = {
+					id = fngconf.47
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+	option = {
+		name = fngconf.58.b #Demand autonomy
+		hidden_effect = {
+			FROM = {
+				country_event = {
+					id = fngconf.48
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+	option = {
+		name = fngconf.58.c #This is an insult
+		remove_from_array = { FNG.FNG_conference_participants = ROOT }
+		set_country_flag = FNG_hostile
+		hidden_effect = {
+			FROM = {
+				country_event = {
+					id = fngconf.51
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+}
+
+country_event = { #Yunnan Claims Our Territory
+	id = fngconf.59
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.59" }
+	title = fngconf.59.t
+	desc = {
+		text = fngconf.59.d.HNN
+		trigger = {
+			tag = HNN
+			OR = {
+				has_global_flag = YUN_demands_guizhou
+				has_global_flag = YUN_demands_guangxi_guizhou
+			}
+		}
+	}
+	desc = {
+		text = fngconf.59.d.GXC
+		trigger = {
+			tag = GXC
+			OR = {
+				has_global_flag = YUN_demands_guangxi
+				AND = {
+					has_global_flag = YUN_demands_guangxi_guizhou
+					NOT = { is_in_faction_with = HNN }
+				}
+			}
+		}
+	}
+	desc = {
+		text = fngconf.59.d.GXC_HNN
+		trigger = {
+			tag = GXC
+			is_in_faction_with = HNN
+			has_global_flag = YUN_demands_guangxi_guizhou
+		}
+	}
+
+	picture = GFX_report_event_YUN_landscape
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.59.a #Concede
+		ai_chance = {
+			factor = 20
+			modifier = {
+				factor = 0
+				tag = GXC
+				OR = {
+					has_global_flag = YUN_demands_guangxi
+					has_global_flag = YUN_demands_guangxi_guizhou
+				}
+			}
+		}
+		hidden_effect = {
+			FROM = {
+				country_event = {
+					id = fngconf.60
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+	option = {
+		name = fngconf.59.b #Demand autonomy in exchange
+		trigger = {
+			tag = HNN
+		}
+		ai_chance = {
+			factor = 30
+		}
+		hidden_effect = {
+			FROM = {
+				country_event = {
+					id = fngconf.62
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+	option = {
+		name = fngconf.59.c #Ask for Federalist support
+		trigger = {
+			tag = HNN
+			is_in_faction_with = event_target:FNG_federalist_leader
+		}
+		ai_chance = {
+			factor = 30
+		}
+		hidden_effect = {
+			event_target:FNG_federalist_leader = {
+				country_event = {
+					id = fngconf.64
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+	option = {
+		name = fngconf.59.e #Guizhou for Autonomy
+		trigger = {
+			tag = GXC
+			is_in_faction_with = HNN
+			has_global_flag = YUN_demands_guangxi_guizhou
+		}
+		ai_chance = {
+			factor = 60
+		}
+		hidden_effect = {
+			HNN = {
+				country_event = {
+					id = fngconf.65
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+	option = {
+		name = fngconf.59.f #Refuse
+		ai_chance = {
+			factor = 20
+		}
+		hidden_effect = {
+			FROM = {
+				country_event = {
+					id = fngconf.69
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+}
+
+country_event = { #FROM Accepts Yunnan's Demands
+	id = fngconf.60
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.60" }
+	title = fngconf.60.t
+
+	desc = {
+		text = fngconf.60.d.accepted
+		trigger = {
+			NOT = { has_country_flag = FNG_territory_convinced }
+		}
+	}
+	desc = {
+		text = fngconf.60.d.convinced
+		trigger = {
+			has_country_flag = FNG_territory_convinced
+		}
+	}
+
+	picture = GFX_report_event_CHI_ambassador_announcement
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.60.a #Wonderful
+		clr_country_flag = FNG_territory_convinced
+		hidden_effect = {
+			event_target:FNG_active_negotiations_target = {
+				country_event = {
+					id = fngconf.61
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+}
+
+country_event = { #FROM Accepts Our Demands
+	id = fngconf.61
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.61" }
+	title = fngconf.61.t
+	desc = fngconf.61.d
+
+	picture = GFX_report_event_CHI_ambassador_announcement
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.61.a #Wonderful
+		for_each_scope_loop = {
+			array = FNG.yunnan_claimed_states
+			if = {
+				limit = {
+					owner = {
+						is_in_array = { FNG.FNG_conference_participants = THIS }
+					}
+				}
+				ROOT = { transfer_state = PREV }
+			}
+		}
+		FROM = {
+			hidden_effect = {
+				country_event = {
+					id = fngconf.47
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+}
+
+country_event = { #FROM Demands Autonomy in Exchange
+	id = fngconf.62
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.62" }
+	title = fngconf.62.t
+	desc = fngconf.62.d
+
+	picture = GFX_report_event_CHI_ambassador_announcement
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.62.a #Accept
+		ai_chance = {
+			factor = 90
+			modifier = {
+				add = FROM.num_of_factories
+			}
+			modifier = {
+				set_temp_variable = { FNG_accept_chance_autonomy = FNG.FNG_conference_autonomy^num }
+				multiply_temp_variable = { FNG_accept_chance_autonomy = -5 }
+				add = FNG_accept_chance_autonomy
+			}
+		}
+		add_to_array = { FNG.FNG_conference_autonomy = FROM }
+		hidden_effect = {
+			FROM = {
+				country_event = {
+					id = fngconf.49
+					hours = 8
+					random = 16
+				}
+			}
+			event_target:FNG_active_negotiations_target = {
+				country_event = {
+					id = fngconf.61
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+	option = {
+		name = fngconf.62.b #Refuse
+		ai_chance = {
+			factor = 60
+			modifier = {
+				set_temp_variable = { FNG_refuse_chance_autonomy = FNG.FNG_conference_autonomy^num }
+				multiply_temp_variable = { FNG_refuse_chance_autonomy = 5 }
+				add = FNG_refuse_chance_autonomy
+			}
+			modifier = {
+				set_temp_variable = { FNG_accept_chance_factories = FROM.num_of_factories }
+				multiply_temp_variable = { FNG_accept_chance_factories = -1 }
+				add = FNG_accept_chance_factories
+			}
+		}
+		hidden_effect = {
+			FROM = {
+				country_event = {
+					id = fngconf.63
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+}
+
+country_event = { #Fengtian Refuses Autonomy For Territory
+	id = fngconf.63
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.63" }
+	title = fngconf.63.t
+	desc = fngconf.63.d
+
+	picture = GFX_report_event_CHI_official_announcement
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.63.a #Cede the territory to Yunnan
+		hidden_effect = {
+			FROM = {
+				country_event = {
+					id = fngconf.60
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+	option = {
+		name = fngconf.63.b #Ask for Federalist support
+		hidden_effect = {
+			event_target:FNG_federalist_leader = {
+				country_event = {
+					id = fngconf.64
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+	option = {
+		name = fngconf.63.c #Refuse to concede
+		hidden_effect = {
+			FROM = {
+				country_event = {
+					id = fngconf.69
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+}
+
+country_event = { #Hunan Asks For Intervention
+	id = fngconf.64
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.64" }
+	title = fngconf.64.t
+	desc = fngconf.64.d
+
+	picture = GFX_report_event_GXC_federalist_troops_bandoliers
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.64.a #Convince Hunan to cede the region
+		hidden_effect = {
+			FROM = {
+				set_country_flag = FNG_guizhou_ceded
+				country_event = {
+					id = fngconf.65
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+	option = {
+		name = fngconf.64.b #Ask for autonomy for FROM
+		hidden_effect = {
+			FNG = {
+				country_event = {
+					id = fngconf.66
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+	option = {
+		name = fngconf.64.b #Refuse to concede
+		hidden_effect = {
+			FNG = {
+				country_event = {
+					id = fngconf.69
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+}
+
+country_event = { #The Federalist Argument
+	id = fngconf.65
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.65" }
+	title = fngconf.65.t
+
+	desc = {
+		text = fngconf.65.d.ceded
+		trigger = {
+			has_country_flag = FNG_guizhou_ceded
+		}
+	}
+	desc = {
+		text = fngconf.65.d.compromise
+		trigger = {
+			NOT = { has_country_flag = FNG_guizhou_ceded }
+		}
+	}
+
+	picture = federalist_party_2
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.65.a #Very well, cede the region
+		trigger = {
+			has_country_flag = FNG_guizhou_ceded
+		}
+		clr_country_flag = FNG_guizhou_ceded
+		hidden_effect = {
+			FNG = {
+				set_country_flag = FNG_territory_convinced
+				country_event = {
+					id = fngconf.60
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+	option = {
+		name = fngconf.65.b #We accept autonomy
+		trigger = {
+			NOT = { has_country_flag = FNG_guizhou_ceded }
+		}
+		hidden_effect = {
+			FNG = {
+				country_event = {
+					id = fngconf.66
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+	option = {
+		name = fngconf.65.c #The region is ours
+		hidden_effect = {
+			FNG = {
+				country_event = {
+					id = fngconf.69
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+}
+
+country_event = { #Federalists Demand Autonomy in Exchange
+	id = fngconf.66
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.66" }
+	title = fngconf.66.t
+	desc = fngconf.66.d
+
+	picture = federalist_party_3
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.66.a #Accept
+		ai_chance = {
+			factor = 90
+			modifier = {
+				add = event_target:FNG_federalist_leader.num_of_factories
+			}
+			modifier = {
+				add = HNN.num_of_factories
+			}
+			modifier = {
+				set_temp_variable = { FNG_accept_chance_autonomy = FNG.FNG_conference_autonomy^num }
+				multiply_temp_variable = { FNG_accept_chance_autonomy = -5 }
+				add = FNG_accept_chance_autonomy
+			}
+		}
+		add_to_array = { FNG.FNG_conference_autonomy = HNN }
+		hidden_effect = {
+			HNN = {
+				country_event = {
+					id = fngconf.49
+					hours = 8
+					random = 16
+				}
+			}
+			event_target:FNG_federalist_leader = {
+				country_event = {
+					id = fngconf.67
+					hours = 8
+					random = 16
+				}
+			}
+			event_target:FNG_active_negotiations_target = {
+				country_event = {
+					id = fngconf.62
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+	option = {
+		name = fngconf.66.b #Refuse
+		ai_chance = {
+			factor = 60
+			modifier = {
+				set_temp_variable = { FNG_refuse_chance_autonomy = FNG.FNG_conference_autonomy^num }
+				multiply_temp_variable = { FNG_refuse_chance_autonomy = 5 }
+				add = FNG_refuse_chance_autonomy
+			}
+			modifier = {
+				set_temp_variable = { FNG_accept_chance_factories = event_target:FNG_federalist_leader.num_of_factories }
+				add_to_temp_variable = { FNG_accept_chance_factories = HNN.num_of_factories }
+				multiply_temp_variable = { FNG_accept_chance_factories = -1 }
+				add = FNG_accept_chance_factories
+			}
+		}
+		hidden_effect = {
+			event_target:FNG_federalist_leader = {
+				country_event = {
+					id = fngconf.68
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+}
+
+country_event = { #Compromise Accepted
+	id = fngconf.67
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.67" }
+	title = fngconf.67.t
+	desc = fngconf.67.d
+
+	picture = GFX_report_event_generic_diplomacy3
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.67.a
+		add_political_power = 15
+	}
+}
+
+country_event = { #Compromise Rejected
+	id = fngconf.68
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.68" }
+	title = fngconf.68.t
+	desc = fngconf.68.d
+
+	picture = GFX_report_event_CHI_official_announcement
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.64.a #Convince Hunan to cede the region
+		hidden_effect = {
+			HNN = {
+				set_country_flag = FNG_guizhou_ceded
+				country_event = {
+					id = fngconf.65
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+	option = {
+		name = fngconf.64.b #Refuse to concede
+		hidden_effect = {
+			FROM = {
+				country_event = {
+					id = fngconf.69
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+}
+
+country_event = { #Territorial Demands Refused
+	id = fngconf.69
+	title = fngconf.69.t
+
+	desc = {
+		text = fngconf.69.d.normal
+		trigger = {
+			NOT = {
+				FROM = {
+					OR = {
+						tag = TAN
+						tag = SIK
+					}
+				}
+			}
+		}
+	}
+	desc = {
+		text = fngconf.69.d.XSM
+		trigger = {
+			FROM = {
+				OR = {
+					tag = TAN
+					tag = SIK
+				}
+			}
+		}
+	}
+
+	picture = GFX_report_event_CHI_china_abandoned
+
+	immediate = {
+		log = "[GetDateText]: [Root.GetName]: event fngconf.69"
+		hidden_effect = {
+			if = {
+				limit = {
+					FROM = {
+						OR = {
+							tag = TAN
+							tag = SIK
+						}
+					}
+				}
+				617 = {
+					owner = {
+						save_event_target_as = FNG_xinjiang_tag
+					}
+				}
+			}
+		}
+	}
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.69.a #Side with FROM
+		ai_chance = {
+			factor = 40
+		}
+		hidden_effect = {
+			event_target:FNG_active_negotiations_target = {
+				country_event = {
+					id = fngconf.70
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+	option = {
+		name = fngconf.69.b #Offer TARGET autonomy instead
+		ai_chance = {
+			factor = 20
+		}
+		hidden_effect = {
+			event_target:FNG_active_negotiations_target = {
+				set_country_flag = FNG_territory_rejected
+				country_event = {
+					id = fngconf.57
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+	option = {
+		name = fngconf.69.a #Side with TARGET
+		ai_chance = {
+			factor = 40
+		}
+		hidden_effect = {
+			event_target:FNG_active_negotiations_target = {
+				country_event = {
+					id = fngconf.70
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+}
+
+country_event = { #Fengtian Rejects Our Demands
+	id = fngconf.70
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.70" }
+	title = fngconf.70.t
+	desc = fngconf.70.d
+
+	picture = GFX_report_event_CHI_ambassador_announcement
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.70.a #Drop the claims
+		if = {
+			limit = {
+				tag = YUN
+			}
+			for_each_scope_loop = {
+				array = FNG.yunnan_claimed_states
+				set_variable = { ambition_area_@FROM = 1 }
+				remove_claim_by = ROOT
+				clear_variable = ambition_area_@ROOT
+			}
+		}
+		else_if = {
+			limit = {
+				tag = XSM
+			}
+			for_each_scope_loop = {
+				array = SIK.core_states
+				set_variable = { ambition_area_@FROM = 1 }
+				remove_claim_by = ROOT
+				clear_variable = ambition_area_@ROOT
+			}
+		}
+		hidden_effect = {
+			FROM = {
+				set_country_flag = FNG_reluctant_support
+				country_event = {
+					id = fngconf.47
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+	option = {
+		name = fngconf.70.b #Leave the conference
+		remove_from_array = { FNG.FNG_conference_participants = ROOT }
+		set_country_flag = FNG_hostile
+		hidden_effect = {
+			FROM = {
+				country_event = {
+					id = fngconf.51
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+}
+
+country_event = { #Fengtian Sides Against Us
+	id = fngconf.71
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.71" }
+	title = fngconf.71.t
+	desc = fngconf.71.d
+
+	picture = GFX_report_event_QIE_warlord_soldiers
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.71.a #Cede the territory
+		trigger = {
+			OR = {
+				tag = GXC
+				tag = HNN
+			}
+		}
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 0
+				OR = {
+					has_global_flag = YUN_demands_guangxi
+					has_global_flag = YUN_demands_guangxi_guizhou
+				}
+			}
+		}
+		hidden_effect = {
+			FROM = {
+				country_event = {
+					id = fngconf.60
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+	option = {
+		name = fngconf.71.a #Leave the conference
+		ai_chance = {
+			factor = 50
+		}
+		hidden_effect = {
+			if = {
+				limit = {
+					tag = event_target:FNG_federalist_leader
+				}
+				FROM = {
+					set_country_flag = FNG_territory_betrayal
+					country_event = {
+						id = fngconf.15
+						hours = 8
+						random = 16
+					}
+				}
+			}
+			else = {
+				remove_from_array = { FNG.FNG_conference_participants = ROOT }
+				set_country_flag = FNG_hostile
+				hidden_effect = {
+					FROM = {
+						country_event = {
+							id = fngconf.51
+							hours = 8
+							random = 16
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+country_event = { #Ma Clique Claims Xinjiang
+	id = fngconf.72
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.72" }
+	title = fngconf.72.t
+	desc = fngconf.72.d
+
+	picture = SIK_kashgar
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.72.a #Lodge a protest
+		hidden_effect = {
+			FROM = {
+				country_event = {
+					id = fngconf.69
+					hours = 8
+					random = 16
+				}
+			}
+		}
+	}
+}
+
+country_event = { #End of the Conference
+	id = fngconf.73
+	title = fngconf.73.t
+
+	desc = {
+		text = fngconf.73.d.success
+		trigger = {
+			NOT = { has_global_flag = FNG_conference_failed_flag }
+		}
+	}
+	desc = {
+		text = fngconf.73.d.failure
+		trigger = {
+			has_global_flag = FNG_conference_failed_flag
+		}
+	}
+
+	picture = GFX_report_event_CHI_new_government
+
+	trigger = {
+		FNG = { controls_state = 608 }
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	immediate = {
+		log = "[GetDateText]: [Root.GetName]: event fngconf.73"
+		hidden_effect = {
+			if = {
+				limit = { tag = FNG }
+				country_event = {
+					id = fngconf.76
+					days = 10
+				}
+			}
+		}
+	}
+
+	option = {
+		name = fngconf.73.a #A masterstroke of diplomacy
+		trigger = {
+			NOT = { has_global_flag = FNG_conference_failed_flag }
+		}
+		add_to_variable = { FNG_legitimacy_level = 1 }
+		add_political_power = 100
+		set_global_flag = FNG_conference_success
+		create_faction = pacification_faction
+		if = {
+			limit = {
+				event_target:FNG_federalist_leader = {
+					is_in_array = { FNG.FNG_conference_support = THIS }
+				}
+			}
+			event_target:FNG_federalist_leader = {
+				country_event = {
+					id = fngconf.74
+					hours = 8
+				}
+				every_other_country = {
+					limit = { is_in_faction_with = event_target:FNG_federalist_leader }
+					country_event = {
+						id = fngconf.74
+						hours = 12
+						random = 6
+					}
+				}
+			}
+		}
+		for_each_loop = {
+			array = FNG.FNG_conference_participants
+			var:v = {
+				if = {
+					limit = {
+						exists = yes
+						NOT = {
+							tag = event_target:FNG_federalist_leader
+							is_in_faction_with = event_target:FNG_federalist_leader
+						}
+					}
+					country_event = {
+						id = fngconf.74
+						hours = 10
+						random = 24
+					}
+				}
+			}
+		}
+		hidden_effect = { news_event = worldnews.412 }
+	}
+
+	option = {
+		name = fngconf.73.b #Unification by force, then
+		trigger = {
+			has_global_flag = FNG_conference_failed_flag
+		}
+		set_variable = { FNG_legitimacy_level = 1 }
+		add_political_power = -100
+		set_global_flag = FNG_conference_failed
+	}
+}
+
+country_event = { #End of the Conference
+	id = fngconf.74
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.74" }
+	title = fngconf.74.t
+
+	picture = GFX_report_event_CHI_new_government
+
+	desc = {
+		text = fngconf.74.d.success
+		trigger = {
+			NOT = { has_global_flag = FNG_conference_failed_flag }
+		}
+	}
+	desc = {
+		text = fngconf.74.d.failure
+		trigger = {
+			has_global_flag = FNG_conference_failed_flag
+		}
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.74.a #We join the Fengtian sphere
+		trigger = {
+			NOT = { has_global_flag = FNG_conference_failed_flag }
+			is_in_array = { FNG.FNG_conference_support = ROOT }
+			NOT = { tag = event_target:FNG_federalist_leader }
+		}
+		leave_faction = yes
+		FROM = { add_to_faction = ROOT }
+		add_political_power = 20
+	}
+	option = {
+		name = fngconf.74.b #We join the Fengtian Government
+		trigger = {
+			NOT = { has_global_flag = FNG_conference_failed_flag }
+			is_in_array = { FNG.FNG_conference_support = ROOT }
+			tag = event_target:FNG_federalist_leader
+		}
+		dismantle_faction = yes
+		FROM = {
+			annex_country = {
+				target = event_target:FNG_federalist_leader
+				transfer_troops = yes
+			}
+		}
+		if = {
+			limit = { is_ai = no }
+			FROM = {
+				change_tag_from = event_target:FNG_federalist_leader
+			}
+		}
+	}
+	option = {
+		name = fngconf.74.c #A waste of time
+		trigger = {
+			OR = {
+				has_global_flag = FNG_conference_failed_flag
+				NOT = {
+					is_in_array = { FNG.FNG_conference_support = ROOT }
+				}
+			}
+		}
+	}
+}
+
+country_event = { #Unification by Force
+	id = fngconf.75
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.75" }
+	title = fngconf.75.t
+	desc = fngconf.75.d
+
+	picture = GFX_report_event_FNG_army1
+
+	trigger = {
+		NOT = { has_global_flag = FNG_conference_failed }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = fngconf.75.a
+		set_global_flag = FNG_conference_failed
+	}
+}
+
+country_event = { #hidden event to clear the variables and arrays
+	id = fngconf.76
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.76" }
+	hidden = yes
+
+	is_triggered_only = yes
+
+	option = {
+		if = {
+			limit = { has_global_flag = FNG_conference_failed }
+			clr_country_flag = FNG_conference_federalist_support
+			clr_country_flag = FNG_conference_song_support
+		}
+
+		clr_country_flag = FNG_conference_begun
+		clr_global_flag = FNG_conference_federalists
+		clr_global_flag = FNG_conference_song
+		clr_country_flag = FNG_conference_second_phase
+		clr_country_flag = FNG_reluctant_support
+
+		clear_variable = FNG.FNG_anticoncessionist_support
+
+		clear_array = FNG.FNG_conference_participants
+		clear_array = FNG.FNG_conference_support
+		clear_array = FNG.FNG_conference_autonomy
+
+		for_each_scope_loop = {
+			array = global.china_tags_array
+			FNG = {
+				clr_country_flag = FNG_demands_territory_@PREV
+				clr_country_flag = FNG_demands_concessions_@PREV
+				clr_country_flag = FNG_demands_autonomy_@PREV
+			}
+		}
+
+		clr_global_flag = YUN_demands_guangxi
+		clr_global_flag = YUN_demands_guangxi_guizhou
+		clr_global_flag = YUN_demands_guizhou
+
+		clr_global_flag = FNG_conference_failed_flag
+	}
+}
+
+country_event = { #hidden event to check if the number of participants is too low
+	id = fngconf.77
+	immediate = { log = "[GetDateText]: [Root.GetName]: event fngconf.77" }
+	hidden = yes
+
+	trigger = {
+		controls_state = 608
+		has_country_flag = FNG_conference_second_phase
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		trigger = {
+			NOT = { has_global_flag = FNG_conference_federalists }
+			check_variable = { FNG.FNG_conference_participants^num < 3 }
+		}
+		set_global_flag = FNG_conference_failed_flag
+		country_event = fngconf.73
+	}
+	option = {
+		trigger = {
+			OR = {
+				check_variable = { FNG.FNG_conference_participants^num > 2 }
+				has_global_flag = FNG_conference_federalists
+			}
+		}
+		country_event = {
+			id = fngconf.77
+			days = 1
+		}
+	}
+}

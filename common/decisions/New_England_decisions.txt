@@ -1,7 +1,6 @@
 ###########################################
 # New England
 # Decisions by Herkles & Jeankedezeehond
-# Nobody cares you overrated hacks
 ###########################################
 NEE_entente_allies = {
 	NEE_invite_canadian_advisors = {
@@ -43,6 +42,10 @@ NEE_entente_allies = {
 			hidden_effect = {
 				subtract_from_variable = {
 					var = NEE_legitimacy
+					value = 5
+				}
+				add_to_variable = {
+					var = NEE_canadian_influence
 					value = 5
 				}
 			}
@@ -150,6 +153,10 @@ NEE_entente_allies = {
 					var = NEE_legitimacy
 					value = 5
 				}
+				add_to_variable = {
+					var = NEE_canadian_influence
+					value = 5
+				}
 			}
 		}
 	}
@@ -213,6 +220,10 @@ NEE_entente_allies = {
 					var = NEE_legitimacy
 					value = 5
 				}
+				add_to_variable = {
+					var = NEE_canadian_influence
+					value = 5
+				}
 			}
 		}
 	}
@@ -273,6 +284,10 @@ NEE_entente_allies = {
 					var = NEE_legitimacy
 					value = 5
 				}
+				add_to_variable = {
+					var = NEE_canadian_influence
+					value = 5
+				}
 			}
 		}
 	}
@@ -281,6 +296,9 @@ NEE_entente_allies = {
 		icon = generic_prepare_civil_war
 		allowed = { original_tag = NEE }
 		available = {
+		NOT = {
+		has_government = authoritarian_democrat
+			}
 			controls_all_owned_states = yes
 			custom_trigger_tooltip = {
 				tooltip = "Legitimacy greater than 40"
@@ -310,12 +328,6 @@ NEE_entente_allies = {
 						has_global_flag = USA_civil_war_over_flag
 						has_war = no
 					}
-				}
-				NOT = {
-					has_war_with = USA
-					has_war_with = CSA
-					has_war_with = TEX
-					has_war_with = CAL
 				}
 			}
 		}
@@ -362,10 +374,7 @@ NEE_reclaiming_america = {
 			NOT = { country_exists = CAL }
 			OR = {
 				NOT = { country_exists = USA }
-				USA = { NOT = { has_elected_government = yes } }
-			}
-			NOT = {
-				has_country_flag = NEE_NOT_CLAIMED_TO_BE_AMERICA
+				USA = { not_has_elected_government = yes }
 			}
 		}
 
@@ -407,13 +416,10 @@ NEE_reclaiming_america = {
 		available = {
 			is_subject = no
 			controls_all_owned_states = yes
-			can_declare_war_on = FROM
+			FROM = { is_valid_war_target = yes }
 			custom_trigger_tooltip = {
 				tooltip = "Legitimacy greater than 60"
 				check_variable = { NEE_legitimacy > 60 }
-			}
-			NOT = {
-				has_country_flag = NEE_NOT_CLAIMED_TO_BE_AMERICA
 			}
 		}
 
@@ -428,7 +434,137 @@ NEE_reclaiming_america = {
 		targets = { CAL USA CSA TEX }
 
 		target_trigger = {
-			can_declare_war_on = FROM
+			FROM = { is_valid_war_target = yes }
+		}
+
+		fire_only_once = yes
+
+		cost = freedec?0
+
+		ai_will_do = {
+			factor = 20
+			modifier = {
+				factor = 0
+				OR = {
+					has_war = yes
+					has_army_manpower = { size < 200000 }
+					NOT = { is_neighbor_of = FROM }
+				}
+			}
+			modifier = {
+				factor = 0.1
+				FROM = { same_government_type_as_ROOT = yes }
+			}
+			modifier = {
+				factor = 0
+				NOT = {
+					AND = {
+						is_in_faction = no
+						strength_ratio = { tag = FROM ratio = 1.0 }
+					}
+					CAN = {
+						is_in_faction_with = NEE
+						strength_ratio = { tag = FROM ratio = 0.50 }
+					}
+					AND = {
+						is_in_faction = yes
+						NOT = { is_in_faction_with = CAN }
+						any_allied_country = {
+							is_faction_leader = yes
+							strength_ratio = { tag = FROM ratio = 1.0 }
+						}
+					}
+				}
+			}
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision NEE_liberate_states target: [From.GetName]"
+			declare_war_on = {	type = annex_everything	target = FROM }
+		}
+	}
+}
+
+NEE_power_of_business = {
+	NEE_hire_french_veterans = {
+		icon = generic_prepare_civil_war
+		allowed = {	original_tag = NEE	}
+		available = {
+			ROOT = {
+				is_subject = no
+				controls_all_owned_states = yes
+				custom_trigger_tooltip = {
+					tooltip = "Legitimacy greater than 40"
+					check_variable = { NEE_legitimacy > 40 }
+				}
+			}
+			NOT = { country_exists = CAL }
+			OR = {
+				NOT = { country_exists = USA }
+				USA = { not_has_elected_government = yes }
+			}
+		}
+
+		visible = {
+			has_global_flag = USA_civil_war_begun_flag
+		}
+
+		fire_only_once = yes
+		cost = 100
+
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				has_war = yes
+			}
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision NEE_claim_usa_territory"
+			set_country_flag = NEE_claimed_america
+			add_war_support = 0.20
+			every_state = {
+				limit = {
+					NOT = { is_claim_or_core_of_ROOT = yes }
+					OR = {
+						is_mainland_america = yes
+						region = 33 #Alaska
+					}
+				}
+				add_claim_by = NEE
+			}
+		}
+	}
+	
+	NEE_business_expansion = {
+		icon = generic_prepare_civil_war
+		allowed = {	original_tag = NEE	}
+		available = {
+			is_subject = no
+			controls_all_owned_states = yes
+			custom_trigger_tooltip = {
+				tooltip = "Legitimacy greater than 60"
+				check_variable = { NEE_legitimacy > 60 }
+			}
+		}
+
+		visible = {
+			has_country_flag = NEE_claimed_america
+		}
+
+		target_root_trigger = {
+			has_country_flag = NEE_claimed_america
+		}
+		
+		target_trigger = {
+		FROM = {
+		tag = CSA
+		tag = CAL
+		tag = TEX
+		tag = COR
+		tag = USA
+		}
 		}
 
 		fire_only_once = yes
@@ -1436,6 +1572,7 @@ NEE_Dropping_Propaganda = {
 		}
 	}
 }
+
 NEE_Civil_War = {
 	NEE_secure_new_york = {
 		icon = generic_prepare_civil_war
@@ -1587,4 +1724,5 @@ NEE_Civil_War = {
 		}
 	}
 }
+
 

@@ -1,0 +1,163 @@
+scripted_gui = {
+
+	ganus_warlord_window = {
+		context_type = selected_state_context
+		window_name = "nee_resistance_gui_button"
+		parent_window_token = selected_state_view
+
+		visible = {
+			is_claimed_by = NEE
+			ROOT = {
+				tag = NEE
+			}
+		}
+
+		effects = {
+			NEE_Infiltration_button_click = {	#Infiltrating the State
+				ROOT = {
+					add_manpower = -300
+					add_equipment_to_stockpile = {
+						type = infantry_equipment_0
+						amount = -200
+						producer = NEE
+					}
+				}
+				set_state_flag = NEE_state_infiltrated
+			}
+			NEE_Airdrop_button_click = {	#Airdropping in Supplies
+				ROOT = {
+					add_manpower = -100
+					add_equipment_to_stockpile = {
+						type = infantry_equipment_0
+						amount = -500
+						producer = NEE
+					}
+				}
+				set_state_flag = NEE_airdropped_supplies
+			}
+			NEE_Rise_Up_Gamers_button_click = {	#Lets the Gamers Rise Up (spawns the rebels)
+				ROOT = {
+					if = {
+						limit = {
+							NOT = { has_template = "Resistance" }
+						}
+						division_template = {
+							name = "Resistance"
+							division_names_group = USA_INF_01
+							is_locked = yes
+							regiments = {
+								infantry = { x = 0 y = 0 }
+								infantry = { x = 0 y = 1 }
+
+								infantry = { x = 1 y = 0 }
+								infantry = { x = 1 y = 1 }
+							}
+						}
+					}
+				}
+				CONTROLLER = {
+					set_country_flag = NEE_state
+				}
+				ROOT = {
+					set_state_controller = PREV
+				}
+				if = {
+					limit = {
+						has_state_flag = NEE_airdropped_supplies
+					}
+					create_unit = {
+						division = "name = \"Resistance\" division_template = \"Resistance\" start_experience_factor = 0.4 start_equipment_factor = 1"
+						owner = NEE
+					}
+				}
+				else = {
+					create_unit = {
+						division = "name = \"Resistance\" division_template = \"Resistance\" start_experience_factor = 0.4 start_equipment_factor = 0.4"
+						owner = NEE
+					}
+				}
+				random_country = {
+					limit = {
+						has_country_flag = NEE_state
+					}
+					clr_country_flag = NEE_state
+					set_state_controller = PREV
+				}
+				set_state_flag = NEE_rebel_spawned
+			}
+		}
+
+		triggers = {
+			NEE_Infiltration_button_click_enabled = {	#Enable Infiltration
+				ROOT = {
+					check_variable = {
+						NEE_legitimacy > 25
+					}
+					OR = {
+						has_equipment = {
+							infantry_equipment_0 > 200
+						}
+						has_equipment = {
+							infantry_equipment_1 > 200
+						}
+						has_equipment = {
+							infantry_equipment_2 > 200
+						}
+					}
+					has_manpower > 300
+				}
+				NOT = {
+					has_state_flag = NEE_state_infiltrated
+				}
+			}
+			NEE_Infiltration_button_locked_visible = {
+				NEE = {
+					NOT = {
+						has_completed_focus = NEE_Behind_Eneny_Lines
+					}
+				}
+			}
+			NEE_Airdrop_button_click_enabled = {	#Enable Air Drops
+				ROOT = {
+					has_country_flag = NEE_airdrop_enabled
+					OR = {
+						has_equipment = {
+							infantry_equipment_0 > 500
+						}
+						has_equipment = {
+							infantry_equipment_1 > 500
+						}
+						has_equipment = {
+							infantry_equipment_2 > 500
+						}
+					}
+					has_manpower > 100
+				}
+				has_state_flag = NEE_state_infiltrated
+				NOT = {
+					has_state_flag = NEE_airdropped_supplies
+				}
+			}
+			NEE_Airdrop_button_locked_visible = {
+				NEE = {
+					NOT = {
+						has_country_flag = NEE_airdrop_enabled
+					}
+				}
+			}
+			NEE_Rise_Up_Gamers_button_click_enabled = {	#Enable the Uprising
+				CONTROLLER = { has_war_with = ROOT }
+				has_state_flag = NEE_state_infiltrated
+				NOT = {
+					has_state_flag = NEE_rebel_spawned
+				}
+			}
+			NEE_Rise_Up_Gamers_button_locked_visible = {
+				NOT = {
+					CONTROLLER = { has_war_with = ROOT }
+				}
+			}
+		}
+	}
+}
+

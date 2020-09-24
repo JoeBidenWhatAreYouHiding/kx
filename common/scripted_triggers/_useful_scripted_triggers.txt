@@ -1,43 +1,56 @@
-# this is a check to see if a major has at least 50 factories
-# which means it's not just a faction leader (which anyone can be)
+# this is a check to see if a major is an actual major due to its number of factories
+# meaning it's the top 7 in the world or has at least 70% of the average of those 7
+# we're also including a number of tags which should act like majors even if they're not in that category
 is_actual_major = {
-	is_major = yes
-	OR = {
-		AND = {
-			num_of_factories > 49
-			date < 1940.1.1
+	custom_trigger_tooltip = {
+		tooltip = is_actual_major_tt
+		is_major = yes
+
+		# rank the majors according to their num_of_factories
+		clear_temp_array = global.actual_majors
+		get_sorted_scored_countries_temp = {
+			scorer = actual_majors_score
+			array = global.actual_majors
 		}
-		AND = {
-			num_of_factories > 74
-			NOT = { date < 1940.1.1 }
-			date < 1942.1.1
+
+		# limit that ranking to the top 7
+		resize_temp_array = { global.actual_majors = 7 }
+
+		# now figure out what 70% of the average of those 7 is, with a minimum of 35
+		set_temp_variable = { global.factory_average = 0 }
+		all_of_scopes = {
+			array = global.actual_majors
+			add_to_temp_variable = { global.factory_average = THIS.num_of_factories }
 		}
-		AND = {
-			num_of_factories > 99
-			NOT = { date < 1942.1.1 }
-			date < 1944.1.1
+		divide_temp_variable = { global.factory_average = 7 }
+		multiply_temp_variable = { global.factory_average = 0.7 }
+		clamp_temp_variable = { var = global.factory_average min = 35 }
+
+		OR = {
+			# is actually in the top 7
+			is_in_array = { global.actual_majors = THIS }
+			# has more than 70% of the average of the top 7
+			check_variable = { num_of_factories > global.factory_average }
+			# is in the list of "always acts like a major" countries
+			tag = GER
+			tag = GEX
+			tag = AUS
+			tag = FRA
+			tag = ENG
+			tag = GBR
+			tag = NFA
+			tag = RUS
+			tag = SOV
+			tag = JAP
+			tag = USA
+			tag = CSA
+			tag = TEX
+			tag = CAL
+			AND = {
+				tag = CAN
+				is_faction_leader = yes
+			}
 		}
-		AND = {
-			num_of_factories > 124
-			NOT = { date < 1944.1.1 }
-			date < 1946.1.1
-		}
-		num_of_factories > 149
-		tag = GER
-		tag = GEX
-		tag = AUS
-		tag = FRA
-		tag = ENG
-		tag = CAN
-		tag = GBR
-		tag = NFA
-		tag = RUS
-		tag = SOV
-		tag = JAP
-		tag = USA
-		tag = CSA
-		tag = TEX
-		tag = CAL
 	}
 }
 
@@ -584,6 +597,7 @@ uses_generic_concerns = {
 		original_tag = CHI
 		original_tag = CNT
 		original_tag = CRO
+		original_tag = COR
 		#original_tag = CUB #Unfinished List
 		original_tag = CSA
 		original_tag = DEH
@@ -632,7 +646,6 @@ uses_generic_concerns = {
 		original_tag = PRF
 		original_tag = QIE
 		original_tag = ROM
-		original_tag = RRM
 		original_tag = RUS
 		original_tag = SAF
 		#original_tag = SAU #Unfinished List
@@ -655,6 +668,7 @@ uses_generic_concerns = {
 		original_tag = TRM
 		original_tag = TUS
 		original_tag = UKR
+		#original_tag = ULS #Unfinished List
 		original_tag = URG
 		original_tag = USA
 		original_tag = VEN
@@ -664,7 +678,6 @@ uses_generic_concerns = {
 		original_tag = YUN
 	}
 }
-
 
 # renaming events trigger
 is_american_tag = {
@@ -676,6 +689,25 @@ is_american_tag = {
 		tag = NEE
 		tag = TXS
 		tag = ALA
+		tag = BBR
+		tag = COR
+		tag = WCC
+		tag = AML
+		tag = DSR
+		tag = ARZ
+		tag = NVN
+		tag = TXS
+		tag = AFT
+		tag = ATD
+		tag = IKE
+		tag = UOT
+		tag = CGL
+		tag = BLL
+		tag = FSA
+		tag = TXS
+		tag = SNA
+		tag = ENC
+		tag = NYC
 	}
 }
 is_arab_tag = {
@@ -692,9 +724,14 @@ is_arab_tag = {
 		tag = PAL
 	}
 }
-is_brz_portuguese = {
-	OR = { # MOZ, ANG, CPV, COG not included
+is_brz_portuguese = { # MZB, ANG, CPV, COG not included
+	OR = {
 		tag = POR
+		is_brazilian_tag = yes
+	}
+}
+is_brazilian_tag = {
+	OR = {
 		tag = BRA
 		tag = PIR
 		tag = BAH
@@ -747,22 +784,22 @@ is_dutch_tag = {
 }
 is_english_tag = {
 	OR = {
+		is_american_tag = yes
 		tag = ENG
 		tag = CAF
-		tag = ENP
 		tag = WAL
 		tag = SCT
 		tag = GBR
+		tag = GBP
 		tag = IRE
 		tag = ULS
 		tag = CAN
-		tag = CAL
-		tag = TEX
-		tag = CSA
-		tag = NEE
-		tag = HAW
 		tag = NZL
 		tag = AST
+		tag = JAM
+		tag = GYA
+		tag = TRI
+		tag = HAW
 	}
 }
 is_catholic_tag = {
@@ -789,7 +826,7 @@ is_catholic_tag = {
 		tag = LIT
 		tag = LUX
 		tag = MLT
-		tag = MOZ
+		tag = MZB
 		tag = OCC
 		tag = PHI
 		tag = QCH
@@ -902,6 +939,7 @@ is_spanish_speaking_tag = {
 		tag = CUB
 		tag = DOM
 		tag = PAN
+		tag = YUC
 	}
 }
 is_central_american_tag = {
@@ -911,6 +949,7 @@ is_central_american_tag = {
 		tag = HON
 		tag = ELS
 		tag = GUA
+		tag = CEN
 	}
 }
 is_spanish_tag = {
@@ -943,6 +982,29 @@ is_indian_tag = {
 		tag = MAD
 		tag = TRV
 		tag = MYS
+	}
+}
+is_yiddish_tag = { #has a large yiddish population
+	OR = {
+		tag = RUS
+		tag = SOV
+		tag = SIB
+		tag = TRM
+		tag = POL
+		tag = LIT
+		tag = LAT
+		tag = BAT
+		tag = WHR
+		tag = UKR
+		tag = GAL
+		tag = HUN
+		tag = CZE
+		tag = SVK
+		tag = GER
+		tag = GRU
+		tag = DDR
+		tag = ROM
+		tag = TRS
 	}
 }
 
@@ -1017,6 +1079,12 @@ has_no_african_interests = {
 				tag = CAN
 				NOT = { country_exists = GBR }
 			}
+			AND = {
+				tag = BBR
+				NOT = {
+					has_government = paternal_autocrat
+				}
+			}
 		}
 	}
 }
@@ -1041,6 +1109,28 @@ can_form_italy = {
 		tag = EMI
 		tag = TUS
 		tag = LOM
+	}
+}
+
+ROOT_can_grant_land = {
+	exists = yes
+	NOT = {
+		has_war_with = ROOT
+		has_wargoal_against = ROOT
+		is_justifying_wargoal_against = ROOT
+		ROOT = { is_justifying_wargoal_against = PREV }
+		ROOT = { has_wargoal_against = PREV }
+		any_owned_state = { is_claim_or_core_of_ROOT = yes }
+	}
+	OR = {
+		AND = {
+			has_socialist_government = yes
+			ROOT = { has_socialist_government = yes }
+		}
+		AND = {
+			has_socialist_government = no
+			ROOT = { has_socialist_government = no }
+		}
 	}
 }
 
@@ -1108,44 +1198,6 @@ american_civil_war = {
 
 needs_cheap_infantry = {
 	OR = {
-		has_civil_war = yes
-		AND = {
-			tag = SOV
-			has_war_with = RUS
-		}
-		AND = {
-			tag = TEX
-			num_divisions < 60
-			OR = {
-				has_war_with = USA
-				has_war_with = CSA
-			}
-		}
-		AND = {
-			tag = CAL
-			num_divisions < 60
-			OR = {
-				has_war_with = USA
-				has_war_with = CSA
-				has_war_with = TEX
-			}
-		}
-		AND = {
-			tag = CSA
-			num_divisions < 60
-			OR = {
-				has_war_with = USA
-				has_war_with = TEX
-			}
-		}
-		AND = {
-			tag = USA
-			num_divisions < 60
-			OR = {
-				has_war_with = TEX
-				has_war_with = CSA
-			}
-		}
 		AND = {
 			tag = SPR
 			OR = {
@@ -1170,14 +1222,6 @@ needs_cheap_infantry = {
 		AND = {
 			tag = INC
 			has_war_with = GEA
-		}
-		AND = {
-			tag = ROM
-			has_war_with = RRM
-		}
-		AND = {
-			tag = RRM
-			has_war_with = ROM
 		}
 		AND = {
 			tag = GRR
@@ -1241,16 +1285,61 @@ ai_air_doctrine_tier_2_trigger = {
 	}
 }
 
-has_party_popularity_disabled = {
-	OR = {
-		tag = FNG
-		#add further exceptions here
-	}
-}
-
 puppet_may_be_annexed = {
 	OR = {
-		tag = AUS
+		AND = {
+			tag = AUS
+			FROM = {
+				OR = {
+					AND = {
+						tag = HUN
+						NOT = {
+							AUS = {
+								OR = {
+									has_completed_focus = AUS_ausgleich_1947
+									has_completed_focus = AUS_still_their_king
+								}
+							}
+						}
+					}
+					AND = {
+						tag = CZE
+						NOT = {
+							AUS = {
+								OR = {
+									has_completed_focus = AUS_cisleithania_centralised
+									has_completed_focus = AUS_drastic_measures
+								}
+							}
+						}
+					}
+					AND = {
+						tag = CRO
+						NOT = {
+							AUS = {
+								OR = {
+									has_completed_focus = AUS_cisleithania_centralised
+									has_completed_focus = AUS_drastic_measures
+								}
+							}
+						}
+					}
+					AND = {
+						tag = GAL
+						NOT = {
+							AUS = {
+								OR = {
+									has_completed_focus = AUS_cisleithania_centralised
+									has_completed_focus = AUS_drastic_measures
+								}
+							}
+						}
+					}
+					tag = TRS
+					tag = SVK
+				}
+			}
+		}
 		tag = RUS
 		tag = FOP
 		tag = UPC
@@ -1260,4 +1349,23 @@ puppet_may_be_annexed = {
 		tag = YUN
 		tag = FNG
 	}
+}
+
+at_peace_or_same_enemies_as_FROM = {
+	OR = {
+		has_war = no
+		custom_trigger_tooltip = {
+			tooltip = USA_same_wars_as_FROM
+			has_war = yes
+			NOT = {
+				any_enemy_country = {
+					NOT = { has_war_with = FROM }
+				}
+			}
+		}
+	}
+}
+
+has_guarantor = {
+	check_variable = { guarantor_array^num > 0 }
 }

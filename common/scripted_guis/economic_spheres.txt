@@ -1,0 +1,129 @@
+scripted_gui = {
+
+	KR_economic_sphere_gui = {
+		context_type = selected_country_context
+		parent_window_token = selected_country_view_diplomacy
+		window_name = "economic_sphere_button_container"
+
+		ai_enabled = {
+			always = no
+		}
+
+		triggers = {
+			KR_mitteleuropa_button_visible = {
+				GER_is_in_mitteleuropa = yes
+			}
+			KR_phalanstere_button_visible = {
+				is_in_tech_sharing_group = phalanstere_research
+			}
+			KR_co_prosperity_sphere_button_visible = {
+				check_variable = { global.asian_economic_sphere^num > 0 }
+				OR = {
+					tag = JAP
+					is_in_array = { global.asian_economic_sphere = THIS }
+				}
+			}
+		}
+
+		effects = {
+			KR_mitteleuropa_button_click = {
+				add_to_array = { ROOT.economic_sphere_list_array = GER }
+				for_each_loop = {
+					array = GER.GER_mitteleuropa_members
+					if = {
+						limit = {
+							NOT = {
+								is_in_array = { ROOT.economic_sphere_list_array = v }
+							}
+						}
+						add_to_array = { ROOT.economic_sphere_list_array = v }
+					}
+				}
+				ROOT = {
+					set_variable = { economic_sphere_leader = GER }
+					set_country_flag = economic_sphere_list_open
+				}
+			}
+			KR_phalanstere_button_click = {
+				add_to_array = { ROOT.economic_sphere_list_array = INT }
+				every_other_country = {
+					limit = { is_in_tech_sharing_group = phalanstere_research }
+					add_to_array = { ROOT.economic_sphere_list_array = THIS }
+				}
+				ROOT = {
+					set_variable = { economic_sphere_leader = INT }
+					set_country_flag = economic_sphere_list_open
+				}
+			}
+			KR_co_prosperity_sphere_button_click = {
+				add_to_array = { ROOT.economic_sphere_list_array = JAP }
+				for_each_loop = {
+					array = global.asian_economic_sphere
+					if = {
+						limit = {
+							NOT = {
+								is_in_array = { ROOT.economic_sphere_list_array = v }
+							}
+						}
+						add_to_array = { ROOT.economic_sphere_list_array = v }
+					}
+				}
+				ROOT = {
+					set_variable = { economic_sphere_leader = JAP }
+					set_country_flag = economic_sphere_list_open
+				}
+			}
+		}
+	}
+
+	economic_sphere_list = {
+		context_type = player_context
+		window_name = "economic_sphere_list_window"
+
+		ai_enabled = {
+			always = no
+		}
+
+		visible = {
+			has_country_flag = economic_sphere_list_open
+		}
+
+		dynamic_lists = {
+			economic_sphere_tags_grid = {
+				array = economic_sphere_list_array
+				change_scope = yes
+
+				entry_container = economic_sphere_member_entry
+			}
+		}
+
+		triggers = {
+			icon_mitteleuropa_visible = {
+				check_variable = { ROOT.economic_sphere_leader = GER }
+			}
+			icon_phalanstere_visible = {
+				check_variable = { ROOT.economic_sphere_leader = INT }
+			}
+			icon_co_prosperity_sphere_visible = {
+				check_variable = { ROOT.economic_sphere_leader = JAP }
+			}
+			major_country_overlay_visible = {
+				check_variable = { ROOT.economic_sphere_leader = THIS }
+			}
+		}
+
+		effects = {
+			button_close_click = {
+				clear_array = ROOT.economic_sphere_list_array
+				clear_variable = ROOT.economic_sphere_leader
+				clr_country_flag = economic_sphere_list_open
+			}
+		}
+
+		properties = {
+			country_flag = {
+				image = "[This.GetFlag]"
+			}
+		}
+	}
+}

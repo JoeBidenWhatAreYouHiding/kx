@@ -1,0 +1,473 @@
+﻿###########################
+# Southern Cone Events
+###########################
+# By Jeankedezeehond
+###########################
+
+add_namespace = southern
+
+#Paraguay
+country_event = { #Paraguay debates intervention
+	id = southern.4
+	immediate = { log = "[GetDateText]: [Root.GetName]: event southern.4" }
+	title = southern.4.t
+	desc = southern.4.d
+
+	is_triggered_only = yes
+
+	trigger = {
+		ARG = {
+			has_war_with = CHL
+			NOT = { is_in_faction_with = PAR }
+		}
+	}
+
+	option = {
+		ai_chance = {
+			factor = 100
+		}
+		name = southern.4.a
+		ARG = {
+			country_event = southern.5
+		}
+		declare_war_on = {
+			target = ARG
+			type = annex_everything
+		}
+		add_state_claim = 1074
+		hidden_effect = {
+			BOL = {
+				country_event = {
+					id = southern.6
+					days = 2
+				}
+			}
+		}
+	}
+	option = {
+		ai_chance = {
+			factor = 0
+		}
+		name = southern.4.b
+	}
+}
+
+country_event = { #Paraguay attacks
+	id = southern.5
+	immediate = { log = "[GetDateText]: [Root.GetName]: event southern.5" }
+	title = southern.5.t
+	desc = southern.5.d
+
+	fire_only_once = yes
+
+	is_triggered_only = yes
+
+	option = {
+		name = southern.5.a
+	}
+}
+
+#Bolivia
+country_event = { #Bolivia decides
+	id = southern.6
+	immediate = { log = "[GetDateText]: [Root.GetName]: event southern.6" }
+	title = southern.6.t
+	desc = southern.6.d
+
+	is_triggered_only = yes
+
+	trigger = {
+		has_socialist_government = no
+		ARG = {
+			has_war_with = PAR
+			NOT = {
+				is_in_faction_with = BOL
+			}
+		}
+		NOT = {
+			has_global_flag = BOL_ARG
+		}
+	}
+
+	option = {
+		ai_chance = {
+			factor = 80
+		}
+		name = southern.6.a
+		declare_war_on = {
+			target = PAR
+			type = annex_everything
+		}
+		ARG = {
+			country_event = southern.7
+		}
+		set_global_flag = BOL_ARG
+	}
+	option = {
+		ai_chance = {
+			factor = 10
+		}
+		name = southern.6.b
+		declare_war_on = {
+			target = PAR
+			type = annex_everything
+		}
+		declare_war_on = {
+			target = CHL
+			type = annex_everything
+		}
+		ARG = {
+			country_event = southern.7
+		}
+		set_global_flag = BOL_ARG
+	}
+	option = {
+		ai_chance = {
+			factor = 10
+		}
+		name = southern.6.c
+		ARG = {
+			country_event = southern.8
+		}
+	}
+}
+
+country_event = { #Bolivia joins on Argentinas side
+	id = southern.7
+	immediate = { log = "[GetDateText]: [Root.GetName]: event southern.7" }
+	title = southern.7.t
+	desc = southern.7.d
+
+	fire_only_once = yes
+
+	is_triggered_only = yes
+
+	option = {
+		name = southern.7.a
+	}
+}
+
+country_event = { #Bolivia doesn't join
+	id = southern.8
+	immediate = { log = "[GetDateText]: [Root.GetName]: event southern.8" }
+	title = southern.8.t
+	desc = southern.8.d
+
+	fire_only_once = yes
+
+	is_triggered_only = yes
+
+	option = {
+		name = southern.8.a
+		add_political_power = -75
+	}
+}
+
+###Peace Deals###
+country_event = { #Argentina puppets Chile. Peru takes its claims
+	id = southern.9
+	title = southern.9.t
+	desc = southern.9.d
+
+	fire_only_once = yes
+
+	trigger = {
+		tag = ARG
+		is_subject = no
+		has_war_with = CHL
+		OR = {
+			is_in_faction = no
+			is_faction_leader = yes
+		}
+		CHL = {
+			surrender_progress > 0.8
+			OR = {
+				is_in_faction = no
+				is_faction_leader = yes
+			}
+		}
+	}
+
+	immediate = {
+		log = "[GetDateText]: [Root.GetName]: event southern.9"
+		hidden_effect = {
+			CHL = {
+				remove_ideas = {
+					ARG_CHILE_STOP_BEING_A_TWAT
+					CHL_home_of_south_american_syndicalism
+				}
+				clear_all_volunteers = yes
+			}
+		}
+	}
+
+	option = {
+		ai_chance = {
+			factor = 100
+		}
+		name = southern.9.a
+		CHL = {
+			### Transfer Peru's and Bolivia's claims, if at war
+			if = {
+				limit = {
+					has_war_with = PRU
+					has_war_with = BOL
+				}
+				every_owned_state = {
+					limit = {
+						OR = {
+							state = 872 #Tacna
+							state = 873 #Tarapacá
+						}
+					}
+					PRU = { transfer_state = PREV }
+				}
+				BOL = { transfer_state = 506 } #Antofagasta
+			}
+			else = {
+				every_owned_state = {
+					limit = {
+						OR = {
+							state = 872 #Tacna
+							state = 873 #Tarapacá
+							state = 506 #Antofagasta
+						}
+					}
+					random_country = {
+						limit = {
+							OR = {
+								tag = PRU
+								tag = BOL
+							}
+							has_war_with = ROOT
+						}
+						transfer_state = PREV
+					}
+				}
+			}
+
+			#Release FOP to prevent shenanigans
+			set_autonomy = {
+				target = FOP
+				autonomy_state = autonomy_free
+			}
+			FOP = { country_event = southern.91 }
+
+			#peace out Chile
+			separate_peace_all_wars = yes
+
+			### puppet remnants
+			destroy_ships = {
+				type = destroyer
+				count = 4
+			}
+			destroy_ships = {
+				type = light_cruiser
+				count = 2
+			}
+			transfer_navy = { target = ROOT }
+		}
+		puppet = CHL
+	}
+
+	option = { #Annex Chile
+		name = southern.9.b
+		ai_chance = {
+			factor = 0
+		}
+		add_stability = -0.1
+		add_war_support = -0.1
+		add_political_power = -150
+		set_country_flag = CHL_CONQ
+	}
+}
+
+country_event = { #FOP decides whether to just die or continue the fight
+	id = southern.91
+	immediate = { log = "[GetDateText]: [Root.GetName]: event southern.91" }
+	title = southern.91.t
+	desc = southern.91.d
+
+	fire_only_once = yes
+	is_triggered_only = yes
+
+	option = {
+		ai_chance = {
+			factor = 100
+		}
+		name = southern.91.a
+		force_capitulate = yes
+		effect_tooltip = {
+			ARG = {
+				annex_country = {
+					target = ROOT
+					transfer_troops = no
+				}
+			}
+		}
+	}
+
+	option = { #lol no
+		trigger = {
+			is_ai = no
+		}
+		name = southern.91.b
+		add_war_support = -0.30
+	}
+}
+
+country_event = { #Argentina takes Paraguay. Bolivia takes its claims
+	id = southern.10
+	title = southern.10.t
+	desc = southern.10.d
+
+	fire_only_once = yes
+
+	trigger = {
+		tag = ARG
+		has_war_with = PAR
+		is_subject = no
+		surrender_progress < 0.30
+		OR = {
+			is_in_faction = no
+			is_faction_leader = yes
+		}
+		PAR = {
+			owns_state = 688 #Chaco Boreal
+			surrender_progress > 0.90
+			is_subject = no
+		}
+	}
+
+	immediate = {
+		log = "[GetDateText]: [Root.GetName]: event southern.10"
+		#peace out Paraguay
+		if = {
+			limit = {
+				688 = {
+					is_owned_by = PAR
+					is_controlled_by = BOL
+				}
+			}
+			BOL = {
+				transfer_state = 688
+			}
+		}
+		PAR = {
+			save_event_target_as = white_peace_receiver
+		}
+		ARG = {
+			white_peace_with_TARGET = yes
+		}
+		BOL = {
+			if = {
+				limit = {
+					exists = yes
+					has_war_with = PAR
+					OR = {
+						is_in_faction = no
+						is_faction_leader = yes
+					}
+				}
+				white_peace_with_TARGET = yes
+			}
+		}
+
+		#takes Paraguay and Chacos
+		if = {
+			limit = {
+				1027 = {
+					is_owned_by = PAR
+				}
+			}
+			if = {
+				limit = {
+					country_exists = BOL
+				}
+				BOL = {
+					transfer_state = 1027
+				}
+				else = {
+					ARG = {
+						transfer_state = 1027
+					}
+				}
+			}
+		}
+		ARG = {
+			transfer_state = 688
+			if = {
+				limit = {
+					PAR = {
+						owns_state = 301
+					}
+				}
+				transfer_state = 301
+			}
+		}
+	}
+
+	option = { #Give them Chaco Boreal
+		trigger = {
+			country_exists = BOL
+		}
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = 3
+				has_global_flag = BOL_ARG
+			}
+		}
+		name = southern.10.a
+		BOL = {
+			transfer_state = 688
+		}
+	}
+
+	option = { #take Chaco Boreal
+		ai_chance = {
+			factor = 100
+		}
+		name = southern.10.b
+		if = {
+			limit = {
+				BOL = {
+					exists = yes
+					is_subject = no
+				}
+			}
+			BOL = {
+				country_event = southern.11
+			}
+		}
+	}
+}
+
+country_event = { #Bolivia is angery because no Chaco, smh
+	id = southern.11
+	immediate = { log = "[GetDateText]: [Root.GetName]: event southern.11" }
+	title = southern.11.t
+	desc = southern.11.d
+
+	fire_only_once = yes
+
+	is_triggered_only = yes
+
+	option = {
+		ai_chance = {
+			factor = 0
+		}
+		name = southern.11.a
+		declare_war_on = {
+			target = ARG
+			type = annex_everything
+		}
+	}
+	option = {
+		ai_chance = {
+			factor = 100
+		}
+		name = southern.11.b
+		add_stability = -0.05
+	}
+}

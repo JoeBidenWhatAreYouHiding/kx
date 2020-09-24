@@ -1,0 +1,331 @@
+#	Scripted triggers for Belgrade Pact events
+#
+#	By wyandotte
+
+# Cedes land and grants cores for the Belgrade Pact members
+belgrade_pact_gain_land_from_bulgaria = {
+	if = {
+		limit = { 767 = { is_claimed_by = BUL } } #Nis
+		767 = { remove_claim_by = BUL }
+	}
+
+	every_country = {
+		limit = {
+			is_subject_of = OTT
+			OR = {
+				tag = ROM
+				tag = SER
+				tag = GRE
+				tag = ALB
+			}
+		}
+		overlord = {
+			set_autonomy = { target = PREV autonomy_state = autonomy_free }
+		}
+	}
+
+	# give Ottoman lands if they're occupied
+	if = {
+		limit = {
+			OTT = { has_country_flag = OTT_war_for_thrace }
+		}
+		every_state = {
+			limit = {
+				is_owned_by = BUL
+				has_state_flag = SER_transfer_to_OTT
+			}
+			OTT = { transfer_state = PREV }
+		}
+	}
+
+	# give Serbian lands
+	every_state = {
+		limit = {
+			is_owned_by = BUL
+			OR = {
+				is_core_of = SER
+				is_claimed_by = SER
+				state = 841 #Pirot
+				state = 106 #Macedonia
+			}
+		}
+		if = {
+			limit = {
+				NOT = { is_claimed_by = SER }
+				NOT = { is_core_of = SER }
+			}
+			add_claim_by = SER
+		}
+		SER = { transfer_state = PREV }
+	}
+	hidden_effect = {
+		SER = {
+			country_event = { id = serbia.23 days = 5 random_days = 7 }
+		}
+	}
+
+	if = {
+		limit = {
+			106 = { is_owned_by = SER }
+			731 = { is_owned_by = BUL }
+			GRE = {
+				NOT = {
+					is_in_faction_with = SER
+					has_war_with = BUL
+				}
+			}
+		}
+		SER = { transfer_state = 731 }
+	}
+
+	# give Romanian lands
+	if = {
+		limit = {
+			ROM = {
+				OR = {
+					is_in_faction_with = SER
+					has_country_flag = ROM_independent_war_with_bulgaria
+				}
+			}
+		}
+		77 = {
+			if = {
+				limit = { is_owned_by = BUL }
+				ROM = { transfer_state = PREV }
+			}
+			if = {
+				limit = {
+					NOT = { is_claimed_by = ROM }
+					NOT = { is_core_of = ROM }
+				}
+				add_claim_by = ROM
+			}
+			add_compliance = 25
+		}
+		every_state = {
+			limit = {
+				is_owned_by = BUL
+				NOT = { state = 77 } #Southern Dobruja
+				OR = {
+					is_core_of = ROM
+					is_claimed_by = ROM
+					state = 772 #Northern Dobruja
+				}
+			}
+			if = {
+				limit = {
+					NOT = { is_claimed_by = ROM }
+					NOT = { is_core_of = ROM }
+				}
+				add_core_of = ROM
+			}
+			if = {
+				limit = { is_claimed_by = ROM }
+				hidden_effect = { remove_claim_by = ROM }
+				add_core_of = ROM
+			}
+			ROM = { transfer_state = PREV }
+		}
+		ROM = { clr_country_flag = ROM_independent_war_with_bulgaria }
+	}
+
+	# give Greek lands
+	if = {
+		limit = { GRE = { is_in_faction_with = SER } }
+		every_state = {
+			limit = {
+				is_owned_by = BUL
+				NOT = { has_state_flag = SER_transfer_to_OTT }
+				OR = {
+					is_core_of = GRE
+					state = 731 #Western Salonica
+					state = 769 #Eastern Salonica
+					AND = {
+						state = 184 #Western Thrace
+						has_global_flag = balkan_war_ended
+					}
+				}
+			}
+			if = {
+				limit = {
+					NOT = { is_claimed_by = GRE }
+					NOT = { is_core_of = GRE }
+				}
+				add_claim_by = GRE
+			}
+			GRE = { transfer_state = PREV }
+		}
+	}
+}
+
+belgrade_pact_occupies_bulgaria = {
+	# Serbia gains Sofia and Pleven, and their cores
+	every_owned_state = {
+		limit = {
+			is_core_of = BUL
+			is_not_claim_or_core_of_ROOT = yes
+			OR = {
+				state = 48 # Sofia
+				state = 1090 # Vidin
+				state = 770 # Pleven
+				is_core_of = SER
+				is_claimed_by = SER
+			}
+		}
+		SER = { transfer_state = PREV }
+	}
+
+	# Greece gains Plovdiv and their cores
+	if = {
+		limit = {
+			NOT = { tag = GRE }
+			GRE = { is_in_faction_with = SER }
+		}
+		every_owned_state = {
+			limit = {
+				is_core_of = BUL
+				is_not_claim_or_core_of_ROOT = yes
+				OR = {
+					state = 212 # Plovdiv
+					state = 1089 # Momchilgrad
+					is_core_of = GRE
+					is_claimed_by = GRE
+				}
+			}
+			GRE = { transfer_state = PREV }
+		}
+	}
+
+	# Romania gains Varna and Burgas, and their cores
+	if = {
+		limit = {
+			NOT = { tag = ROM }
+			ROM = { is_in_faction_with = SER }
+		}
+		every_owned_state = {
+			limit = {
+				is_core_of = BUL
+				is_not_claim_or_core_of_ROOT = yes
+				OR = {
+					state = 771 # Varna
+					state = 211 # Burgas
+					is_core_of = ROM
+					is_claimed_by = ROM
+				}
+			}
+			ROM = { transfer_state = PREV }
+		}
+	}
+}
+
+belgrade_pact_loot_factory_from_bulgaria = {
+	# Bulgaria loses one civilian and one military factory
+	BUL = {
+		if = {
+			limit = {
+				any_owned_state = {
+					is_controlled_by = BUL
+					industrial_complex > 0
+				}
+			}
+			ROOT = { set_country_flag = gets_ic }
+			random_owned_controlled_state = {
+				limit = { industrial_complex > 0 }
+				remove_building = { type = industrial_complex level = 1 }
+			}
+		}
+		if = {
+			limit = {
+				any_owned_state = {
+					is_controlled_by = BUL
+					arms_factory > 0
+				}
+			}
+			ROOT = { set_country_flag = gets_af }
+			random_owned_controlled_state = {
+				limit = { arms_factory > 0 }
+				remove_building = { type = arms_factory level = 1 }
+			}
+		}
+	}
+
+	# ROOT gains two factories
+	if = {
+		limit = {
+			OR = {
+				BUL = {
+					any_owned_state = {
+						is_controlled_by = BUL
+						industrial_complex > 0
+					}
+				}
+				has_country_flag = gets_ic
+			}
+		}
+		clr_country_flag = gets_ic
+		random_owned_controlled_state = {
+			limit = {
+				is_core_of = ROOT
+				industrial_complex > 0
+				free_building_slots = {
+					building = industrial_complex
+					size > 0
+					include_locked = yes
+				}
+			}
+			add_extra_state_shared_building_slots = 1
+			add_building_construction = {
+				type = industrial_complex
+				level = 1
+				instant_build = yes
+			}
+		}
+	}
+	if = {
+		limit = {
+			OR = {
+				BUL = {
+					any_owned_state = {
+						is_controlled_by = BUL
+						arms_factory > 0
+					}
+				}
+				has_country_flag = gets_af
+			}
+		}
+		clr_country_flag = gets_af
+		random_owned_controlled_state = {
+			limit = {
+				is_core_of = ROOT
+				arms_factory > 0
+				free_building_slots = {
+					building = arms_factory
+					size > 0
+					include_locked = yes
+				}
+			}
+			add_extra_state_shared_building_slots = 1
+			add_building_construction = {
+				type = arms_factory
+				level = 1
+				instant_build = yes
+			}
+		}
+	}
+}
+
+belgrade_pact_gain_land_from_albania = {
+	if = {
+		limit = {
+			766 = { is_owned_by = ALB } #Northern Epirus
+			GRE = { is_in_faction_with = SER }
+		}
+		GRE = {
+			transfer_state = 766 # Northern Epirus
+			hidden_effect = {
+				add_state_core = 766 # Northern Epirus
+			}
+		}
+	}
+}
+

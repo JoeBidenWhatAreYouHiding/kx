@@ -818,15 +818,15 @@ focus_tree = {
 			is_in_faction = no
 			is_subject = no
 			has_war = no
-			not_has_socialist_government = yes
+			NOT = { has_socialist_government = yes }
 			OR = {
 				CAN = {
 					is_faction_leader = yes
-					not_has_socialist_government = yes
+					NOT = { has_socialist_government = yes }
 				}
 				GBR = {
 					is_faction_leader = yes
-					not_has_socialist_government = yes
+					NOT = { has_socialist_government = yes }
 				}
 			}
 		}
@@ -840,7 +840,7 @@ focus_tree = {
 				limit = {
 					CAN = {
 						is_faction_leader = yes
-						not_has_socialist_government = yes
+						NOT = { has_socialist_government = yes }
 					}
 				}
 				CAN = {
@@ -1960,24 +1960,19 @@ focus = {
 		icon = GFX_goal_italianfed
 		bypass = {
 			NOT = {
-					country_exists = SRD
+					country_exists = ITA
 					country_exists = SIC
 				}
 			}
 		available = {
 			OR = {
-			SIC = {
 				country_exists = SIC
-				has_war = no
-				is_subject = no
-				NOT = { has_government = radical_socialist has_government = syndicalist has_government = totalist }
-			}
-			SRD = { 
-				country_exists = SRD
-				has_war = no
-				is_subject = no
-				NOT = { has_government = radical_socialist has_government = syndicalist has_government = totalist }
-			}
+				AND = {
+					country_exists = ITA
+					has_war = no
+					is_subject = no
+					NOT = { has_government = radical_socialist }
+				}
 			}
 		}
 		prerequisite = { focus = CAR_foreign_focus }
@@ -1988,7 +1983,14 @@ focus = {
 			factor = 10
 		}
 		completion_reward = {
-			country_event = { id = carfor.409 }
+			if = {
+				limit = { NOT = { country_exists = SIC } }
+				country_event = { id = carfor.409 }
+			}
+			if = {
+				limit = { country_exists = SIC }
+				country_event = { id = carfor.509 }
+			}
 		}
 	}
 
@@ -2180,17 +2182,19 @@ focus = {
 	}	
 focus = {
 		id = CAR_help_pope
-		icon = GFX_BEL_Improve_Spanish_Relations
-		bypass = {
-			NOT = {
-				country_exists = PAP
-			}
-		}
+		icon = GFX_BEL_Improve_Catholic_Relations
 		available = {
-			country_exists = PAP
-			PAP = {
-				exists = yes 
-				owns_state = 2
+			OR = {
+				country_exists = PAP
+				PAP = {
+					exists = yes 
+					owns_state = 2
+				}
+			}
+			SRI = {
+				NOT = {
+					owns_state = 2
+				}
 			}
 		}
 		prerequisite = { 
@@ -2206,75 +2210,411 @@ focus = {
 		factor = 10
 		}
 		completion_reward = {
-			PAP = {
-				add_equipment_to_stockpile = {
-					type = infantry_equipment_1
-					amount = 5000
-					producer = CAR
+			if = {
+				limit = { country_exists = PAP }
+				PAP = {
+					add_equipment_to_stockpile = {
+						type = infantry_equipment_1
+						amount = 5000
+						producer = CAR
+					}
 				}
-			}	
+			}
+			else = {
+				ITA = {
+					add_equipment_to_stockpile = {
+						type = infantry_equipment_1
+						amount = 5000
+						producer = CAR
+					}
+				}
+			}
 		}
 	}
 
-focus = {
-		id = CAR_bay_of_pigs
-		icon = GFX_goal_cuba
+##################
+###Dank Focuses###
+##################
+	focus = {# Plus Ultra
+		id = CAR_plus_ultra
+		icon = GFX_CAR_plus_ultra
+		cost = 7
 		available = {
-			country_exists = CUB
+			has_completed_focus = CAR_call_for_unity
+			OR = {
+				has_completed_focus = CAR_rey
+				has_completed_focus = CAR_dios
+			}
 		}
 		prerequisite = { focus = CAR_help_pope }
 		prerequisite = { focus = CAR_strike_german_scum }
-		will_lead_to_war_with = CUB
-		will_lead_to_war_with = HAI
-		will_lead_to_war_with = DOM
-		will_lead_to_war_with = CAN
-		will_lead_to_war_with = CAF
 		x = 45
 		y = 4
-		cost = 7
-		ai_will_do = {
-		factor = 10
-		}
+		ai_will_do = { factor = 10 }
 		completion_reward = {
-			if = { 
-				limit = {
-					country_exists = PRI
-				}
-				create_wargoal = { type = annex_everything target = PRI }
-				else = { add_state_claim = 686 }
-			}
-			create_wargoal = { type = annex_everything target = CUB }
-			create_wargoal = { type = annex_everything target = HAI }
-			create_wargoal = { type = annex_everything target = DOM }
-			add_state_claim = 315
-			add_state_claim = 820
-			add_state_claim = 818
-			add_state_claim = 318
-			add_state_claim = 319
+			log = "[GetDateText]: [Root.GetName]: Focus CAR_plus_ultra"
+			add_political_power = 100
+			add_war_support = 0.05
 		}
-	}	
-
-focus = {
-		id = CAR_proclaim_empire
-		icon = GFX_goal_monarchism
+		search_filters = { FOCUS_FILTER_POLITICAL FOCUS_FILTER_ANNEXATION }
+	}
+	focus = {# The Cuban Gambit
+		id = CAR_cuban_gambit
+		icon = GFX_CAR_cuban_gambit
+		cost = 5.00
+		prerequisite = {
+			focus = CAR_plus_ultra
+		}
+		relative_position_id = CAR_plus_ultra
+		x = 0
+		y = 1
+		
+		bypass = {
+			owns_state = 820
+			owns_state = 315
+		}
+		
+		ai_will_do = { factor = 0 }
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus CAR_cuban_gambit"
+			add_political_power = 25
+			820 = { add_claim_by = CAR }
+			818 = { add_claim_by = CAR }
+			315 = { add_claim_by = CAR }
+			country_event = sprc.330
+		}
+		search_filters = { FOCUS_FILTER_ANNEXATION }
+	}
+	focus = {# Rosa Blanca
+		id = CAR_cuba_secured
+		icon = GFX_CAR_cuba_secured
+		cost = 5.00
+		prerequisite = {
+			focus = CAR_cuban_gambit
+		}
+		relative_position_id = CAR_cuban_gambit
+		x = 0
+		y = 1
+		
+		available = {
+			owns_state = 820
+			owns_state = 315
+		}
+		
+		ai_will_do = { factor = 0 }
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus CAR_cuba_secured"
+			add_political_power = 100
+			820 = { add_core_of = CAR }
+			315 = { add_core_of = CAR }
+			IF = {
+				limit = {
+					owns_state = 818
+				}
+				818 = { add_core_of = CAR }
+			}
+			country_event = sprc.335
+		}
+		search_filters = { FOCUS_FILTER_ANNEXATION }
+	}
+	focus = {# The French Connection
+		id = CAR_conquer_haiti
+		icon = GFX_CAR_conquer_haiti
+		cost = 7.00
+		prerequisite = {
+			focus = CAR_cuba_secured
+		}
+		relative_position_id = CAR_cuba_secured
+		x = -2
+		y = 1
+		
+		bypass = {
+			owns_state = 318
+		}
+		
+		ai_will_do = { factor = 0 }
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus CAR_conquer_haiti"
+			318 = { add_claim_by = CAR }
+			add_war_support = 0.025
+			add_stability = 0.025
+			318 = {
+				owner = {
+					CAR = {
+						declare_war_on = {
+						target = PREV
+							type = take_claimed_state
+							generator = { 318 }
+						}
+					}
+				}
+			}
+		}
+		search_filters = { FOCUS_FILTER_ANNEXATION }
+	}
+	focus = {# Puerto Rico's Folly
+		id = CAR_conquer_puertorico
+		icon = GFX_CAR_conquer_puertorico
+		cost = 7.00
+		prerequisite = {
+			focus = CAR_cuba_secured
+		}
+		relative_position_id = CAR_cuba_secured
+		x = 0
+		y = 1
+		
+		bypass = {
+			owns_state = 686
+		}
+		
+		available = {
+			686 = { #Puerto Rico
+				owner = {
+					NOT = {
+						tag = CAR
+						is_in_faction_with = CAR
+						is_subject_of = CAR
+					}
+				}
+			}
+		}
+		
+		ai_will_do = { factor = 0 }
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus CAR_conquer_puertorico"
+			686 = { add_claim_by = CAR }
+			add_war_support = 0.025
+			add_stability = 0.025
+			686 = {
+				owner = {
+					CAR = {
+						declare_war_on = {
+						target = PREV
+							type = take_claimed_state
+							generator = { 686 }
+						}
+					}
+				}
+			}
+		}
+		search_filters = { FOCUS_FILTER_ANNEXATION }
+	}
+	focus = {# Santana's Legacy
+		id = CAR_conquer_dominicanrepublic
+		icon = GFX_CAR_conquer_dominicanrepublic
+		cost = 7.00
+		prerequisite = {
+			focus = CAR_cuba_secured
+		}
+		relative_position_id = CAR_cuba_secured
+		x = 2
+		y = 1
+		
+		bypass = {
+			owns_state = 319
+		}
+		
+		ai_will_do = { factor = 0 }
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus CAR_conquer_dominicanrepublic"
+			319 = { add_claim_by = CAR }
+			add_war_support = 0.025
+			add_stability = 0.025
+			319 = {
+				owner = {
+					CAR = {
+						declare_war_on = {
+						target = PREV
+							type = take_claimed_state
+							generator = { 319 }
+						}
+					}
+				}
+			}
+		}
+		search_filters = { FOCUS_FILTER_ANNEXATION }
+	}
+	focus = {# New World Reconquista
+		id = CAR_new_reconquista
+		icon = GFX_CAR_new_reconquista
+		cost = 7.00
 		available = {
 			CAR = {
 				owns_state = 461
 				owns_state = 315
 			}
 		}
-		prerequisite = { focus = CAR_bay_of_pigs }
-		x = 45
-		y = 5
-		cost = 8
-		ai_will_do = {
-		factor = 80
+		prerequisite = {
+			focus = CAR_conquer_dominicanrepublic
 		}
+		prerequisite = {
+			focus = CAR_conquer_haiti
+		}
+		relative_position_id = CAR_conquer_puertorico
+		x = 0
+		y = 1
+		ai_will_do = { factor = 0 }
 		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus CAR_new_reconquista"
+			IF = {
+				limit = {
+					owns_state = 319
+				}
+				319 = { add_core_of = CAR }
+			}
+			IF = {
+				limit = {
+					owns_state = 686
+				}
+				686 = { add_core_of = CAR }
+			}
 			set_cosmetic_tag = CAR_empire
 			add_political_power = 200
 			news_event = { id = worldnews.500 days = 7 }
-		}		
-	}		
-
+		}
+		search_filters = { FOCUS_FILTER_ANNEXATION }
+	}
+	focus = {# Heirs to Cortez
+		id = CAR_conquer_mexico
+		icon = GFX_CAR_conquer_mexico
+		cost = 10.00
+		prerequisite = {
+			focus = CAR_new_reconquista
+		}
+		relative_position_id = CAR_new_reconquista
+		x = 1
+		y = 1
+		
+		available = {
+			MEX = {
+				NOT = {
+					has_government = national_populist
+				}
+				exists = yes
+			}
+		}
+		
+		bypass = {
+			owns_state = 277
+		}
+		
+		ai_will_do = { factor = 0 }
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus CAR_conquer_mexico"
+			create_wargoal = {
+				type = annex_everything
+				target = MEX
+			}
+			474 = { add_claim_by = CAR }
+			475 = { add_claim_by = CAR }
+			476 = { add_claim_by = CAR }
+			485 = { add_claim_by = CAR }
+			477 = { add_claim_by = CAR }
+			277 = { add_claim_by = CAR }
+			478 = { add_claim_by = CAR }
+			479 = { add_claim_by = CAR }
+			481 = { add_claim_by = CAR }
+			480 = { add_claim_by = CAR }
+			482 = { add_claim_by = CAR }
+			483 = { add_claim_by = CAR }
+			484 = { add_claim_by = CAR }
+		}
+		search_filters = { FOCUS_FILTER_ANNEXATION }
+	}
+	focus = {# Pacify Centro
+		id = CAR_conquer_centro
+		icon = GFX_CAR_conquer_centro
+		cost = 10.00
+		prerequisite = {
+			focus = CAR_new_reconquista
+		}
+		relative_position_id = CAR_new_reconquista
+		x = 3
+		y = 1
+		ai_will_do = { factor = 0 }
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus CAR_conquer_centro"
+			set_country_flag = CAR_centro_wars_unlocked
+			316 = { add_claim_by = CAR }
+			317 = { add_claim_by = CAR }
+			1071 = { add_claim_by = CAR }
+			842 = { add_claim_by = CAR }
+			312 = { add_claim_by = CAR }
+			314 = { add_claim_by = CAR }
+			313 = { add_claim_by = CAR }
+			311 = { add_claim_by = CAR }
+			854 = { add_claim_by = CAR }
+			304 = { add_claim_by = CAR }
+		}
+		search_filters = { FOCUS_FILTER_ANNEXATION }
+	}
+	focus = {# Smash Colombia
+		id = CAR_conquer_colombia
+		icon = GFX_CAR_conquer_colombia
+		cost = 10.00
+		prerequisite = {
+			focus = CAR_new_reconquista
+		}
+		relative_position_id = CAR_new_reconquista
+		x = -3
+		y = 1
+		
+		bypass = {
+			owns_state = 306
+		}
+		
+		available = {
+			COL = {
+				has_socialist_government = yes
+			}
+		}
+		
+		ai_will_do = { factor = 0 }
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus CAR_conquer_colombia"
+			create_wargoal = {
+				type = annex_everything
+				target = COL
+			}
+			493 = { add_claim_by = CAR }
+			306 = { add_claim_by = CAR }
+			486 = { add_claim_by = CAR }
+			851 = { add_claim_by = CAR }
+			853 = { add_claim_by = CAR }
+			852 = { add_claim_by = CAR }
+		}
+		search_filters = { FOCUS_FILTER_ANNEXATION }
+	}
+	focus = {# Bolivarian Black Gold
+		id = CAR_conquer_venezuela
+		icon = GFX_CAR_conquer_venezuela
+		cost = 10.00
+		prerequisite = {
+			focus = CAR_new_reconquista
+		}
+		relative_position_id = CAR_new_reconquista
+		x = -1
+		y = 1
+		
+		bypass = {
+			owns_state = 849
+		}
+		
+		ai_will_do = { factor = 0 }
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus CAR_conquer_venezuela"
+			create_wargoal = {
+				type = annex_everything
+				target = VEN
+			}
+			489 = { add_claim_by = CAR }
+			849 = { add_claim_by = CAR }
+			307 = { add_claim_by = CAR }
+			850 = { add_claim_by = CAR }
+			912 = { add_claim_by = CAR }
+			1036 = { add_claim_by = CAR }
+			488 = { add_claim_by = CAR }
+		}
+		search_filters = { FOCUS_FILTER_ANNEXATION }
+	}
 }

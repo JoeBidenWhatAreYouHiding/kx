@@ -1,0 +1,230 @@
+QIE_recalculate_peking_commission = {
+	set_variable = { var_PEKCOM_influence = QIE.party_popularity@market_liberal }
+	multiply_variable = { var_PEKCOM_influence = -1 }
+	clamp_variable = {
+		var = var_PEKCOM_influence
+		min = -0.5
+		max = 0
+	}
+}
+
+QIE_recalculate_yiguandao_influence = {
+	set_variable = { var_YIG_influence = QIE.party_popularity@national_populist }
+	multiply_variable = { var_YIG_influence = -1 }
+	clamp_variable = {
+		var = var_YIG_influence
+		min = -0.5
+		max = 0
+	}
+}
+
+QIE_add_yiguandao_modifier = {
+	add_dynamic_modifier = {
+		modifier = QIE_yiguandao_influence_dynamic_modifier
+		scope = QIE
+	}
+}
+
+QIE_remove_peking_commission = {
+	clr_country_flag = germany_support
+	clear_variable = var_PEKCOM_influence
+	remove_dynamic_modifier = { modifier = QIE_german_influence_dynamic_modifier }
+}
+
+QIE_zhili_clique_flees = {
+	### if SZC is Authdem, move all Zhili generals into hiding
+	### they'll be transferred to SZC by their events
+	if = {
+		limit = {
+			SZC = { has_government = authoritarian_democrat }
+		}
+		every_unit_leader = {
+			limit = {
+				OR = {
+					has_id = 1171 #Jiang Baili
+					has_id = 1172 #Wang Huaiqing
+					has_id = 1179 #Zhang Qihuang
+					has_id = 1181 #Xiao Yaonan
+					has_id = 1184 #Zhang Shaozeng
+					has_id = 1176 #Liu Menggeng
+					has_id = 1175 #Cai Chengxun
+					has_id = 1185 #Cao Shijie
+				}
+			}
+			set_nationality = XXA
+		}
+		### then trigger the Zhili Remnant switch
+		SZC = {
+			country_event = { id = sichuan.264 days = 20 random_hours = 480 }
+		}
+	}
+	### if SZC is not AuthDem, scatter the generals
+	else = {
+		### Jiang Baili flees to Guangdong, Zhang Qihuang to Guangxi
+		if = {
+			limit = {
+				NOT = {
+					GXC = { has_country_flag = GXC_had_civil_war }
+				}
+			}
+			random_unit_leader = {
+				limit = { has_id = 1171 } #Jiang Baili
+				add_unit_leader_trait = GXC_guangdong_clique_officer
+				set_nationality = GXC
+				unit_leader_event = qieflavor.14
+			}
+			random_unit_leader = {
+				limit = { has_id = 1179 } #Zhang Qihuang
+				add_unit_leader_trait = GXC_guangxi_clique_officer
+				set_nationality = GXC
+				unit_leader_event = qieflavor.14
+			}
+		}
+		else = {
+			random_other_country = {
+				limit = {
+					OR = {
+						tag = GXC
+						tag = PRC
+					}
+					GXC_has_guangdong_government = yes
+					GXC_has_KMT_government = no
+				}
+				ROOT = {
+					random_unit_leader = {
+						limit = { has_id = 1171 } #Jiang Baili
+						add_unit_leader_trait = GXC_guangdong_clique_officer
+						set_nationality = PREV.PREV
+						unit_leader_event = qieflavor.14
+					}
+				}
+			}
+			random_other_country = {
+				limit = {
+					OR = {
+						tag = GXC
+						tag = PRC
+					}
+					GXC_has_guangxi_government = yes
+					GXC_has_KMT_government = no
+				}
+				ROOT = {
+					random_unit_leader = {
+						limit = { has_id = 1179 } #Zhang Qihuang
+						add_unit_leader_trait = GXC_guangxi_clique_officer
+						set_nationality = PREV.PREV
+						unit_leader_event = qieflavor.14
+					}
+				}
+			}
+			### if the target is invalid, goes into hiding instead
+			if = {
+				limit = { has_unit_leader = 1171 } #Jiang Baili
+				random_unit_leader = {
+					limit = { has_id = 1171 }
+					set_nationality = XXA
+				}
+			}
+			if = {
+				limit = { has_unit_leader = 1179 } #Zhang Qihuang
+				random_unit_leader = {
+					limit = { has_id = 1179 }
+					set_nationality = XXA
+				}
+			}
+		}
+		### Xiao Yaonan flees to non-KMT Sichuan or goes into hiding
+		if = {
+			limit = {
+				SZC = { SZC_has_officer_government = no }
+			}
+			random_unit_leader = {
+				limit = { has_id = 1181 } #Xiao Yaonan
+				set_nationality = SZC
+				unit_leader_event = qieflavor.14
+			}
+		}
+		else = {
+			random_unit_leader = {
+				limit = { has_id = 1181 } #Xiao Yaonan
+				set_nationality = XXA
+			}
+		}
+		### SZC's generals flee to LEP or go into hiding
+		if = {
+			limit = { country_exists = LEP }
+			every_unit_leader = {
+				limit = {
+					OR = {
+						has_id = 1129 #Yang Sen
+						has_id = 1130 #Liu Cunhou
+						has_id = 1131 #Fan Shaozeng
+						has_id = 1133 #He Guoguang
+					}
+				}
+				set_nationality = LEP
+				if = {
+					limit = { has_id = 1129 } #Yang Sen
+					unit_leader_event = qieflavor.14
+				}
+			}
+		}
+		else = {
+			every_unit_leader = {
+				limit = {
+					OR = {
+						has_id = 1129 #Yang Sen
+						has_id = 1130 #Liu Cunhou
+						has_id = 1131 #Fan Shaozeng
+						has_id = 1133 #He Guoguang
+					}
+				}
+				set_nationality = XXA
+			}
+		}
+		### Wang Huaiqing and Zhang Shaozeng flee to non-backer SHX or go into hiding
+		if = {
+			limit = {
+				NOT = { has_country_flag = QIE_yan_backs_coup }
+			}
+			every_unit_leader = {
+				limit = {
+					OR = {
+						has_id = 1172 #Wang Huaiqing
+						has_id = 1184 #Zhang Shaozeng
+					}
+				}
+				set_nationality = SHX
+				unit_leader_event = qieflavor.14
+			}
+		}
+		else = {
+			every_unit_leader = {
+				limit = {
+					OR = {
+						has_id = 1172 #Wang Huaiqing
+						has_id = 1184 #Zhang Shaozeng
+					}
+				}
+				set_nationality = XXA
+			}
+		}
+		### Cai Chengxun and Liu Menggeng flee to FNG
+		every_unit_leader = {
+			limit = {
+				OR = {
+					has_id = 1175 #Cai Chengxun
+					has_id = 1176 #Liu Menggeng
+				}
+			}
+			set_nationality = FNG
+			unit_leader_event = qieflavor.14
+		}
+		### Cai Shijie flees to HNN
+		random_unit_leader = {
+			limit = { has_id = 1185 } #Cai Shijie
+			set_nationality = HNN
+			unit_leader_event = qieflavor.14
+		}
+	}
+}

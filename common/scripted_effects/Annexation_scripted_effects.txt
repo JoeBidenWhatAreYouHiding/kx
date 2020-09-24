@@ -24,26 +24,75 @@ occupy_small_country = {
 	add_political_power = -25
 	add_stability = -0.025
 	add_war_support = -0.025
+	recheck_annexations = yes
 }
 
 occupy_medium_country = {
 	add_political_power = -50
 	add_stability = -0.05
 	add_war_support = -0.05
+	recheck_annexations = yes
 }
 
 occupy_large_country = {
 	add_political_power = -100
 	add_stability = -0.1
 	add_war_support = -0.1
+	recheck_annexations = yes
+}
+
+occupy_huge_country = {
+	add_political_power = -150
+	add_stability = -0.15
+	add_war_support = -0.15
+	recheck_annexations = yes
 }
 
 occupy_massive_country = {
 	add_political_power = -200
 	add_stability = -0.2
 	add_war_support = -0.2
+	recheck_annexations = yes
 }
 
+# state scope
+transfer_state_and_add_core = {
+	remove_claim_and_add_core_of_target = yes
+	var:tag_to_release = { transfer_state = PREV }
+}
+
+# state scope
+transfer_state_and_add_claim = {
+	remove_claim_and_add_claim_of_target = yes
+	var:tag_to_release = { transfer_state = PREV }
+}
+
+# state scope
+remove_claim_and_add_core_of_target = {
+	if = {
+		limit = { is_claimed_by = var:tag_to_release }
+		remove_claim_by = var:tag_to_release
+	}
+	if = {
+		limit = { NOT = { is_core_of = var:tag_to_release } }
+		add_core_of = var:tag_to_release
+	}
+}
+
+# state scope
+remove_claim_and_add_claim_of_target = {
+	if = {
+		limit = {
+			NOT = {
+				is_claimed_by = var:tag_to_release
+				is_core_of = var:tag_to_release
+			}
+		}
+		add_claim_by = var:tag_to_release
+	}
+}
+
+# global scope
 remove_all_cores_and_claims_of_tags = {
 	every_state = {
 		limit = {
@@ -63,6 +112,7 @@ remove_all_cores_and_claims_of_tags = {
 	}
 }
 
+# global scope
 transfer_territory_from_core_regions = {
 	every_owned_state = {
 		limit = {
@@ -71,14 +121,13 @@ transfer_territory_from_core_regions = {
 				is_core_of = var:v
 			}
 			is_claim_or_core_of_ROOT = no
-			NOT = {
-				is_in_array = { states_to_keep = THIS }
-			}
 		}
 		var:tag_to_release = { transfer_state = PREV }
 	}
+	recheck_annexations = yes
 }
 
+# global scope
 transfer_territory_from_core_regions_and_add_cores = {
 	every_owned_state = {
 		limit = {
@@ -87,27 +136,28 @@ transfer_territory_from_core_regions_and_add_cores = {
 				is_core_of = var:v
 			}
 			is_claim_or_core_of_ROOT = no
-			NOT = {
-				is_in_array = { states_to_keep = THIS }
-			}
 		}
 		var:tag_to_release = {
 			add_state_core = PREV
 			transfer_state = PREV
 		}
 	}
+	recheck_annexations = yes
 }
 
+# global scope
 release_targeted_tag_from_core_regions = {
 	transfer_territory_from_core_regions = yes
 	puppet_released_tag = yes
 }
 
+# global scope
 release_targeted_tag_from_core_regions_and_add_cores = {
 	transfer_territory_from_core_regions_and_add_cores = yes
 	puppet_released_tag = yes
 }
 
+# global scope
 release_targeted_tag_with_claims = {
 	every_owned_state = {
 		limit = {
@@ -119,25 +169,41 @@ release_targeted_tag_with_claims = {
 				}
 			}
 			is_claim_or_core_of_ROOT = no
-			NOT = {
-				is_in_array = { states_to_keep = THIS }
-			}
 		}
 		var:tag_to_release = { transfer_state = PREV }
 	}
 	puppet_released_tag = yes
 }
 
+# global scope
 release_targeted_tag = {
 	every_owned_state = {
 		limit = {
 			is_core_of = var:tag_to_release
 			is_claim_or_core_of_ROOT = no
-			NOT = {
-				is_in_array = { states_to_keep = THIS }
-			}
 		}
 		var:tag_to_release = { transfer_state = PREV }
+	}
+	puppet_released_tag = yes
+}
+
+# global scope
+release_targeted_tag_during_war = {
+	every_owned_state = {
+		limit = {
+			is_core_of = var:tag_to_release
+			is_claim_or_core_of_ROOT = no
+		}
+		if = {
+			limit = {
+				is_fully_controlled_by = controller
+				controller = { is_ally_with = ROOT }
+			}
+			var:tag_to_release = { transfer_state = PREV }
+		}
+		else = {
+			var:tag_to_release = { set_state_owner = PREV }
+		}
 	}
 	puppet_released_tag = yes
 }
@@ -162,7 +228,16 @@ puppet_released_tag = {
 	}
 }
 
+# global scope
 puppet_released_tag = {
+	hidden_effect = {
+		var:tag_to_release = {
+			if = {
+				limit = { has_country_flag = was_puppeted }
+				kill_country_leader = yes
+			}
+		}
+	}
 	puppet = var:tag_to_release
 	var:tag_to_release = {
 		drop_cosmetic_tag = yes
@@ -172,8 +247,10 @@ puppet_released_tag = {
 		hidden_effect = { set_puppet_minister = yes }
 		custom_effect_tooltip = general_minister_change_tt
 	}
+	recheck_annexations = yes
 }
 
+# global scope
 puppet_released_tag_nocosmetic = {
 	puppet = var:tag_to_release
 	var:tag_to_release = {
@@ -183,47 +260,76 @@ puppet_released_tag_nocosmetic = {
 		hidden_effect = { set_puppet_minister = yes }
 		custom_effect_tooltip = general_minister_change_tt
 	}
+	recheck_annexations = yes
 }
 
-setup_brazilian_splinters = {
+setup_PIR_cores = {
 	hidden_effect = {
 		PIR = {
 			add_state_core = 502
 			add_state_core = 503
 			add_state_core = 894
 			add_state_core = 1041
-			add_state_core = 1042
 		}
-		BAH = { add_state_core = 499 }
-		SPO = { add_state_core = 501 }
+	}
+}
+
+setup_AMA_cores = {
+	hidden_effect = {
 		AMA = {
 			add_state_core = 495
 			add_state_core = 855
 			add_state_core = 898
-			add_state_core = 899
+			add_state_core = 900
 			add_state_core = 1030
 			add_state_core = 1031
 			add_state_core = 1033
 			add_state_core = 1040
 		}
+	}
+}
+
+setup_GRP_cores = {
+	hidden_effect = { 
 		GRP = {
 			add_state_core = 498
 			add_state_core = 497
 			add_state_core = 896
 		}
+	}
+}
+
+setup_GOY_cores = {
+	hidden_effect = {
 		GOY = {
 			add_state_core = 280
 			add_state_core = 504
 			add_state_core = 505
-			add_state_core = 900
-			add_state_core = 1032
 			add_state_core = 1043
 		}
+	}
+}
+
+setup_RJM_cores = {
+	hidden_effect = {
 		RJM = {
 			add_state_core = 496
 			add_state_core = 500
 			add_state_core = 895
 		}
+	}
+}
+
+
+setup_brazilian_splinters = {
+	hidden_effect = {
+		setup_PIR_cores = yes
+		BAH = { add_state_core = 499 }
+		SPO = { add_state_core = 501 }
+		setup_AMA_cores = yes
+		setup_GRP_cores = yes
+		setup_GOY_cores = yes
+		setup_RJM_cores = yes
 		BRA = {
 			every_unit_leader = {
 				limit = {
@@ -280,6 +386,38 @@ setup_brazilian_splinters = {
 					}
 				}
 				set_nationality = RJM
+			}
+		}
+	}
+}
+
+remove_portuguese_monarchy = {
+	hidden_effect = {
+		POR = {
+			if = {
+				limit = {
+					OR = {
+						has_country_leader = {
+							name = "Duarte II"
+							ruling_only = yes
+						}
+						has_country_leader = {
+							name = "Maria III"
+							ruling_only = yes
+						}
+						has_country_leader = {
+							name = "Maria Ana"
+							ruling_only = yes
+						}
+						has_country_leader = {
+							name = "Maria Adelaide"
+							ruling_only = yes
+						}
+					}
+				}
+				kill_ideology_leader = authoritarian_democrat
+				kill_ideology_leader = paternal_autocrat
+				kill_ideology_leader = national_populist
 			}
 		}
 	}
@@ -355,10 +493,101 @@ setup_puppet_lithuania = {
 	}
 }
 
+setup_romanian_puppet_leaders = {
+	hidden_effect = {
+		if = {
+			limit = {
+				has_socialist_government = no
+				NOT = {
+					has_country_leader = { name = "Ion Mihalache" ruling_only = no }
+					has_country_leader = { name = "Dinu Bratianu" ruling_only = no }
+				}
+				ROOT = {
+					OR = {
+						is_american_tag = yes
+						AND = {
+							is_russian_tag = yes
+							has_elected_government = yes
+						}
+						tag = UPC
+					}
+				}
+			}
+			create_country_leader = {
+				name = "Ion Mihalache"
+				picture = "Portrait_ROM_Ion_Mihalache.tga"
+				expire = "1965.1.1"
+				ideology = social_democrat_subtype
+			}
+			create_country_leader = {
+				name = "Ion Mihalache"
+				picture = "Portrait_ROM_Ion_Mihalache.tga"
+				expire = "1965.1.1"
+				ideology = social_liberal_subtype
+			}
+			create_country_leader = {
+				name = "Dinu Bratianu"
+				picture = "Portrait_ROM_Dinu_Bratianu.dds"
+				expire = "1965.1.1"
+				ideology = market_liberal_subtype
+			}
+			create_country_leader = {
+				name = "Dinu Bratianu"
+				picture = "Portrait_ROM_Dinu_Bratianu.dds"
+				expire = "1965.1.1"
+				ideology = social_conservative_subtype
+			}
+		}
+		if = {
+			limit = {
+				has_country_leader = { name = "Carol II" ruling_only = yes }
+			}
+			kill_ideology_leader = paternal_autocrat
+			kill_ideology_leader = national_populist
+			create_country_leader = {
+				name = "Michael I"
+				desc = "POLITICS_MICHAEL_I_DESC"
+				picture = "Portrait_ROM_Michael_I.tga"
+				expire = "1965.1.1"
+				ideology = paternal_autocrat_subtype
+			}
+			create_country_leader = {
+				name = "Alexandru Cantacuzino"
+				desc = "POLITICS_CANTACUZINO_DESC"
+				picture = "Portrait_ROM_Alexandru_Cantacuzino.tga"
+				expire = "1965.1.1"
+				ideology = national_populist_subtype
+				traits = { ROM_green_prince }
+			}
+		}
+		if = {
+			limit = {
+				has_government = national_populist
+				has_country_leader = { name = "Michael I" ruling_only = yes }
+			}
+			kill_ideology_leader = national_populist
+			create_country_leader = {
+				name = "Alexandru Cantacuzino"
+				desc = "POLITICS_CANTACUZINO_DESC"
+				picture = "Portrait_ROM_Alexandru_Cantacuzino.tga"
+				expire = "1965.1.1"
+				ideology = national_populist_subtype
+				traits = { ROM_green_prince }
+			}
+		}
+	}
+}
+
 release_chinese_government = {
 	every_owned_state = {
 		limit = {
 			is_controlled_chinese_region = yes
+			if = {
+				limit = {
+					ROOT = { owns_state = 743 }
+				}
+				is_possible_legation_cities_state = no
+			}
 			is_not_claim_or_core_of_ROOT = yes
 			if = {
 				limit = {
@@ -367,18 +596,83 @@ release_chinese_government = {
 				NOT = { has_variable = ambition_area_@ROOT }
 			}
 		}
-		event_target:released_china_tag = { transfer_state = PREV }
+		var:tag_to_release = { transfer_state = PREV }
 	}
-	puppet = event_target:released_china_tag
+	puppet_released_tag = yes
 	hidden_effect = {
-		if = {
-			limit = {
-				NOT = {
-					event_target:released_china_tag = { has_cosmetic_tag = FNG_ROC }
+		var:tag_to_release = { 
+			if = {
+				limit = {
+					NOT = { has_cosmetic_tag = FNG_ROC }
 				}
 			}
-			event_target:released_china_tag = { drop_cosmetic_tag = yes }
+			var:tag_to_release = { drop_cosmetic_tag = yes }
 		}
+	}
+}
+
+release_chinese_government_in_manchuria = {
+	every_owned_state = {
+		limit = {
+			is_manchuria = yes
+			is_not_claim_or_core_of_ROOT = yes
+			if = {
+				limit = {
+					ROOT = { tag = JAP }
+				}
+				NOT = { has_variable = ambition_area_@ROOT }
+			}
+		}
+		var:tag_to_release = { transfer_state = PREV }
+	}
+	puppet_released_tag = yes
+	hidden_effect = {
+		var:tag_to_release = { 
+			if = {
+				limit = {
+					NOT = { has_cosmetic_tag = FNG_ROC }
+				}
+			}
+			var:tag_to_release = { drop_cosmetic_tag = yes }
+		}
+	}
+}
+
+setup_puppet_mexico = {
+	MEX = {
+		if = {
+			limit = { has_government = totalist }
+			complete_national_focus = MEX_establish_maximato
+		}
+		else_if = {
+			limit = { has_socialist_government = yes }
+			complete_national_focus = MEX_republic_survives
+		}
+		else_if = {
+			limit = { has_authoritarian_government = yes }
+			complete_national_focus = MEX_military_coup
+			if = {
+				limit = { has_government = authoritarian_democrat }
+				complete_national_focus = MEX_military_democracy
+			}
+			else_if = {
+				limit = { has_government = paternal_autocrat }
+				complete_national_focus = MEX_junta_holds_on
+			}
+			else_if = {
+				limit = { has_government = national_populist }
+				complete_national_focus = MEX_sinarquista_coup
+			}
+		}
+	}
+	if = {
+		limit = {
+			country_exists = YUC
+			NOT = {
+				YUC = { has_country_flag = YUC_indepedence_war_over }
+			}
+		}
+		YUC = { country_event = mexico.66 }
 	}
 }
 
@@ -719,6 +1013,7 @@ setup_puppet_leader_MON = {
 	#Setup Jodbajab
 	else_if = {
 		limit = {
+			is_chinese_tag = yes
 			NOT = {
 				tag = QIE
 				tag = FNG
@@ -754,6 +1049,7 @@ setup_puppet_leader_MON = {
 	#Setup MAN
 	else_if = {
 		limit = {
+			is_chinese_tag = yes
 			NOT = {
 				tag = QIE
 				tag = FNG

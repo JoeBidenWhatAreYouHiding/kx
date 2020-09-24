@@ -1,0 +1,533 @@
+ï»¿####################################
+# Socialist Republic of Italy Events
+####################################
+
+add_namespace = venice
+
+### Great Council ###
+country_event = { # Great Council opens
+	id = venice.1
+	immediate = { log = "[GetDateText]: [Root.GetName]: event venice.1" }
+	title = venice.1.t
+	desc = venice.1.d
+	picture = GFX_report_event_ITA_venice
+
+	is_triggered_only = yes
+
+	option = {
+		name = venice.1.a
+		hidden_effect = {
+			country_event = { id = venice.2 days = 7 }
+		}
+	}
+}
+country_event = { # Election and term of the Doge
+	id = venice.2
+	immediate = { log = "[GetDateText]: [Root.GetName]: event venice.2" }
+	title = venice.2.t
+	desc = venice.2.d
+	picture = GFX_report_event_ITA_venice
+
+	is_triggered_only = yes
+
+	option = { # directly elected and term limited ( New Republic )
+		name = venice.2.a
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 0.2
+				has_authoritarian_government = yes
+			}
+			modifier = {
+				factor = 0.4
+				has_government = social_conservative
+			}
+			modifier = {
+				factor = 0.5
+				has_idea = ITA_austrian_influence
+			}
+		}
+		add_popularity = { ideology = social_liberal popularity = 0.05 }
+		add_popularity = { ideology = market_liberal popularity = 0.05 }
+		hidden_effect = {
+			country_event = { id = venice.5 days = 3 }
+		}
+	}
+	option = { # crazy council method and for life ( Old Republic )
+		name = venice.2.b
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 0.2
+				OR = {
+					has_government = social_liberal
+					has_government = social_democrat
+				}
+			}
+			modifier = {
+				factor = 0.4
+				has_government = market_liberal
+			}
+		}
+		add_popularity = { ideology = social_conservative popularity = 0.05 }
+		add_popularity = { ideology = authoritarian_democrat popularity = 0.05 }
+		hidden_effect = {
+			country_event = { id = venice.6 days = 3 }
+		}
+	}
+}
+country_event = { # New Republic is Established
+	id = venice.5
+	title = venice.5.t
+	desc = venice.5.d
+	picture = GFX_report_event_ITA_venice
+
+	is_triggered_only = yes
+
+	immediate = {
+		log = "[GetDateText]: [Root.GetName]: event venice.5"
+		set_country_flag = VNC_great_council_debate_done
+		set_country_flag = VNC_new_republic_is_established
+	}
+
+	option = {
+		name = venice.5.a
+		add_stability = 0.05
+		custom_effect_tooltip = LOM_elections_three_months
+		hidden_effect = {
+			meta_effect = {
+				text = {
+					set_politics = {
+						ruling_party = [RULING_PARTY_TAG]
+						last_election = "[CURRENT_DATE]"
+						election_frequency = 3
+						elections_allowed = yes
+					}
+				}
+				RULING_PARTY_TAG = "[Root.GetRulingIdeologyId]"
+				CURRENT_DATE = "[?global.date.GetDateStringNoHour]"
+			}
+		}
+	}
+}
+country_event = { # The Old Republic is Restored
+	id = venice.6
+	title = venice.6.t
+	desc = venice.6.d
+	picture = GFX_report_event_ITA_venice
+
+	is_triggered_only = yes
+
+	immediate = {
+		log = "[GetDateText]: [Root.GetName]: event venice.6"
+		set_country_flag = VNC_great_council_debate_done
+		set_country_flag = VNC_old_republic_is_restored
+	}
+
+	option = {
+		name = venice.6.a
+		add_stability = -0.05
+		add_political_power = 50
+		custom_effect_tooltip = VNC_doge_selected_two_weeks
+		hidden_effect = {
+			country_event = { id = venice.51 days = 15 }
+		}
+	}
+}
+
+### Foreign Policy ###
+country_event = { # Austria is losing the war against Venice
+	id = venice.18
+	immediate = { log = "[GetDateText]: [Root.GetName]: event venice.18" }
+	title = venice.18.t
+	desc = venice.18.d
+	picture = GFX_report_event_generic_panzer_attack
+
+	fire_only_once = yes
+
+	trigger = {
+		tag = AUS
+		has_war_with = VNC
+		surrender_progress > 0.30
+		736 = {
+			is_owned_by = ROOT
+			is_controlled_by = VNC
+		}
+		if = {
+			limit = { owns_state = 736 }
+			736 = { is_controlled_by = VNC }
+		}
+		OR = {
+			is_faction_leader = yes
+			is_in_faction = no
+		}
+		VNC = {
+			surrender_progress < 0.10
+			OR = {
+				is_faction_leader = yes
+				is_in_faction = no
+			}
+		}
+	}
+
+	mean_time_to_happen = {
+		days = 5
+	}
+
+	option = {
+		name = venice.18.a #Yes, we must try to make peace
+		VNC = { country_event = venice.19 }
+	}
+	option = {
+		name = venice.18.b #No, we fight on!
+		trigger = { is_ai = no }
+		add_stability = -0.10
+		add_war_support = -0.10
+	}
+}
+country_event = { # Venice receives peace proposal
+	id = venice.19
+	immediate = { log = "[GetDateText]: [Root.GetName]: event venice.19" }
+	title = venice.19.t
+	desc = venice.19.d
+	picture = GFX_report_event_generic_panzer_attack
+
+	is_triggered_only = yes
+
+	option = {
+		name = venice.19.a #Let's end this now
+		add_political_power = 50
+		AUS = { white_peace_with_ROOT = yes }
+
+		every_state = {
+			limit = {
+				OR = {
+					is_claimed_by = VNC
+					is_core_of = VNC
+					state = 736 #Austrian Littoral
+				}
+				OR = {
+					is_owned_by = AUS
+					owner = { is_subject_of = AUS }
+				}
+			}
+			VNC = { transfer_state = PREV }
+		}
+	}
+	option = {
+		name = venice.19.b #We will wipe them out completely
+		trigger = { is_ai = no }
+		add_stability = -0.10
+		add_war_support = -0.10
+		FROM = { country_event = ita.37 }
+	}
+}
+
+####Flavour Events#####
+country_event = { # Restarting the marriage to the Sea.
+	id = venice.32
+	immediate = { log = "[GetDateText]: [Root.GetName]: event venice.32" }
+	title = venice.32.t
+	desc = venice.32.d
+	picture = GFX_report_event_SRI_palace
+	is_triggered_only = yes
+
+	option = {
+		name = venice.32.a
+		add_political_power = 20
+	}
+}
+country_event = { # Marriage to the sea
+	id = venice.33
+	immediate = { log = "[GetDateText]: [Root.GetName]: event venice.33" }
+	title = venice.33.t
+	desc = venice.33.d
+	picture = GFX_report_event_SRI_palace
+
+	is_triggered_only = yes
+
+	option = {
+		name = venice.33.a
+		add_political_power = 10
+		hidden_effect = {
+			VNC = {
+				country_event = {
+					id = venice.33
+					months = 12
+				}
+			}
+		}
+	}
+}
+country_event = { # Restarting Carnival
+	id = venice.34
+	immediate = { log = "[GetDateText]: [Root.GetName]: event venice.34" }
+	title = venice.34.t
+	desc = venice.34.d
+	picture = GFX_report_event_SRI_palace
+	is_triggered_only = yes
+
+	option = {
+		name = venice.34.a
+		add_political_power = 20
+	}
+}
+country_event = { # Carnival
+	id = venice.35
+	immediate = { log = "[GetDateText]: [Root.GetName]: event venice.35" }
+	title = venice.35.t
+	desc = venice.35.d
+	picture = GFX_report_event_SRI_palace
+
+	is_triggered_only = yes
+
+	option = {
+		name = venice.35.a
+		add_political_power = 10
+		hidden_effect = {
+			VNC = {
+				country_event = {
+					id = venice.35
+					months = 12
+				}
+			}
+		}
+	}
+}
+country_event = { # Ponte della LibertÃ
+	id = venice.36
+	immediate = { log = "[GetDateText]: [Root.GetName]: event venice.36" }
+	title = venice.36.t
+	desc = venice.36.d
+	picture = GFX_report_event_SRI_palace
+
+	is_triggered_only = yes
+
+	option = {
+		name = venice.36.a
+		add_political_power = 20
+	}
+}
+country_event = { # Sebastiano Venier Naval Military School
+	id = venice.37
+	immediate = { log = "[GetDateText]: [Root.GetName]: event venice.37" }
+	title = venice.37.t
+	desc = venice.37.d
+	picture = GFX_report_event_SRI_palace
+
+	is_triggered_only = yes
+
+	option = {
+		name = venice.37.a
+		navy_experience = 10
+	}
+}
+
+### Political Events ###
+country_event = { # Election event
+	id = venice.50
+	title = venice.50.t
+	desc = venice.50.d
+	picture = GFX_report_event_election_vote
+
+	is_triggered_only = yes
+
+	immediate = {
+		log = "[GetDateText]: [Root.GetName]: event venice.50"
+		remove_all_ministers = yes
+	}
+
+	option = {
+		name = venice.50.a #Partito Cristiano Liberale (SocLib)
+		ai_chance = {
+			factor = 10
+			modifier = {
+				factor = 3
+				has_government = social_liberal
+			}
+		}
+		add_popularity = { ideology = social_liberal popularity = 0.2 }
+		if = {
+			limit = { NOT = { has_government = social_liberal } }
+			set_politics = {
+				ruling_party = social_liberal
+				election_frequency = 48
+				elections_allowed = yes
+			}
+			hidden_effect = {
+				add_ideas = {
+					VNC_Umberto_Merlin_hog_sli
+					VNC_Igino_Borin_for_sli
+					VNC_Ferruccio_Morterra_eco_sli
+					VNC_Ugo_Vallenari_sec_sli
+				}
+			}
+		}
+	}
+	option = {
+		name = venice.50.b #Partito Repubblicano Veneto (MarkLib)
+		ai_chance = {
+			factor = 30
+			modifier = {
+				factor = 2
+				has_government = market_liberal
+			}
+		}
+		add_popularity = { ideology = market_liberal popularity = 0.2 }
+		if = {
+			limit = { NOT = { has_government = market_liberal } }
+			set_politics = {
+				ruling_party = market_liberal
+				election_frequency = 48
+				elections_allowed = yes
+			}
+			hidden_effect = {
+				add_ideas = {
+					VNC_Giuseppe_Volpi_hog_mli
+					VNC_Andrea_Emo_Capodilista_for_mli
+					VNC_Gino_Luzzatto_eco_mli
+					VNC_Andrea_Da_Mosto_sec_mli
+				}
+			}
+		}
+	}
+	option = {
+		name = venice.50.c #Lega Cattolica (SocCon)
+		ai_chance = {
+			factor = 30
+			modifier = {
+				factor = 2
+				has_government = social_conservative
+			}
+		}
+		add_popularity = { ideology = social_conservative popularity = 0.2 }
+		if = {
+			limit = { NOT = { has_government = social_conservative } }
+			set_politics = {
+				ruling_party = social_conservative
+				election_frequency = 48
+				elections_allowed = yes
+			}
+			hidden_effect = {
+				add_ideas = {
+					VNC_Giovanni_Ponti_hog_sco
+					VNC_Antonio_Ferrarese_for_sco
+					VNC_Antonio_Pavan_eco_sco
+					VNC_Cesarino_Crescente_sec_sco
+				}
+			}
+		}
+	}
+	option = {
+		name = venice.50.e #Partito Popolare Veneto (SocDem)
+		ai_chance = {
+			factor = 30
+			modifier = {
+				factor = 2
+				has_government = social_democrat
+			}
+		}
+		add_popularity = { ideology = social_democrat popularity = 0.2 }
+		if = {
+			limit = { NOT = { has_government = social_democrat } }
+			set_politics = {
+				ruling_party = social_democrat
+				election_frequency = 48
+				elections_allowed = yes
+			}
+			hidden_effect = {
+				add_ideas = {
+					VNC_Giovanni_Battista_Gianquinto_hog_sde
+					VNC_Antonio_Costantini_for_sde
+					VNC_Carlo_Caldera_eco_sde
+					VNC_Lina_Merlin_sec_sde
+				}
+			}
+		}
+	}
+}
+country_event = { # Picking the Doge
+	id = venice.51
+	title = venice.51.t
+	picture = GFX_report_event_ITA_venice
+
+	desc = {
+		text = venice.51.d.revolt
+		trigger = {
+			has_country_flag = VNC_fought_revolt
+		}
+	}
+	desc = {
+		text = venice.51.d.norevolt
+		trigger = {
+			NOT = { has_country_flag = VNC_fought_revolt }
+		}
+	}
+
+	is_triggered_only = yes
+
+	immediate = {
+		log = "[GetDateText]: [Root.GetName]: event venice.51"
+		remove_all_ministers = yes
+	}
+
+	option = {
+		name = venice.51.a # Giuseppe Volpi
+		ai_chance = {
+			factor = 30
+			modifier = {
+				factor = 2
+				has_country_flag = VNC_fought_revolt
+			}
+			modifier = {
+				factor = 1.5
+				has_idea = ITA_austrian_influence
+			}
+		}
+		add_popularity = { ideology = authoritarian_democrat popularity = 0.2 }
+		create_country_leader = {
+			name = "Giuseppe Volpi"
+			picture = "Portrait_VNC_Giuseppe_Volpi.tga"
+			expire = "1965.1.1"
+			ideology = authoritarian_democrat_subtype
+		}
+		set_politics = {
+			ruling_party = authoritarian_democrat
+			elections_allowed = no
+		}
+		hidden_effect = {
+			add_ideas = {
+				VNC_Giuseppe_Volpi_hog_mli
+				VNC_Andrea_Emo_Capodilista_for_mli
+				VNC_Gino_Luzzatto_eco_mli
+				VNC_Andrea_Da_Mosto_sec_mli
+			}
+		}
+	}
+	option = {
+		name = venice.51.b # Giovanni Ponti
+		ai_chance = {
+			factor = 60
+		}
+		add_popularity = { ideology = paternal_autocrat popularity = 0.2 }
+		create_country_leader = {
+			name = "Giovanni Ponti"
+			picture = "Portrait_VNC_Giovanni_Ponti.tga"
+			expire = "1965.1.1"
+			ideology = paternal_autocrat_subtype
+		}
+		set_politics = {
+			ruling_party = paternal_autocrat
+			elections_allowed = no
+		}
+		hidden_effect = {
+			add_ideas = {
+				VNC_Giovanni_Ponti_hog_sco
+				VNC_Antonio_Ferrarese_for_sco
+				VNC_Antonio_Pavan_eco_sco
+				VNC_Cesarino_Crescente_sec_sco
+			}
+		}
+	}
+}
+
