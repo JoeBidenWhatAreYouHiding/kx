@@ -1,0 +1,772 @@
+scripted_gui = {
+
+	ottoman_state_window = {
+		context_type = selected_state_context
+		window_name = "OTT_Infopanel"
+		parent_window_token = selected_state_view
+
+		visible = {
+			ROOT = {
+				original_tag = OTT
+			}
+			is_owned_by = OTT
+			is_core_of = OTT
+		}
+
+		effects = {
+			### Martial Law
+			OTT_Action_Declare_Martial_Law_button_click = {
+				clr_state_flag = OTT_Can_Martial_Law
+				add_resistance_target = {
+					amount = -35
+					occupier = OTT
+					days = 250
+					tooltip = "Increased Garrisons"
+				}
+				ROOT = {
+					add_manpower = -150
+					add_equipment_to_stockpile = {
+						type = infantry_equipment_0
+						amount = -100
+						producer = OTT
+					}
+				}
+				hidden_effect = {
+					state_event = {
+						id = ottgui.2
+						days = 250
+						trigger_for = owner
+					}
+				}	
+			}
+
+			### Bribe Officials
+			OTT_Action_Calm_Down_Local_Leaders_button_click = {
+				ott_decrease_revolt_risk = yes
+				ROOT = {
+					add_political_power = -30
+				}
+			}
+
+			### Local Recruits
+			OTT_Action_Recruit_Local_Troops_button_click = {
+				ROOT = {
+					army_experience = -30
+					if = {
+						limit = {
+							NOT = {
+								has_country_flag = created_irregular_template
+							}
+						}
+						set_country_flag = created_irregular_template
+						division_template = {
+							name = "Ottoman Irregulars"
+							division_names_group = OTT_INF_01
+							is_locked = yes
+							regiments = {
+								infantry = { x = 0 y = 0 }
+								infantry = { x = 0 y = 1 }
+								infantry = { x = 0 y = 2 }
+								infantry = { x = 1 y = 0 }
+								infantry = { x = 1 y = 1 }
+							}
+						}
+					}
+					add_manpower = 5000
+				}
+				create_unit = {
+					division = "name = \"Ottoman Irregulars\" division_template = \"Ottoman Irregulars\" start_experience_factor = 0.6 start_equipment_factor = 0.25"
+					owner = OTT
+				}
+				set_state_flag = recruited_irregulars
+			}
+
+			### Loosen Tax Burden
+			OTT_Loosen_Tax_Burden_button_click = {
+				add_to_variable = {
+					var = corruption
+					value = 1
+				}
+				add_state_modifier = {
+					modifier = {
+						local_building_slots_factor = -0.10
+						local_manpower = -0.25
+					}
+				}
+
+				# Decrease unrest level
+				ott_decrease_revolt_risk = yes
+
+				# Add Conservative Deputies
+				if = {
+					limit = {
+						OR = {
+							state = 346 #Konya
+							state = 350 #Diyarbakir
+							state = 354 #Erzurum
+							state = 1000 #Kars-Igdir
+							state = 1001 #Lazistan
+							state = 352 #Van
+							state = 455 #Ma'an
+							state = 754 #Medina
+							state = 679 #Mecca
+							state = 273 #Fezzan
+							state = 451 #Ajdabiya
+							state = 663 #Jaghbub
+							state = 1009 #Kufra
+						}
+					}
+					ROOT = {
+						# Calculate amount of added deputies
+						set_variable = { deputy_calculator = PREV.state_population }
+						divide_variable = { deputy_calculator = 100000 }
+						round_variable = deputy_calculator
+
+						# Add the deputies
+						add_to_variable = { con_sup_deputies = deputy_calculator }
+						subtract_from_variable = { con_opp_deputies = deputy_calculator }
+						clamp_variable = {
+							var = con_opp_deputies
+							min = 0
+							max = con_deputies
+						}
+						clamp_variable = {
+							var = con_sup_deputies
+							min = 0
+							max = con_deputies
+						}
+
+						# Calculate coalition strength
+						OTT_calc_coalition_strength = yes
+					}
+				}
+
+				# Add Turkish Nationalist Deputies
+				if = {
+					limit = {
+						OR = {
+							state = 341 #Edirne
+							state = 773 #Istanbul
+							state = 347 #Gallipoli
+							state = 340 #Bursa
+							state = 339 #Izmir
+							state = 343 #Afyon
+							state = 342 #Mugla
+							state = 49 #Ankara
+							state = 356 #Kastamonu
+							state = 344 #Adana
+							state = 349 #Kirkuk
+							state = 1089 #Momchilgrad
+							state = 184 #Eastern Thrace
+						}
+					}
+					ROOT = {
+						# Calculate amount of added deputies
+						set_variable = { deputy_calculator = PREV.PREV.state_population }
+						divide_variable = { deputy_calculator = 100000 }
+						round_variable = deputy_calculator
+
+						# Add the deputies
+						add_to_variable = { nat_tur_sup_deputies = deputy_calculator }
+						subtract_from_variable = { nat_tur_opp_deputies = deputy_calculator }
+						clamp_variable = {
+							var = nat_tur_opp_deputies
+							min = 0
+							max = nat_tur_deputies
+						}
+						clamp_variable = {
+							var = nat_tur_sup_deputies
+							min = 0
+							max = nat_tur_deputies
+						}
+
+						# Calculate coalition strength
+						OTT_calc_coalition_strength = yes
+					}
+				}
+
+				# Add Arab Nationalist Deputies
+				if = {
+					limit = {
+						OR = {
+							state = 677 #Aleppo
+							state = 995 #Homs
+							state = 554 #Damascus
+							state = 992 #Haifa
+							state = 553 #Lebanon
+							state = 676 #Mosul
+							state = 291 #Baghdad
+							state = 448 #Tripolitania
+							state = 450 #Benghazi
+						}
+					}
+					ROOT = {
+						# Calculate amount of added deputies
+						set_variable = { deputy_calculator = PREV.PREV.PREV.state_population }
+						divide_variable = { deputy_calculator = 100000 }
+						round_variable = deputy_calculator
+
+						# Add the deputies
+						add_to_variable = { nat_ara_sup_deputies = deputy_calculator }
+						subtract_from_variable = { nat_ara_opp_deputies = deputy_calculator }
+						clamp_variable = {
+							var = nat_ara_opp_deputies
+							min = 0
+							max = nat_ara_deputies
+						}
+						clamp_variable = {
+							var = nat_ara_sup_deputies
+							min = 0
+							max = nat_ara_deputies
+						}
+
+						# Calculate coalition strength
+						OTT_calc_coalition_strength = yes
+					}
+				}
+
+				# Add Independent Deputies
+				if = {
+					limit = {
+						OR = {
+							state = 187 #Aegean Islands
+							state = 164 #Dodecanese
+							state = 183 #Cyprus
+							state = 680 #Latakia
+							state = 345 #Sivas
+							state = 819 #Sulaymanyiah
+							state = 812 #Basra
+							state = 355 #Trapzon
+							state = 907 #Bahrain
+							state = 993 #Qatar
+							state = 658 #Abu Dhabi
+						}
+					}
+					ROOT = {
+						# Calculate amount of added deputies
+						set_variable = { deputy_calculator = PREV.PREV.PREV.PREV.state_population }
+						divide_variable = { deputy_calculator = 100000 }
+						round_variable = deputy_calculator
+
+						# Add the deputies
+						add_to_variable = { ind_sup_deputies = deputy_calculator }
+						subtract_from_variable = { ind_opp_deputies = deputy_calculator }
+						clamp_variable = {
+							var = ind_opp_deputies
+							min = 0
+							max = ind_deputies
+						}
+						clamp_variable = {
+							var = ind_sup_deputies
+							min = 0
+							max = ind_deputies
+						}
+
+						# Calculate coalition strength
+						OTT_calc_coalition_strength = yes
+					}
+				}
+				ROOT = {
+					add_political_power = -10
+				}
+			}
+
+			### Increase Tax Burden
+			OTT_Increase_Tax_Burden_button_click = {
+				# Increase revolt risk
+				ott_increase_revolt_risk = yes
+				ott_increase_revolt_risk = yes
+
+				# Remove Conservative Deputies
+				if = {
+					limit = {
+						OR = {
+							state = 346 #Konya
+							state = 350 #Diyarbakir
+							state = 354 #Erzurum
+							state = 1000 #Kars-Igdir
+							state = 1001 #Lazistan
+							state = 352 #Van
+							state = 455 #Ma'an
+							state = 754 #Medina
+							state = 679 #Mecca
+							state = 273 #Fezzan
+							state = 451 #Ajdabiya
+							state = 663 #Jaghbub
+							state = 1009 #Kufra
+						}
+					}
+					ROOT = {
+						# Calculate amount of added deputies
+						set_variable = { deputy_calculator = PREV.state_population }
+						divide_variable = { deputy_calculator = 100000 }
+						round_variable = deputy_calculator
+
+						# Add the deputies
+						add_to_variable = { con_opp_deputies = deputy_calculator }
+						subtract_from_variable = { con_sup_deputies = deputy_calculator }
+						clamp_variable = {
+							var = con_opp_deputies
+							min = 0
+							max = con_deputies
+						}
+						clamp_variable = {
+							var = con_sup_deputies
+							min = 0
+							max = con_deputies
+						}
+
+						# Calculate coalition strength
+						OTT_calc_coalition_strength = yes
+					}
+				}
+
+				# Remove Turkish Nationalist Deputies
+				if = {
+					limit = {
+						OR = {
+							state = 341 #Edirne
+							state = 773 #Istanbul
+							state = 347 #Gallipoli
+							state = 340 #Bursa
+							state = 339 #Izmir
+							state = 343 #Afyon
+							state = 342 #Mugla
+							state = 49 #Ankara
+							state = 356 #Kastamonu
+							state = 344 #Adana
+							state = 349 #Kirkuk
+							state = 1089 #Momchilgrad
+							state = 184 #Eastern Thrace
+						}
+					}
+					ROOT = {
+						# Calculate amount of added deputies
+						set_variable = { deputy_calculator = PREV.PREV.state_population }
+						divide_variable = { deputy_calculator = 100000 }
+						round_variable = deputy_calculator
+
+						# Add the deputies
+						add_to_variable = { nat_tur_opp_deputies = deputy_calculator }
+						subtract_from_variable = { nat_tur_sup_deputies = deputy_calculator }
+						clamp_variable = {
+							var = nat_tur_opp_deputies
+							min = 0
+							max = nat_tur_deputies
+						}
+						clamp_variable = {
+							var = nat_tur_sup_deputies
+							min = 0
+							max = nat_tur_deputies
+						}
+
+						# Calculate coalition strength
+						OTT_calc_coalition_strength = yes
+					}
+				}
+
+				# Remove Arab Nationalist Deputies
+				if = {
+					limit = {
+						OR = {
+							state = 677 #Aleppo
+							state = 995 #Homs
+							state = 554 #Damascus
+							state = 992 #Haifa
+							state = 553 #Lebanon
+							state = 676 #Mosul
+							state = 291 #Baghdad
+							state = 448 #Tripolitania
+							state = 450 #Benghazi
+						}
+					}
+					ROOT = {
+						# Calculate amount of added deputies
+						set_variable = { deputy_calculator = PREV.PREV.PREV.state_population }
+						divide_variable = { deputy_calculator = 100000 }
+						round_variable = deputy_calculator
+
+						# Add the deputies
+						add_to_variable = { nat_ara_opp_deputies = deputy_calculator }
+						subtract_from_variable = { nat_ara_sup_deputies = deputy_calculator }
+						clamp_variable = {
+							var = nat_ara_opp_deputies
+							min = 0
+							max = nat_ara_deputies
+						}
+						clamp_variable = {
+							var = nat_ara_sup_deputies
+							min = 0
+							max = nat_ara_deputies
+						}
+
+						# Calculate coalition strength
+						OTT_calc_coalition_strength = yes
+					}
+				}
+
+				# Remove Independent Deputies
+				if = {
+					limit = {
+						OR = {
+							state = 187 #Aegean Islands
+							state = 164 #Dodecanese
+							state = 183 #Cyprus
+							state = 680 #Latakia
+							state = 345 #Sivas
+							state = 819 #Sulaymanyiah
+							state = 812 #Basra
+							state = 355 #Trabzon
+							state = 907 #Bahrain
+							state = 993 #Qatar
+							state = 658 #Abu Dhabi
+						}
+					}
+					ROOT = {
+						# Calculate amount of added deputies
+						set_variable = { deputy_calculator = PREV.PREV.PREV.PREV.state_population }
+						divide_variable = { deputy_calculator = 100000 }
+						round_variable = deputy_calculator
+
+						# Add the deputies
+						add_to_variable = { ind_opp_deputies = deputy_calculator }
+						subtract_from_variable = { ind_sup_deputies = deputy_calculator }
+						clamp_variable = {
+							var = ind_opp_deputies
+							min = 0
+							max = ind_deputies
+						}
+						clamp_variable = {
+							var = ind_sup_deputies
+							min = 0
+							max = ind_deputies
+						}
+
+						# Calculate coalition strength
+						OTT_calc_coalition_strength = yes
+					}
+				}
+
+				# Give reward
+				ROOT = {
+					set_variable = { pp_calculator = PREV.PREV.PREV.PREV.PREV.state_population }
+					divide_variable = { pp_calculator = 100000 }
+					round_variable = pp_calculator
+					add_political_power = pp_calculator
+				}
+			}
+
+			### Crush Corruption
+			OTT_Crush_Corruption_button_click = {
+				if = {
+					limit = {
+						check_variable = { corruption > 1 }
+					}
+					add_state_modifier = {
+						modifier = {
+							local_building_slots_factor = 0.20
+							local_manpower = 0.50
+						}
+					}
+				}
+				else = {
+					add_state_modifier = {
+						modifier = {
+							local_building_slots_factor = 0.10
+							local_manpower = 0.25
+						}
+					}
+				}
+				clear_variable = corruption
+				ROOT = { add_political_power = -50 }
+			}
+
+			### Focus Relief Efforts
+			OTT_Focus_Relief_button_click = {
+				ott_decrease_revolt_risk = yes
+				ROOT = {
+					add_political_power = -30
+				}
+			}
+
+			### Centralise
+			OTT_Action_Centralise_button_click = {
+				ott_increase_revolt_risk = yes
+				ott_increase_authority_vilayet = yes
+				ROOT = {
+					add_political_power = -10
+				}
+			}
+			OTT_Action_Decentralise_button_click = {
+				ott_decrease_revolt_risk = yes
+				ott_decrease_authority_vilayet = yes
+			}
+		}
+
+		triggers = {
+			###########
+			# GENERAL #
+			###########
+			OTT_Nationalist_icon_visible = {
+				NOT = { has_state_flag = ott_ottomanist }
+			}
+			OTT_Nationalist_Focus_visible = {
+				NOT = { has_state_flag = ott_ottomanist }
+			}
+			OTT_Ottomanist_icon_visible = {
+				has_state_flag = ott_ottomanist
+			}
+			OTT_Ottomanist_Focus_visible = {
+				has_state_flag = ott_ottomanist
+			}
+			################
+			# INTERACTIONS #
+			################
+			OTT_Action_Declare_Martial_Law_button_visible = {
+				ROOT = {
+					has_authoritarian_government = yes
+				}
+			}
+			OTT_Action_Declare_Martial_Law_button_click_enabled = {
+				has_state_flag = OTT_Can_Martial_Law
+				ROOT = {
+					has_completed_focus = OTT_Maintenance_of_Order_Law
+				}
+			}
+			OTT_Action_Calm_Down_Local_Leaders_button_click_enabled = {
+				has_state_flag = OTT_Can_Bribe
+				OTT_revolt_risk_very_low = yes
+				ROOT = { has_political_power > 29.99 }
+			}
+			OTT_Action_Calm_Down_Local_Leaders_button_visible = {
+				ROOT = {
+					has_authoritarian_government = yes
+				}
+			}
+			OTT_Action_Recruit_Local_Troops_button_click_enabled = {
+				ROOT = {
+					has_war = yes
+				 	NOT = { has_completed_focus = OTT_Reform_the_Conscription_System }
+					has_army_experience > 29.99
+				}
+				NOT = {
+					has_state_flag = recruited_irregulars
+				}
+			}
+			OTT_Loosen_Tax_Burden_button_visible = {
+				OTT_is_autonomous_region = no
+				ROOT = {
+					OR = {
+						has_government = social_liberal
+						has_government = market_liberal
+					}
+					NOT = {
+						has_completed_focus = OTT_Reorganisation_Commision
+					}
+				}
+			}
+			OTT_Loosen_Tax_Burden_button_click_enabled = {
+				check_variable = {
+					corruption < 2
+				}
+				ROOT = {
+					has_political_power > 9.99
+				}
+			}
+			OTT_Increase_Tax_Burden_button_visible = {
+				OTT_is_autonomous_region = no
+				ROOT = {
+					OR = {
+						has_government = social_liberal
+						has_government = market_liberal
+					}
+					NOT = {
+						has_completed_focus = OTT_Reorganisation_Commision
+					}
+				}
+			}
+			OTT_Increase_Tax_Burden_button_click_enabled = {
+				OTT_revolt_risk_very_high = no
+			}
+			OTT_Crush_Corruption_button_visible = {
+				OTT_is_autonomous_region = no
+				ROOT = {
+					has_completed_focus = OTT_Reorganisation_Commision
+					OR = {
+						has_government = social_liberal
+						has_government = market_liberal
+					}
+				}
+			}
+			OTT_Crush_Corruption_button_click_enabled = {
+				has_variable = corruption
+				ROOT = { has_political_power > 49.99 }
+			}
+			OTT_Focus_Relief_button_click_enabled = {
+				OTT_revolt_risk_very_low = yes
+				ROOT = { has_political_power > 29.99 }
+			}
+			OTT_Focus_Relief_button_visible = {
+				ROOT = {
+					has_completed_focus = OTT_Reorganisation_Commision
+					OR = {
+						has_government = social_liberal
+						has_government = market_liberal
+					}	
+				}
+			}
+			##################
+			# (DE)CENTRALISE #
+			##################
+			OTT_Action_Centralise_button_visible = {
+				NOT = { state = 773 } #Constantinople
+			}
+			OTT_Action_Centralise_button_click_enabled = {
+				ROOT = {
+					has_political_power > 9.99
+					has_authoritarian_government = yes
+				}
+				OTT_can_centralise = yes
+			}
+			OTT_Action_Decentralise_button_visible = {
+				NOT = { state = 773 } #Constantinople
+			}
+			OTT_Action_Decentralise_button_click_enabled = {
+				OTT_is_autonomous_region = no
+			}
+		}
+
+		properties = {
+			OTT_Authority = {
+				frame = OTT_authority_level
+			}
+		}
+
+		ai_enabled = {
+            tag = OTT
+        }
+        
+        ai_test_interval = 168
+        ai_test_scopes = test_self_owned_states
+        
+        ai_check_scope = {
+            is_core_of = OTT
+        }
+        
+        ai_max_weight_taken_per_test = 5
+        
+        ai_weights = {
+            OTT_Action_Centralise_button_click = {
+                ai_will_do = {
+                    base = 100
+                }
+			}
+			OTT_Action_Calm_Down_Local_Leaders_button_click = {
+                ai_will_do = {
+                    base = 0
+                    modifier = {
+                        add = 20
+						OTT_revolt_risk_medium = yes
+						ROOT = { has_political_power > 50 }
+					}
+					modifier = {
+                        add = 100
+						OTT_revolt_risk_medium = yes
+                        OR = {
+							NOT = { country_exists = EGY }
+							EGY = { is_subject = yes }
+						}
+                    }
+                }
+			}
+			OTT_Focus_Relief_button_click = {
+				ai_will_do = {
+                    base = 0
+                    modifier = {
+                        add = 20
+						OTT_revolt_risk_medium = yes
+						ROOT = { has_political_power > 50 }
+					}
+					modifier = {
+                        add = 100
+						OTT_revolt_risk_medium = yes
+                        OR = {
+							NOT = { country_exists = EGY }
+							EGY = { is_subject = yes }
+						}
+                    }
+                }
+			}
+			OTT_Action_Recruit_Local_Troops_button_click = {
+				ai_will_do = {
+                    base = 0                    
+                    modifier = {
+                        add = 100	
+						OTT = {
+							has_war_with = EGY
+							has_war_with = PER
+							NOT = {
+								controls_state = 554
+								controls_state = 291
+								controls_state = 812
+							}
+						}
+					}
+                }
+			}
+        }
+	}
+
+	ott_congress_decision_ui = {
+		context_type = decision_category
+		window_name = "ott_congress_decision_ui_window"
+
+		properties = {
+			senate_icon = {
+				frame = current_senate_icon_frame
+			}
+
+			house_icon = {
+				frame = current_house_icon_frame
+			}
+		}
+
+		triggers = {
+			box_ideology_soc_lib_visible = {
+				has_government = social_liberal
+			}
+			box_ideology_soc_con_visible = {
+				has_government = social_conservative
+			}
+			box_ideology_mar_lib_visible = {
+				has_government = market_liberal
+			}
+		}
+	}
+
+	ott_syria_tooltip_ui = {
+		context_type = decision_category
+		window_name = "ott_syria_tooltip_button"
+	}
+	ott_greek_tooltip_ui = {
+		context_type = decision_category
+		window_name = "ott_greek_tooltip_button"
+	}
+	ott_arab_tooltip_ui = {
+		context_type = decision_category
+		window_name = "ott_arab_tooltip_button"
+	}
+	ott_kurd_tooltip_ui = {
+		context_type = decision_category
+		window_name = "ott_kurd_tooltip_button"
+	}
+	ott_iraq_tooltip_ui = {
+		context_type = decision_category
+		window_name = "ott_iraq_tooltip_button"
+	}
+	ott_libya_tooltip_ui = {
+		context_type = decision_category
+		window_name = "ott_libya_tooltip_button"
+	}
+}
+
