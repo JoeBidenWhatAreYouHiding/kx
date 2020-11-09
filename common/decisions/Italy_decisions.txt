@@ -1916,6 +1916,397 @@ ITA_foreign_policy = {# Foreign Policy Stuff
 			}
 		}
 	}
+	
+	ITA_claim_libya = {
+		icon = generic_form_nation
+
+		allowed = {
+			OR = {
+				tag = ITA
+				tag = SIC
+				tag = SRD
+			}
+		}
+
+		available = {
+			is_subject = no
+			custom_trigger_tooltip = {
+				tooltip = ITA_can_war_for_libya
+				can_declare_war_on = 448.owner
+			}
+		}
+
+		visible = {
+			ITA_has_irridentist_focus = yes
+			448 = {
+				owner = {
+					NOT = {
+						tag = ROOT
+						is_subject_of = ROOT
+					}
+				}
+			}
+		}
+
+		fire_only_once = yes
+		cost = 100
+
+		ai_will_do = {
+			factor = 5
+			modifier = {
+				factor = 0
+				has_country_flag = SIC_confed
+			}
+			modifier = {
+				factor = 0
+				NOT = {
+					has_government = national_populist
+					has_country_flag = SIC_empire
+					has_completed_focus = SRD_kingdom_of_italy
+				}
+			}
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision ITA_claim_libya"
+			set_country_flag = ITA_claimed_libya
+			every_state = {
+				limit = {
+					is_core_of = LBA
+					is_not_claim_or_core_of_ROOT = yes
+				}
+				add_claim_by = ROOT
+			}
+			448 = {
+				owner = {
+					country_event = ita.175
+					if = {
+						limit = { is_subject = yes }
+						overlord = { country_event = ita.175 }
+					}
+				}
+			}
+		}
+	}
+
+	ITA_war_for_libya = {
+		icon = generic_prepare_civil_war
+
+		allowed = {
+			OR = {
+				tag = ITA
+				tag = SIC
+				tag = SRD
+			}
+		}
+
+		available = {
+			ROOT = {
+				is_subject = no
+				controls_all_owned_states = yes
+			}
+			can_declare_war_on = FROM
+		}
+
+		visible = {
+			FROM = {
+				NOT = {
+					has_war_with = ROOT
+					is_subject_of = OTT
+					is_subject_of = TUR
+					is_subject_of = EGY
+					is_subject_of = PER
+					is_subject_of = ROOT
+				}
+			}
+		}
+
+		fire_only_once = yes
+		cost = 0
+		days_remove = 20
+		war_with_target_on_remove = yes
+
+		target_root_trigger = {
+			has_country_flag = ITA_claimed_libya
+		}
+
+		targets = { LBA TRP }
+
+		target_trigger = {
+			FROM = {
+				NOT = {
+					has_war_with = ROOT
+					is_subject_of = OTT
+					is_subject_of = TUR
+					is_subject_of = EGY
+					is_subject_of = PER
+					is_subject_of = ROOT
+				}
+			}
+		}
+
+		ai_will_do = {
+			factor = 10
+			modifier = {
+				factor = 0
+				is_in_faction = yes
+				is_faction_leader = no
+			}
+			modifier = {
+				factor = 0
+				has_navy_size = { size < 200 type = convoy }
+			}
+			modifier = {
+				factor = 0
+				NOT = { has_tech = landing_craft }
+			}
+			modifier = {
+				factor = 0
+				is_in_faction = no
+				FROM = { is_in_faction_with = EGY }
+				strength_ratio = { tag = EGY ratio < 2.5 }
+			}
+			modifier = {
+				factor = 0
+				OR = {
+					has_war = yes
+					strength_ratio = { tag = FROM ratio < 1.0 }
+					# neither of us is in a faction and FROM is stronger
+					AND = {
+						FROM = {
+							is_in_faction = no
+							is_subject = no
+						}
+						is_in_faction = no
+						strength_ratio = { tag = FROM ratio < 1.5 }
+					}
+					# they're in a faction which is not at war
+					FROM = {
+						OR = {
+							is_in_faction = yes
+							is_subject = yes
+						}
+						has_war = no
+						NOT = { is_in_faction_with = EGY }
+					}
+					# they're in a faction which is at war but not with a major and not losing
+					FROM = {
+						is_in_faction = yes
+						has_war = yes
+						NOT = {
+							is_in_faction_with = EGY
+							any_enemy_country = {
+								OR = {
+									tag = GER
+									tag = RUS
+									tag = SOV
+									tag = FRA
+								}
+							}
+							surrender_progress > 0.10
+							faction_leader = {
+								surrender_progress > 0.20
+							}
+						}
+					}
+				}
+			}
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision ITA_war_for_libya target: [From.GetName]"
+			add_war_support = 0.10
+			hidden_effect = {
+				add_ai_strategy = {
+					type = prepare_for_war
+					id = FROM
+					value = 1000
+				}
+				FROM = {
+					add_ai_strategy = {
+						type = prepare_for_war
+						id = ROOT
+						value = 1000
+					}
+				}
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove ITA_war_for_libya target: [From.GetName]"
+			set_country_flag = ITA_libya_war_@FROM
+			set_country_flag = ITA_war_for_libya
+			declare_war_on = {
+				target = FROM
+				type = annex_everything
+			}
+			hidden_effect = {
+				add_ai_strategy = {
+					type = prepare_for_war
+					id = FROM
+					value = -1000
+				}
+				FROM = {
+					add_ai_strategy = {
+						type = prepare_for_war
+						id = ROOT
+						value = -1000
+					}
+				}
+			}
+		}
+	}
+
+	ITA_demand_libya = {
+		icon = generic_prepare_civil_war
+
+		allowed = {
+			OR = {
+				tag = ITA
+				tag = SIC
+				tag = SRD
+			}
+		}
+
+		available = {
+			ROOT = {
+				is_subject = no
+				controls_all_owned_states = yes
+				OR = {
+					is_in_faction = no
+					is_faction_leader = yes
+				}
+			}
+			can_declare_war_on = FROM
+			FROM = {
+				if = {
+					limit = { owns_state = 448 }
+					controls_state = 448
+				}
+				if = {
+					limit = { owns_state = 450 }
+					controls_state = 450
+				}
+				if = {
+					limit = { owns_state = 451 }
+					controls_state = 451
+				}
+			}
+			if = {
+				limit = { LBA = { is_subject_of = FROM } }
+				LBA = {
+					is_subject_of = FROM
+					if = {
+						limit = { owns_state = 448 }
+						controls_state = 448
+					}
+					if = {
+						limit = { owns_state = 450 }
+						controls_state = 450
+					}
+					if = {
+						limit = { owns_state = 451 }
+						controls_state = 451
+					}
+				}
+			}
+		}
+
+		visible = {
+			FROM = {
+				exists = yes
+				is_subject = no
+				NOT = { has_war_with = ROOT }
+				OR = {
+					owns_state = 448
+					LBA = { is_subject_of = PREV }
+				}
+			}
+		}
+
+		fire_only_once = yes
+		cost = 0
+
+		target_root_trigger = {
+			has_country_flag = ITA_claimed_libya
+		}
+
+		targets = { OTT TUR EGY PER }
+
+		target_trigger = {
+			FROM = {
+				exists = yes
+				is_subject = no
+				NOT = { has_war_with = ROOT }
+				OR = {
+					owns_state = 448
+					LBA = { is_subject_of = PREV }
+				}
+			}
+		}
+
+		ai_will_do = {
+			factor = 10
+			modifier = {
+				factor = 0
+				is_in_faction = yes
+				is_faction_leader = no
+			}
+			modifier = {
+				factor = 0
+				has_navy_size = { size < 200 type = convoy }
+			}
+			modifier = {
+				factor = 0
+				NOT = { has_tech = landing_craft }
+			}
+			modifier = {
+				factor = 0
+				OR = {
+					has_war = yes
+					strength_ratio = { tag = FROM ratio < 1.5 }
+					# neither of us is in a faction and FROM is stronger
+					AND = {
+						FROM = {
+							is_in_faction = no
+							is_subject = no
+						}
+						is_in_faction = no
+						strength_ratio = { tag = FROM ratio < 1.5 }
+					}
+					# they're in a faction which is not at war
+					FROM = {
+						is_in_faction = yes
+						has_war = no
+					}
+					# they're in a faction which is at war but not with a major and not losing
+					FROM = {
+						is_in_faction = yes
+						has_war = yes
+						NOT = {
+							any_enemy_country = {
+								OR = {
+									tag = GER
+									tag = RUS
+									tag = SOV
+								}
+							}
+							surrender_progress > 0.10
+							faction_leader = {
+								surrender_progress > 0.20
+							}
+						}
+					}
+				}
+			}
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision ITA_demand_libya target: [From.GetName]"
+			FROM = {
+				country_event = { id = ita.176 days = 1 }
+			}
+		}
+	}
 
 	LOM_join_faction = {
 		icon = generic_nationalism
