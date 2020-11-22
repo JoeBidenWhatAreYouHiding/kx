@@ -290,43 +290,42 @@ NFA_Military_Accords_Harsh = {
 	}
 }
 
-# The following scripted effect has been commented out since it is currently never called anywhere. 
-# Hopefully I remember to come back and delete this if I never use it again later.
+# The following scripted effect has been un-commented out since it is currently called in KX-specific instances. 
 
-# NFA_remove_exile_ideas = {
-	# if = {
-		# limit = { has_idea = NFA_french_in_exile }
-		# remove_ideas = NFA_french_in_exile
-	# }
-	# if = {
-		# limit = { has_idea = NFA_legionary_campaign1 }
-		# remove_ideas = NFA_legionary_campaign1
-	# }
-	# if = {
-		# limit = { has_idea = NFA_legionary_campaign2 }
-		# remove_ideas = NFA_legionary_campaign2
-	# }
-	# if = {
-		# limit = { has_idea = NFA_native_conscription1 }
-		# remove_ideas = NFA_native_conscription1
-	# }
-	# if = {
-		# limit = { has_idea = NFA_native_conscription2 }
-		# remove_ideas = NFA_native_conscription2
-	# }
-	# if = {
-		# limit = { has_idea = NFA_southern_conscript_regular }
-		# remove_ideas = NFA_southern_conscript_regular
-	# }
-	# if = {
-		# limit = { has_idea = NFA_southern_conscript_colonial }
-		# remove_ideas = NFA_southern_conscript_colonial
-	# }
-	# if = {
-		# limit = { has_idea = NFA_underground_railroad_idea }
-		# remove_ideas = NFA_underground_railroad_idea
-	# }
-# }
+NFA_remove_exile_ideas = {
+	if = {
+		limit = { has_idea = NFA_french_in_exile }
+		remove_ideas = NFA_french_in_exile
+	}
+	if = {
+		limit = { has_idea = NFA_legionary_campaign1 }
+		remove_ideas = NFA_legionary_campaign1
+	}
+	if = {
+	 limit = { has_idea = NFA_legionary_campaign2 }
+	 remove_ideas = NFA_legionary_campaign2
+	}
+	if = {
+		limit = { has_idea = NFA_native_conscription1 }
+		remove_ideas = NFA_native_conscription1
+	}
+	if = {
+		limit = { has_idea = NFA_native_conscription2 }
+		remove_ideas = NFA_native_conscription2
+	}
+	if = {
+		limit = { has_idea = NFA_southern_conscript_regular }
+		remove_ideas = NFA_southern_conscript_regular
+	}
+	if = {
+		limit = { has_idea = NFA_southern_conscript_colonial }
+		remove_ideas = NFA_southern_conscript_colonial
+	}
+	if = {
+		limit = { has_idea = NFA_underground_railroad_idea }
+		remove_ideas = NFA_underground_railroad_idea
+	}
+}
 
 NFA_Reduce_Transahara_1 = {
 	# hidden_effect = {
@@ -666,6 +665,54 @@ NFA_remove_de_gaulle_military_ideas = {
 	}
 }
 
+NFA_Resistance_Policy_on_colony_states = {
+	hidden_effect = {
+		every_owned_state = {
+			limit = {
+				NOT = {
+					is_island_state = yes
+					is_on_continent = europe
+				}
+				OR = {
+					has_state_flag = nfa_state_colonial_resistance_flag
+					has_state_flag = nfa_state_colonial_exploitation_flag
+				}
+				NOT = {
+					is_core_of = NFA
+					has_dynamic_modifier = { modifier = NFA_colonial_resistance }
+					has_dynamic_modifier = { modifier = NFA_Colonial_Exploitation }
+				}
+			}
+			if = {
+				limit = { has_state_flag = nfa_state_colonial_resistance_flag }
+				add_dynamic_modifier = { modifier = NFA_colonial_resistance }
+				set_variable = { NFA_colonial_resistance_target_var = 0.25 }
+			}
+			else_if = {
+				limit = { has_state_flag = nfa_state_colonial_exploitation_flag }
+				add_dynamic_modifier = { modifier = NFA_colonial_resistance }
+				set_variable = { NFA_colonial_resistance_target_var = 0.4 }
+			}
+			set_variable = { NFA_colonial_resistance_compliance_var = -0.01 }
+			if = {
+				limit = {
+					ROOT = { has_completed_focus = NATFRA_Promote_Autonomy } #If you did the promote autonomy focus
+				}
+				subtract_from_variable = { NFA_colonial_resistance_target_var = 0.1 }
+				subtract_from_variable = { NFA_colonial_resistance_compliance_var = 0.01 }
+			}
+			if = {
+				limit = {
+					ROOT = { has_completed_focus = NATFRA_Civ_Mission } #If you did the civilising mission focus
+				}
+				add_to_variable = { NFA_colonial_resistance_target_var = 0.05 }
+				add_to_variable = { NFA_colonial_resistance_compliance_var = 0.01 }
+			}
+			force_update_dynamic_modifier = yes
+		}
+	}
+}
+
 NFA_setup_napoleon = {
 	create_country_leader = {
 		name = "Napoleon IV"
@@ -722,5 +769,62 @@ NFA_setup_napoleon = {
 		expire = "1965.1.1"
 		ideology = national_populist_subtype
 		traits = { NFA_New_Eagle }
+	}
+}
+
+NFA_setup_european_france = {
+	every_state = {
+		limit = {
+			OR = {
+				region = 19 #Northern France
+				region = 20 #Southern France
+				region = 164 #Western France
+				state = 29 #Maritime Flanders
+			}
+		}
+		hidden_effect = { remove_claim_by = ROOT }
+		add_core_of = ROOT
+	}
+	if = {
+		limit = { owns_state = 943 }
+		hidden_effect = { remove_state_claim = 943 }
+		add_state_core = 943
+	}
+	else = {
+		add_state_claim = 943
+	}
+	if = {
+		limit = { owns_state = 28 }
+		hidden_effect = { remove_state_claim = 28 }
+		add_state_core = 28
+	}
+	else = {
+		add_state_claim = 28
+	}
+	every_state = {
+		limit = {
+			is_on_continent = africa
+			is_core_of = ROOT
+			NOT = {
+				state = 459 #Algiers
+				state = 460 #Constantine
+				state = 805 #Oran
+			}
+		}
+		remove_core_of = ROOT
+		if = {
+			limit = {
+				NOT = {
+					state = 700 #Sierra Leone
+					state = 834 #Gambia
+				}
+			}
+			add_claim_by = ROOT
+		}
+	}
+	if = {
+		limit = { is_in_array = { global.north_african_tags_array = NFA } }
+		remove_from_array = { global.north_african_tags_array = NFA }
+		add_to_array = { global.european_tags_array = NFA }
 	}
 }
