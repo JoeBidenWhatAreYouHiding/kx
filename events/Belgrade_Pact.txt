@@ -3487,8 +3487,8 @@ country_event = {
 # Transfering Dobruzha
 country_event = {
 	id = pact.111
-	title = annexation_BUL_DOB_CONQ
-	desc = annexation_BUL_DOB_CONQ_desc
+	title = annexation_DOBROGEA_CONQ
+	desc = annexation_DOBROGEA_CONQ_desc
 	picture = GFX_report_event_GRE_army
 
 	is_triggered_only = yes
@@ -3669,11 +3669,30 @@ country_event = {
 			owns_state = 731
 			country_exists = BUL
 		}
-		GRE = {
-			country_event = gre.258
+		731 = {
+			if = {
+				limit = {
+					NOT = { is_claimed_by = GRE }
+					NOT = { is_core_of = GRE }
+				}
+				add_claim_by = GRE
+			}
+			save_event_target_as = transfer_state
+			GRE = {
+				transfer_state = PREV
+				country_event = gre.257
+			}
 		}
-		BUL = {
-			country_event = gre.258
+		769 = {
+			if = {
+				limit = { is_claimed_by = BUL }
+				remove_claim_by = BUL
+			}
+			if = {
+				limit = { NOT = { is_core_of = BUL } }
+				add_core_of = BUL
+			}
+			BUL = { transfer_state = PREV }
 		}
 	}
 }
@@ -3688,20 +3707,341 @@ country_event = {
 
 	is_triggered_only = yes
 
-	option = {
+	option = { #Give to Greece
+		name = pact.112.a
+		trigger = {
+			GRE = {
+				ROOT_can_grant_land = yes
+				OR = {
+					owns_state = 769
+					owns_state = 184
+				}
+			}
+			NOT = {
+				tag = GRE
+				tag = BUL
+				tag = OTT
+				tag = TUR
+			}
+		}
+		ai_chance = {
+			base = 90
+			modifier = {
+				factor = 5
+				GRE = {
+					is_in_faction_with = ROOT
+					is_subject = no
+				}
+			}
+		}
+		every_owned_state = {
+			limit = {
+				is_not_claim_or_core_of_ROOT = yes
+				OR = {
+					state = 184 #Western Thrace
+					state = 1089 #Kardzhali
+				}
+			}
+			save_event_target_as = transfer_state
+			if = {
+				limit = {
+					NOT = { is_claimed_by = GRE }
+					NOT = { is_core_of = GRE }
+				}
+				add_claim_by = GRE
+			}
+			GRE = {
+				transfer_state = PREV
+				hidden_effect = { country_event = gre.257 }
+			}
+		}
+		recheck_annexations = yes
+	}
+	option = { #Give to Bulgaria
+		name = pact.111.b
+		trigger = {
+			BUL = { ROOT_can_grant_land = yes }
+			NOT = {
+				tag = GRE
+				tag = BUL
+				tag = OTT
+				tag = TUR
+			}
+		}
+		ai_chance = {
+			base = 90
+			modifier = {
+				factor = 5
+				BUL = {
+					is_in_faction_with = ROOT
+					is_subject = no
+				}
+			}
+		}
+		every_owned_state = {
+			limit = {
+				is_not_claim_or_core_of_ROOT = yes
+				OR = {
+					state = 1089
+					state = 184
+				}
+			}
+			if = {
+				limit = { is_claimed_by = BUL }
+				remove_claim_by = BUL
+			}
+			if = {
+				limit = { NOT = { is_core_of = BUL } }
+				add_core_of = BUL
+			}
+			BUL = { transfer_state = PREV }
+		}
+		recheck_annexations = yes
+	}
+	option = { #Give to Serbia
+		name = pact.111.f
+		trigger = {
+			SER = { is_ally_of_ROOT = yes }
+			1089 = { is_claimed_by = SER }
+			NOT = {
+				tag = GRE
+				tag = BUL
+				tag = OTT
+				tag = TUR
+				tag = SER
+			}
+		}
+		ai_chance = {
+			base = 90
+			modifier = {
+				factor = 5
+				SER = {
+					is_in_faction_with = ROOT
+					is_subject = no
+				}
+			}
+		}
+		every_owned_state = {
+			limit = {
+				is_not_claim_or_core_of_ROOT = yes
+				OR = {
+					state = 1089
+					state = 184
+				}
+			}
+			SER = { transfer_state = PREV }
+		}
+		recheck_annexations = yes
+	}
+	option = { #Give to Turks
 		name = pact.113.a
-		if = {
-			limit = {
-				731 = { is_owned_by = FROM }
+		trigger = {
+			var:341.owner = {
+				OR = {
+					tag = TUR
+					tag = OTT
+				}
+				ROOT_can_grant_land = yes
 			}
-			transfer_state = 731
-		}
-		if = {
-			limit = {
-				769 = { is_owned_by = FROM }
+			NOT = {
+				tag = GRE
+				tag = BUL
+				tag = OTT
+				tag = TUR
 			}
-			transfer_state = 769
 		}
+		ai_chance = {
+			base = 90
+		}
+		every_owned_state = {
+			limit = {
+				is_not_claim_or_core_of_ROOT = yes
+				OR = {
+					state = 1089
+					state = 184
+				}
+			}
+			if = {
+				limit = { is_claimed_by = var:341.owner }
+				remove_claim_by = var:341.owner
+			}
+			if = {
+				limit = { NOT = { is_core_of = var:341.owner } }
+				add_core_of = var:341.owner
+			}
+			var:341.owner = { transfer_state = PREV }
+		}
+		recheck_annexations = yes
+	}
+	option = { #Divide it up
+		name = pact.111.c
+		trigger = {
+			1089 = {
+				is_owned_by = ROOT
+				is_claim_or_core_of_ROOT = no
+			}
+			184 = {
+				is_owned_by = ROOT
+				is_claim_or_core_of_ROOT = no
+			}
+			BUL = { ROOT_can_grant_land = yes }
+			GRE = {
+				ROOT_can_grant_land = yes
+				owns_state = 769
+			}
+			NOT = {
+				tag = BUL
+				tag = GRE
+				tag = OTT
+				tag = TUR
+			}
+		}
+		ai_chance = {
+			base = 40
+		}
+		184 = {
+			if = {
+				limit = {
+					NOT = { is_claimed_by = GRE }
+					NOT = { is_core_of = GRE }
+				}
+				add_claim_by = GRE
+			}
+			save_event_target_as = transfer_state
+			GRE = {
+				transfer_state = PREV
+				hidden_effect = { country_event = gre.257 }
+			}
+		}
+		1089 = {
+			if = {
+				limit = { is_claimed_by = BUL }
+				remove_claim_by = BUL
+			}
+			if = {
+				limit = { NOT = { is_core_of = BUL } }
+				add_core_of = BUL
+			}
+			BUL = { transfer_state = PREV }
+		}
+		recheck_annexations = yes
+	}
+	option = { #Divide it up
+		name = pact.111.c
+		trigger = {
+			1089 = {
+				is_owned_by = ROOT
+				is_claim_or_core_of_ROOT = no
+				is_claimed_by = SER
+			}
+			184 = {
+				is_owned_by = ROOT
+				is_claim_or_core_of_ROOT = no
+			}
+			BUL = { exists = no }
+			SER = { is_ally_of_ROOT = yes }
+			GRE = {
+				ROOT_can_grant_land = yes
+				owns_state = 769
+			}
+			NOT = {
+				tag = BUL
+				tag = GRE
+				tag = OTT
+				tag = TUR
+				tag = SER
+			}
+		}
+		ai_chance = {
+			base = 40
+		}
+		184 = {
+			if = {
+				limit = {
+					NOT = { is_claimed_by = GRE }
+					NOT = { is_core_of = GRE }
+				}
+				add_claim_by = GRE
+			}
+			save_event_target_as = transfer_state
+			GRE = {
+				transfer_state = PREV
+				hidden_effect = { country_event = gre.257 }
+			}
+		}
+		1089 = {
+			SER = { transfer_state = PREV }
+		}
+		recheck_annexations = yes
+	}
+	option = { #annex
+		name = annex.17.h
+		trigger = {
+			tag = GRE
+		}
+		ai_chance = {
+			base = 1000
+		}
+		every_owned_state = {
+			limit = {
+				OR = {
+					state = 1089
+					state = 184
+				}
+			}
+			if = {
+				limit = {
+					NOT = { is_claimed_by = GRE }
+					NOT = { is_core_of = GRE }
+				}
+				add_claim_by = GRE
+			}
+		}
+		recheck_annexations = yes
+	}
+	option = { #annex
+		name = annex.17.h
+		trigger = {
+			OR = {
+				tag = BUL
+				tag = TUR
+				tag = OTT
+			}
+		}
+		ai_chance = {
+			base = 1000
+		}
+		every_owned_state = {
+			limit = {
+				OR = {
+					state = 1089
+					state = 184
+				}
+			}
+			if = {
+				limit = { is_claimed_by = ROOT }
+				remove_claim_by = ROOT
+			}
+			if = {
+				limit = { NOT = { is_core_of = ROOT } }
+				add_core_of = ROOT
+			}
+		}
+		recheck_annexations = yes
+	}
+	option = { #occupy
+		name = annex.occupation
+		trigger = {
+			is_ai = no
+			NOT = {
+				tag = GRE
+				tag = BUL
+				tag = TUR
+				tag = OTT
+			}
+		}
+		set_country_flag = THRACE_CONQ
+		occupy_small_country = yes
 	}
 }
 
@@ -3954,3 +4294,264 @@ country_event = {
 	}
 }
 
+# Economic Council
+country_event = {#Pact of Organization invitation
+	id = pact.300
+	immediate = { log = "[GetDateText]: [Root.GetName]: event pact.300" }
+	title = pact.300.t
+	desc = pact.300.d
+	picture = GFX_report_event_generic_diplomacy1
+
+	is_triggered_only = yes
+
+	option = {
+		name = pact.300.a #Of course
+		ai_chance = { base = 10 }
+		custom_effect_tooltip = BP_economic_integration_tt
+		set_country_flag = BP_accepted_economic_union
+		if = {
+			limit = {
+				NOT = {
+					is_in_array = { global.balkan_economic_union = ROOT }
+				}
+			}
+			add_to_array = { global.balkan_economic_union = ROOT }
+		}
+	}
+
+	option = {
+		name = pact.300.b #Ew, economic integration
+		ai_chance = { base = 0 }
+		FROM = { country_event = pact.301 }
+	}
+}
+country_event = {#FROM refuses
+	id = pact.301
+	immediate = { log = "[GetDateText]: [Root.GetName]: event pact.301" }
+	title = pact.301.t
+	desc = pact.301.d
+	picture = GFX_report_event_generic_diplomacy1
+
+	is_triggered_only = yes
+
+	option = {
+		name = pact.301.a #Whatever
+		add_political_power = -5
+	}
+}
+country_event = {#Formation of the Economic Council (initiator)
+	id = pact.302
+	immediate = { log = "[GetDateText]: [Root.GetName]: event pact.302" }
+	title = pact.302.t
+	desc = pact.302.d
+	picture = GFX_report_event_generic_diplomacy2
+
+	is_triggered_only = yes
+
+	option = {
+		name = pact.302.a #Woop woop
+		if = {
+			limit = {
+				check_variable = { global.balkan_economic_union^num = 1 }
+			}
+			add_ideas = BP_economic_council_1
+		}
+		else_if = {
+			limit = {
+				check_variable = { global.balkan_economic_union^num = 2 }
+			}
+			add_ideas = BP_economic_council_2
+		}
+		else_if = {
+			limit = {
+				check_variable = { global.balkan_economic_union^num = 3 }
+			}
+			add_ideas = BP_economic_council_3
+		}
+		every_other_country = {
+			limit = {
+				OR = {
+					is_in_array = { global.balkan_economic_union = THIS }
+					AND = {
+						OR = {
+							tag = ALB
+							tag = BOS
+							tag = BUL
+							tag = CRO
+							tag = GRE
+							tag = HUN
+							tag = ROM
+						}
+						is_subject = yes
+						overlord = {
+							is_in_array = { global.balkan_economic_union = THIS }
+						}
+					}
+				}
+			}
+			country_event = pact.303
+		}
+	}
+}
+country_event = {#Formation of the Economic Council (others)
+	id = pact.303
+	immediate = { log = "[GetDateText]: [Root.GetName]: event pact.303" }
+	title = pact.303.t
+	desc = pact.303.d
+	picture = GFX_report_event_generic_diplomacy2
+
+	is_triggered_only = yes
+
+	option = {
+		name = pact.303.a #Woop woop
+		if = {
+			limit = {
+				check_variable = { global.balkan_economic_union^num = 1 }
+			}
+			add_ideas = BP_economic_council_1
+		}
+		else_if = {
+			limit = {
+				check_variable = { global.balkan_economic_union^num = 2 }
+			}
+			add_ideas = BP_economic_council_2
+		}
+		else_if = {
+			limit = {
+				check_variable = { global.balkan_economic_union^num = 3 }
+			}
+			add_ideas = BP_economic_council_3
+		}
+	}
+}
+country_event = { #Economic Council upgraded
+	id = pact.304
+	immediate = { log = "[GetDateText]: [Root.GetName]: event pact.304" }
+	title = pact.304.t
+	desc = pact.304.d
+	picture = GFX_report_event_generic_diplomacy1
+
+	is_triggered_only = yes
+
+	option = {
+		name = pact.304.a #Woop woop
+		if = {
+			limit = { has_idea = BP_economic_council_1 }
+			swap_ideas = {
+				remove_idea = BP_economic_council_1
+				add_idea = BP_economic_council_upgraded_1
+			}
+		}
+		else_if = {
+			limit = { has_idea = BP_economic_council_2 }
+			swap_ideas = {
+				remove_idea = BP_economic_council_2
+				add_idea = BP_economic_council_upgraded_2
+			}
+		}
+		else_if = {
+			limit = { has_idea = BP_economic_council_3 }
+			swap_ideas = {
+				remove_idea = BP_economic_council_3
+				add_idea = BP_economic_council_upgraded_3
+			}
+		}
+	}
+}
+country_event = {#Kicked out of the Economic Council
+	id = pact.305
+	immediate = { log = "[GetDateText]: [Root.GetName]: event pact.305" }
+	title = pact.305.t
+
+	desc = {
+		text = pact.305.d.war
+		trigger = {
+			has_socialist_government = no
+		}
+	}
+	desc = {
+		text = pact.305.d.revolution
+		trigger = {
+			has_socialist_government = yes
+		}
+	}
+
+	picture = GFX_report_event_generic_diplomacy1
+
+	is_triggered_only = yes
+
+	option = {
+		name = pact.305.a
+		if = {
+			limit = { has_idea = BP_economic_council_1 }
+			remove_ideas = BP_economic_council_1
+		}
+		else_if = {
+			limit = { has_idea = BP_economic_council_upgraded_1 }
+			remove_ideas = BP_economic_council_upgraded_1
+		}
+		else_if = {
+			limit = { has_idea = BP_economic_council_2 }
+			remove_ideas = BP_economic_council_2
+		}
+		else_if = {
+			limit = { has_idea = BP_economic_council_upgraded_2 }
+			remove_ideas = BP_economic_council_upgraded_2
+		}
+		else_if = {
+			limit = { has_idea = BP_economic_council_2 }
+			remove_ideas = BP_economic_council_2
+		}
+		else_if = {
+			limit = { has_idea = BP_economic_council_upgraded_2 }
+			remove_ideas = BP_economic_council_upgraded_2
+		}
+		if = {
+			limit = {
+				is_in_array = { global.balkan_economic_union = ROOT }
+			}
+			remove_from_array = { global.balkan_economic_union = ROOT }
+		}
+	}
+}
+country_event = { #Economic Council upgraded
+	id = pact.306
+	immediate = { log = "[GetDateText]: [Root.GetName]: event pact.306" }
+	title = pact.306.t
+	desc = pact.306.d
+	picture = GFX_report_event_generic_diplomacy1
+
+	is_triggered_only = yes
+
+	option = {
+		name = pact.306.a #Woop woop
+		if = {
+			limit = { has_idea = BP_economic_council_1 }
+			swap_ideas = {
+				remove_idea = BP_economic_council_1
+				add_idea = BP_economic_council_2
+			}
+		}
+		else_if = {
+			limit = { has_idea = BP_economic_council_2 }
+			swap_ideas = {
+				remove_idea = BP_economic_council_2
+				add_idea = BP_economic_council_3
+			}
+		}
+		else_if = {
+			limit = { has_idea = BP_economic_council_upgraded_1 }
+			swap_ideas = {
+				remove_idea = BP_economic_council_upgraded_1
+				add_idea = BP_economic_council_upgraded_2
+			}
+		}
+		else_if = {
+			limit = { has_idea = BP_economic_council_upgraded_2 }
+			swap_ideas = {
+				remove_idea = BP_economic_council_upgraded_2
+				add_idea = BP_economic_council_upgraded_3
+			}
+		}
+	}
+}
