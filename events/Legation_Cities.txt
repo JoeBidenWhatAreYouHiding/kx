@@ -2708,16 +2708,10 @@ country_event = { #Shanghai in Chaos - LEC
 		name = lec.74.a
 		trigger = {
 			OR = {
-				AND = {
-					has_country_flag = GER_aggressive
-					has_country_flag = JAP_aggressive
-				}
+				has_country_flag = LEC_player_chooses_shanghai
+				has_country_flag = GER_aggressive
 				AND = {
 					has_country_flag = GER_defensive
-					has_country_flag = JAP_defensive
-				}
-				AND = {
-					has_country_flag = GER_aggressive
 					has_country_flag = JAP_defensive
 				}
 			}
@@ -2755,32 +2749,42 @@ country_event = { #Shanghai in Chaos - LEC
 			}
 		}
 		GER = {
-			puppet = LEC
+			set_autonomy = {
+				target = LEC
+				autonomy_state = kr_default_puppet
+			}
 			LEC = {
+				mark_focus_tree_layout_dirty = yes
 				set_politics = {
 					ruling_party = authoritarian_democrat
 				}
-				set_popularities = {
-					totalist = 0
-					radical_socialist = 0
-					syndicalist = 0
-					social_democrat = 2
-					social_liberal = 14
-					market_liberal = 8
-					social_conservative = 5
-					authoritarian_democrat = 46
-					paternal_autocrat = 23
-					national_populist = 2
+				hidden_effect = {
+					set_popularities = {
+						totalist = 0
+						syndicalist = 0
+						radical_socialist = 1
+						social_democrat = 6
+						social_liberal = 14
+						market_liberal = 7
+						social_conservative = 10
+						authoritarian_democrat = 27
+						paternal_autocrat = 23
+						national_populist = 12
+					}
+					set_temp_variable = {
+						coalition_partner_var = token:authoritarian_democrat
+					}
+					add_to_coalition = yes
+					set_temp_variable = {
+						coalition_partner_var = token:paternal_autocrat
+					}
+					add_to_coalition = yes
 				}
 			}
-			country_event = {
-				id = lec.75
-			}
+			country_event = lec.75
 		}
 		GEA = {
-			country_event = {
-				id = lec.75
-			}
+			country_event = lec.75
 		}
 		if = {
 			limit = {
@@ -2792,16 +2796,20 @@ country_event = { #Shanghai in Chaos - LEC
 			}
 		}
 		JAP = {
-			country_event = {
-				id = lec.76
-			}
+			country_event = lec.76
 		}
 	}
 	option = {	#The Japanese won
 		name = lec.74.b
 		trigger = {
-			has_country_flag = GER_defensive
-			has_country_flag = JAP_aggressive
+			OR = {
+				has_country_flag = LEC_player_chooses_shanghai
+				has_country_flag = JAP_aggressive
+				AND = {
+					has_country_flag = GER_defensive
+					has_country_flag = JAP_defensive
+				}
+			}
 		}
 		every_other_country = {
 			limit = {
@@ -2836,44 +2844,50 @@ country_event = { #Shanghai in Chaos - LEC
 			}
 		}
 		GEA = {
-			country_event = {
-				id = lec.76
-			}
+			country_event = lec.76
 		}
 		GER = {
-			country_event = {
-				id = lec.76
-			}
+			country_event = lec.76
 		}
 		if = {
-			limit = {
-				has_war_with = JAP
-			}
+			limit = { has_war_with = JAP }
 			force_capitulate = yes
-			else = {
-				JAP = {
-					puppet = LEC
-					LEC = {
-						set_politics = {
-							ruling_party = authoritarian_democrat
-						}
+		}
+		else = {
+			JAP = {
+				set_autonomy = {
+					target = LEC
+					autonomy_state = kr_default_puppet
+				}
+				LEC = {
+					mark_focus_tree_layout_dirty = yes
+					set_politics = {
+						ruling_party = authoritarian_democrat
+					}
+					hidden_effect = {
 						set_popularities = {
 							totalist = 0
-							radical_socialist = 0
 							syndicalist = 0
-							social_democrat = 2
-							social_liberal = 10
-							market_liberal = 8
-							social_conservative = 3
-							authoritarian_democrat = 42
-							paternal_autocrat = 3
-							national_populist = 32
+							radical_socialist = 1
+							social_democrat = 6
+							social_liberal = 14
+							market_liberal = 9
+							social_conservative = 8
+							authoritarian_democrat = 27
+							paternal_autocrat = 12
+							national_populist = 23
 						}
-					}
-					country_event = {
-						id = lec.75
+						set_temp_variable = {
+							coalition_partner_var = token:authoritarian_democrat
+						}
+						add_to_coalition = yes
+						set_temp_variable = {
+							coalition_partner_var = token:national_populist
+						}
+						add_to_coalition = yes
 					}
 				}
+				country_event = lec.75
 			}
 		}
 	}
@@ -3676,6 +3690,7 @@ country_event = { #The final member of the LEC council puppets LEC
 		check_variable = { global.LEC_voters^num > 0 }
 		NOT = {
 			is_subject = yes
+			has_country_flag = LEC_Triad_Power
 		}
 	}
 
@@ -4088,6 +4103,9 @@ country_event = { #Germany falls
 		name = lec.100.b
 		trigger = {
 			has_government = paternal_autocrat
+			NOT = {	
+				has_country_flag = LEC_Triad_Power
+			}
 		}
 		add_political_power = -150
 		add_stability = -0.2
@@ -5396,6 +5414,925 @@ country_event = { #Legation Cities restored
 	}
 }
 
+country_event = { #Legation Cities asking for concessions?
+	id = lec.126
+	immediate = { log = "[GetDateText]: [Root.GetName]: event lec.126 FROM = [From.GetName]" }
+	title = lec.126.t
+	desc = lec.126.d
+	picture = GFX_report_event_generic_diplomacy4
+
+	is_triggered_only = yes
+
+	trigger = {
+		is_in_faction = yes
+		any_allied_country = {
+			any_owned_state = {
+				OR = {
+					is_core_of = LEC
+					is_possible_legation_cities_state = yes
+					AND = {
+						is_mainland_china = yes
+						LEC = { has_cosmetic_tag = LEC_china }
+					}
+				}
+				is_claim_or_core_of_PREV = no
+			}
+		}
+	}
+
+	option = {	# ask
+		name = lec.126.a
+		every_other_country = {
+			limit = {
+				is_in_faction_with = ROOT
+				any_owned_state = {
+					OR = {
+						is_core_of = LEC
+						is_possible_legation_cities_state = yes
+						AND = {
+							is_mainland_china = yes
+							LEC = { has_cosmetic_tag = LEC_china }
+						}
+					}
+					is_claim_or_core_of_PREV = no
+				}
+			}
+			country_event = { id = lec.127 days = 1 }
+		}
+	}
+	option = {	# don't ask
+		name = lec.126.b
+		add_political_power = 25
+		add_stability = 0.05
+	}
+}
+
+country_event = { #Legation Cities gets concessions
+	id = lec.127
+	immediate = { log = "[GetDateText]: [Root.GetName]: event lec.127 FROM = [From.GetName]" }
+	title = lec.127.t
+	desc = lec.127.d
+	picture = GFX_report_event_generic_diplomacy4
+
+	is_triggered_only = yes
+
+	trigger = {
+		any_owned_state = {
+			OR = {
+				is_core_of = LEC
+				is_possible_legation_cities_state = yes
+			}
+			is_claim_or_core_of_ROOT = no
+			if = {
+				limit = { ROOT = { tag = JAP } }
+				NOT = { has_variable = ambition_area_@ROOT }
+			}
+		}
+	}
+
+	option = {	# yes
+		name = lec.127.a
+		ai_chance = {
+			base = 5
+		}
+		set_temp_variable = { tag_to_release = LEC }
+		every_owned_state = {
+			limit = {
+				is_claim_or_core_of_ROOT = no
+				OR = {
+					is_core_of = LEC
+					is_possible_legation_cities_state = yes
+					AND = {
+						is_mainland_china = yes
+						LEC = { has_cosmetic_tag = LEC_china }
+					}
+				}
+				if = {
+					limit = { ROOT = { tag = JAP } }
+					NOT = { has_variable = ambition_area_@ROOT }
+				}
+			}
+			remove_claim_and_add_core_of_target = yes
+			LEC = { transfer_state = PREV }
+		}
+		LEC = { country_event = lec.128 }
+	}
+	option = {	# no
+		name = lec.127.b
+		ai_chance = {
+			base = 0
+		}
+		add_political_power = -25
+		LEC = {
+			country_event = { id = lec.129 days = 1 }
+		}
+	}
+}
+
+country_event = { #Legation Cities gets concessions
+	id = lec.128
+	immediate = { log = "[GetDateText]: [Root.GetName]: event lec.128 FROM = [From.GetName]" }
+	title = lec.128.t
+	desc = lec.128.d
+	picture = GFX_report_event_generic_diplomacy4
+	is_triggered_only = yes
+	option = {	# yay
+		name = lec.128.a
+		add_political_power = 5
+	}
+}
+
+country_event = { #Legation Cities no gets concessions
+	id = lec.129
+	immediate = { log = "[GetDateText]: [Root.GetName]: event lec.129 FROM = [From.GetName]" }
+	title = lec.129.t
+	desc = lec.129.d
+	picture = GFX_report_event_generic_diplomacy4
+	is_triggered_only = yes
+	option = {	# damn
+		name = lec.129.a
+		add_political_power = -15
+	}
+}
+
+country_event = { #Japan falls
+	id = lec.130
+	immediate = { log = "[GetDateText]: [Root.GetName]: event lec.130 FROM = [From.GetName]" }
+
+	title = lec.130.t
+	desc = {
+		text = lec.130.d.hostiletojaps
+		trigger = {
+			has_country_flag = LEC_had_war_with_JAP
+		}
+	}
+	desc = {
+		text = lec.130.d.friendlytojaps
+		trigger = {
+			has_government = national_populist
+		}
+	}
+	desc = {
+		text = lec.130.d.neutraltojaps
+		trigger = {
+			OR = {
+				has_government = social_conservative
+				has_government = market_liberal
+				has_government = paternal_autocrat
+			}
+			NOT = {
+				has_country_flag = LEC_had_war_with_JAP
+			}
+		}
+	}
+
+	fire_only_once = yes
+	picture = GFX_report_event_JAP_announcement
+
+	is_triggered_only = yes
+
+	trigger = {
+		OR = {
+			has_government = social_conservative
+			has_government = market_liberal
+			has_government = paternal_autocrat
+			has_government = national_populist
+		}
+	}
+
+	option = {	#Uh...
+		name = lec.130.a
+		trigger = {
+			OR = {
+				has_government = social_conservative
+				has_government = market_liberal
+			}
+		}
+		add_political_power = -25
+		add_popularity = {
+			ideology = national_populist
+			popularity = -0.5
+		}
+	}
+	option = {	#Now we're screwed
+		name = lec.130.b
+		trigger = {
+			has_government = national_populist
+		}
+		add_political_power = -50
+		add_stability = -0.1
+		decrease_currency_reserve = yes
+		country_event = { id = lec.131 days = 5 }
+		add_popularity = {
+			ideology = national_populist
+			popularity = -0.5
+		}
+		if = {
+			limit = { has_idea = LEC_supply_lines_idea }
+			remove_ideas = LEC_supply_lines_idea
+		}
+		if = {
+			limit = { has_idea = LEC_TMKKD_idea }
+			remove_ideas = LEC_TMKKD_idea
+		}
+	}
+	option = {	#Serves them right!
+		name = lec.100.b
+		trigger = {
+			has_government = paternal_autocrat
+		}
+		add_political_power = 5
+		add_popularity = {
+			ideology = national_populist
+			popularity = -1
+		}
+	}
+}
+
+country_event = { # politics stuff - Japan is dead
+	id = lec.131
+	immediate = { log = "[GetDateText]: [Root.GetName]: event lec.131 FROM = [From.GetName]" }
+	title = lec.131.t
+	desc = lec.131.d
+	picture = GFX_report_event_generic_diplomacy4
+
+	trigger = {
+		has_war = no
+		NOT = { has_country_flag = JAP_was_in_sphere }
+	}
+
+	is_triggered_only = yes
+
+	option = {	#The Americans are clearly the best option
+		name = lec.131.a
+		trigger = {
+			market_liberal > 0.2
+			NOT = { country_exists = CSA }
+		}
+		ai_chance = {
+			base = 1
+			modifier = {
+				set_temp_variable = { LEC_help_yank_desire = party_popularity@market_liberal }
+				multiply_temp_variable = { LEC_help_yank_desire = 100 }
+				add = LEC_help_yank_desire
+				always = yes
+			}
+		}
+		set_politics = {
+			ruling_party = market_liberal
+			elections_allowed = no
+		}
+		add_popularity = {
+			ideology = market_liberal
+			popularity = 0.05
+		}
+		lec_american_rise = yes
+		hidden_effect = {
+			every_other_country = {
+				limit = {
+					OR = {
+						has_country_flag = legation_council_member
+						has_country_flag = legation_council_vote
+					}
+				}
+				country_event = lec.132
+			}
+		}
+	}
+
+	option = {	#Anglos
+		name = lec.131.b
+		trigger = {
+			has_country_flag = LEC_AST_governor
+			social_conservative > 0.2
+		}
+		ai_chance = {
+			base = 0.9
+			modifier = {
+				set_temp_variable = { LEC_help_britain_desire = party_popularity@social_conservative }
+				multiply_temp_variable = { LEC_help_britain_desire = 100 }
+				add = LEC_help_britain_desire
+				always = yes
+			}
+		}
+		set_politics = {
+			ruling_party = social_conservative
+			elections_allowed = no
+		}
+		add_popularity = {
+			ideology = social_conservative
+			popularity = 0.05
+		}
+		lec_british_rise = yes
+		hidden_effect = {
+			every_other_country = {
+				limit = {
+					OR = {
+						has_country_flag = legation_council_member
+						has_country_flag = legation_council_vote
+					}
+				}
+				country_event = lec.133
+			}
+		}
+	}
+
+	option = {	#Germans
+		name = lec.131.c
+		trigger = {
+			GER = {
+				exists = yes
+				is_subject = no
+				surrender_progress < 0.2
+			}
+			paternal_autocrat > 0.2
+		}
+		ai_chance = {
+			base = 0.9
+			modifier = {
+				set_temp_variable = { LEC_help_germany_desire = party_popularity@paternal_autocrat }
+				multiply_temp_variable = { LEC_help_germany_desire = 100 }
+				add = LEC_help_germany_desire
+				always = yes
+			}
+		}
+		set_politics = {
+			ruling_party = paternal_autocrat
+			elections_allowed = no
+		}
+		add_popularity = {
+			ideology = paternal_autocrat
+			popularity = 0.05
+		}
+		lec_german_rise = yes
+		hidden_effect = {
+			every_other_country = {
+				limit = {
+					OR = {
+						has_country_flag = legation_council_member
+						has_country_flag = legation_council_vote
+					}
+				}
+				country_event = lec.134
+			}
+		}
+	}
+
+	option = { #Just give up to the Chinese
+		name = lec.131.e
+		ai_chance = {
+			base = 10
+		}
+		trigger = {
+			var:613.owner = { is_chinese_tag = yes }
+		}
+		custom_effect_tooltip = LEC_surrender_to_china
+		set_country_flag = LEC_dead_to_china
+		every_other_country = {
+			limit = {
+				OR = {
+					has_country_flag = legation_council_member
+					has_country_flag = legation_council_vote
+				}
+			}
+			country_event = lec.136
+		}
+		every_other_country = {
+			limit = {
+				OR = {
+					has_guaranteed = LEC
+					has_non_aggression_pact_with = LEC
+					has_military_access_to = LEC
+					gives_military_access_to = LEC
+				}
+			}
+			diplomatic_relation = {
+				country = FROM
+				relation = guarantee
+				active = no
+			}
+			diplomatic_relation = {
+				country = FROM
+				relation = non_aggression_pact
+				active = no
+			}
+			diplomatic_relation = {
+				country = FROM
+				relation = military_access
+				active = no
+			}
+			LEC = {
+				diplomatic_relation = {
+					country = PREV
+					relation = military_access
+					active = no
+				}
+			}
+		}
+		hidden_effect = {
+			var:613.owner = {
+				country_event = { id = lec.135 days = 1 }
+			}
+			var:1066.owner = { country_event = lec.62 }
+			var:1068.owner = { country_event = lec.64 }
+			var:1012.owner = { country_event = lec.66 }
+			var:608.owner = { country_event = lec.68 }
+			if = {
+				limit = { owns_state = 326 }
+				var:593.owner = { country_event = lec.70 }
+			}
+			if = {
+				limit = { owns_state = 729 }
+				var:593.owner = { country_event = lec.99 }
+			}
+		}
+	}
+
+	option = {	#We are China now!
+		name = lec.131.f
+		trigger = {
+			controls_state = 613
+		}
+		ai_chance = {
+			base = 1000
+		}
+		set_politics = {
+			ruling_party = social_liberal
+			elections_allowed = no
+		}
+		add_popularity = {
+			ideology = social_liberal
+			popularity = 0.05
+		}
+		lec_chinese_rise = yes
+	}
+}
+
+country_event = { #The Americans return
+	id = lec.132
+	immediate = { log = "[GetDateText]: [Root.GetName]: event lec.132 FROM = [From.GetName]" }
+	title = lec.132.t
+	desc = lec.132.d
+	picture = GFX_report_event_CHI_official_announcement
+	is_triggered_only = yes
+	option = {	#Huh
+		name = lec.132.a
+	}
+}
+
+country_event = { #The British in power
+	id = lec.133
+	immediate = { log = "[GetDateText]: [Root.GetName]: event lec.133 FROM = [From.GetName]" }
+	title = lec.133.t
+	desc = lec.133.d
+	picture = GFX_report_event_CHI_official_announcement
+	is_triggered_only = yes
+	option = {	#Huh
+		name = lec.133.a
+	}
+}
+
+country_event = { #The Germans in power
+	id = lec.134
+	immediate = { log = "[GetDateText]: [Root.GetName]: event lec.134 FROM = [From.GetName]" }
+	title = lec.134.t
+	desc = lec.134.d
+	picture = GFX_report_event_CHI_official_announcement
+	is_triggered_only = yes
+	option = {	#Huh
+		name = lec.134.a
+	}
+}
+
+country_event = { #Annex Shanghai!
+	id = lec.135
+	immediate = { log = "[GetDateText]: [Root.GetName]: event lec.135 FROM = [From.GetName]" }
+	title = lec.135.t
+	desc = lec.135.d
+	picture = GFX_report_event_CHI_riot
+	fire_only_once = yes
+	is_triggered_only = yes
+	option = {	#dewit
+		name = lec.135.a
+		ai_chance = {
+			base = 100
+		}
+		add_political_power = 25
+		LEC = {
+			country_event = lec.136
+		}
+		add_state_claim = 743
+	}
+	option = {	#nah
+		name = lec.135.b
+		ai_chance = {
+			base = 0
+		}
+	}
+}
+
+country_event = { #The End of the Mandate
+	id = lec.136
+	immediate = { log = "[GetDateText]: [Root.GetName]: event lec.136 FROM = [From.GetName]" }
+	title = lec.136.t
+	desc = lec.136.d
+	picture = GFX_report_event_CHI_official_announcement
+	is_triggered_only = yes
+	option = {	#vigorous Chinese salute
+		name = lec.136.a
+		FROM = {
+			annex_country = { target = LEC }
+		}
+	}
+}
+
+country_event = { #The LEC was ended
+	id = lec.137
+	immediate = { log = "[GetDateText]: [Root.GetName]: event lec.137 FROM = [From.GetName]" }
+	title = lec.137.t
+	desc = lec.137.d
+	picture = GFX_report_event_CHI_official_announcement
+	is_triggered_only = yes
+	option = {	#Huh
+		name = lec.137.a
+		add_political_power = -5
+		set_country_flag = LEC_dead_clumsy_coding
+		if = {
+			limit = { is_in_array = { global.LEC_voters = ROOT } }
+			remove_from_array = { global.LEC_voters = ROOT }
+		}
+		if = {
+			limit = { has_country_flag = legation_council_member }
+			clr_country_flag = legation_council_member
+		}
+		if = {
+			limit = { has_country_flag = legation_council_vote }
+			clr_country_flag = legation_council_vote
+		}
+		if = {
+			limit = { has_idea = LEC_generic_open_door }
+			remove_ideas = { LEC_generic_open_door }
+		}
+		if = {
+			limit = { has_idea = LEC_better_open_door }
+			remove_ideas = { LEC_better_open_door }
+		}
+		if = {
+			limit = { has_idea = LEC_USA_open_door }
+			remove_ideas = { LEC_USA_open_door }
+		}
+		if = {
+			limit = { has_idea = LEC_GER_open_door }
+			remove_ideas = { LEC_GER_open_door }
+		}
+	}
+}
+
+country_event = { #Conscription vote
+	id = lec.138
+	immediate = { log = "[GetDateText]: [Root.GetName]: event lec.138 FROM = [From.GetName]" }
+	title = lec.138.t
+	desc = lec.138.d
+	fire_only_once = yes
+	picture = GFX_report_event_JAP_parade_shanghai
+	is_triggered_only = yes
+	option = {	#Of course!
+		name = lec.138.a
+		set_global_flag = legation_vote_ongoing
+		every_country = {
+			limit = {
+				OR = {
+					tag = LEC
+					has_country_flag = legation_council_vote
+					has_country_flag = legation_council_member
+				}
+			}
+			activate_mission = LEC_vote_timer
+		}
+		country_event = { id = lec.140 days = 15 }
+		for_each_scope_loop = {
+			array = global.LEC_voters
+			country_event = lec.139
+		}
+	}
+}
+
+country_event = { #Legation conscription? - voting
+	id = lec.139
+	immediate = { log = "[GetDateText]: [Root.GetName]: event lec.139 FROM = [From.GetName]" }
+	title = lec.139.t
+	desc = lec.139.d
+	picture = GFX_report_event_JAP_parade_shanghai
+	is_triggered_only = yes
+	option = {	#Time to vote
+		name = lec.139.a
+	}
+}
+
+country_event = { #Legation conscription? - Result
+	id = lec.140
+	immediate = { log = "[GetDateText]: [Root.GetName]: event lec.140 FROM = [From.GetName]" }
+	title = lec.140.t
+	desc = lec.140.d
+	fire_only_once = yes
+	picture = GFX_report_event_TIB_army_2
+	is_triggered_only = yes
+	option = {	#Approved!
+		name = lec.140.a
+		clr_country_flag = cannot_have_conscription
+		set_country_flag = cannot_have_extensive_conscription
+		clear_variable = global.legations_yes_votes
+		clear_variable = global.legations_no_votes
+		clear_variable = global.legations_abstain_votes
+		clr_global_flag = LEC_conscription_vote
+		clr_global_flag = legation_vote_ongoing
+		add_ideas = limited_conscription
+		for_each_scope_loop = {
+			array = global.LEC_voters
+			clr_country_flag = LEC_we_voted_this_time
+			country_event = lec.141
+		}
+
+		trigger = {
+			check_variable = { global.legations_yes_votes > global.legations_no_votes }
+			check_variable = { global.legations_yes_votes > 0 }
+		}
+	}
+	option = {	#Denied!
+		name = lec.140.b
+		add_political_power = -75
+		clear_variable = global.legations_yes_votes
+		clear_variable = global.legations_no_votes
+		clear_variable = global.legations_abstain_votes
+		clr_global_flag = LEC_conscription_vote
+		clr_global_flag = legation_vote_ongoing
+		for_each_scope_loop = {
+			array = global.LEC_voters
+			clr_country_flag = LEC_we_voted_this_time
+			country_event = lec.27
+		}
+		trigger = {
+			NOT = {
+				check_variable = { global.legations_yes_votes > global.legations_no_votes }
+			}
+		}
+	}
+}
+
+country_event = { #The expats protest
+	id = lec.141
+	immediate = { log = "[GetDateText]: [Root.GetName]: event lec.141 FROM = [From.GetName]" }
+	title = lec.141.t
+	desc = lec.141.d
+	picture = GFX_report_event_AST_protest2
+	is_triggered_only = yes
+	option = {	#too bad
+		name = lec.141.a
+		add_political_power = -15
+	}
+}
+
+country_event = { #At war with LEC
+	id = lec.142
+	immediate = { log = "[GetDateText]: [Root.GetName]: event lec.142 FROM = [From.GetName]" }
+	title = lec.142.t
+	desc = lec.142.d
+	picture = GFX_report_event_generic_diplomacy4
+	trigger = {
+		OR = {
+			has_country_flag = legation_council_member
+			has_country_flag = legation_council_vote
+		}
+	}
+	is_triggered_only = yes
+	option = {	#ehhh whatever
+		name = lec.142.a
+		add_political_power = -5
+		if = {
+			limit = { is_in_array = { global.LEC_voters = ROOT } }
+			remove_from_array = { global.LEC_voters = ROOT }
+		}
+		if = {
+			limit = { has_country_flag = legation_council_member }
+			clr_country_flag = legation_council_member
+		}
+		if = {
+			limit = { has_country_flag = legation_council_vote }
+			clr_country_flag = legation_council_vote
+		}
+		if = {
+			limit = { has_idea = LEC_generic_open_door }
+			remove_ideas = { LEC_generic_open_door }
+		}
+		if = {
+			limit = { has_idea = LEC_better_open_door }
+			remove_ideas = { LEC_better_open_door }
+		}
+		if = {
+			limit = { has_idea = LEC_USA_open_door }
+			remove_ideas = { LEC_USA_open_door }
+		}
+		if = {
+			limit = { has_idea = LEC_GER_open_door }
+			remove_ideas = { LEC_GER_open_door }
+		}
+	}
+}
+
+country_event = { #Volunteer force abolition
+	id = lec.143
+	immediate = { log = "[GetDateText]: [Root.GetName]: event lec.143 FROM = [From.GetName]" }
+	title = lec.143.t
+	desc = lec.143.d
+	picture = GFX_report_event_LEC_shanghai_police_patrol
+	is_triggered_only = yes
+	option = {	#abolish it
+		name = lec.143.a
+		ai_chance = {
+			factor = 15
+		}
+		add_political_power = -25
+		lec_chinese_rise = yes
+		custom_effect_tooltip = LEC_can_conscript
+		if = {
+			limit = {
+				has_country_flag = cannot_have_extensive_conscription
+			}
+			clr_country_flag = cannot_have_extensive_conscription
+		}
+		if = {
+			limit = {
+				has_country_flag = cannot_have_conscription
+			}
+			clr_country_flag = cannot_have_conscription
+		}
+		if = {
+			limit = {
+				has_idea = LEC_volunteer_force_glorious
+			}
+			swap_ideas = {
+				add_idea = LEC_volunteer_force
+				remove_idea = LEC_volunteer_force_glorious
+			}
+		}
+		if = {
+			limit = {
+				has_idea = LEC_volunteer_force_expanded
+			}
+			swap_ideas = {
+				add_idea = LEC_volunteer_force
+				remove_idea = LEC_volunteer_force_expanded
+			}
+		}
+		if = {
+			limit = {
+				has_completed_focus = LEC_expanding_the_volunteers
+			}
+			complete_national_focus = LEC_establish_chinese_militia
+		}
+	}
+	option = {	#don't abolish it
+		name = lec.143.b
+		ai_chance = {
+			factor = 1
+		}
+		add_political_power = 25
+		lec_german_rise = yes
+		add_manpower = 15000
+	}
+}
+
+country_event = { #Shanghai tries to join China - Japan
+	id = lec.144
+	immediate = { log = "[GetDateText]: [Root.GetName]: event lec.144 FROM = [From.GetName]" }
+	title = lec.144.t
+	desc = lec.144.d
+	picture = GFX_report_event_LEC_shanghai_river
+	is_triggered_only = yes
+	option = {	#ok
+		name = lec.144.a
+		ai_chance = {
+			factor = 15
+		}
+		FNG = {
+			country_event = { id = lec.145 days = 2 }
+		}
+	}
+	option = {	#no
+		name = lec.144.b
+		ai_chance = {
+			factor = 1
+		}
+		add_political_power = -15
+		LEC = {
+			country_event = { id = lec.147 days = 2 }
+		}
+		FNG = {
+			country_event = { id = lec.147 days = 2 }
+		}
+	}
+}
+
+country_event = { #Shanghai tries to join China - FNG
+	id = lec.145
+	immediate = { log = "[GetDateText]: [Root.GetName]: event lec.145 FROM = [From.GetName]" }
+	title = lec.145.t
+	desc = lec.145.d
+	picture = GFX_report_event_LEC_shanghai_river
+	is_triggered_only = yes
+	option = {	#ok
+		name = lec.145.a
+		ai_chance = {
+			factor = 99
+		}
+		LEC = {
+			country_event = lec.146
+		}
+	}
+	option = {	#no
+		name = lec.145.b
+		ai_chance = {
+			factor = 1
+		}
+		add_political_power = -45
+		hidden_effect = {
+			LEC = {
+				country_event = { id = lec.147 days = 2 }
+			}
+		}
+	}
+}
+
+country_event = { #Shanghai tries to join China - LEC
+	id = lec.146
+	immediate = { log = "[GetDateText]: [Root.GetName]: event lec.146 FROM = [From.GetName]" }
+	title = lec.146.t
+	desc = lec.146.d
+	picture = GFX_report_event_LEC_shanghai_river
+	is_triggered_only = yes
+	option = {	#ok
+		name = lec.146.a
+		if = {
+			limit = {
+				FNG = {
+					is_subject = yes
+				}
+			}
+			FNG = {
+				annex_country = { target = LEC }
+			}
+		}
+		else = {
+			LEC = { get_current_government_type = yes }
+			FNG = {
+				puppet = LEC
+			}
+			LEC = {
+				restore_previous_government_type = yes
+			}
+			add_to_array = { global.china_tags_array = LEC }
+		}
+	}
+}
+
+country_event = { #Shanghai tries to join China and gets denied - LEC
+	id = lec.147
+	immediate = { log = "[GetDateText]: [Root.GetName]: event lec.147 FROM = [From.GetName]" }
+	title = lec.147.t
+	desc = lec.147.d
+	picture = GFX_report_event_LEC_shanghai_river
+	is_triggered_only = yes
+	option = {	#ok
+		name = lec.146.a
+		add_political_power = -250
+	}
+}
+
+country_event = { #The Shanghai Drama
+	id = lec.148
+	immediate = { log = "[GetDateText]: [Root.GetName]: event lec.148 FROM = [From.GetName]" }
+	title = lec.148.t
+	desc = lec.148.d
+	picture = GFX_report_event_LEC_shanghai_river
+	is_triggered_only = yes
+	option = {	#ok
+		name = lec.148.a
+		add_political_power = 5
+	}
+}
+
+country_event = { #Noodles
+	id = lec.149
+	immediate = { log = "[GetDateText]: [Root.GetName]: event lec.149 FROM = [From.GetName]" }
+	title = lec.149.t
+	desc = lec.149.d
+	picture = GFX_report_event_SQI_yiguandao_women
+	is_triggered_only = yes
+	option = {	#ok
+		name = lec.149.a
+		add_political_power = 5
+	}
+}
 
 country_event = { #The Green Gang clashes with the Hong Kong triads
 	id = lecgreengangclash.1
@@ -10485,6 +11422,25 @@ country_event = { # LEC - FNG ends tribute to us for Tianjin
 	}
 }
 
+country_event = { #Arms shipments pass
+	id = lectianjap.37
+	immediate = { log = "[GetDateText]: [Root.GetName]: event lectianjap.37 FROM = [From.GetName]" }
+	title = lectianjap.37.t
+	desc = lectianjap.37.d
+	fire_only_once = yes
+	picture = GFX_report_event_CHI_interruption
+	is_triggered_only = yes
+
+	option = {
+		name = lectianjap.37.a
+
+		add_timed_idea = {
+			idea = LEC_japanese_up
+			days = 25
+		}
+	}
+}
+
 country_event = { #Skirmish at the Japanese Consulate
 	id = lecjapfeud.1
 	immediate = { log = "[GetDateText]: [Root.GetName]: event lecjapfeud.1" }
@@ -12228,5 +13184,71 @@ country_event = {
 	option = {
 		name = legcities.99.a
        add_political_power = 20
+	}
+}
+
+country_event = {
+	id = legcities.100
+	immediate = {log = "[GetDateText]: [Root.GetName]: event legcities.100"}
+	title = legcities.100.t
+	desc = legcities.100.d
+	picture = GFX_report_event_LEC_triad_china
+	
+	fire_only_once = yes
+	
+	trigger = {
+		tag = LEC
+		has_cosmetic_tag = LEC_china_triad
+	}
+
+	option = {
+		name = legcities.100.a
+       add_political_power = 20
+	   hidden_effect = {
+			country_event = {
+				id = legcities.101
+				days = 10
+			}
+			every_owned_state = {
+				LEC = { 
+					add_state_core = PREV 
+				}
+			}		
+		}
+		
+			
+	}
+}
+
+country_event = {
+	id = legcities.101
+	immediate = {log = "[GetDateText]: [Root.GetName]: event legcities.101"}
+	title = legcities.101.t
+	desc = legcities.101.d
+	picture = GFX_report_event_LEC_ming_restoration
+	
+	is_triggered_only = yes
+
+	option = {
+		name = legcities.101.a
+       add_political_power = 20
+	}
+	
+	option = {
+		name = legcities.101.b
+		create_country_leader = {
+			name = "Hóngwu"
+			desc = "POLITICS_HONGWU_DESC"
+			picture = "Portrait_LEC_Hongwu.tga"
+			expire = "1965.1.1"
+			ideology = paternal_autocrat_subtype
+		}
+		set_cosmetic_tag = LEC_MING
+		set_party_name = {
+			ideology = paternal_autocrat
+			long_name = LEC_triad_ming_paternal_autocrat_party_long
+			name = LEC_triad_ming_paternal_autocrat_party
+		}
+		set_capital = 608
 	}
 }
