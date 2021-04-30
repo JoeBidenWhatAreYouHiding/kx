@@ -4887,6 +4887,96 @@ country_event = {
 		name = mon_khan.4.a
 	}
 }
+
+country_event = {#release rebellious FNG
+	id = mon_khan.5
+	title = mon_khan.5.t
+	desc = mon_khan.5.d
+	mean_time_to_happen = { days = 1 }
+	fire_only_once = yes
+	hidden = yes
+	trigger = {
+		tag = MON
+		any_owned_state = {
+			OR = {
+				is_core_of = FNG
+				is_core_of = QIE
+			}
+		}
+		JAP = {
+			any_owned_state = {
+				OR = {
+					is_core_of = FNG
+					is_core_of = QIE
+				}
+			}
+		}
+		NOT = { country_exists = FNG }
+		has_global_flag = MON_new_proposal
+		has_global_flag = MON_fengtian_rebellion
+	}
+	
+	option = {
+		name = mon_khan.5.a
+		every_owned_state = {
+			limit = {
+				AND = {
+					OR = {
+						is_claimed_by = FNG
+						is_claimed_by = QIE
+						is_core_of = FNG
+						is_core_of = QIE
+					}
+					is_not_claim_or_core_of_ROOT = yes
+				}
+			}
+			JAP = {
+				transfer_state = PREV
+			}
+		}
+		JAP = {
+			every_owned_state = {
+				limit = {
+					is_controlled_chinese_region = yes
+					is_not_claim_or_core_of_ROOT = yes
+				}
+				FNG = {
+					transfer_state = PREV
+				}
+			}
+			set_temp_variable = { tag_to_release = FNG }
+			puppet_released_tag = yes
+			set_autonomy = {
+				target = FNG
+				autonomy_state = kr_special_autonomous_dependency
+			}
+			FNG = {
+				set_cosmetic_tag = FNG_JAP
+				set_global_flag = FNG_projapan
+				create_country_leader = {
+					name = "Tang Shaoyi"
+					desc = "POLITICS_YANG_YUTING_ARMY_DESC"
+					picture = "gfx/leaders/FNG/Portrait_FNG_Tang_Shaoyi.tga"
+					expire = "1965.1.1"
+					ideology = market_liberal_subtype
+				}
+				set_politics = {
+					ruling_party = market_liberal
+					elections_allowed = no
+				}
+				add_popularity = {
+					ideology = market_liberal
+					popularity = 0.4
+				}
+				clr_country_flag = FNG_communications_clique_active
+				clr_country_flag = FNG_recovery_league_active
+				clr_country_flag = FNG_zhang_clique_active
+				FNG_recalculate_mantetsu_effects = yes
+			}
+		}
+	}
+}
+
 # A mongol envoy arrives(Qing)
 country_event = {
 	id = mon_khan.6
@@ -5551,9 +5641,6 @@ country_event = {
 	
 	option = {
 		name = mon_khan.17.e
-		trigger = {
-			always = no
-		}
 		ai_chance = {
 			factor = 25
 			modifier = {
@@ -5907,6 +5994,9 @@ country_event = { #Fengtian ultimatum
 	
 	option = {#-20 social credit!
 		name = mon_khan.24.a
+		trigger = {
+			has_global_flag = MON_new_proposal
+		}
 		ai_chance = { factor = 100 }
 		add_stability = -0.20
 		set_cosmetic_tag = FNG_JAP
@@ -5963,15 +6053,90 @@ country_event = { #Fengtian ultimatum
 		}
 	}
 	
-	option = { #ree
+	option = {#annexation into the ally
 		name = mon_khan.24.b
+		trigger = {
+			OR = {
+				has_global_flag = MON_yuan_proposal
+				has_global_flag = MON_yiguandao_proposal
+				has_global_flag = MON_qing_proposal
+			}
+		}
+		ai_chance = { factor = 100 }
+		if = {
+			limit = {
+				has_global_flag = MON_yuan_proposal
+			}   
+			MON = {
+				annex_country = {
+					target = FNG
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				has_global_flag = MON_yiguandao_proposal
+			}   
+			SQI = {
+				annex_country = {
+					target = FNG
+					transfer_troops = yes
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				has_global_flag = MON_qing_proposal
+			}   
+			QIE = {
+				annex_country = {
+					target = FNG
+					transfer_troops = yes
+				}
+			}
+		}
+	}
+	
+	option = { #ree
+		name = mon_khan.24.c
+		trigger = {
+			NOT = {
+				OR = {
+					is_subject_of = MON
+					is_subject_of = JAP
+				}
+			}
+		}
 		ai_chance = { factor = 0 }
-		add_war_support = 0.15
+		set_global_flag = MON_fengtian_rebellion
+		add_war_support = 0.25
 		add_political_power = 100
 		MON = {
 			declare_war_on = {
 				target = FNG
 				type = annex_everything
+			}
+		}
+		if = {
+			limit = {
+				has_global_flag = MON_yiguandao_proposal
+			}   
+			SQI = {
+				declare_war_on = {
+					target = FNG
+					transfer_troops = yes
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				has_global_flag = MON_qing_proposal
+			}   
+			QIE = {
+				declare_war_on = {
+					target = FNG
+					transfer_troops = yes
+				}
 			}
 		}
 	}
@@ -6196,9 +6361,6 @@ country_event = { # Ungern prepares to confess to his Nipponese waifu
 				}			
 			}
 		}
-		trigger = {
-			always = no
-		}
 		set_global_flag = MON_qing_proposal
 		hidden_effect = {
 			JAP = {
@@ -6267,6 +6429,30 @@ country_event = { # Ungern goes on a date with his nipponese waifu
 
 	option = {#Weeb ungern was accepted :peepohappy:
 		name = mon_khan_conference.2.a
+		if = {
+			limit = {
+				has_global_flag = MON_yuan_proposal
+			}
+			custom_effect_tooltip = mon_khan_conference_yuan_proposal_tt
+		}
+		if = {
+			limit = {
+				has_global_flag = MON_yiguandao_proposal
+			}
+			custom_effect_tooltip = mon_khan_conference_yiguandao_proposal_tt
+		}
+		if = {
+			limit = {
+				has_global_flag = MON_qing_proposal
+			}
+			custom_effect_tooltip = mon_khan_conference_qing_proposal_tt
+		}
+		if = {
+			limit = {
+				has_global_flag = MON_new_proposal
+			}
+			custom_effect_tooltip = mon_khan_conference_new_proposal_tt
+		}
 		MON = {
 			country_event = {
 				id = mon_khan_conference.3
@@ -6369,7 +6555,6 @@ country_event = { # Ungern's date is sidetracked by his nipponese waifu
 	option = {
 		name = mon_khan_conference.4.c
 		trigger = {
-			always = no
 			NOT = { has_global_flag = MON_qing_proposal }
 		}
 		clr_global_flag = MON_yuan_proposal
@@ -6412,6 +6597,30 @@ country_event = { # Ungern is confessed to by his nipponese waifu
 
 	option = {#Weeb ungern accepts :peepohappy:
 		name = mon_khan_conference.5.a
+		if = {
+			limit = {
+				has_global_flag = MON_yuan_proposal
+			}
+			custom_effect_tooltip = mon_khan_conference_yuan_proposal_tt
+		}
+		if = {
+			limit = {
+				has_global_flag = MON_yiguandao_proposal
+			}
+			custom_effect_tooltip = mon_khan_conference_yiguandao_proposal_tt
+		}
+		if = {
+			limit = {
+				has_global_flag = MON_qing_proposal
+			}
+			custom_effect_tooltip = mon_khan_conference_qing_proposal_tt
+		}
+		if = {
+			limit = {
+				has_global_flag = MON_new_proposal
+			}
+			custom_effect_tooltip = mon_khan_conference_new_proposal_tt
+		}
 		set_global_flag = MON_japan_brotherhood_flag
 		JAP = {
 			set_faction_name = MON_japan_brotherhood
