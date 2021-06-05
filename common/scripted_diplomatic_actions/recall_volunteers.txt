@@ -1,0 +1,76 @@
+## ROOT is the diplomatic action initiator
+## FROM is the target
+## Default scope is FROM
+
+scripted_diplomatic_actions = {
+	recall_volunteers = {
+		allowed = { always = yes }
+		visible = {
+			has_volunteers_amount_from = { tag = ROOT count > 0 }
+		}
+
+		cost = 0
+		requires_acceptance = no
+		send_description = RECALL_VOLUNTEERS_ACTION_SEND_DESC
+
+		complete_effect = {
+			if = {
+				limit = {
+					ROOT = { is_ai = no }
+				}
+				log = "[ROOT.GetName] is recalling volunteers from [FROM.GetName] due to player choice"
+			}
+			else_if = {
+				limit = {
+					OR = {
+						AND = {
+							has_socialist_government = yes
+							ROOT = { has_socialist_government = no }
+						}
+						AND = {
+							has_socialist_government = no
+							ROOT = { has_socialist_government = yes }
+						}
+					}
+				}
+				log = "[ROOT.GetName] is recalling volunteers from [FROM.GetName] due to a socialist government change"
+			}
+			else_if = {
+				limit = {
+					ROOT = { has_country_flag = imminent_war }
+				}
+				log = "[ROOT.GetName] is recalling volunteers from [FROM.GetName] due to an imminent war"
+			}
+			else = {
+				log = "[ROOT.GetName] is recalling volunteers from [FROM.GetName] due to an ongoing justification or wargoal"
+			}
+			ROOT = {
+				recall_volunteers_from = PREV
+				clear_volunteers_to_PREV = yes
+			}
+		}
+
+		ai_desire = {
+			base = 0
+			modifier = {
+				add = 1000
+				has_socialist_government = yes
+				ROOT = { has_socialist_government = no }
+			}
+			modifier = {
+				add = 1000
+				has_socialist_government = no
+				ROOT = { has_socialist_government = yes }
+			}
+			modifier = {
+				add = 1000
+				ROOT = { has_country_flag = imminent_war }
+			}
+			modifier = {
+				add = 1000
+				ROOT = { has_variable = potential_and_current_enemies^num } #is justifying/being justified against
+			}
+		}
+	}
+}
+
