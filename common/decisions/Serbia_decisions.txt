@@ -1,86 +1,260 @@
-SER_resource_decisions = {
-        
-    SER_oil = {
+SER_Economic_Development_decisions = {
+	SER_Rural_Credit_Grants = {
+		icon = generic_agriculture
+
+		available = {
+			num_of_civilian_factories_available_for_projects > 2
+		}
+
+		visible = {
+			owns_state = FROM
+			FROM = { is_core_of = ROOT }
+			has_completed_focus = SER_Rural_Credit_Banks
+		}
+
+		cost = 40
+		days_remove = 90
+		fire_only_once = yes
+
+		state_target = yes
+		target_array = core_states
+		target_root_trigger = { has_completed_focus = SER_Rural_Credit_Banks }
+		target_trigger = {
+			FROM = { is_core_of = ROOT }
+		}
+
+		modifier = {
+			civilian_factory_use = 3
+		}
+
+		ai_will_do = {
+			factor = 5
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove SER_Rural_Credit_Grants target: [From.GetName]"
+			FROM = {
+				if = {
+					limit = { has_state_category = three }
+					set_state_category = four
+				}
+				else = {
+					add_extra_state_shared_building_slots = 1
+				}
+			}
+		}
+	}
+}
+
+foreign_politics = {
+	SER_Purchase_HMS_Lion = {
+		icon = generic_agriculture
+
+		allowed = { tag = SER }
+
+		available = {
+			has_war = no
+			any_owned_state = {
+				is_coastal = yes
+				is_controlled_by = ROOT
+			}
+		}
+
+		visible = {
+			has_completed_focus = SER_Shipbuilding_Investments
+			country_exists = ENT
+			ENT = {
+				is_subject = no
+				NOT = { has_war_with = ROOT }
+			}
+		}
+
+		cost = 60
+		days_remove = 60
+		fire_only_once = yes
+
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0
+				has_political_power < 120
+			}
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision SER_Purchase_HMS_Lion"
+			ENT = {
+				country_event = { id = serbia.55 days = 5 }
+			}
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove SER_Purchase_HMS_Lion"
+			custom_effect_tooltip = SER_if_ENT_agrees
+			hidden_effect = { SER_EVENT_BB01_naval_variant = yes }
+			create_ship = {
+				name = "KB Lav" # HMS Lion
+				type = ship_hull_heavy_1
+				equipment_variant = "Lion Class"
+				creator = SER
+			}
+		}
+	}
+	SER_Join_The_Entente = {
+		name = SER_Join_Faction
+		icon = eng_trade_unions_support
+
 		allowed = {
 			tag = SER
 		}
 
 		available = {
-			is_subject = no
-			owns_state = 45
-			owns_state = 875
+			at_peace_or_same_enemies_as_FROM = yes
+			NOT = { has_country_flag = SER_diplomatic_action }
 		}
 
 		visible = {
-			tag = SER
-	        owns_state = 45
-			owns_state = 875
+			is_valid_peace_target = yes
+			owns_state = 45 #Vojvodina
+			FROM = {
+				is_faction_leader = yes
+				NOT = { has_war_with = ROOT }
+			}
 		}
 
-		cost = 150
-		days_remove = 90
+		targets = { ENT }
+		target_root_trigger = {
+			owns_state = 45 #Vojvodina
+		}
+		target_trigger = {
+			FROM = {
+				is_faction_leader = yes
+				NOT = { has_war_with = ROOT }
+			}
+		}
+
+		cost = 0
+		days_remove = 7
 		fire_only_once = yes
-        
-        ai_will_do = {
-			factor = 10
-        }
-        complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision SER_oil"	
-            add_resource = { type = oil amount = 8 state = 45 }
-            add_resource = { type = oil amount = 8 state = 875 }				
-		}	
+
+		ai_will_do = {
+			base = 100
+			modifier = {
+				factor = 0
+				NOT = {
+					country_exists = GBR
+					var:126.controller = { is_in_faction_with = FROM } #London
+					var:16.controller = { is_in_faction_with = FROM } #Paris
+					var:21.controller = { is_in_faction_with = FROM } #Marseille
+				}
+			}
+			modifier = {
+				factor = 0
+				has_country_flag = SER_keeping_the_pact
+				NOT = { ROM = { has_idea = ROM_Alexandru_Cantacuzino_hog_npo } }
+			}
+			modifier = {
+				factor = 0
+				FROM = { surrender_progress > 0.20 }
+			}
+			modifier = {
+				factor = 0
+				any_neighbor_country = { is_in_faction_with = GER }
+				FROM = { has_war_with = GER }
+			}
+			modifier = {
+				factor = 0
+				has_elected_government = yes
+				FROM = { has_authoritarian_government = yes }
+			}
+			modifier = {
+				factor = 0.01
+				has_completed_focus = SER_The_Vojvoda_Stands_Tall
+			}
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision SER_Join_The_Entente target: [From.GetName]"
+			set_country_flag = { flag = SER_diplomatic_action days = 10 value = 1 }
+			FROM = {
+				country_event = { id = serbia.38 days = 3 }
+			}
+			clr_country_flag = SER_keeping_the_pact
+		}
 	}
-	SER_steel_macedonia = {
+	SER_Join_Russia = {
+		name = SER_Join_Faction
+		icon = eng_trade_unions_support
+
 		allowed = {
 			tag = SER
 		}
 
 		available = {
-			is_subject = no
-			owns_state = 106
+			at_peace_or_same_enemies_as_FROM = yes
+			NOT = { has_country_flag = SER_diplomatic_action }
 		}
 
 		visible = {
-			tag = SER
-			owns_state = 106
+			is_valid_peace_target = yes
+			OR = {
+				is_in_faction = no
+				is_in_belgrade_pact = yes
+			}
+			owns_state = 45 #Vojvodina
+			FROM = {
+				is_faction_leader = yes
+				NOT = { has_war_with = ROOT }
+			}
 		}
 
-		cost = 150
-		days_remove = 90
+		targets = { RUS }
+		target_root_trigger = {
+			owns_state = 45 #Vojvodina
+		}
+		target_trigger = {
+			FROM = {
+				is_faction_leader = yes
+				NOT = { has_war_with = ROOT }
+			}
+		}
+
+		cost = 0
+		days_remove = 7
 		fire_only_once = yes
-        
-        ai_will_do = {
-			factor = 10
-        }
-        complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision SER_steel_macedonia"	
-            add_resource = { type = steel amount = 16 state = 106 }			
-		}	
+
+		ai_will_do = {
+			base = 100
+			modifier = {
+				factor = 0
+				FROM = { surrender_progress > 0.20 }
+			}
+			modifier = {
+				factor = 0
+				has_elected_government = yes
+				FROM = { has_authoritarian_government = yes }
+			}
+			modifier = {
+				factor = 0
+				has_country_flag = SER_keeping_the_pact
+				NOT = { ROM = { has_idea = ROM_Alexandru_Cantacuzino_hog_npo } }
+			}
+			modifier = {
+				factor = 0.01
+				has_completed_focus = SER_Return_Of_The_Crown_Prince
+			}
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision SER_Join_Russia target: [From.GetName]"
+			set_country_flag = { flag = SER_diplomatic_action days = 10 value = 1 }
+			FROM = {
+				country_event = { id = serbia.38 days = 3 }
+			}
+			clr_country_flag = SER_keeping_the_pact
+		}
 	}
-	SER_steel_bosnia = {
-		allowed = {
-			tag = SER
-		}
+}
 
-		available = {
-			is_subject = no
-			owns_state = 104
-		}
 
-		visible = {
-			tag = SER
-			owns_state = 104
-		}
 
-		cost = 150
-		days_remove = 90
-		fire_only_once = yes
-        
-        ai_will_do = {
-			factor = 10
-        }
-        complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision SER_steel_bosnia"	
-            add_resource = { type = steel amount = 20 state = 104 }			
-		}	
-	}
