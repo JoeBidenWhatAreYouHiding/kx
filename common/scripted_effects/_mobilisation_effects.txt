@@ -145,138 +145,76 @@ disband_twenty_percent_units = {
 }
 
 calculate_maximum_divisions = {
-	### calculate base values - population and total factory count
-	clear_variable = non_core_base
-	set_variable = { base_units = 0 }
-	set_variable = { base_states = num_owned_states }
-	set_temp_variable = { factory_points = 0 }
-	set_temp_variable = { mils = 0 }
-	every_owned_state = {
+	# base upper division limit = number of factories
+	set_variable = { net_factory_count = num_of_factories } #NOTE: doing this separately for the player-facing tooltip
+	set_variable = { max_divisions = net_factory_count }
+	
+	# base lower division limit is either max manpower/35 (for countries with very high manpower but low factories)
+	# or the number of owned states or 5, whichever of the three numbers is higher
+	set_variable = { lower_limit_from_manpower = max_available_manpower_k }
+	divide_variable = { lower_limit_from_manpower = 35 }
+	round_variable = lower_limit_from_manpower
+	set_variable = { lower_limit_from_states = num_owned_states }
+	
+	set_variable = { lower_limit = lower_limit_from_manpower }
+	clamp_variable = {
+		var = lower_limit
+		min = lower_limit_from_states
+		max = 1000
+	}
+	clamp_variable = {
+		var = lower_limit
+		min = 5
+		max = 1000
+	}
+	
+	# +15% for majors
+	if = {
+		limit = { is_major = yes }
+		multiply_variable = { max_divisions = 1.15 }
+	}
+	# +15% for ACW factions
+	if = {
+		limit = { ACW_in_progress = yes }
+		multiply_variable = { max_divisions = 1.20 }
+	}
+	# +5% if WT is 70% or higher
 		if = {
-			limit = { is_core_of = ROOT }
-			add_to_variable = { ROOT.base_units = state_population_k }
-		}
-		else = {
-			add_to_variable = { ROOT.non_core_base = state_population_k }
-		}
-		add_to_temp_variable = { factory_points = industrial_complex_level }
-		add_to_temp_variable = { factory_points = building_level@dockyard }
-		add_to_temp_variable = { mils = arms_factory_level }
-	}
-	multiply_temp_variable = { mils = 1.5 } #mils are worth 1.5x as much as civs/navs
-	add_to_temp_variable = { factory_points = mils }
-
-	### unique exception - Austria gets the Empire's total population
-	if = {
-		limit = { tag = AUS }
-		if = {
-			limit = {
-				any_of_scopes = {
-					array = subjects
-					has_autonomy_state = kr_crownland
-				}
-			}
-			set_variable = { crownland_states = 0 }
-			set_variable = { crownland_base_units = 0 }
-			set_temp_variable = { crownland_mils = 0 }
-			set_temp_variable = { crownland_mils = 0 }
-			every_other_country = {
-				limit = { has_autonomy_state = kr_crownland }
-				every_owned_state = {
-					if = {
-						limit = { is_core_of = PREV }
-						add_to_variable = { ROOT.crownland_base_units = state_population_k }
-					}
-					else = {
-						add_to_variable = { ROOT.non_core_base = state_population_k }
-					}
-					add_to_temp_variable = { crownland_factory_points = industrial_complex_level }
-					add_to_temp_variable = { crownland_factory_points = building_level@dockyard }
-					add_to_temp_variable = { crownland_mils = arms_factory_level }
-				}
-				add_to_variable = { ROOT.crownland_states = num_owned_states }
-			}
-			add_to_variable = { base_states = crownland_states }
-			add_to_variable = { base_units = crownland_base_units }
-			divide_variable = { crownland_base_units = 1000 } #for the tooltip
-
-			multiply_variable = { crownland_mils = 1.5 } #mils are worth 1.5x as much as civs/navs
-			add_to_temp_variable = { crownland_factory_points = crownland_mils }
-			add_to_temp_variable = { factory_points = crownland_factory_points }
-		}
-		else = {
-			clear_variable = crownland_states
-			clear_variable = crownland_base_units
-		}
-	}
-
-	# non-cores only give 10% of the population
-	if = {
-		limit = { has_variable = non_core_base }
-		divide_variable = { non_core_base = 10 }
-		add_to_variable = { base_units = non_core_base }
-		divide_variable = { non_core_base = 1000 } #for the tooltip
-	}
-
-	# base unit count = population / 1000
-	divide_variable = { base_units = 1000 }
-	set_variable = { base_population = base_units } #for the tooltip
-	add_to_variable = { base_units = base_states }
-
-	# calculate the modifier -- 1 + [ ( industry - population ) / ( industry + population ) ]
-	set_variable = { divisor = factory_points }
-	add_to_variable = { divisor = base_units }
-
-	set_variable = { industry_factor = factory_points }
-	subtract_from_variable = { industry_factor = base_units }
-	divide_variable = { industry_factor = divisor }
-	add_to_variable = { industry_factor = 1 }
-
-	# minimum modifier -- x0.5
-	clamp_variable = { var = industry_factor min = 0.5 }
-
-	set_variable = { max_divisions = base_units }
-	multiply_variable = { max_divisions = industry_factor }
-
-	# +15% for faction leaders
-	if = {
+		limit = { threat > 0.69 }
+		multiply_variable = { max_divisions = 1.05 }
 		limit = { is_faction_leader = yes }
 		multiply_variable = { max_divisions = 1.15 }
 	}
+
+	# the upper and lower limit is then adjusted according to the economy law, overriding the base
+	set_variable = { upper_limit_from_factory_mult = modifier@unit_limit_factory_bonus }
+	multiply_variable = { upper_limit_from_factory_mult = 100 }
+
 	# +10% per economy law level above civilian economy
 	set_temp_variable = { economy_mult = 1 }
 	add_to_temp_variable = { economy_mult = modifier@unit_limit_factory_bonus }
 	multiply_variable = { max_divisions = economy_mult }
 
-	# the lower limit is the number of owned states or 5, whichever is higher
-	set_variable = { lower_limit = num_owned_states }
-	clamp_variable = {
-		var = lower_limit
-		min = 5
-		max = 500
-	}
-
-	# apply the lower limit
 	set_variable = { net_max_divisions = max_divisions }
 	round_variable = net_max_divisions
-	clamp_variable = {
-		var = max_divisions
-		min = lower_limit
-		max = 500
+	set_variable = { upper_limit = modifier@unit_limit_max }
+	if = {
+		limit = { check_variable = { lower_limit > upper_limit } }
+		set_variable = { max_divisions = upper_limit }
+	}
+	else = {
+		clamp_variable = {
+			var = max_divisions
+			min = lower_limit
+			max = upper_limit
+		}
 	}
 
 	# add any specific bonuses to the limit
-	set_variable = { additional_unit_limit = modifier@unit_limit_bonus }
-	add_to_variable = { max_divisions = additional_unit_limit }
+	set_variable = { upper_limit_unit_bonus = modifier@unit_limit_bonus }
+	add_to_variable = { max_divisions = upper_limit_unit_bonus }
 
 	round_variable = max_divisions
-}
-
-calculate_actual_division_number = {
-	set_variable = { num_actual_divisions = num_divisions }
-	subtract_from_variable = { num_actual_divisions = num_fake_intel_divisions }
-	subtract_from_variable = { num_actual_divisions = num_expeditionary_divisions_received }
-	add_to_variable = { num_actual_divisions = num_expeditionary_divisions_sent }
 }
 
 calculate_mobilisation_penalty = {
