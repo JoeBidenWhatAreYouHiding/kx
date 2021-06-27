@@ -879,6 +879,11 @@ country_event = { #Replace HOS - JAP event
 					paternal_autocrat = 41
 					national_populist = 3
 				}
+				set_party_name = {
+					ideology = paternal_autocrat
+					long_name = TRM_semyonov_party_long
+					name = TRM_semyonov_party
+				}
 			}
 			set_country_flag = TRM_Semyonov_Coup
 			country_event = tram.50
@@ -1670,7 +1675,21 @@ country_event = {
 ###Anti-Kolchak Coup###
 country_event = {
 	id = tram.80
-	immediate = { log = "[GetDateText]: [Root.GetName]: event tram.80" }
+	immediate = { 
+		log = "[GetDateText]: [Root.GetName]: event tram.80"
+		#game rule ai cheat
+		if = {
+			limit = {
+				has_game_rule = {
+					rule = TRM_path
+					option = RULE_OPTION_TRM_KOLCHAK_SECURES_POWER
+				}
+				is_ai = yes
+				check_variable = { TRM_Overall_Kolchak_Support < 0.3 }
+			}
+			add_to_variable = { TRM_Overall_Kolchak_Support = 0.1 }
+		}
+	}
 	title = tram.80.t
 	desc = tram.80.d
 	is_triggered_only = yes
@@ -1888,36 +1907,10 @@ country_event = {
 		ai_chance = {
 			factor = 10
 			modifier = {
-				factor = 0
-				OR = {
-					has_game_rule = {
-						rule = TRM_path 
-						option = RULE_OPTION_TRM_KOLCHAK_SECURES_POWER
-					}
-					has_game_rule = {
-						rule = TRM_path 
-						option = RULE_OPTION_TRM_MONARCHY
-					}
-					has_game_rule = {
-						rule = TRM_path 
-						option = RULE_OPTION_TRM_NEW_MILITARY_CABINET
-					}
-					has_game_rule = {
-						rule = TRM_path 
-						option = RULE_OPTION_TRM_MORYAKI_IN_POWER
-					}
-					has_game_rule = {
-						rule = TRM_path 
-						option = RULE_OPTION_TRM_OBLASTNIKI
-					}
-					has_game_rule = {
-						rule = TRM_path 
-						option = RULE_OPTION_TRM_YUI
-					}
-					has_game_rule = {
-						rule = TRM_path 
-						option = RULE_OPTION_TRM_MLADOROSSI
-					}
+				factor = 100
+				has_game_rule = {
+					rule = TRM_path 
+					option = RULE_OPTION_TRM_SEMYONOV
 				}
 			}
 		}
@@ -6664,6 +6657,20 @@ country_event = { #Unrest in Chita
 					option = RULE_OPTION_TRM_MLADOROSSI
 				}
 			}
+			modifier = {
+			factor = 10000
+				has_game_rule = {
+					rule = YAK_independece_path 
+					option = RULE_OPTION_TRM_YAKUTIA
+				}
+			}
+			modifier = {
+			factor = 10000
+				has_game_rule = {
+					rule = TRM_path 
+					option = RULE_OPTION_TRM_CW
+				}
+			}
 		}
 		add_stability = 0.1
 		add_political_power = -150
@@ -6719,6 +6726,7 @@ country_event = { #Unrest in Chita
 			}
 		}
 		TRM_clamp_spheres_of_influence = yes
+		TRM_recalculate_kolchak_variables = yes
 	}
 	option = {
 		name = trmnra.1.b
@@ -8237,6 +8245,91 @@ country_event = {
 		}
 	}
 }
+country_event = {
+	id = trmnra.102
+	immediate = { log = "[GetDateText]: [Root.GetName]: event trmnra.102" }
+	title = trmnra.102.t
+	desc = trmnra.102.d
+	trigger = {
+		tag = RUS
+		NOT = { has_war_with = SOV }
+	}
+	is_triggered_only = yes
+
+	option = { #Declare war
+		ai_chance = {
+			factor = 60
+			modifier = {
+				factor = 0.3
+				TRM = { is_ai = no }
+			}
+		}
+		name = trmnra.102.a
+		declare_war_on = {
+			target = SOV
+			type = annex_everything
+		}
+		if = {
+			limit = {
+				is_ai = no
+			}
+			add_ideas = SOV_RUS_Siberian_War_Buff
+			SOV = { add_ideas = SOV_TRM_Siberian_War_Debuff }
+		}
+		else = {
+			add_ideas = SOV_RUS_Siberian_War_Debuff
+			SOV = { add_ideas = SOV_TRM_Siberian_War_Buff }
+		}
+		hidden_effect = {
+			news_event = {
+				id = russianews.7
+				days = 1
+			}
+			random_other_country = {
+				limit = {
+					NOT = { tag = SOV }
+				}
+				news_event = {
+					id = russianews.7
+					days = 1
+				}
+			}
+		}
+	}
+
+	option = { #Wait a month
+		ai_chance = {
+			factor = 20
+		}
+		name = trmnra.101.b
+		country_event = {
+			id = trmnra.102
+			days = 30
+		}
+	}
+
+	option = { #Wait a half-year
+		ai_chance = {
+			factor = 10
+		}
+		name = trmnra.101.c
+		country_event = {
+			id = trmnra.102
+			days = 180
+		}
+	}
+
+	option = { #Wait a year
+		ai_chance = {
+			factor = 10
+		}
+		name = trmnra.101.e
+		country_event = {
+			id = trmnra.102
+			days = 365
+		}
+	}
+}
 ###Semyenov
 country_event = { #Semyenov
 	id = tramsem.1
@@ -8370,6 +8463,7 @@ country_event = { #Semyenov demands
 		}
 		TRM_recalculate_oblastniki_effects = yes
 		TRM_clamp_spheres_of_influence = yes
+		TRM_recalculate_kolchak_variables = yes
 	}
 	option = {
 		name = tramsem.3.b
@@ -8395,6 +8489,7 @@ country_event = { #Semyenov demands
 			add_to_variable = { Chita_Kolchak_Authority = -0.07 }
 		}
 		TRM_clamp_spheres_of_influence = yes
+		TRM_recalculate_kolchak_variables = yes
 	}
 }
 
@@ -9531,8 +9626,8 @@ country_event = {
 		hidden_effect = {
 			random_list = {
 				15 = { 
-					add_to_variable = { Buryatia_NRA_Authority = 0.05 }
-					add_to_variable = { Buryatia_Kolchak_Authority = -0.05 }
+					add_to_variable = { Buryatia_NRA_Authority = 0.03 }
+					add_to_variable = { Buryatia_Kolchak_Authority = -0.03 }
 					add_to_variable = { Chita_NRA_Authority = 0.01 }
 					add_to_variable = { Chita_Kolchak_Authority = -0.01 }
 					add_to_variable = { Blagoveschensk_NRA_Authority = 0.01 }
@@ -9553,8 +9648,8 @@ country_event = {
 					add_to_variable = { Magadan_Kolchak_Authority = -0.01 }
 				}
 				15 = { 
-					add_to_variable = { Chita_NRA_Authority = 0.05 }
-					add_to_variable = { Chita_Kolchak_Authority = -0.05 }
+					add_to_variable = { Chita_NRA_Authority = 0.03 }
+					add_to_variable = { Chita_Kolchak_Authority = -0.03 }
 					add_to_variable = { Buryatia_NRA_Authority = 0.01 }
 					add_to_variable = { Buryatia_Kolchak_Authority = -0.01 }
 					add_to_variable = { Blagoveschensk_NRA_Authority = 0.01 }
@@ -9575,8 +9670,8 @@ country_event = {
 					add_to_variable = { Magadan_Kolchak_Authority = -0.01 }
 				}
 				15 = { 
-					add_to_variable = { Blagoveschensk_NRA_Authority = 0.05 }
-					add_to_variable = { Blagoveschensk_Kolchak_Authority = -0.05 }
+					add_to_variable = { Blagoveschensk_NRA_Authority = 0.03 }
+					add_to_variable = { Blagoveschensk_Kolchak_Authority = -0.03 }
 					add_to_variable = { Chita_NRA_Authority = 0.01 }
 					add_to_variable = { Chita_Kolchak_Authority = -0.01 }
 					add_to_variable = { Buryatia_NRA_Authority = 0.01 }
@@ -9597,8 +9692,8 @@ country_event = {
 					add_to_variable = { Magadan_Kolchak_Authority = -0.01 }
 				}
 				13 = { 
-					add_to_variable = { Khabarovsk_NRA_Authority = 0.05 }
-					add_to_variable = { Khabarovsk_Kolchak_Authority = -0.05 }
+					add_to_variable = { Khabarovsk_NRA_Authority = 0.03 }
+					add_to_variable = { Khabarovsk_Kolchak_Authority = -0.03 }
 					add_to_variable = { Chita_NRA_Authority = 0.01 }
 					add_to_variable = { Chita_Kolchak_Authority = -0.01 }
 					add_to_variable = { Blagoveschensk_NRA_Authority = 0.01 }
@@ -9619,8 +9714,8 @@ country_event = {
 					add_to_variable = { Magadan_Kolchak_Authority = -0.01 }
 				}
 				10 = { 
-					add_to_variable = { Amur_NRA_Authority = 0.05 }
-					add_to_variable = { Amur_Kolchak_Authority = -0.05 }
+					add_to_variable = { Amur_NRA_Authority = 0.03 }
+					add_to_variable = { Amur_Kolchak_Authority = -0.03 }
 					add_to_variable = { Chita_NRA_Authority = 0.01 }
 					add_to_variable = { Chita_Kolchak_Authority = -0.01 }
 					add_to_variable = { Blagoveschensk_NRA_Authority = 0.01 }
@@ -9641,7 +9736,7 @@ country_event = {
 					add_to_variable = { Magadan_Kolchak_Authority = -0.01 }
 				}
 				8 = { 
-					add_to_variable = { Nikolayevsk_NRA_Authority = 0.05 }
+					add_to_variable = { Nikolayevsk_NRA_Authority = 0.03 }
 					add_to_variable = { Nikolayevsk_Kolchak_Authority = -0.02 }
 					add_to_variable = { Nikolayevsk_ROVS_Authority = -0.03 }
 					add_to_variable = { Chita_NRA_Authority = 0.01 }
@@ -9664,8 +9759,8 @@ country_event = {
 					add_to_variable = { Magadan_Kolchak_Authority = -0.01 }
 				}
 				7 = { 
-					add_to_variable = { Yakutia_NRA_Authority = 0.05 }
-					add_to_variable = { Yakutia_Kolchak_Authority = -0.05 }
+					add_to_variable = { Yakutia_NRA_Authority = 0.03 }
+					add_to_variable = { Yakutia_Kolchak_Authority = -0.03 }
 					add_to_variable = { Chita_NRA_Authority = 0.01 }
 					add_to_variable = { Chita_Kolchak_Authority = -0.01 }
 					add_to_variable = { Blagoveschensk_NRA_Authority = 0.01 }
@@ -9686,8 +9781,8 @@ country_event = {
 					add_to_variable = { Magadan_Kolchak_Authority = -0.01 }
 				}
 				7 = { 
-					add_to_variable = { Bodaybo_NRA_Authority = 0.05 }
-					add_to_variable = { Bodaybo_Kolchak_Authority = -0.05 }
+					add_to_variable = { Bodaybo_NRA_Authority = 0.03 }
+					add_to_variable = { Bodaybo_Kolchak_Authority = -0.03 }
 					add_to_variable = { Chita_NRA_Authority = 0.01 }
 					add_to_variable = { Chita_Kolchak_Authority = -0.01 }
 					add_to_variable = { Blagoveschensk_NRA_Authority = 0.01 }
@@ -9708,8 +9803,8 @@ country_event = {
 					add_to_variable = { Magadan_Kolchak_Authority = -0.01 }
 				}
 				5 = { 
-					add_to_variable = { Kamchatka_NRA_Authority = 0.05 }
-					add_to_variable = { Kamchatka_Kolchak_Authority = -0.05 }
+					add_to_variable = { Kamchatka_NRA_Authority = 0.03 }
+					add_to_variable = { Kamchatka_Kolchak_Authority = -0.03 }
 					add_to_variable = { Chita_NRA_Authority = 0.01 }
 					add_to_variable = { Chita_Kolchak_Authority = -0.01 }
 					add_to_variable = { Blagoveschensk_NRA_Authority = 0.01 }
@@ -9730,8 +9825,8 @@ country_event = {
 					add_to_variable = { Magadan_Kolchak_Authority = -0.01 }
 				}
 				5 = { 
-					add_to_variable = { Magadan_NRA_Authority = 0.05 }
-					add_to_variable = { Magadan_Kolchak_Authority = -0.05 }
+					add_to_variable = { Magadan_NRA_Authority = 0.03 }
+					add_to_variable = { Magadan_Kolchak_Authority = -0.03 }
 					add_to_variable = { Chita_NRA_Authority = 0.01 }
 					add_to_variable = { Chita_Kolchak_Authority = -0.01 }
 					add_to_variable = { Blagoveschensk_NRA_Authority = 0.01 }
@@ -9754,6 +9849,7 @@ country_event = {
 			}
 		}
 		TRM_clamp_spheres_of_influence = yes
+		TRM_recalculate_kolchak_variables = yes
 	}
 }
 country_event = {
@@ -9824,8 +9920,8 @@ country_event = {
 		hidden_effect = {
 			random_list = {
 				15 = { 
-					add_to_variable = { Buryatia_NRA_Authority = 0.05 }
-					add_to_variable = { Buryatia_Kolchak_Authority = -0.05 }
+					add_to_variable = { Buryatia_NRA_Authority = 0.03 }
+					add_to_variable = { Buryatia_Kolchak_Authority = -0.03 }
 					add_to_variable = { Chita_NRA_Authority = 0.01 }
 					add_to_variable = { Chita_Kolchak_Authority = -0.01 }
 					add_to_variable = { Blagoveschensk_NRA_Authority = 0.01 }
@@ -9846,8 +9942,8 @@ country_event = {
 					add_to_variable = { Magadan_Kolchak_Authority = -0.01 }
 				}
 				15 = { 
-					add_to_variable = { Chita_NRA_Authority = 0.05 }
-					add_to_variable = { Chita_Kolchak_Authority = -0.05 }
+					add_to_variable = { Chita_NRA_Authority = 0.03 }
+					add_to_variable = { Chita_Kolchak_Authority = -0.03 }
 					add_to_variable = { Buryatia_NRA_Authority = 0.01 }
 					add_to_variable = { Buryatia_Kolchak_Authority = -0.01 }
 					add_to_variable = { Blagoveschensk_NRA_Authority = 0.01 }
@@ -9868,8 +9964,8 @@ country_event = {
 					add_to_variable = { Magadan_Kolchak_Authority = -0.01 }
 				}
 				15 = { 
-					add_to_variable = { Blagoveschensk_NRA_Authority = 0.05 }
-					add_to_variable = { Blagoveschensk_Kolchak_Authority = -0.05 }
+					add_to_variable = { Blagoveschensk_NRA_Authority = 0.03 }
+					add_to_variable = { Blagoveschensk_Kolchak_Authority = -0.03 }
 					add_to_variable = { Chita_NRA_Authority = 0.01 }
 					add_to_variable = { Chita_Kolchak_Authority = -0.01 }
 					add_to_variable = { Buryatia_NRA_Authority = 0.01 }
@@ -9890,8 +9986,8 @@ country_event = {
 					add_to_variable = { Magadan_Kolchak_Authority = -0.01 }
 				}
 				13 = { 
-					add_to_variable = { Khabarovsk_NRA_Authority = 0.05 }
-					add_to_variable = { Khabarovsk_Kolchak_Authority = -0.05 }
+					add_to_variable = { Khabarovsk_NRA_Authority = 0.03 }
+					add_to_variable = { Khabarovsk_Kolchak_Authority = -0.03 }
 					add_to_variable = { Chita_NRA_Authority = 0.01 }
 					add_to_variable = { Chita_Kolchak_Authority = -0.01 }
 					add_to_variable = { Blagoveschensk_NRA_Authority = 0.01 }
@@ -9912,8 +10008,8 @@ country_event = {
 					add_to_variable = { Magadan_Kolchak_Authority = -0.01 }
 				}
 				10 = { 
-					add_to_variable = { Amur_NRA_Authority = 0.05 }
-					add_to_variable = { Amur_Kolchak_Authority = -0.05 }
+					add_to_variable = { Amur_NRA_Authority = 0.03 }
+					add_to_variable = { Amur_Kolchak_Authority = -0.03 }
 					add_to_variable = { Chita_NRA_Authority = 0.01 }
 					add_to_variable = { Chita_Kolchak_Authority = -0.01 }
 					add_to_variable = { Blagoveschensk_NRA_Authority = 0.01 }
@@ -9934,7 +10030,7 @@ country_event = {
 					add_to_variable = { Magadan_Kolchak_Authority = -0.01 }
 				}
 				8 = { 
-					add_to_variable = { Nikolayevsk_NRA_Authority = 0.05 }
+					add_to_variable = { Nikolayevsk_NRA_Authority = 0.03 }
 					add_to_variable = { Nikolayevsk_Kolchak_Authority = -0.02 }
 					add_to_variable = { Nikolayevsk_ROVS_Authority = -0.03 }
 					add_to_variable = { Chita_NRA_Authority = 0.01 }
@@ -9957,8 +10053,8 @@ country_event = {
 					add_to_variable = { Magadan_Kolchak_Authority = -0.01 }
 				}
 				7 = { 
-					add_to_variable = { Yakutia_NRA_Authority = 0.05 }
-					add_to_variable = { Yakutia_Kolchak_Authority = -0.05 }
+					add_to_variable = { Yakutia_NRA_Authority = 0.03 }
+					add_to_variable = { Yakutia_Kolchak_Authority = -0.03 }
 					add_to_variable = { Chita_NRA_Authority = 0.01 }
 					add_to_variable = { Chita_Kolchak_Authority = -0.01 }
 					add_to_variable = { Blagoveschensk_NRA_Authority = 0.01 }
@@ -9979,8 +10075,8 @@ country_event = {
 					add_to_variable = { Magadan_Kolchak_Authority = -0.01 }
 				}
 				7 = { 
-					add_to_variable = { Bodaybo_NRA_Authority = 0.05 }
-					add_to_variable = { Bodaybo_Kolchak_Authority = -0.05 }
+					add_to_variable = { Bodaybo_NRA_Authority = 0.03 }
+					add_to_variable = { Bodaybo_Kolchak_Authority = -0.03 }
 					add_to_variable = { Chita_NRA_Authority = 0.01 }
 					add_to_variable = { Chita_Kolchak_Authority = -0.01 }
 					add_to_variable = { Blagoveschensk_NRA_Authority = 0.01 }
@@ -10001,8 +10097,8 @@ country_event = {
 					add_to_variable = { Magadan_Kolchak_Authority = -0.01 }
 				}
 				5 = { 
-					add_to_variable = { Kamchatka_NRA_Authority = 0.05 }
-					add_to_variable = { Kamchatka_Kolchak_Authority = -0.05 }
+					add_to_variable = { Kamchatka_NRA_Authority = 0.03 }
+					add_to_variable = { Kamchatka_Kolchak_Authority = -0.03 }
 					add_to_variable = { Chita_NRA_Authority = 0.01 }
 					add_to_variable = { Chita_Kolchak_Authority = -0.01 }
 					add_to_variable = { Blagoveschensk_NRA_Authority = 0.01 }
@@ -10023,8 +10119,8 @@ country_event = {
 					add_to_variable = { Magadan_Kolchak_Authority = -0.01 }
 				}
 				5 = { 
-					add_to_variable = { Magadan_NRA_Authority = 0.05 }
-					add_to_variable = { Magadan_Kolchak_Authority = -0.05 }
+					add_to_variable = { Magadan_NRA_Authority = 0.03 }
+					add_to_variable = { Magadan_Kolchak_Authority = -0.03 }
 					add_to_variable = { Chita_NRA_Authority = 0.01 }
 					add_to_variable = { Chita_Kolchak_Authority = -0.01 }
 					add_to_variable = { Blagoveschensk_NRA_Authority = 0.01 }
@@ -10047,6 +10143,7 @@ country_event = {
 			}
 		}
 		TRM_clamp_spheres_of_influence = yes
+		TRM_recalculate_kolchak_variables = yes
 	}
 }
 country_event = {
@@ -10101,6 +10198,7 @@ country_event = {
 			add_to_variable = { Nikolayevsk_Cossack_Authority = 0.05 }
 			add_to_variable = { Yakutia_Cossack_Authority = 0.05 }
 			TRM_clamp_spheres_of_influence = yes
+			TRM_recalculate_kolchak_variables = yes
 			country_event = {
 				id = tram.207
 				days = 51
@@ -10146,6 +10244,7 @@ country_event = {
 			add_to_variable = { Nikolayevsk_ROVS_Authority = 0.05 }
 			add_to_variable = { Yakutia_ROVS_Authority = 0.05 }
 			TRM_clamp_spheres_of_influence = yes
+			TRM_recalculate_kolchak_variables = yes
 			country_event = {
 				id = tram.206
 				days = 51
@@ -10211,6 +10310,7 @@ country_event = {
 			add_to_variable = { Nikolayevsk_Cossack_Authority = 0.05 }
 			add_to_variable = { Yakutia_Cossack_Authority = 0.05 }
 			TRM_clamp_spheres_of_influence = yes
+			TRM_recalculate_kolchak_variables = yes
 		}
 	}
 }
@@ -10246,6 +10346,7 @@ country_event = {
 			add_to_variable = { Nikolayevsk_ROVS_Authority = 0.05 }
 			add_to_variable = { Yakutia_ROVS_Authority = 0.05 }
 			TRM_clamp_spheres_of_influence = yes
+			TRM_recalculate_kolchak_variables = yes
 		}
 	}
 }
@@ -10281,6 +10382,7 @@ country_event = {
 			add_to_variable = { Nikolayevsk_ROVS_Authority = 0.05 }
 			add_to_variable = { Yakutia_ROVS_Authority = 0.05 }
 			TRM_clamp_spheres_of_influence = yes
+			TRM_recalculate_kolchak_variables = yes
 		}
 	}
 }
