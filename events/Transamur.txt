@@ -326,7 +326,6 @@ country_event = { #Diterikhs dies
 	trigger = {
 		tag = TRM
 		has_country_flag = TRM_Mil_coup
-		has_completed_focus = TRM_Mil_ML_End
 	}
 	option = {
 		name = tram.2.e
@@ -334,7 +333,7 @@ country_event = { #Diterikhs dies
 			factor = 100
 		}
 		trigger = {
-			has_completed_focus = TRM_Monarchy
+			has_completed_focus = TRM_Mil_ML_End
 			NOT = { has_completed_focus = TRM_Russian_Empire_In_Exile }
 			RUS = { NOT = { has_country_flag = RUS_monarchy_restored } }
 		}
@@ -358,6 +357,7 @@ country_event = { #Diterikhs dies
 			TRM_Anatoliy_Pepelyaev_eco_ade 
 			TRM_Arkady_Udintsev_sec_pau
 		}
+		complete_national_focus = TRM_Monarchy
 		complete_national_focus = TRM_Russian_Empire_In_Exile
 	}
 	option = {
@@ -389,6 +389,7 @@ country_event = { #Diterikhs dies
 					TRM_Anatoliy_Pepelyaev_eco_ade 
 					TRM_Arkady_Udintsev_sec_pau
 				}
+		complete_national_focus = TRM_Monarchy
 		complete_national_focus = TRM_Emperor_Of_Russia
 	}
 	option = {
@@ -413,6 +414,7 @@ country_event = { #Diterikhs dies
 			TRM_Anatoliy_Pepelyaev_eco_ade 
 			TRM_Arkady_Udintsev_sec_pau
 		}
+		
 	}
 }
 
@@ -1479,6 +1481,19 @@ country_event = {
 			clear_variable = TRM_oblastniki_conscription
 		}
 		set_country_flag = Aleksandr_Kolchak_dead
+		kill_country_leader = yes
+		create_country_leader = {
+			name = "Mikhail Diterikhs"
+			desc = "POLITICS_DITERIKHS_DESC"
+			picture = "gfx/leaders/RUS/Portrait_TRM_Diterikhs.tga"
+			expire = "1965.1.1"
+			ideology = paternal_autocrat_subtype
+		}
+		set_party_name = {
+				ideology = paternal_autocrat
+				long_name = TRM_rovs_party_long
+				name = TRM_rovs_party
+		}
 		JAP = {
 				country_event = {
 					id = tram.84
@@ -1505,6 +1520,18 @@ country_event = {
 					days = 1
 				}
 			}
+		}
+		if = {
+			limit = {
+				has_unit_leader = 50000
+			}
+			remove_unit_leader = 50000
+		}
+		if = {
+			limit = {
+				has_unit_leader = 50001
+			}
+			remove_unit_leader = 50001
 		}
 	}
 	option = { #Kolchak survived
@@ -1751,6 +1778,17 @@ country_event = {
 				check_variable = { TRM_Overall_Kolchak_Support < 0.3 }
 			}
 			add_to_variable = { TRM_Overall_Kolchak_Support = 0.1 }
+		}
+		if = {
+			limit = {
+				has_game_rule = {
+					rule = TRM_path
+					option = RULE_OPTION_TRM_MONARCHY
+				}
+				is_ai = yes
+				check_variable = { ROVSOrientation > -0.99 }
+			}
+			set_variable = { ROVSOrientation = -1 }
 		}
 	}
 	title = tram.80.t
@@ -7231,6 +7269,7 @@ country_event = { #NRA wins
 		}
 		remove_ideas = TRM_anti_kolchak
 		set_global_flag = Aleksandr_Kolchak_escaped
+		set_country_flag = Aleksandr_Kolchak_dead
 		set_country_flag = TRM_NRA_coup
 		set_capital = 563
 		set_politics = {
@@ -11004,8 +11043,8 @@ country_event = {
 		}
 		set_party_name = {
 			ideology = market_liberal
-			name = RUS_market_liberal_party
-			long_name = RUS_market_liberal_party_long
+			name = TRM_market_liberal_kolchak
+			long_name = TRM_market_liberal_kolchak_long
 		}
 		add_popularity = {
 			ideology = market_liberal
@@ -12166,10 +12205,20 @@ country_event = {
 		if = {
 			limit = {
 				TRM = { has_socialist_government = no }
+				ROOT = { has_socialist_government = no }
 			}
 			country_event = {
 				id = tram.401
 				days = 5
+			}
+		}
+		if = {
+			limit = {
+				TRM = { NOT = { has_country_flag = Aleksandr_Kolchak_dead } }
+			}
+			country_event = {
+				id = tram.404
+				days = 6
 			}
 		}
 		country_event = {
@@ -12278,12 +12327,7 @@ country_event = {
 				clr_country_flag = TRM_Semyonov_Coup
 				clr_country_flag = TRM_Yui
 				remove_ideas = TRM_dream
-				set_cosmetic_tag = TRM_SOV
 			}
-		}
-		country_event = {
-			id = tram.404
-			days = 2
 		}
 	}
 }
@@ -12303,7 +12347,10 @@ country_event = {
 			every_unit_leader = {
 				limit = {
 					NOT = {
-						has_id = 50001
+						OR = {
+							has_id = 50001
+							has_id = 50000
+						}
 					}
 				}
 				set_nationality = ROOT
@@ -12411,7 +12458,58 @@ country_event = {
 		}
 	}
 }
+country_event = {
+	id = tram.404
+	title = tram.404.t
+	desc = tram.404.d
+	fire_only_once = yes
+	is_triggered_only = yes
 	
+	option = {
+		name = tram.404.a
+		trigger = {
+			OR = {
+				has_country_flag = RUS_monarchy_restored
+				has_government = national_populist
+				has_government = paternal_autocrat
+			}
+		}
+		ai_chance = {
+			factor = 70
+		}
+		TRM = {
+			every_unit_leader = {
+				limit = {
+					has_id = 50001
+				}
+				set_nationality = ROOT
+			}
+		}
+		every_owned_state = {
+			limit = {
+				is_core_of = TRM
+			}
+			add_compliance = 10
+		}
+		increase_ruling_party_popularity_by_10 = yes
+		add_stability = -0.05
+	}
+	option = {
+		name = tram.404.b
+		
+		ai_chance = {
+			factor = 30
+		}
+		every_owned_state = {
+			limit = {
+				is_core_of = TRM
+			}
+			add_resistance = 5
+		}
+		increase_ruling_party_popularity_by_10 = yes
+		add_stability = 0.05
+	}
+}	
 		
 		
 country_event = { #Kolchak Portrait
