@@ -4846,7 +4846,7 @@ RUS_Foreign_Policy_decisions = {
 			can_declare_war_on = FROM
 		}
 
-		targets = { ALO TRK KYR UZB }
+		targets = { ALO }
 		target_trigger = {
 			can_declare_war_on = FROM
 		}
@@ -4928,7 +4928,170 @@ RUS_Foreign_Policy_decisions = {
 			}
 		}
 	}
+	RUS_Fate_Of_Turkestan = {
+		icon = hol_draw_up_staff_plans
+		available = {
+			if = {
+				limit = {
+					has_global_flag = global_turkestan_united
+				}
+				OR = {
+					is_neighbor_of = UTR
+					any_allied_country = {
+						is_neighbor_of = UTR
+					}
+				}
+			}
+			else = {
+				OR = {
+					is_neighbor_of = UZB
+					is_neighbor_of = KYR
+					any_allied_country = {
+						OR = {
+							is_neighbor_of = UZB
+							is_neighbor_of = KYR
+						}
+					}
+				}
+			}
+		}
 
+		visible = {
+			has_completed_focus = RUS_Secure_Central_Asia
+			if = {
+				limit = {
+					has_global_flag = global_turkestan_united
+				}
+				can_declare_war_on = UTR
+			}
+			else = {
+				can_declare_war_on = UZB
+				can_declare_war_on = KYR
+			}
+		}
+
+		cost = 10
+		days_remove = 14
+		fire_only_once = yes
+		war_with_target_on_remove = yes
+
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				has_war = yes
+			}
+			modifier = {
+				factor = 0
+				strength_ratio = {
+					tag = FROM
+					ratio < 0.8
+				}
+			}
+			modifier = {
+				factor = 0
+				FROM = {
+					any_allied_country = {
+						is_faction_leader = yes
+						overlord = {
+							strength_ratio = {
+								tag = ROOT
+								ratio > 0.7
+							}
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 0
+				FROM = {
+					is_subject = yes
+					overlord = {
+						strength_ratio = {
+							tag = ROOT
+							ratio > 0.7
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 0
+				has_country_flag = imminent_war
+			}
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision RUS_Fate_Of_Turkestan target: [From.GetName]"
+			set_country_flag = { flag = imminent_war days = 20 value = 1 }
+			UTR = {
+				add_ai_strategy = {
+					type = prepare_for_war
+					id = ROOT
+					value = 1000
+				}
+			}
+			UZB = {
+				add_ai_strategy = {
+					type = prepare_for_war
+					id = ROOT
+					value = 1000
+				}
+			}
+			KYR = {
+				add_ai_strategy = {
+					type = prepare_for_war
+					id = ROOT
+					value = 1000
+				}
+			}
+			TRK = {
+				add_ai_strategy = {
+					type = prepare_for_war
+					id = ROOT
+					value = 1000
+				}
+			}
+			ROOT = {
+				country_event = {
+					id = rusfor.1443
+					days = 4
+				}
+			}		
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_Fate_Of_Turkestan target: [From.GetName]"
+			UTR = {
+				add_ai_strategy = {
+					type = prepare_for_war
+					id = ROOT
+					value = -1000
+				}
+			}
+			UZB = {
+				add_ai_strategy = {
+					type = prepare_for_war
+					id = ROOT
+					value = -1000
+				}
+			}
+			KYR = {
+				add_ai_strategy = {
+					type = prepare_for_war
+					id = ROOT
+					value = -1000
+				}
+			}
+			TRK = {
+				add_ai_strategy = {
+					type = prepare_for_war
+					id = ROOT
+					value = -1000
+				}
+			}
+		}
+	}
+	
 	### Into the Caucasus ###
 	RUS_Attack_Caucasus = {
 		icon = hol_draw_up_staff_plans
@@ -8985,11 +9148,11 @@ RUS_Integration_decisions = {
 		}
 
 		cost = 0
-		days_remove = 100
+		days_remove = rus_core_integration_time_to_remove
 		cancel_if_not_visible = yes
 
 		state_target = yes
-		targets = { 78 146 147 213 215 216 329 537 722 420 418 804 1191 }
+		targets = { 78 146 147 213 215 216 329 537 722 420 418 804 1191 654 811 584 }
 		target_root_trigger = {
 			has_country_flag = RUS_can_integrate
 		}
@@ -9026,7 +9189,7 @@ RUS_Integration_decisions = {
 
 		targets = { ALO TRK KYR UZB DKB KUB KLY MTR GEO AZE ARM }
 		target_root_trigger = {
-			is_subject_of = ROOT
+			is_ai = no
 		}
 		target_trigger = {
 			FROM = { is_subject_of = ROOT }
@@ -9045,8 +9208,8 @@ RUS_Integration_decisions = {
 			}
 		}
 
-		cost = 100
-		days_remove = 200
+		cost = freedec?0
+		days_remove = 7
 		fire_only_once = yes
 
 		ai_will_do = {
@@ -9061,12 +9224,37 @@ RUS_Integration_decisions = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_Integrate_Alash_Autonomy target: [From.GetName]"
 			FROM = {
 				save_event_target_as = RUS_puppet_to_annex
-				every_owned_state = {
-					limit = { is_core_of = FROM }
-					add_core_of = ROOT
-				}
 			}
 			hidden_effect = { country_event = rusfor.12800 }
+			every_owned_state = {
+				limit = {
+					is_core_of = FROM
+					is_claim_or_core_of_ROOT = no
+				}
+				hidden_effect = {
+					if = {
+						limit = { has_resistance = yes }
+						set_temp_variable = { original_compliance = THIS.compliance }
+						set_temp_variable = { original_resistance = THIS.resistance }
+						cancel_resistance = yes
+					}
+					start_resistance = FROM
+					if = {
+						limit = { has_variable = original_compliance }
+						set_compliance = original_compliance
+					}
+					if = {
+						limit = { has_variable = original_resistance }
+						set_resistance = original_resistance
+					}
+				}
+				if = {
+					limit = { is_claim_or_core_of_ROOT = no }
+					add_claim_by = ROOT
+				}
+			}
+			add_political_power = -25
+			add_to_array = { RUS_integration_array = FROM }
 		}
 	}
 }
