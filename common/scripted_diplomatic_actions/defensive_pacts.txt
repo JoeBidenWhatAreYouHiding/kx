@@ -1,0 +1,265 @@
+## ROOT is the diplomatic action initiator
+## FROM is the target
+## Default scope is FROM
+
+scripted_diplomatic_actions = {
+	defensive_pacts = {
+		allowed = { always = yes }
+		visible = { always = yes }
+		selectable = {
+			ROOT = { 
+				NOT = { has_country_flag = defensive_pacts_flag }
+				has_war = no
+				is_subject = no
+				is_in_faction = no
+				is_faction_leader = no
+				is_major = no
+			}
+			FROM = { 
+				NOT = { has_country_flag = defensive_pacts_flag }
+				has_war = no
+				is_subject = no
+				is_in_faction = no
+				is_faction_leader = no
+				is_major = no
+			}
+		}
+
+		cost = 100
+		requires_acceptance = yes
+		show_acceptance_on_action_button = yes
+		send_description = DEFENSIVE_PACTS_ACTION_SEND_DESC
+		receive_description = DEFENSIVE_PACTS_ACTION_RECEIVER_DESC
+		accept_title = DEFENSIVE_PACTS_ACTION_ACCEPTED_TITLE
+		accept_description = DEFENSIVE_PACTS_ACTION_ACCEPTED_DESC
+		reject_title = DEFENSIVE_PACTS_ACTION_REJECTED_TITLE
+		reject_description = DEFENSIVE_PACTS_ACTION_REJECTED_DESC
+
+		complete_effect = {
+			if = {
+				limit = {
+					FROM = { is_ai = no }
+				}
+				log = "[ROOT.GetName] is entering a defensive pact with [FROM.GetName] due to player acceptance"
+			}
+			else = {
+				log = "[ROOT.GetName] is entering a defensive pact with [FROM.GetName]"
+			}
+			if = {
+				limit = {
+					has_country_flag = defensive_pacts_flag
+				}
+				log = "[ROOT.GetName] has already entered a defensive pact with [FROM.GetName]"
+			}	
+			else = {
+				ROOT = {
+					give_guarantee = FROM
+				}
+				FROM = {
+					give_guarantee = ROOT
+				}
+			}
+		}
+
+		ai_desire = {
+			base = 0
+			modifier = {
+				factor = 30
+				ROOT = {
+					any_neighbor_country = {
+						strength_ratio = {
+							tag = PREV
+							ratio > 1
+						}
+					}
+				}
+			}
+			modifier = {
+				add = 1000
+				ROOT = { has_country_flag = imminent_war }
+			}
+			modifier = {
+				add = 1000
+				ROOT = { has_variable = potential_and_current_enemies^num } #is justifying/being justified against
+			}
+		}
+		
+		ai_acceptance = {
+			base_desire = {
+				modifier = {
+					factor = -20
+				}
+			}
+			dangerous_neighbour_reason = {
+				base = -100
+				modifier = {
+					add = danger_add
+					FROM = {
+						any_home_area_neighbor_country = {
+							NOT = { 
+								original_tag = ROOT
+								is_in_faction_with = ROOT
+								is_subject_of = ROOT
+								is_puppet_of = ROOT
+								is_guaranteed_by = ROOT
+								has_non_aggression_pact_with = ROOT
+								is_in_faction_with = FROM
+								is_subject_of = FROM
+								is_puppet_of = FROM
+								is_guaranteed_by = FROM
+								has_non_aggression_pact_with = FROM
+							}
+							has_opinion = {
+								target = FROM
+								value < -50
+							}
+							has_opinion = {
+								target = ROOT
+								value < -50
+							}
+							OR = {
+								is_neighbor_of = ROOT
+								any_allied_country = {
+									AND = {
+										is_owner_neighbor_of = ROOT
+										has_country_flag = defensive_pacts_flag
+									}
+								}
+							}
+							if = {
+								limit = {
+									NOT = {
+										OR = {
+											AND = {
+												is_in_asia = yes
+												FROM = { is_in_asia = yes }
+											}
+											AND = {
+												is_in_europe = yes
+												FROM = { is_in_europe = yes }
+											}
+											AND = {
+												is_in_africa = yes
+												FROM = { is_in_africa = yes }
+											}
+											AND = {
+												is_in_north_america = yes
+												FROM = { is_in_north_america = yes }
+											}
+											AND = {
+												is_in_south_america = yes
+												FROM = { is_in_south_america = yes }
+											}
+											AND = {
+												is_in_middle_east = yes
+												FROM = { is_in_middle_east = yes }
+											}
+											AND = {
+												is_in_australia = yes
+												FROM = { is_in_australia = yes }
+											}
+										}
+									}
+								}
+								add_to_temp_variable = { danger_add = -50 }
+							}
+							if = {
+								limit = {
+									strength_ratio = {
+										tag = FROM
+										ratio > 1
+									}
+								}
+								add_to_temp_variable = { danger_add = 110 }
+							}
+							if = {
+								limit = {
+									strength_ratio = {
+										tag = FROM
+										ratio > 2.5
+									}
+								}
+								add_to_temp_variable = { danger_add = 12 }
+							}
+							if = {
+								limit = {
+									has_opinion = {
+										target = FROM
+										value < -100
+									}
+								}
+								add_to_temp_variable = { danger_add = 5 }
+							}
+							if = {
+								limit = { is_actual_major = yes }
+								add_to_temp_variable = { danger_add = 10 }
+							}
+							if = {
+								limit = { num_subjects > 3 }
+								add_to_temp_variable = { danger_add = 3 }
+							}
+							if = {
+								limit = { num_subjects > FROM.num_subjects }
+								add_to_temp_variable = { danger_add = 2 }
+							}
+							if = {
+								limit = { 
+									FROM = {
+										any_state = {
+											is_claimed_by = PREV.PREV
+										}
+									}
+								}
+								add_to_temp_variable = { danger_add = 15 }
+							}
+						}
+					}
+				}
+			}
+			opinion_reason = {
+				modifier = {
+					set_temp_variable = { opinion_defensive_add = opinion@ROOT }
+					divide_temp_variable = { opinion_defensive_add = 10 }
+					factor = opinion_defensive_add
+				}
+			}
+			government_similarity_reason = {
+				base = -50
+				modifier = {
+					add = similarity_government_add
+					FROM = {
+						if = {
+							same_government_type_as_ROOT = yes
+							add_to_temp_variable = { similarity_government_add = 50 }
+						}
+						if = {
+							has_same_government_as_ROOT = yes
+							add_to_temp_variable = { similarity_government_add = 5 }
+						}
+					}
+				}
+			}
+			ai_reason_world_tension = {
+				base = -100
+				modifier = {
+					set_temp_variable = { threat_add = 100 }
+					multiply_temp_variable = { threat_add = GLOBAL.threat }
+					add = threat_add
+				}
+			}
+			ai_irrationality_reason = {
+				base = 0
+				add = irrationality_add
+				modifier = {
+					FROM = {
+						if = {
+							same_government_type_as_ROOT = yes
+							add_to_temp_variable = { irrationality_add = -75 }
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
