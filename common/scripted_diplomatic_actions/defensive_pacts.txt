@@ -62,25 +62,166 @@ scripted_diplomatic_actions = {
 		}
 
 		ai_desire = {
-			base = 0
+			base = -100
 			modifier = {
-				factor = 30
-				ROOT = {
-					any_neighbor_country = {
-						strength_ratio = {
-							tag = PREV
-							ratio > 1
-						}
+				set_temp_variable = { opinion_defensive_add = opinion@ROOT }
+				divide_temp_variable = { opinion_defensive_add = 10 }
+				factor = opinion_defensive_add
+			}
+			modifier = {
+				FROM = {
+					if = {
+						ai_irrationality = yes
+						add_to_temp_variable = { irrationality_add = -75 }
 					}
 				}
 			}
 			modifier = {
-				add = 1000
-				ROOT = { has_country_flag = imminent_war }
+				add = similarity_government_add
+				FROM = {
+					if = {
+						same_government_type_as_ROOT = yes
+						add_to_temp_variable = { similarity_government_add = 50 }
+					}
+					if = {
+						has_same_government_as_ROOT = yes
+						add_to_temp_variable = { similarity_government_add = 5 }
+					}
+				}
 			}
 			modifier = {
-				add = 1000
-				ROOT = { has_variable = potential_and_current_enemies^num } #is justifying/being justified against
+				set_temp_variable = { threat_add = 100 }
+				multiply_temp_variable = { threat_add = GLOBAL.threat }
+				add = threat_add
+			}
+			modifier = {
+				add = -15
+				FROM = {
+					is_ai = no
+				}
+			}
+			modifier = {
+				add = danger_add
+				FROM = {
+					any_home_area_neighbor_country = {
+						NOT = { 
+							original_tag = ROOT
+							is_in_faction_with = ROOT
+							is_subject_of = ROOT
+							is_puppet_of = ROOT
+							is_guaranteed_by = ROOT
+							has_non_aggression_pact_with = ROOT
+							is_in_faction_with = FROM
+							is_subject_of = FROM
+							is_puppet_of = FROM
+							is_guaranteed_by = FROM
+							has_non_aggression_pact_with = FROM
+						}
+						has_opinion = {
+							target = FROM
+							value < -50
+						}
+						has_opinion = {
+							target = ROOT
+							value < -50
+						}
+						OR = {
+							is_neighbor_of = ROOT
+							any_allied_country = {
+								AND = {
+									is_owner_neighbor_of = ROOT
+									has_country_flag = defensive_pacts_flag
+								}
+							}
+						}
+						if = {
+							limit = {
+								NOT = {
+									OR = {
+										AND = {
+											is_in_asia = yes
+											FROM = { is_in_asia = yes }
+										}
+										AND = {
+											is_in_europe = yes
+											FROM = { is_in_europe = yes }
+										}
+										AND = {
+											is_in_africa = yes
+											FROM = { is_in_africa = yes }
+										}
+										AND = {
+											is_in_north_america = yes
+											FROM = { is_in_north_america = yes }
+										}
+										AND = {
+											is_in_south_america = yes
+											FROM = { is_in_south_america = yes }
+										}
+										AND = {
+											is_in_middle_east = yes
+											FROM = { is_in_middle_east = yes }
+										}
+										AND = {
+											is_in_australia = yes
+											FROM = { is_in_australia = yes }
+										}
+									}
+								}
+							}
+							add_to_temp_variable = { danger_add = -50 }
+						}
+						if = {
+							limit = {
+								strength_ratio = {
+									tag = FROM
+									ratio > 1
+								}
+							}
+							add_to_temp_variable = { danger_add = 110 }
+						}
+						if = {
+							limit = {
+								strength_ratio = {
+									tag = FROM
+									ratio > 2.5
+								}
+							}
+							add_to_temp_variable = { danger_add = 12 }
+						}
+						if = {
+							limit = {
+								has_opinion = {
+									target = FROM
+									value < -100
+								}
+							}
+							add_to_temp_variable = { danger_add = 5 }
+						}
+						if = {
+							limit = { is_actual_major = yes }
+							add_to_temp_variable = { danger_add = 10 }
+						}
+						if = {
+							limit = { num_subjects > 3 }
+							add_to_temp_variable = { danger_add = 3 }
+						}
+						if = {
+							limit = { num_subjects > FROM.num_subjects }
+							add_to_temp_variable = { danger_add = 2 }
+						}
+						if = {
+							limit = { 
+								FROM = {
+									any_state = {
+										is_claimed_by = PREV.PREV
+									}
+								}
+							}
+							add_to_temp_variable = { danger_add = 15 }
+						}
+					}
+				}
 			}
 		}
 		
@@ -253,7 +394,7 @@ scripted_diplomatic_actions = {
 				modifier = {
 					FROM = {
 						if = {
-							same_government_type_as_ROOT = yes
+							ai_irrationality = yes
 							add_to_temp_variable = { irrationality_add = -75 }
 						}
 					}
