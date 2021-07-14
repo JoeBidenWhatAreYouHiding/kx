@@ -9,7 +9,7 @@ scripted_diplomatic_actions = {
 		selectable = {
 			ROOT = { 
 				has_war = no
-				is_guaranteed_by = FROM
+				NOT = { is_guaranteed_by = PREV.PREV }
 				is_subject = no
 				is_in_faction = no
 				is_faction_leader = no
@@ -17,7 +17,7 @@ scripted_diplomatic_actions = {
 			}
 			FROM = { 
 				has_war = no
-				is_guaranteed_by = ROOT
+				NOT = { is_guaranteed_by = ROOT }
 				is_subject = no
 				is_in_faction = no
 				is_faction_leader = no
@@ -47,13 +47,18 @@ scripted_diplomatic_actions = {
 			}
 			if = {
 				limit = {
-					is_guaranteed_by = FROM
+					ROOT = {
+						is_guaranteed_by = FROM
+					}
+					FROM = {
+						is_guaranteed_by = ROOT
+					}
 				}
 				log = "[ROOT.GetName] has already entered a defensive pact with [FROM.GetName]"
 			}	
 			else = {
 				ROOT = {
-					give_guarantee = FROM
+					give_guarantee = PREV.PREV
 					set_country_flag = defensive_pacts_flag
 				}
 				FROM = {
@@ -129,9 +134,10 @@ scripted_diplomatic_actions = {
 						}
 						OR = {
 							is_neighbor_of = ROOT
-							any_allied_country = {
-								AND = {
+							FROM = {
+								any_allied_country = {
 									is_owner_neighbor_of = ROOT
+									is_owner_neighbor_of = PREV.PREV.PREV
 									has_country_flag = defensive_pacts_flag
 								}
 							}
@@ -372,12 +378,75 @@ scripted_diplomatic_actions = {
 					add = similarity_government_add
 					FROM = {
 						if = {
-							same_government_type_as_ROOT = yes
-							add_to_temp_variable = { similarity_government_add = 50 }
+							limit = {
+								OR = {
+									AND = {
+										has_dictatorship_government = yes
+										ROOT = { has_socialist_government = yes }
+									}
+									AND = {
+										has_democratic_government = yes
+										ROOT = { has_socialist_government = yes }
+									}
+									AND = {
+										has_socialist_government = yes
+										ROOT = { 
+											NOT = { 
+												has_socialist_government = yes 
+											}
+										}
+									}
+								}
+							}
+							add_to_temp_variable = { similarity_government_add = -20 }
 						}
 						if = {
-							has_same_government_as_ROOT = yes
-							add_to_temp_variable = { similarity_government_add = 5 }
+							limit = {
+								OR = {
+									AND = {
+										has_socialist_government = yes
+										ROOT = { has_socialist_government = yes }
+									}
+									AND = {
+										has_democratic_government = yes
+										ROOT = { has_democratic_government = yes }
+									}
+									AND = {
+										has_dictatorship_government = yes
+										ROOT = { has_dictatorship_government = yes }
+									}
+								}
+							}
+							add_to_temp_variable = { similarity_government_add = 10 }
+						}
+						if = {
+							limit = {
+								OR = {
+									AND = {
+										has_left_democratic_government = yes
+										ROOT = { has_left_democratic_government = yes }
+									}
+									AND = {
+										has_right_democratic_government = yes
+										ROOT = { has_right_democratic_government = yes }
+									}
+									AND = {
+										has_authoritarian_government = yes
+										ROOT = { has_authoritarian_government = yes }
+									}
+									AND = {
+										has_socialist_government = yes
+										ROOT = { has_socialist_government = yes }
+									}
+								}
+							}
+							add_to_temp_variable = { similarity_government_add = 20 }
+						}
+						if = {
+							limit = {
+								has_same_government_as_ROOT = yes
+							}
+							add_to_temp_variable = { similarity_government_add = 30 }
 						}
 					}
 				}
@@ -388,18 +457,6 @@ scripted_diplomatic_actions = {
 					set_temp_variable = { threat_add = 100 }
 					multiply_temp_variable = { threat_add = GLOBAL.threat }
 					add = threat_add
-				}
-			}
-			ai_irrationality_reason = {
-				base = 0
-				add = irrationality_add
-				modifier = {
-					FROM = {
-						if = {
-							ai_irrationality = yes
-							add_to_temp_variable = { irrationality_add = -75 }
-						}
-					}
 				}
 			}
 		}
