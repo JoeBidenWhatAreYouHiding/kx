@@ -27,11 +27,35 @@ default_peace = {
 	force_government_randomness = 0 #50
 
 	build_temp_vars = {
+		build_peace_conference_temp_array = yes
+		if = {
+			limit = {
+				has_global_flag = KR_player_leads_conferences
+				NOT = { has_global_flag = KR_plpc_turned_off }
+				any_of_scopes = {
+					array = global.conference
+					is_ai = no
+					OR = {
+						is_ally_with = ROOT
+						has_war_together_with = ROOT
+						any_enemy_country = {
+							is_in_peace_conference = yes
+							has_war_with = ROOT
+						}
+					}
+				}
+			}
+			set_temp_variable = { KR_player_leads_conferences = 1 }
+		}
 	}
 
 	# ROOT = Taker, FROM = Giver
 	annex = {
 		factor = 500
+		modifier = {
+			factor = 0
+			has_variable = KR_player_leads_conferences
+		}
 	}
 
 	# ROOT = Taker, FROM = Liberated
@@ -57,6 +81,34 @@ default_peace = {
 	# ROOT = Taker, FROM = State
 	take_states = {
 		factor = 50
+		### RESTRICTIONS
+
+		# don't take anything if in player-led mode
+		modifier = {
+			factor = 0
+			has_variable = KR_player_leads_conferences
+		}
+
+		# don't take a non-neighbouring state if a neighbouring one is available
+		modifier = {
+			factor = 0
+			rule_take_bordering_first = yes
+		}
+
+		# take only acceptable states
+		modifier = {
+			factor = 0
+			set_temp_variable = { global.eval_state = FROM.id }
+			is_willing_to_take_state_ROOT = no
+		}
+
+		# to prevent non-warring countries from taking states
+		modifier = {
+			factor = 0
+			NOT = { has_war_with = FROM.owner }
+		}
+
+		### MODIFIERS
 
 		# prioritize cores, claims, and ambition areas
 		modifier = {
@@ -359,22 +411,6 @@ default_peace = {
 			FROM = { is_controlled_by = ROOT }
 		}
 
-		### RESTRICTIONS
-
-		# don't take a non-neighboring state if a neighboring one is available
-		modifier = {
-			factor = 0
-			rule_take_bordering_first = yes
-		}
-
-		# take only acceptable states
-		modifier = {
-			factor = 0
-			set_temp_variable = { global.eval_state = FROM.id }
-			is_willing_to_take_state_ROOT = no
-		}
-
-
 		### SPECIFIC COUNTRIES
 
 		# Germany prioritizes taking France
@@ -386,7 +422,6 @@ default_peace = {
 				OR = {
 					region = 19 #Northern France
 					region = 164 #Western France
-					state = 29 #Flandre Maritime
 				}
 			}
 		}
@@ -401,12 +436,7 @@ default_peace = {
 		modifier = {
 			factor = 10
 			tag = NFA
-			FROM = {
-				OR = {
-					region = 20 #Southern France
-					state = 943 #Haute-Savoie
-				}
-			}
+			FROM = { region = 20 } #Southern France
 		}
 		modifier = {
 			factor = 5
@@ -415,9 +445,6 @@ default_peace = {
 				OR = {
 					region = 19 #Northern France
 					region = 164 #Western France
-					state = 29 #Flandre Maritime
-					state = 779 #Nancy
-					state = 28 #Alsace-Lorraine
 				}
 			}
 		}
@@ -425,7 +452,7 @@ default_peace = {
 		# Canada prioritizes taking the UK
 		modifier = {
 			factor = 5
-			tag = CAN
+			tag = ENT
 			is_faction_leader = yes
 			FROM = { is_british_isles = yes }
 		}
@@ -444,6 +471,7 @@ default_peace = {
 					region = 26 #Bulgaria
 					region = 143 #Northern Balkans
 					region = 144 #Transylvania
+					region = 223 #Aegean Sea
 				}
 			}
 		}
@@ -477,7 +505,7 @@ default_peace = {
 			FROM = {
 				is_core_of = USA
 				NOT = {
-					region = 33 #Alaska
+					state = 463 #Alaska
 					region = 186 #North-East
 					region = 120 #Mid-West
 					region = 185 #NorthWest
