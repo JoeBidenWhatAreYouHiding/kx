@@ -1,0 +1,172 @@
+MIE_form_intermarium = {
+	set_global_flag = MIE_intermarium_formed
+	every_country = {
+		limit = {
+			is_possible_intermarium_country = yes
+			is_in_faction_with = GER
+		}
+		MIE_add_to_intermarium = yes
+	}
+	MIE_move_to_next_intermarium_leader = yes
+	for_each_scope_loop = {
+		array = global.MIE_tags_array
+		country_event = mie.0
+	}
+}
+
+MIE_add_to_intermarium = {
+	if = {
+		limit = { NOT = { has_country_flag = MIE_member } }
+		set_country_flag = MIE_member
+		add_to_array = { global.MIE_tags_array = THIS }
+		if = {
+			limit = { has_event_target = MIE_leader }
+			if = {
+				limit = {
+					MIE = { has_idea = MIE_contributions }
+				}
+				country_event = { id = mie.4 days = 3 random_days = 7 }
+			}
+			if = {
+				limit = {
+					MIE = { has_idea = MIE_joint_air_command_2 }
+				}
+				country_event = { id = mie.9 days = 2 random_days = 5 }
+			}
+			else_if = {
+				limit = {
+					MIE = { has_idea = MIE_joint_air_command_1 }
+				}
+				country_event = { id = mie.9 days = 2 random_days = 5 }
+			}
+		}
+	}
+}
+
+MIE_remove_from_intermarium = {
+	if = {
+		limit = { has_country_flag = MIE_member }
+		clr_country_flag = MIE_member
+		remove_from_array = { global.MIE_tags_array = THIS }
+		if = {
+			limit = { has_idea = MIE_contributions }
+			remove_ideas = MIE_contributions
+		}
+		if = {
+			limit = { has_idea = MIE_joint_air_command_1 }
+			remove_ideas = MIE_joint_air_command_1
+		}
+		else_if = {
+			limit = { has_idea = MIE_joint_air_command_2 }
+			remove_ideas = MIE_joint_air_command_2
+		}
+	}
+}
+
+MIE_move_to_next_intermarium_leader = {
+	if = {
+		limit = { has_global_flag = MIE_intermarium_formed }
+		get_highest_scored_country_temp = {
+			scorer = next_intermarium_leader_scorer
+			var = next_intermarium_leader
+		}
+		if = {
+			limit = {
+				has_variable = next_intermarium_leader
+				NOT = { check_variable = { next_intermarium_leader = 0 } }
+			}
+			if = {
+				limit = { has_event_target = MIE_leader }
+				MIE = {
+					delete_unit_template_and_units = { division_template = "Osteuropäische Interdivision" }
+				}
+				clear_global_event_target = MIE_leader
+			}
+			var:next_intermarium_leader = {
+				save_global_event_target_as = MIE_leader
+				if = {
+					limit = { has_global_flag = MIE_armored_division_exists }
+					MIE_form_armored_interdivision = yes
+				}
+			}
+		}
+		else = {
+			MIE_intermarium_disbands = yes
+		}
+	}
+}
+
+MIE_intermarium_disbands = {
+	if = {
+		limit = { has_global_flag = MIE_intermarium_formed }
+		every_country = {
+			limit = { has_country_flag = MIE_member }
+			MIE_remove_from_intermarium = yes
+		}
+		MIE = { delete_unit = { id = 177013 } }
+		clear_global_event_target = MIE_leader
+		clr_global_flag = MIE_intermarium_formed
+	}
+}
+
+MIE_form_armored_interdivision = {
+	division_template = {
+		name = "Osteuropäische Interdivision"
+		is_locked = yes
+
+		regiments = {
+			medium_armor = { x = 0 y = 0 }
+			medium_armor = { x = 0 y = 1 }
+			medium_armor = { x = 0 y = 2 }
+			medium_armor = { x = 1 y = 0 }
+			medium_armor = { x = 1 y = 1 }
+			medium_armor = { x = 1 y = 2 }
+			motorized = { x = 2 y = 0 }
+			motorized = { x = 2 y = 1 }
+			motorized = { x = 2 y = 2 }
+			motorized = { x = 2 y = 3 }
+		}
+		support = {
+			mot_recon = { x = 0 y = 0 }
+			engineer = { x = 0 y = 1 }
+			artillery = { x = 0 y = 2 }
+		}
+	}
+	if = {
+		limit = { controls_state = capital }
+		capital_scope = {
+			create_unit = {
+				division = "division_template = \"Osteuropäische Interdivision\" name = \"1. Osteuropäische Panzerdivision 'Intermarium'\" start_experience_factor = 0.6"
+				owner = ROOT
+				id = 177013
+			}
+		}
+	}
+	else_if = {
+		limit = { num_of_controlled_states > 0 }
+		random_controlled_state = {
+			create_unit = {
+				division = "division_template = \"Osteuropäische Interdivision\" name = \"1. Osteuropäische Panzerdivision 'Intermarium'\" start_experience_factor = 0.6"
+				owner = ROOT
+				id = 177013
+			}
+		}
+	}
+	else = {
+		random_other_country = {
+			limit = {
+				is_ally_with = ROOT
+				num_of_controlled_states > 0
+			}
+			random_controlled_state = {
+				create_unit = {
+					division = "division_template = \"Osteuropäische Interdivision\" name = \"1. Osteuropäische Panzerdivision 'Intermarium'\" start_experience_factor = 0.6"
+					owner = ROOT
+					id = 177013
+				}
+			}
+		}
+	}
+	custom_effect_tooltip = MIE_transferable_armored_division_tt
+}
+

@@ -1,0 +1,344 @@
+LIT_remove_monarchy = {
+	if = {
+		limit = { has_country_leader = { name = "Mindaugas III" ruling_only = no } }
+		kill_ideology_leader = social_democrat
+		kill_ideology_leader = social_liberal
+		kill_ideology_leader = market_liberal
+		kill_ideology_leader = social_conservative
+		kill_ideology_leader = authoritarian_democrat
+		kill_ideology_leader = paternal_autocrat
+	}
+}
+
+LIT_create_vytautas = {
+	if = {
+		limit = { NOT = { has_country_leader = { name = "Mindaugas III" ruling_only = no } } }
+		create_country_leader = {
+			name = "Mindaugas III"
+			desc = "POLITICS_VYTAUTAS_II_DESC"
+			picture = "gfx/leaders/LIT/Portrait_LIT_Vytautas_II.png"
+			expire = "1965.1.1"
+			ideology = social_democrat_subtype
+		}
+		create_country_leader = {
+			name = "Mindaugas III"
+			desc = "POLITICS_VYTAUTAS_II_DESC"
+			picture = "gfx/leaders/LIT/Portrait_LIT_Vytautas_II.png"
+			expire = "1965.1.1"
+			ideology = social_liberal_subtype
+		}
+		create_country_leader = {
+			name = "Mindaugas III"
+			desc = "POLITICS_VYTAUTAS_II_DESC"
+			picture = "gfx/leaders/LIT/Portrait_LIT_Vytautas_II.png"
+			expire = "1965.1.1"
+			ideology = market_liberal_subtype
+		}
+		create_country_leader = {
+			name = "Mindaugas III"
+			desc = "POLITICS_VYTAUTAS_II_DESC"
+			picture = "gfx/leaders/LIT/Portrait_LIT_Vytautas_II.png"
+			expire = "1965.1.1"
+			ideology = social_conservative_subtype
+		}
+		create_country_leader = {
+			name = "Mindaugas III"
+			desc = "POLITICS_VYTAUTAS_II_DESC"
+			picture = "gfx/leaders/LIT/Portrait_LIT_Vytautas_II.png"
+			expire = "1965.1.1"
+			ideology = authoritarian_democrat_subtype
+		}
+		create_country_leader = {
+			name = "Mindaugas III"
+			desc = "POLITICS_VYTAUTAS_II_DESC"
+			picture = "gfx/leaders/LIT/Portrait_LIT_Vytautas_II.png"
+			expire = "1965.1.1"
+			ideology = paternal_autocrat_subtype
+		}
+	}
+}
+
+# requires a temp variable LIT_centralisation_change
+LIT_change_centralisation = {
+	if = {
+		limit = { LIT_centralisation_active = yes }
+		# convert percent to absolute
+		if = {
+			limit = {
+				check_variable = { LIT_centralisation_change > -1 }
+				check_variable = { LIT_centralisation_change < 1 }
+			}
+			multiply_temp_variable = { LIT_centralisation_change = 100 }
+		}
+
+		# tooltip
+		effect_tooltip = {
+			add_to_variable = {
+				LIT_centralisation = LIT_centralisation_change
+				tooltip = LIT_centralisation_tooltip
+			}
+		}
+
+		# lower limit = legitimacy * -1
+		set_temp_variable = { LIT_lower_limit = LIT_centralisation }
+		multiply_temp_variable = { LIT_lower_limit = -1 }
+
+		# upper limit = 100 - legitimacy
+		set_temp_variable = { LIT_upper_limit = 100 }
+		subtract_from_temp_variable = { LIT_upper_limit = LIT_centralisation }
+
+		# avoid values outside the allowed range
+		clamp_temp_variable = {
+			var = LIT_centralisation_change
+			min = LIT_lower_limit
+			max = LIT_upper_limit
+		}
+
+		# add the variable
+		add_to_variable = { LIT_centralisation = LIT_centralisation_change }
+	}
+}
+
+# requires a temp variable LIT_radicalism_change
+LIT_change_radicalism = {
+	if = {
+		limit = { LIT_long_road_to_pluralism_active = yes }
+		# convert percent to absolute
+		if = {
+			limit = {
+				check_variable = { LIT_radicalism_change < -1 }
+				check_variable = { LIT_radicalism_change > 1 }
+			}
+			multiply_temp_variable = { LIT_radicalism_change = 100 }
+		}
+
+		# lower limit = radicalism * -1
+		set_temp_variable = { LIT_lower_limit = LIT_radicalism }
+		multiply_temp_variable = { LIT_lower_limit = -1 }
+
+		# upper limit = 100 - radicalism
+		set_temp_variable = { LIT_upper_limit = 100 }
+		subtract_from_temp_variable = { LIT_upper_limit = LIT_radicalism }
+
+		# avoid values outside the allowed range
+		clamp_temp_variable = {
+			var = LIT_radicalism_change
+			min = LIT_lower_limit
+			max = LIT_upper_limit
+		}
+
+		add_to_variable = { LIT_radicalism = LIT_radicalism_change }
+
+		# calculate the modifiers
+		divide_temp_variable = { LIT_radicalism_change = 100 }
+
+		set_temp_variable = { LIT_pp_temp = 0.5 }
+		multiply_temp_variable = { LIT_pp_temp = LIT_radicalism_change }
+
+		set_temp_variable = { LIT_construction_speed_temp = 0.25 }
+		multiply_temp_variable = { LIT_construction_speed_temp = LIT_radicalism_change }
+
+		set_temp_variable = { LIT_factory_output_temp = 0.25 }
+		multiply_temp_variable = { LIT_factory_output_temp = LIT_radicalism_change }
+
+		set_temp_variable = { LIT_stability_temp = -0.01 }
+		multiply_temp_variable = { LIT_stability_temp = LIT_radicalism_change }
+
+		custom_effect_tooltip = LIT_modify_long_road_to_pluralism
+		add_to_variable = {
+			LIT_radicalism_pp_gain = LIT_pp_temp
+			tooltip = LIT_radicalism_pp_gain
+		}
+		add_to_variable = {
+			LIT_radicalism_construction_speed = LIT_construction_speed_temp
+			tooltip = LIT_radicalism_construction_speed
+		}
+		add_to_variable = {
+			LIT_radicalism_factory_output = LIT_factory_output_temp
+			tooltip = LIT_radicalism_factory_output
+		}
+		if = {
+			limit = { NOT = { has_completed_focus = LIT_court_and_country } }
+			add_to_variable = {
+				LIT_radicalism_stability_weekly = LIT_stability_temp
+				tooltip = LIT_radicalism_stability_weekly
+			}
+		}
+		hidden_effect = {
+			country_event = { id = LIT.216 days = 4 random_days = 6 }
+			country_event = { id = LIT.217 days = 4 random_days = 6 }
+		}
+	}
+}
+
+# requires a temp variable LIT_threat_change
+LIT_change_LAF_threat = {
+	if = {
+		limit = { has_active_mission = LIT_LAF_guerilla_activity }
+		# convert percent to absolute
+		if = {
+			limit = {
+				check_variable = { LIT_threat_change > -1 }
+				check_variable = { LIT_threat_change < 1 }
+			}
+			multiply_temp_variable = { LIT_threat_change = 100 }
+		}
+
+		# tooltip
+		effect_tooltip = {
+			add_to_variable = {
+				LIT_LAF_threat = LIT_threat_change
+				tooltip = LIT_LAF_threat_tooltip
+			}
+		}
+
+		# lower limit = threat * -1
+		set_temp_variable = { LIT_lower_limit = LIT_LAF_threat }
+		multiply_temp_variable = { LIT_lower_limit = -1 }
+
+		# upper limit = 100 - threat
+		set_temp_variable = { LIT_upper_limit = 100 }
+		subtract_from_temp_variable = { LIT_upper_limit = LIT_LAF_threat }
+
+		# avoid values outside the allowed range
+		clamp_temp_variable = {
+			var = LIT_threat_change
+			min = LIT_lower_limit
+			max = LIT_upper_limit
+		}
+
+		# add the variable
+		add_to_variable = { LIT_LAF_threat = LIT_threat_change }
+
+		hidden_effect = {
+			if = {
+				limit = {
+					check_variable = { LIT_LAF_threat < 1 }
+					NOT = {
+						has_active_mission = LIT_the_fraying_front
+						has_country_flag = LIT_can_capture_laf_leaders
+						AND = {
+							is_ai = yes
+							has_game_rule = { rule = LIT_path option = LIT_PATH_NATIONAL_POPULIST }
+						}
+					}
+				}
+				activate_mission = LIT_the_fraying_front
+			}
+		}
+	}
+}
+
+# requires a temp variable LIT_legitimacy_change
+LIT_change_legitimacy = {
+	if = {
+		limit = {
+			LIT_has_vytautas = yes
+			has_completed_focus = LIT_kings_speech
+		}
+		# convert percent to absolute
+		if = {
+			limit = {
+				check_variable = { LIT_legitimacy_change > -1 }
+				check_variable = { LIT_legitimacy_change < 1 }
+			}
+			multiply_temp_variable = { LIT_legitimacy_change = 100 }
+		}
+
+		# tooltip
+		effect_tooltip = {
+			add_to_variable = {
+				LIT_legitimacy = LIT_legitimacy_change
+				tooltip = LIT_legitimacy_tooltip
+			}
+		}
+
+		# lower limit = legitimacy * -1
+		set_temp_variable = { LIT_lower_limit = LIT_legitimacy }
+		multiply_temp_variable = { LIT_lower_limit = -1 }
+
+		# upper limit = 100 - legitimacy
+		set_temp_variable = { LIT_upper_limit = 100 }
+		subtract_from_temp_variable = { LIT_upper_limit = LIT_legitimacy }
+
+		# avoid values outside the allowed range
+		clamp_temp_variable = {
+			var = LIT_legitimacy_change
+			min = LIT_lower_limit
+			max = LIT_upper_limit
+		}
+
+		# add the variable
+		add_to_variable = { LIT_legitimacy = LIT_legitimacy_change }
+	}
+}
+
+LIT_reduce_cultural_divide = {
+	if = {
+		limit = { has_idea = LIT_cultural_divide_1 }
+		swap_ideas = {
+			remove_idea = LIT_cultural_divide_1
+			add_idea = LIT_cultural_divide_2
+		}
+	}
+	else_if = {
+		limit = { has_idea = LIT_cultural_divide_2 }
+		swap_ideas = {
+			remove_idea = LIT_cultural_divide_2
+			add_idea = LIT_cultural_divide_3
+		}
+	}
+	else_if = {
+		limit = { has_idea = LIT_cultural_divide_3 }
+		swap_ideas = {
+			remove_idea = LIT_cultural_divide_3
+			add_idea = LIT_cultural_divide_4
+		}
+	}
+	else = {
+		remove_ideas = LIT_cultural_divide_4
+	}
+}
+
+
+# requires a temp variable LIT_federalisation_change
+LIT_change_federalisation = {
+	if = {
+		limit = { LIT_optimal_system_active = yes }
+		# convert percent to absolute
+		if = {
+			limit = {
+				check_variable = { LIT_federalisation_change > -1 }
+				check_variable = { LIT_federalisation_change < 1 }
+			}
+			multiply_temp_variable = { LIT_federalisation_change = 100 }
+		}
+
+		# tooltip
+		effect_tooltip = {
+			add_to_variable = {
+				LIT_federalisation = LIT_federalisation_change
+				tooltip = LIT_federalisation_tooltip
+			}
+		}
+
+		# lower limit = legitimacy * -1
+		set_temp_variable = { LIT_lower_limit = LIT_federalisation }
+		multiply_temp_variable = { LIT_lower_limit = -1 }
+
+		# upper limit = 100 - legitimacy
+		set_temp_variable = { LIT_upper_limit = 100 }
+		subtract_from_temp_variable = { LIT_upper_limit = LIT_federalisation }
+
+		# avoid values outside the allowed range
+		clamp_temp_variable = {
+			var = LIT_federalisation_change
+			min = LIT_lower_limit
+			max = LIT_upper_limit
+		}
+
+		# add the variable
+		add_to_variable = { LIT_federalisation = LIT_federalisation_change }
+	}
+}
+
