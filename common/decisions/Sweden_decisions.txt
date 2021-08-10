@@ -260,43 +260,48 @@ SWE_geopolitical_actions = {
 		allowed = {
 			original_tag = SWE
 		}
+
 		available = {
 			is_subject = no
-			FIN = {
-				surrender_progress > 0.7
-			}
-			145 = {
-				is_owned_and_controlled_by = FIN
-			}
+			is_in_faction = no
+			FIN = { surrender_progress > 0.7 }
 		}
+
 		visible = {
-			can_declare_war_on = FIN
-			145 = { is_owned_and_controlled_by = FIN }
+			can_declare_war_on = FROM
+			145 = { is_owned_and_controlled_by = FROM }
 			NOT = {
 				AND = {
 					OR = {
 						has_government = syndicalist
 						has_government = radical_socialist
 					}
-					FIN = {
-						has_socialist_government = yes
-					}
+					FIN = { has_socialist_government = yes }
 				}
 			}
 		}
-		fire_only_once = yes
+
+		cancel_trigger = {
+			OR = {
+				NOT = { can_declare_war_on = FROM }
+				145 = { is_owned_and_controlled_by = ROOT }
+			}
+		}
+
 		cost = 25
+		days_remove = 10
+		fire_only_once = yes
+		cancel_if_not_visible = yes
+		war_with_target_on_remove = yes
+
+		targets = { FIN }
+		target_trigger = {
+			can_declare_war_on = FROM
+			145 = { is_owned_and_controlled_by = FROM }
+		}
+
 		ai_will_do = {
 			factor = 10
-			modifier = {
-				factor = 0
-				OR = {
-					has_war = yes
-					check_variable = { swe_operation_radde_danmark_time > 0 }
-					check_variable = { swe_subjugate_finland_time > 0 }
-					check_variable = { swe_subjugate_norway_time > 0 }
-				}
-			}
 			modifier = { #No seizing Åland from allies if liberal or socdem
 				factor = 0
 				is_in_faction_with = FIN
@@ -319,11 +324,53 @@ SWE_geopolitical_actions = {
 					has_war_with = RUS
 				}
 			}
+			modifier = {
+				factor = 0
+				surrender_progress > 0
+			}
+			modifier = {
+				factor = 0
+				strength_ratio = { tag = FROM ratio < 0.8 }
+			}
+			modifier = {
+				factor = 0
+				FROM = {
+					is_in_faction = yes
+					any_allied_country = {
+						strength_ratio = { tag = ROOT ratio > 0.7 }
+					}
+				}
+			}
+			modifier = {
+				factor = 0
+				FROM = {
+					is_subject = yes
+					overlord = {
+						strength_ratio = { tag = ROOT ratio > 0.7 }
+					}
+				}
+			}
+			modifier = {
+				factor = 0
+				has_country_flag = imminent_war
+			}
 		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancelled swe_seize_aland target: [From.GetName]"
+			clear_decision_attack_AI = yes
+		}
+
 		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision swe_seize_aland"
+			log = "[GetDateText]: [Root.GetName]: Decision swe_seize_aland target: [From.GetName]"
 			transfer_state = 145
-			FIN = { country_event = { id = swe.111 } }
+			FROM = { country_event = swe.111 }
+			setup_decision_attack_AI = yes
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove swe_seize_aland target: [From.GetName]"
+			clear_decision_attack_AI = yes
 		}
 	}
 
@@ -332,87 +379,82 @@ SWE_geopolitical_actions = {
 		allowed = {
 			original_tag = SWE
 		}
-		
+
+		available = {
+			is_subject = no
+			is_in_faction = no
+		}
+
 		visible = {
+			can_declare_war_on = FROM
 			OR = {
 				has_authoritarian_government = yes
 				has_government = totalist
 			}
-			can_declare_war_on = NOR
-			is_subject = no
-			is_in_faction = no
 		}
-		
+
 		cost = 0
+		days_remove = 30
 		fire_only_once = yes
-		days_remove = swe_subjugate_norway_time?0
 		cancel_if_not_visible = yes
-		war_with_on_remove = NOR
-		
-		cancel_trigger = {
-			hidden_trigger = {
-				is_ai = yes
-				OR = {
-					has_war = yes
-					NOR = {
-						OR = {
-							is_in_faction = yes
-							is_subject = yes
-						}
-					}
-				}
-			}
+		war_with_target_on_remove = yes
+
+		targets = { NOR }
+		target_trigger = {
+			can_declare_war_on = FROM
 		}
-		
+
 		ai_will_do = {
-			factor = 10
-			modifier = {
-				factor = 0
-				OR = {
-					check_variable = { swe_operation_radde_danmark_time > 0 }
-					check_variable = { swe_subjugate_finland_time > 0 }
-				}
+			base = 0
+			modifier = { #AI shouldn't invade Norway before 1939 so Norway has the chance to pick its side and Sweden to get their political affairs in order
+				add = 100
+				date > 1939.1.1
 			}
 			modifier = {
 				factor = 0
-				has_war = yes
+				surrender_progress > 0
 			}
 			modifier = {
 				factor = 0
-				strength_ratio = { tag = NOR ratio < 1.0 }
+				strength_ratio = { tag = FROM ratio < 0.8 }
 			}
-			modifier = { #AI shouldn't invade when Norway is in a faction or is a subject
+			modifier = {
 				factor = 0
-				NOR = {
-					OR = {
-						is_in_faction = yes
-						is_subject = yes
+				FROM = {
+					is_in_faction = yes
+					any_allied_country = {
+						strength_ratio = { tag = ROOT ratio > 0.7 }
 					}
 				}
 			}
+			modifier = {
+				factor = 0
+				FROM = {
+					is_subject = yes
+					overlord = {
+						strength_ratio = { tag = ROOT ratio > 0.7 }
+					}
+				}
+			}
+			modifier = {
+				factor = 0
+				has_country_flag = imminent_war
+			}
 		}
+
 		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision swe_subjugate_norway"
-			if = {
-				limit = { is_ai = yes }
-				set_variable = { swe_subjugate_norway_time = 30 }
-			}
-			else = {
-				declare_war_on = {
-					target = NOR
-					type = annex_everything
-				}
-			}
+			log = "[GetDateText]: [Root.GetName]: Decision swe_subjugate_norway target: [From.GetName]"
+			set_country_flag = { flag = imminent_war days = 35 value = 1 }
+			FROM = { country_event = kr.political.30 } #warning event
+			setup_decision_attack_AI = yes
 		}
+
 		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove swe_subjugate_norway"
-			if = {
-				limit = { is_ai = yes }
-				clear_variable = swe_subjugate_norway_time
-				declare_war_on = {
-					target = NOR
-					type = annex_everything
-				}
+			log = "[GetDateText]: [Root.GetName]: Decision remove swe_subjugate_norway target: [From.GetName]"
+			clear_decision_attack_AI = yes
+			declare_war_on = {
+				target = FROM
+				type = annex_everything
 			}
 		}
 	}
@@ -422,88 +464,82 @@ SWE_geopolitical_actions = {
 		allowed = {
 			original_tag = SWE
 		}
-		
+
+		available = {
+			is_subject = no
+			is_in_faction = no
+		}
+
 		visible = {
+			can_declare_war_on = FROM
 			OR = {
 				has_authoritarian_government = yes
 				has_government = totalist
 			}
-			can_declare_war_on = FIN
-			is_subject = no
-			is_in_faction = no
 		}
-		
+
 		cost = 0
+		days_remove = 30
 		fire_only_once = yes
-		days_remove = swe_subjugate_finland_time?0
 		cancel_if_not_visible = yes
-		war_with_on_remove = FIN
-		
-		cancel_trigger = {
-			hidden_trigger = {
-				is_ai = yes
-				OR = {
-					has_war = yes
-					FIN = {
-						OR = {
-							is_in_faction = yes
-							is_subject = yes
-						}
-					}
-				}
-			}
+		war_with_target_on_remove = yes
+
+		targets = { FIN }
+		target_trigger = {
+			can_declare_war_on = FROM
 		}
-		
+
 		ai_will_do = {
-			factor = 10
-			modifier = {
-				factor = 0
-				OR = {
-					check_variable = { swe_operation_radde_danmark_time > 0 }
-					check_variable = { swe_subjugate_norway_time > 0 }
-				}
+			base = 0
+			modifier = { #AI shouldn't invade Norway before 1939 so Norway has the chance to pick its side and Sweden to get their political affairs in order
+				add = 100
+				date > 1939.1.1
 			}
 			modifier = {
 				factor = 0
-				has_war = yes
+				surrender_progress > 0
 			}
 			modifier = {
 				factor = 0
-				strength_ratio = { tag = FIN ratio < 1.0 }
+				strength_ratio = { tag = FROM ratio < 0.8 }
 			}
-			modifier = { #AI shouldn't invade when Norway is in a faction or is a subject
+			modifier = {
 				factor = 0
-				FIN = {
-					OR = {
-						is_in_faction = yes
-						is_subject = yes
+				FROM = {
+					is_in_faction = yes
+					any_allied_country = {
+						strength_ratio = { tag = ROOT ratio > 0.7 }
 					}
 				}
 			}
+			modifier = {
+				factor = 0
+				FROM = {
+					is_subject = yes
+					overlord = {
+						strength_ratio = { tag = ROOT ratio > 0.7 }
+					}
+				}
+			}
+			modifier = {
+				factor = 0
+				has_country_flag = imminent_war
+			}
 		}
-		
+
 		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision swe_subjugate_finland"
-			if = {
-				limit = { is_ai = yes }
-				set_variable = { swe_subjugate_finland_time = 30 }
-			}
-			else = {
-				declare_war_on = {
-					target = FIN
-					type = annex_everything
-				}
-			}
+			log = "[GetDateText]: [Root.GetName]: Decision swe_subjugate_finland target: [From.GetName]"
+			set_country_flag = { flag = imminent_war days = 35 value = 1 }
+			FROM = { country_event = kr.political.30 } #warning event
+			setup_decision_attack_AI = yes
 		}
+
 		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove swe_subjugate_finland"
-			if = {
-				limit = { is_ai = yes }
-				clear_variable = swe_subjugate_finland_time
-				declare_war_on = {
-					target = FIN
-					type = annex_everything
-				}
+			log = "[GetDateText]: [Root.GetName]: Decision remove swe_subjugate_finland target: [From.GetName]"
+			clear_decision_attack_AI = yes
+			declare_war_on = {
+				target = FROM
+				type = annex_everything
 			}
 		}
 	}
@@ -513,98 +549,91 @@ SWE_geopolitical_actions = {
 		allowed = {
 			original_tag = SWE
 		}
-		
+
 		available = {
-			has_war = no
-		}
-		
-		visible = {
-			NOT = { country_exists = GER }
-			has_socialist_government = no
-			can_declare_war_on = DEN
 			is_subject = no
 			is_in_faction = no
-			DEN = {
+			FROM = {
 				is_in_faction = no
-				has_war_with = FRA
+				has_war_with = INT
 			}
 		}
-		
+
+		visible = {
+			has_socialist_government = no
+			NOT = { country_exists = GER }
+			can_declare_war_on = FROM
+		}
+
 		cost = 0
+		days_remove = 20
 		fire_only_once = yes
-		days_remove = swe_operation_radde_danmark_time?0
 		cancel_if_not_visible = yes
-		war_with_on_remove = DEN
-		
-		cancel_trigger = {
-			hidden_trigger = {
-				is_ai = yes
-				OR = {
-					has_war = yes
-					DEN = { is_subject = yes }
-				}
-				INT = {
-					OR = {
-						is_in_faction_with = NOR
-						is_in_faction_with = FIN
-					}
-				}
-			}
+		war_with_target_on_remove = yes
+
+		targets = { DEN }
+		target_root_trigger = {
+			NOT = { country_exists = GER }
 		}
-		
+		target_trigger = {
+			can_declare_war_on = FROM
+		}
+
 		ai_will_do = {
-			factor = 10
-			modifier = {
-				factor = 0
-				OR = {
-					check_variable = { swe_subjugate_finland_time > 0 }
-					check_variable = { swe_subjugate_norway_time > 0 }
+			base = 0
+			modifier = { #AI shouldn't invade Norway before 1939 so Norway has the chance to pick its side and Sweden to get their political affairs in order
+				add = 100
+				date > 1939.1.1
+				NOT = {
+					NOR = { is_in_faction_with = INT }
+					FIN = { is_in_faction_with = INT }
 				}
 			}
 			modifier = {
 				factor = 0
-				has_war = yes
+				surrender_progress > 0
 			}
 			modifier = {
 				factor = 0
-				strength_ratio = { tag = DEN ratio < 1.0 }
+				strength_ratio = { tag = FROM ratio < 0.8 }
 			}
-			modifier = { #AI shouldn't invade when Denmark is a subject
+			modifier = {
 				factor = 0
-				DEN = { is_subject = yes }
-			}
-			modifier = { #AI shouldn't invade if the Internationale already has a foothold in Scandinavia anyhow
-				factor = 0
-				INT = {
-					OR = {
-						is_in_faction_with = NOR
-						is_in_faction_with = FIN
+				FROM = {
+					is_in_faction = yes
+					any_allied_country = {
+						strength_ratio = { tag = ROOT ratio > 0.7 }
 					}
 				}
 			}
+			modifier = {
+				factor = 0
+				FROM = {
+					is_subject = yes
+					overlord = {
+						strength_ratio = { tag = ROOT ratio > 0.7 }
+					}
+				}
+			}
+			modifier = {
+				factor = 0
+				has_country_flag = imminent_war
+			}
 		}
+
 		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision swe_operation_radde_danmark"
-			if = {
-				limit = { is_ai = yes }
-				set_variable = { swe_operation_radde_danmark_time = 2 }
-			}
-			else = {
-				declare_war_on = {
-					target = DEN
-					type = annex_everything
-				}
-			}
+			log = "[GetDateText]: [Root.GetName]: Decision swe_operation_radde_danmark target: [From.GetName]"
+			set_country_flag = { flag = imminent_war days = 25 value = 1 }
+			FROM = { country_event = kr.political.30 } #warning event
+			setup_decision_attack_AI = yes
 		}
+
 		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove swe_operation_radde_danmark"
-			if = {
-				limit = { is_ai = yes }
-				clear_variable = swe_operation_radde_danmark_time
-				declare_war_on = {
-					target = DEN
-					type = annex_everything
-				}
+			log = "[GetDateText]: [Root.GetName]: Decision remove swe_operation_radde_danmark target: [From.GetName]"
+			clear_decision_attack_AI = yes
+			declare_war_on = {
+				target = FROM
+				type = annex_everything
 			}
 		}
 	}
