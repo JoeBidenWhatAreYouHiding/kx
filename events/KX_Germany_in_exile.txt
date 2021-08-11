@@ -1,0 +1,2300 @@
+add_namespace = GEX
+add_namespace = GEXMAF
+add_namespace = GEXGEA
+add_namespace = GEXAOG
+add_namespace = GEXTXS
+add_namespace = GEXOTT
+add_namespace = GEX_foreign
+add_namespace = GEX_foreign_east
+
+# Main German capitulation event
+country_event = {
+	id = GEX.1
+	title = GEX.1.t
+	desc = GEX.1.d
+	picture = GFX_report_event_german_reichstag_bombed
+
+	fire_only_once = yes
+
+	trigger = {
+		tag = GER
+		is_subject = no
+		has_war = yes
+		OR = {
+			AND = {
+				NOT = { controls_state = 64 } #Brandenburg
+				surrender_progress > 0.75
+			}
+			surrender_progress > 0.8
+			has_capitulated = yes
+		}
+	}
+
+	immediate = {
+		log = "[GetDateText]: [Root.GetName]: event GEX.1"
+		hidden_effect = {
+			add_ideas = GEX_flight_of_the_reich
+			if = {
+				limit = {
+					TXS = {
+						OR = {
+							is_in_faction_with = GER
+							is_guaranteed_by = GER
+						}
+					}
+				}
+				set_global_flag = TEX_GEX_candidate
+			}
+
+			if = { #Checking for UoB involvement in the war
+				limit = {
+					ENG = {
+						is_in_faction_with = FRA
+						has_war_with = GER
+						OR = {
+							any_war_score > 10
+							controls_state = 56
+							controls_state = 58
+							controls_state = 59
+						}
+					}
+				}
+				set_global_flag = UoB_war_par_1
+			}
+			if = {
+				limit = {
+					ENG = {
+						is_in_faction_with = FRA
+						has_war_with = GER
+						OR = {
+							any_war_score > 25
+							AND = {
+								controls_state = 5
+								controls_state = 62
+								controls_state = 86
+							}
+							controls_state = 64
+						}
+					}
+				}
+				set_global_flag = UoB_war_par_2
+			}
+
+			random_other_country = {
+				limit = { has_war_with = GER }
+				news_event = worldnews.145
+				country_event = worldtension.25
+			}
+
+			LEC = {
+				country_event = {
+					id = lec.100
+					days = 1
+				}
+			}
+			
+			every_country = {
+				limit = {
+					is_subject_of = GER
+					OR = {
+						AND = {
+							NOT = { tag = GEA }
+							NOT = { tag = AOG }
+						}
+						has_capitulated = yes
+					}
+				}
+				overlord = {
+					set_autonomy = {
+						target = PREV
+						autonomy_state = autonomy_free
+					}
+				}
+				
+			}
+			
+			every_other_country = {
+				limit = {
+					OR = {
+						is_in_faction_with = GER
+						is_subject_of = GER
+					}
+				}
+				set_country_flag = former_reichspakt_member
+				add_timed_idea = {
+					idea = GEX_fleeing_exiles
+					days = 365
+				}
+			}
+			
+			AUS = {
+				if = {
+					limit = {
+						NOT = { has_war_with = GER }
+					}
+					add_timed_idea = {
+						idea = GEX_fleeing_exiles
+						days = 365
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = GEX.1.a #Assume control of Mittelafrika. We shall fight on from there
+		trigger = {#Does Germany flee to MAF?
+			is_ai = no
+			GEX_can_flee_MAF = yes
+		}
+		set_country_flag = GER_capitulated
+		custom_effect_tooltip = MAF_player_becomes_GEX
+		hidden_effect = {
+			MAF = { country_event = GEX.2 }
+		}
+	}
+	
+	option = {
+		name = GEX.1.b #Assume control of GEA
+		trigger = {
+			is_ai = no
+			GEX_can_flee_GEA = yes
+		}
+		set_country_flag = GER_capitulated
+		custom_effect_tooltip = GEA_player_becomes_GEX
+		hidden_effect = {
+			GEA = { country_event = GEX.2 }
+		}
+	}
+	
+	option = {
+		name = GEX.1.c #Assume control of AOG
+		trigger = {
+			is_ai = no
+			GEX_can_flee_AOG = yes
+		}
+		set_country_flag = GER_capitulated
+		custom_effect_tooltip = AOG_player_becomes_GEX
+		hidden_effect = {
+			AOG = { country_event = GEX.2 }
+		}
+	}
+	
+	option = {
+		name = GEX.1.e #Flee to Texas
+		trigger = {
+			is_ai = no
+			GEX_can_flee_TXS = YES
+		}
+		set_country_flag = GER_capitulated
+		custom_effect_tooltip = TXS_player_becomes_GEX
+		hidden_effect = {
+			TXS = { country_event = GEX.2 }
+		}
+	}
+	option = {
+		name = GEX.1.f #Flee to Ottomans
+		trigger = {
+			is_ai = no
+			GEX_can_flee_OTT = yes
+		}
+		set_country_flag = GER_capitulated
+		custom_effect_tooltip = OTT_player_becomes_GEX
+		hidden_effect = {
+			OTT = { country_event = GEX.2 }
+		}
+	}
+	option = {
+		name = GEX.1.g #There is nowhere to run. Surrender!
+		trigger = {
+			is_ai = no
+			GEX_can_flee_MAF = no
+			GEX_can_flee_GEA = no
+			GEX_can_flee_AOG = no
+			GEX_can_flee_TXS = no
+			GEX_can_flee_OTT = no
+		}
+		log = "		-- Germany is capitulating completely, no exile"
+		set_country_flag = GER_capitulated
+		custom_effect_tooltip = GER_will_capitulate
+		swap_ideas = {
+			add_idea = GEX_flight_of_the_reich_2
+			remove_idea = GEX_flight_of_the_reich
+		}
+		germany_capitulates = yes
+		set_global_flag = GER_did_not_became_GEX
+	}
+	option = {
+		name = GEX.1.h #Ai script
+		trigger = {
+			is_ai = yes
+		}
+		german_ai_flees = yes
+	}
+}
+
+country_event = {
+	id = GEX.2
+	immediate = { log = "[GetDateText]: [Root.GetName]: event GEX.2" }
+	title = GEX.2.t
+	desc = { text = GEX.2.d.MAF trigger = { tag = MAF } }
+	desc = { text = GEX.2.d.GEA trigger = { tag = GEA } }
+	desc = { text = GEX.2.d.AOG trigger = {	tag = AOG NOT = { has_cosmetic_tag = AOG_CHINA_REICH 	has_country_flag = AOG_krupp_flag } } }
+	desc = { text = GEX.2.d.AOG_directors 	trigger = { tag = AOG has_country_flag = AOG_krupp_flag } }
+	desc = { text = GEX.2.d.AOG_kaiser trigger = { tag = AOG has_cosmetic_tag = AOG_CHINA_REICH } }
+	desc = { text = GEX.2.d.TXS trigger = { tag = TXS } }
+	desc = { text = GEX.2.d.OTT trigger = { tag = OTT } }
+	picture = GFX_report_event_german_reichstag_bombed
+
+	is_triggered_only = yes
+	
+	option = {
+		name = GEX.2.a #Welcome the exiled government and give in to their demands
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = 0
+				has_game_rule = {
+					rule = GEX_exile
+					option = GEX_EXILE_FAIL
+				}
+			}
+		}
+		GER = {
+			country_event = GEX.4
+		}
+		hidden_effect = {
+			if = {
+				limit = {
+					tag = TXS
+				}
+				country_event = {
+					id = GEXTXS.1
+					days = 30
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = GEX.2.f #Pass to next
+		trigger = {
+			is_ai = no
+			NOT = { has_global_flag = GEX_players_absent }
+		}
+		set_country_flag = GEX_exile_skip
+		GER = {
+			country_event = GEX.4
+		}
+	}
+	
+	option = {#no
+		name = GEX.2.b
+		trigger = { NOT = { tag = MAF } }
+		
+		ai_chance = {	
+			factor = 1
+			modifier = {
+				factor = 0
+				OR = {
+					has_game_rule = {
+						rule = GEX_exile
+						option = DEFAULT
+					}
+					AND = {
+						tag = MAF
+						has_game_rule = {
+							rule = GEX_exile
+							option = GEX_EXILE_MAF
+						}
+					}
+					AND = {
+						tag = GEA
+						has_game_rule = {
+							rule = GEX_exile
+							option = GEX_EXILE_GEA
+						}
+					}
+					AND = {
+						tag = AOG
+						has_game_rule = {
+							rule = GEX_exile
+							option = GEX_EXILE_AOG
+						}
+					}
+					AND = {
+						tag = OTT
+						has_game_rule = {
+							rule = GEX_exile
+							option = GEX_EXILE_OTT
+						}
+					}
+					AND = {
+						tag = TXS
+						OR = {
+							has_game_rule = {
+								rule = GEX_exile
+								option = GEX_EXILE_TXS
+							}
+							has_game_rule = {
+								rule = GEX_exile
+								option = GEX_EXILE_TXS_KAISER
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		set_country_flag = GEX_rejected_exiles
+		
+		if = {
+			limit = {
+				has_country_leader = { name = "Jomo Kenyatta" ruling_only = yes }
+			}
+			add_stability = -0.05
+		}
+		else_if = {
+			limit = {
+				NOT = {
+					has_country_leader = { name = "Weilian" ruling_only = yes }
+					has_country_leader = { name = "Weilian II" ruling_only = yes }
+				}
+			}
+			add_stability = -0.3
+		}
+		if = {
+			limit = {
+				OR = {
+					has_country_leader = { name = "Weilian" ruling_only = yes }
+					has_country_leader = { name = "Weilian II" ruling_only = yes }
+				}
+			}
+			custom_effect_tooltip = AOG_no_more_exile
+			drop_cosmetic_tag = yes
+			add_stability = -0.40
+			add_political_power = -100
+			hidden_effect = {
+				create_country_leader = {
+					name = "Board of Directors"
+					desc = "POLITICS_AOG_BOARD_DESC"
+					picture = "Portrait_AOG_Board.png"
+					expire = "1965.1.1"
+					ideology = paternal_autocrat_subtype
+					traits = {}
+				}
+
+				create_country_leader = {
+					name = "Alexander von Falkenhausen"
+					desc = "POLITICS_ALEXANDER_VON_FALKENHAUSEN_DESC"
+					picture = "Portrait_AOG_Alexander_von_Falkenhausen.png"
+					expire = "1965.1.1"
+					ideology = authoritarian_democrat_subtype
+					traits = {}
+				}
+			}
+		}
+		if = {
+			limit = { is_in_faction = yes }
+			leave_faction = yes
+		}
+		GER = {
+			country_event = GEX.3
+		}
+	}
+	
+	option = {#Lapdogs no longer! Declare the independence of the Mittelafrikan Empire!
+		name = GEX.2.c
+		trigger = { tag = MAF NOT = { has_country_leader = { name = "Jomo Kenyatta" ruling_only = yes } } }
+		
+		ai_chance = {	
+			factor = 1
+			modifier = {
+				factor = 0
+				OR = {
+					has_game_rule = {
+						rule = GEX_exile
+						option = DEFAULT
+					}
+					has_game_rule = {
+						rule = GEX_exile
+						option = GEX_EXILE_MAF
+					}
+				}
+			}
+		}
+		
+		set_country_flag = GEX_rejected_exiles
+		
+		if = {
+			limit = {
+				has_country_leader = { name = "Jomo Kenyatta" ruling_only = yes }
+			}
+			add_stability = -0.05
+		}
+		else = {
+			add_stability = -0.3
+		}
+		if = {
+			limit = { is_in_faction = yes }
+			leave_faction = yes
+		}
+		GER = {
+			country_event = GEX.3
+		}
+	}
+	
+	option = {#Kenyatta says no to Kaiserism
+		name = GEX.2.e
+		trigger = { has_country_leader = { name = "Jomo Kenyatta" } }
+		
+		ai_chance = {	
+			factor = 1
+			modifier = {
+				factor = 0
+				OR = {
+					has_game_rule = {
+						rule = GEX_exile
+						option = DEFAULT
+					}
+					has_game_rule = {
+						rule = GEX_exile
+						option = GEX_EXILE_MAF
+					}
+				}
+			}
+		}
+		
+		set_country_flag = GEX_rejected_exiles
+		
+		if = {
+			limit = {
+				has_country_leader = { name = "Jomo Kenyatta" ruling_only = yes }
+			}
+			add_stability = -0.05
+		}
+		else = {
+			add_stability = -0.3
+		}
+		if = {
+			limit = { is_in_faction = yes }
+			leave_faction = yes
+		}
+		GER = {
+			country_event = GEX.3
+		}
+	}
+}
+	
+# FROM has refused to surrender to the fleeing Germans
+country_event = {
+	id = GEX.3
+	immediate = { log = "[GetDateText]: [Root.GetName]: event GEX.3" }
+	title = { text = GEX.3.t.MAF trigger = { FROM = { tag = MAF } } }
+	title = { text = GEX.3.t.GEA trigger = { FROM = { tag = GEA } } }
+	title = { text = GEX.3.t.AOG trigger = { FROM = { tag = AOG } } }
+	title = { text = GEX.3.t.TEX trigger = { FROM = { tag = TEX } } }
+	title = { text = GEX.3.t.OTT trigger = { FROM = { tag = OTT } } }
+	desc = { text = GEX.3.t.MAF trigger = { FROM = { tag = MAF } } }
+	desc = { text = GEX.3.t.GEA trigger = { FROM = { tag = GEA } } }
+	desc = { text = GEX.3.t.AOG trigger = { FROM = { tag = AOG } } }
+	desc = { text = GEX.3.t.TEX trigger = { FROM = { tag = TEX } } }
+	desc = { text = GEX.3.t.OTT trigger = { FROM = { tag = OTT } } }
+	picture = GFX_report_event_MAF_tanganyika
+	
+	immediate = {
+		set_global_flag = GEX_cycle_1
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = GEX.3.a #Assume control of Mittelafrika. We shall fight on from there
+		trigger = {#Does Germany flee to MAF?
+			is_ai = no
+			GEX_can_flee_MAF = yes
+		}
+		set_country_flag = GER_capitulated
+		custom_effect_tooltip = MAF_player_becomes_GEX
+		hidden_effect = {
+			MAF = { country_event = GEX.2 }
+		}
+	}
+	
+	option = {
+		name = GEX.3.b #Assume control of GEA
+		trigger = {
+			is_ai = no
+			GEX_can_flee_GEA = yes
+		}
+		set_country_flag = GER_capitulated
+		custom_effect_tooltip = GEA_player_becomes_GEX
+		hidden_effect = {
+			GEA = { country_event = GEX.2 }
+		}
+	}
+	
+	option = {
+		name = GEX.3.c #Assume control of AOG
+		trigger = {
+			is_ai = no
+			GEX_can_flee_AOG = yes
+		}
+		set_country_flag = GER_capitulated
+		custom_effect_tooltip = AOG_player_becomes_GEX
+		hidden_effect = {
+			AOG = { country_event = GEX.2 }
+		}
+	}
+	
+	option = {
+		name = GEX.3.e #Flee to Texas
+		trigger = {
+			is_ai = no
+			GEX_can_flee_TXS = YES
+		}
+		set_country_flag = GER_capitulated
+		custom_effect_tooltip = TXS_player_becomes_GEX
+		hidden_effect = {
+			TXS = { country_event = GEX.2 }
+		}
+	}
+	option = {
+		name = GEX.3.f #Flee to Ottomans
+		trigger = {
+			is_ai = no
+			GEX_can_flee_OTT = yes
+		}
+		set_country_flag = GER_capitulated
+		custom_effect_tooltip = OTT_player_becomes_GEX
+		hidden_effect = {
+			OTT = { country_event = GEX.2 }
+		}
+	}
+	option = {
+		name = GEX.3.g #There is nowhere to run. Surrender!
+		trigger = {
+			is_ai = no
+			GEX_can_flee_MAF = no
+			GEX_can_flee_GEA = no
+			GEX_can_flee_AOG = no
+			GEX_can_flee_TXS = no
+			GEX_can_flee_OTT = no
+		}
+		log = "		-- Germany is capitulating completely, no exile"
+		set_country_flag = GER_capitulated
+		custom_effect_tooltip = GER_will_capitulate
+		swap_ideas = {
+			add_idea = GEX_flight_of_the_reich_2
+			remove_idea = GEX_flight_of_the_reich
+		}
+		germany_capitulates = yes
+		set_global_flag = GER_did_not_became_GEX
+	}
+	option = {
+		name = GEX.3.h #Ai script
+		trigger = {
+			is_ai = yes
+		}
+		german_ai_flees = yes
+	}
+}
+
+# GEX has agreed to take in the fleeing Germans
+	country_event = {
+		id = GEX.4
+		immediate = { log = "[GetDateText]: [Root.GetName]: event GEX.4" }
+		title = { text = GEX.4.t.MAF trigger = { FROM = { tag = MAF } } }
+		title = { text = GEX.4.t.GEA trigger = { FROM = { tag = GEA } } }
+		title = { text = GEX.4.t.AOG trigger = { FROM = { tag = AOG } } }
+		title = { text = GEX.4.t.TXS trigger = { FROM = { tag = TXS } } }
+		title = { text = GEX.4.t.OTT trigger = { FROM = { tag = OTT } } }
+		desc = { text = GEX.4.d.MAF trigger = { FROM = { tag = MAF } } }
+		desc = { text = GEX.4.d.GEA trigger = { FROM = { tag = GEA } } }
+		desc = { text = GEX.4.d.AOG trigger = { FROM = { tag = AOG } } }
+		desc = { text = GEX.4.d.TXS trigger = { FROM = { tag = TXS } } }
+		desc = { text = GEX.4.d.OTT trigger = { FROM = { tag = OTT } } }
+		picture = GFX_report_event_MAF_tanganyika
+
+		is_triggered_only = yes
+
+		option = {
+			name = GEX.4.a
+			trigger = {
+				FROM = { tag = MAF }
+			}
+			custom_effect_tooltip = MAF_player_becomes_GEX
+			hidden_effect = {
+				MAF = {
+					transfer_technology = yes
+				}
+				every_unit_leader = {
+					set_unit_leader_flag = GEX_exile_leader
+					set_nationality = MAF
+				}
+				every_navy_leader = {
+					set_unit_leader_flag = GEX_exile_leader
+					set_nationality = MAF
+				}
+				swap_ideas = {
+					add_idea = GEX_flight_of_the_reich_2
+					remove_idea = GEX_flight_of_the_reich
+				}
+				MAF = {
+					germany_flees_to_exile = yes
+				}
+				germany_capitulates = yes
+			}
+		}
+		
+		option = {
+			name = GEX.4.b
+			trigger = {
+				FROM = { tag = GEA }
+			}
+			custom_effect_tooltip = GEA_player_becomes_GEX
+			hidden_effect = {
+				GEA = {
+					transfer_technology = yes
+				}
+				every_unit_leader = {
+					set_unit_leader_flag = GEX_exile_leader
+					set_nationality = GEA
+				}
+				every_navy_leader = {
+					set_unit_leader_flag = GEX_exile_leader
+					set_nationality = GEA
+				}
+				swap_ideas = {
+					add_idea = GEX_flight_of_the_reich_2
+					remove_idea = GEX_flight_of_the_reich
+				}
+				GEA = {
+					germany_flees_to_exile = yes
+				}
+				germany_capitulates = yes
+			}
+		}
+		
+		option = {
+			name = GEX.4.c
+			trigger = {
+				FROM = { tag = AOG }
+			}
+			custom_effect_tooltip = AOG_player_becomes_GEX
+			hidden_effect = {
+				AOG = {
+					transfer_technology = yes
+				}
+				every_unit_leader = {
+					set_unit_leader_flag = GEX_exile_leader
+					set_nationality = AOG
+				}
+				every_navy_leader = {
+					set_unit_leader_flag = GEX_exile_leader
+					set_nationality = AOG
+				}
+				swap_ideas = {
+					add_idea = GEX_flight_of_the_reich_2
+					remove_idea = GEX_flight_of_the_reich
+				}
+				AOG = {
+					germany_flees_to_exile = yes
+				}
+				germany_capitulates = yes
+			}
+		}
+		
+		option = {
+			name = GEX.4.e
+			trigger = {
+				FROM = { tag = TXS }
+			}
+			custom_effect_tooltip = TXS_player_becomes_GEX
+			hidden_effect = {
+				TXS = {
+					transfer_technology = yes
+				}
+				every_unit_leader = {
+					set_unit_leader_flag = GEX_exile_leader
+					set_nationality = TXS
+				}
+				every_navy_leader = {
+					set_unit_leader_flag = GEX_exile_leader
+					set_nationality = TXS
+				}
+				swap_ideas = {
+					add_idea = GEX_flight_of_the_reich_2
+					remove_idea = GEX_flight_of_the_reich
+				}
+				TXS = {
+					germany_flees_to_exile = yes
+				}
+				germany_capitulates = yes
+			}
+		}
+		
+		option = {
+			name = GEX.4.f
+			trigger = {
+				FROM = { tag = OTT }
+			}
+			custom_effect_tooltip = OTT_player_becomes_GEX
+			hidden_effect = {
+				OTT = {
+					transfer_technology = yes
+				}
+				every_unit_leader = {
+					set_unit_leader_flag = GEX_exile_leader
+					set_nationality = OTT
+				}
+				every_navy_leader = {
+					set_unit_leader_flag = GEX_exile_leader
+					set_nationality = OTT
+				}
+				swap_ideas = {
+					add_idea = GEX_flight_of_the_reich_2
+					remove_idea = GEX_flight_of_the_reich
+				}
+				OTT = {
+					germany_flees_to_exile = yes
+				}
+				germany_capitulates = yes
+			}
+		}
+	}
+	
+	country_event = {
+		id = GEX.5
+		immediate = { log = "[GetDateText]: [Root.GetName]: event GEX.5" }
+		picture = GFX_report_event_MAF_tanganyika
+
+		is_triggered_only = yes
+		
+		option = {
+			name = GEX.5.h #Ai script
+			trigger = {
+				is_ai = yes
+			}
+			german_ai_flees = yes
+			set_country_flag = GEX_cycle_1
+		}
+	}
+	
+	country_event = {#Release Germany
+		id = GEX.101
+		title = GEX.101.t
+		desc = GEX.101.d
+		picture = GFX_ger_coltroops
+		
+		fire_only_once = yes
+
+		trigger = {
+			any_owned_state = {
+				is_core_of = GER
+			}
+			GEX_fled_to_us = yes
+			tag = GEX
+		}
+
+		option = {
+			name = GEX.101.a
+			hidden_effect = {
+				GEX_liberation_of_GER = yes
+				every_navy_leader = {
+					limit = {
+						has_unit_leader_flag = GEX_exile_leader
+					}
+					set_nationality = GER
+				}
+				every_army_leader = {
+					limit = {
+						has_unit_leader_flag = GEX_exile_leader
+					}
+					set_nationality = GER
+				}
+			}
+			GER = { change_tag_from = GEX }
+			custom_effect_tooltip = GEX_liberationtt
+		}
+		
+		option = {
+			name = GEX.101.b
+			hidden_effect = {
+				GEX_liberation_of_GER = yes
+				every_navy_leader = {
+					limit = {
+						has_unit_leader_flag = GEX_exile_leader
+					}
+					set_nationality = GER
+				}
+				every_army_leader = {
+					limit = {
+						has_unit_leader_flag = GEX_exile_leader
+					}
+					set_nationality = GER
+				}
+			}
+			custom_effect_tooltip = GEX_liberationtt
+		}
+	}
+	
+	country_event = {
+		id = GEX.102
+		title = GEX.102.t
+		desc = { text = GEX.102.d1 trigger = { has_completed_focus = GER_exile_militarism } }
+		desc = { text = GEX.102.d2 trigger = { has_completed_focus = GER_swords_into_plowshares } }
+		is_triggered_only = yes
+		
+		option = {#don't be ridiculous
+			name = GEX.102.a
+			add_ideas = GERGEX_rebuild_fleet
+			add_political_power = 50
+		}
+		
+		option = {#LETSGO
+			name = GEX.102.b
+			trigger = {
+				has_completed_focus = GER_exile_militarism
+			}
+			add_ideas = GERGEX_plan_z
+			activate_mission = GEXGER_planz
+			add_war_support = 0.05
+		}
+		
+		option = {#LETSGO
+			name = GEX.102.c
+			trigger = {
+				has_completed_focus = GER_swords_into_plowshares
+			}
+			add_ideas = GERGEX_rebuild_fleet_merchant
+			add_offsite_building = { type = industrial_complex level = 1 }
+		}
+	}
+	
+	country_event = {# Outer Manchuria
+		id = GEXAOG.101
+		title = GEXAOG.101.t
+		desc = GEXAOG.101.d
+		picture = GFX_ger_coltroops
+		
+		immediate = {
+			hidden_effect = {
+				every_state = {
+					limit = {
+						OR = {
+							state = 408
+							state = 409
+							state = 560
+							state = 657
+							state = 561
+						}
+					}
+					GEX = {
+						transfer_state = PREV
+					}
+				}
+			}
+		}
+
+		is_triggered_only = yes
+
+		option = {
+			name = GEXAOG.101.a
+			ai_chance = {
+				factor = 20
+			}
+			declare_war_on = {
+				target = GEX
+				type = annex_everything
+			}
+			add_war_support = 0.05
+		}
+		
+		option = {
+			name = GEXAOG.101.b
+			ai_chance = {
+				factor = 80
+				modifier = {
+					factor = 0.25
+					OR = {
+						is_in_faction_with = INT
+						any_state = {
+							is_core_of = GER
+							is_owned_by_ROOT_or_ally = yes
+						}
+					}
+				}
+			}
+			GEX = {
+				country_event = { id = GEXAOG.103 }
+			}
+		}
+	}
+	
+	country_event = {# Outer Manchuria
+		id = GEXAOG.102
+		title = GEXAOG.102.t
+		desc = GEXAOG.102.d
+		picture = GFX_ger_coltroops
+
+		is_triggered_only = yes
+		option = {
+			name = GEXAOG.102.a
+			create_wargoal = {
+				target = FROM
+				type = annex_everything
+			}
+		}
+	}
+	
+	country_event = {# Outer Manchuria
+		id = GEXAOG.103
+		title = GEXAOG.103.t
+		desc = GEXAOG.103.d
+		picture = GFX_ger_coltroops
+
+		is_triggered_only = yes
+		option = {
+			name = GEXAOG.103.a
+			effect_tooltip = {
+				every_state = {
+					limit = {
+						OR = {
+							state = 408
+							state = 409
+							state = 560
+							state = 657
+							state = 561
+						}
+					}
+					GEX = {
+						transfer_state = PREV
+					}
+				}
+			}
+		}
+	}
+	
+	country_event = {# Concessions
+		id = GEXAOG.104
+		title = GEXAOG.104.t
+		desc = GEXAOG.104.d
+		picture = GFX_ger_coltroops
+
+		is_triggered_only = yes
+
+		option = {
+			name = GEXAOG.104.a
+			ai_chance = {
+				factor = 80
+			}
+			GEX = {
+				country_event = { id = GEXAOG.106 days = 3 }
+			}
+		}
+		
+		option = {
+			name = GEXAOG.104.b
+			ai_chance = {
+				factor = 80
+			}
+			GEX = {
+				country_event = { id = GEXAOG.105 }
+			}
+			add_political_power = 100
+		}
+	}
+	
+	country_event = {# Concessions
+		id = GEXAOG.105
+		title = GEXAOG.105.t
+		desc = GEXAOG.105.d
+		picture = GFX_ger_coltroops
+
+		is_triggered_only = yes
+		option = {
+			name = GEXAOG.105.a
+			create_wargoal = {
+				target = LEC
+				type = annex_everything
+			}
+		}
+	}
+	
+	country_event = {# Concessions
+		id = GEXAOG.106
+		title = GEXAOG.106.t
+		desc = GEXAOG.106.d
+		picture = GFX_ger_coltroops
+
+		is_triggered_only = yes
+		option = {
+			name = GEXAOG.106.a
+			annex_country = {
+				target = LEC
+				transfer_troops = no
+			}
+		}
+	}
+	
+	country_event = {
+		id = GEXTXS.1
+		title = GEXTXS.1.t
+		desc = GEXTXS.1.d
+		is_triggered_only = yes
+		
+		option = { #We are TEXANS MAGGOT
+			name = GEXTXS.1.a
+			ai_chance = {
+				factor = 50
+				modifier = {
+					factor = 0
+					has_game_rule = {
+						rule = GEX_exile
+						option = GEX_EXILE_TXS_KAISER
+					}
+				}
+			}
+			add_political_power = 10
+		}
+		
+		option = { #KTX
+			name = GEXTXS.1.b
+			ai_chance = {
+				factor = 50
+				modifier = {
+					factor = 0
+					has_game_rule = {
+						rule = GEX_exile
+						option = GEX_EXILE_TXS
+					}
+				}
+			}
+			set_cosmetic_tag = TXS_KTX
+			set_country_flag = GEX_became_KTX
+			hidden_effect = {
+				set_party_name = { ideology = authoritarian_democrat long_name = KTX_authoritarian_democrat_party_long name = KTX_authoritarian_democrat_party }
+				set_party_name = { ideology = paternal_autocrat long_name = KTX_paternal_autocrat_party_long name = KTX_paternal_autocrat_party }
+				if = {
+					limit = { has_global_flag = wilhelmiided }
+					
+					create_country_leader = {
+						name = "Wilhelm III"
+						desc = "POLITICS_WILLY_3_DESC"
+						picture = "gfx/leaders/KTX/Portrait_Germany_Wilhelm_III.png"
+						expire = "1965.1.1"
+						ideology = social_democrat_subtype
+						traits = {}
+					}
+
+					create_country_leader = {
+						name = "Wilhelm III"
+						desc = "POLITICS_WILLY_3_DESC"
+						picture = "gfx/leaders/KTX/Portrait_Germany_Wilhelm_III.png"
+						expire = "1965.1.1"
+						ideology = social_liberal_subtype
+						traits = {}
+					}
+
+					create_country_leader = {
+						name = "Wilhelm III"
+						desc = "POLITICS_WILLY_3_DESC"
+						picture = "gfx/leaders/KTX/Portrait_Germany_Wilhelm_III.png"
+						expire = "1965.1.1"
+						ideology = market_liberal_subtype
+						traits = {}
+					}
+
+					create_country_leader = {
+						name = "Wilhelm III"
+						desc = "POLITICS_WILLY_3_DESC"
+						picture = "gfx/leaders/KTX/Portrait_Germany_Wilhelm_III.png"
+						expire = "1965.1.1"
+						ideology = social_conservative_subtype
+						traits = {}
+					}
+
+					create_country_leader = {
+						name = "Wilhelm III"
+						desc = "POLITICS_WILLY_3_DESC"
+						picture = "gfx/leaders/KTX/Portrait_Germany_Wilhelm_III.png"
+						expire = "1965.1.1"
+						ideology = authoritarian_democrat_subtype
+						traits = {}
+					}
+					
+					create_country_leader = {
+						name = "Wilhelm III"
+						desc = "POLITICS_WILLY_3_DESC"
+						picture = "gfx/leaders/KTX/Portrait_Germany_Wilhelm_III.png"
+						expire = "1965.1.1"
+						ideology = paternal_autocrat_subtype
+					}
+
+					create_country_leader = {
+						name = "Wilhelm III"
+						desc = "POLITICS_WILLY_3_DESC"
+						picture = "gfx/leaders/KTX/Portrait_Germany_Wilhelm_III.png"
+						expire = "1965.1.1"
+						ideology = national_populist_subtype
+						traits = {}
+					}
+					else = {
+						
+						create_country_leader = {
+							name = "Wilhelm II"
+							desc = "POLITICS_WILHELM_II_DESC"
+							picture = "gfx/leaders/KTX/Portrait_Germany_Wilhelm_II.png"
+							expire = "1965.1.1"
+							ideology = social_democrat_subtype
+							traits = {}
+						}
+
+						create_country_leader = {
+							name = "Wilhelm II"
+							desc = "POLITICS_WILHELM_II_DESC"
+							picture = "gfx/leaders/KTX/Portrait_Germany_Wilhelm_II.png"
+							expire = "1965.1.1"
+							ideology = social_liberal_subtype
+							traits = {}
+						}
+
+						create_country_leader = {
+							name = "Wilhelm II"
+							desc = "POLITICS_WILHELM_II_DESC"
+							picture = "gfx/leaders/KTX/Portrait_Germany_Wilhelm_II.png"
+							expire = "1965.1.1"
+							ideology = market_liberal_subtype
+							traits = {}
+						}
+
+						create_country_leader = {
+							name = "Wilhelm II"
+							desc = "POLITICS_WILHELM_II_DESC"
+							picture = "gfx/leaders/KTX/Portrait_Germany_Wilhelm_II.png"
+							expire = "1965.1.1"
+							ideology = social_conservative_subtype
+							traits = {}
+						}
+
+						create_country_leader = {
+							name = "Wilhelm II"
+							desc = "POLITICS_WILHELM_II_DESC"
+							picture = "gfx/leaders/KTX/Portrait_Germany_Wilhelm_II.png"
+							expire = "1965.1.1"
+							ideology = authoritarian_democrat_subtype
+							traits = {}
+						}
+						
+						create_country_leader = {
+							name = "Wilhelm II"
+							desc = "POLITICS_WILHELM_II_DESC"
+							picture = "gfx/leaders/KTX/Portrait_Germany_Wilhelm_II.png"
+							expire = "1965.1.1"
+							ideology = paternal_autocrat_subtype
+						}
+
+						create_country_leader = {
+							name = "Wilhelm II"
+							desc = "POLITICS_WILHELM_II_DESC"
+							picture = "gfx/leaders/KTX/Portrait_Germany_Wilhelm_II.png"
+							expire = "1965.1.1"
+							ideology = national_populist_subtype
+							traits = {}
+						}
+					}
+				}
+			}
+			set_politics = {
+				ruling_party = authoritarian_democrat elections_allowed = no
+			}
+		}
+	}
+	
+	country_event = {#Amerikareich
+		id = GEXTXS.2
+		title = GEXTXS.2.t
+		desc = GEXTXS.2.d
+		mean_time_to_happen = {
+			days = 7
+		}
+		fire_only_once = yes
+		trigger = {
+			has_country_flag = TXS_UNITED_AMERICA
+			has_cosmetic_tag = USA_GER
+			tag = KTX
+			original_tag = TXS
+		}
+		
+		option = { #Keep the Eagle and Tricolor
+			name = GEXTXS.2.a
+		}
+		
+		option = { #Stars with a new eagle
+			name = GEXTXS.2.b
+			set_cosmetic_tag = USA_GER1
+		}
+		
+		option = { #Star and the Cross
+			name = GEXTXS.2.c
+			set_cosmetic_tag = USA_GER2
+		}
+	}
+	
+	country_event = {# Faction Invite
+		id = GEX_foreign.1
+		immediate = {
+			log = "[GetDateText]: [Root.GetName]: event GEX_foreign.1"
+			set_country_flag = MON_already_invited
+		}
+		title = GEX_foreign.1.t
+		desc = GEX_foreign.1.d
+		picture = GFX_report_event_MAF_tanganyika
+
+		is_triggered_only = yes
+
+		option = {
+			name = GEX_foreign.1.a
+			ai_chance = {
+				factor = 80
+				modifier = {
+					factor = 0.5
+					OR = {
+						tag = MOR
+						tag = BAT
+						tag = DKB
+					}
+				}
+			}
+			GEX = {
+				country_event = { id = GEX_foreign.2 days = 3 }
+			}
+			add_political_power = 10
+			set_country_flag = GEX_reichspakt_remnant_flag
+			if = {
+				limit = {
+					GEX = {
+						has_completed_focus = GEX_contest_the_waters
+						NOT = {
+							country_exists = JAP
+							has_global_flag = JAP_Fading_Sun
+						}
+					}
+				}
+				add_ideas = GEX_kill_japan_idea_2
+			}
+			else_if = {
+				limit = {
+					GEX = {
+						has_completed_focus = GEX_kill_japan
+						NOT = {
+							country_exists = JAP
+							has_global_flag = JAP_Fading_Sun
+						}
+					}
+				}
+				add_ideas = GEX_kill_japan_idea
+			}
+		}
+		option = {
+			name = GEX_foreign.1.b
+			ai_chance = {
+				factor = 20
+				modifier = {
+					factor = 0.25
+					GEX = {
+						has_completed_focus = GEX_reichspakt_revival
+					}
+				}
+				modifier = {
+					factor = 0.2
+					OR = {
+						tag = USA
+						tag = PSA
+						tag = TXS
+						tag = COR
+						tag = HOL
+					}
+				}
+				modifier = {
+					factor = 0
+					OR = {
+						tag = MAF
+						tag = BAT
+						tag = DKB
+						tag = DEN
+						tag = DEI
+						tag = BEL
+					}
+				}
+			}
+			GEX = {
+				country_event = { id = GEX_foreign.3 }
+			}
+			add_political_power = 10
+			set_country_flag = GEX_rejected_exiles
+		}
+	}
+
+	country_event = {
+		id = GEX_foreign.2
+		title = GEX_foreign.2.t
+		desc = GEX_foreign.2.d
+		is_triggered_only = yes
+		
+		option = {
+			name = GEX_foreign.2.a
+			if = {
+				limit = {
+					has_completed_focus = GEX_reichspakt_revival
+				}
+				add_political_power = 25
+			}
+			else = {
+				add_political_power = 10
+			}
+			Faction_mergable_invite = yes
+		}
+	}
+
+	country_event = {
+		id = GEX_foreign.3
+		title = GEX_foreign.3.t
+		desc = GEX_foreign.3.d
+		is_triggered_only = yes
+		
+		option = {
+			name = GEX_foreign.3.a
+		}
+	}
+	
+	country_event = {# Demand Subjugation
+		id = GEX_foreign.4
+		immediate = {
+			log = "[GetDateText]: [Root.GetName]: event GEX_foreign.4"
+		}
+		title = GEX_foreign.4.t
+		desc = GEX_foreign.4.d
+		picture = GFX_report_event_MAF_tanganyika
+
+		is_triggered_only = yes
+
+		option = {
+			name = GEX_foreign.4.a
+			ai_chance = {
+				factor = 50
+			}
+			GEX = {
+				country_event = { id = GEX_foreign.5 }
+			}
+			GEX = {
+				create_wargoal = {
+					target = PREV
+					type = annex_everything
+				}
+			}
+			add_war_support = 0.10
+		}
+		
+		option = {
+			name = GEX_foreign.4.b
+			ai_chance = {
+				factor = 50
+				modifier = {
+					factor = 0
+					has_socialist_government = yes
+				}
+			}
+			GEX = {
+				country_event = { id = GEX_foreign.6 }
+			}
+			GEX = {
+				if = {
+					limit = {
+						PREV = {
+							NOT = { has_socialist_government = yes }
+						}
+					}
+					PREV = { get_current_government_type = yes }
+					puppet = PREV
+					PREV = { restore_previous_government_type = yes }
+				}
+				else = {
+					puppet = "PREV"
+				}
+			}
+			add_stability = -0.10
+		}
+	}
+	
+	country_event = {
+		id = GEX_foreign.5
+		title = GEX_foreign.5.t
+		desc = GEX_foreign.5.d
+		is_triggered_only = yes
+		
+		option = {
+			name = GEX_foreign.5.a
+			effect_tooltip = {
+				create_wargoal = {
+					target = FROM
+					type = annex_everything
+				}
+			}
+		}
+	}
+
+	country_event = {
+		id = GEX_foreign.6
+		title = GEX_foreign.6.t
+		desc = GEX_foreign.6.d
+		is_triggered_only = yes
+		
+		option = {
+			name = GEX_foreign.6.a
+			effect_tooltip = {
+				puppet = FROM
+			}
+		}
+	}
+	
+	country_event = {
+		id = GEX_foreign.7
+		title = GEX_foreign.7.t
+		desc = GEX_foreign.7.d
+		is_triggered_only = yes
+		
+		option = {
+			name = GEX_foreign.7.a
+			add_war_support = 0.10
+			custom_effect_tooltip = GEX_coming_to_kill_us
+		}
+	}
+	
+	country_event = {
+		id = GEX_foreign.8
+		title = GEX_foreign.8.t
+		desc = GEX_foreign.8.d
+		is_triggered_only = yes
+		
+		option = {
+			name = GEX_foreign.8.a
+			add_ideas = GEX_trade_with_exiles
+			give_guarantee = GEX
+			diplomatic_relation = {
+				country = GEX
+				relation = non_aggression_pact
+				active = yes
+			}
+		}
+		
+		option = {
+			name = GEX_foreign.8.a
+		}
+	}
+	
+	country_event = {#Asia already dead, wat do?
+		id = GEX_foreign_east.1
+		immediate = {log = "[GetDateText]: [Root.GetName]: event GEX_foreign_east.1"}
+		title = GEX_foreign_east.1.t
+		desc = GEX_foreign_east.1.d
+		picture = GFX_ger_coltroops
+
+		is_triggered_only = yes
+		
+		option = {
+			name = GEX_foreign_east.1.a
+			ai_chance = {
+				factor = 80
+				modifier = {
+					factor = 0
+					has_game_rule = {
+						rule = GEX_east
+						option = GEX_EAST_KILL
+					}
+				}
+			}
+			set_global_flag = GEX_boo_hoo_no_asia
+			if = {
+				limit = {
+					has_war_with = JAP
+				}
+				white_peace =  JAP
+			}
+			hidden_effect = {
+				GEA = {
+					every_unit_leader = {
+						set_unit_leader_flag = GEX_exile_leader
+						set_nationality = GEX
+					}
+					every_navy_leader = {
+						set_unit_leader_flag = GEX_exile_leader
+						set_nationality = GEX
+					}
+				}
+				AOG = {
+					every_unit_leader = {
+						set_unit_leader_flag = GEX_exile_leader
+						set_nationality = GEX
+					}
+					every_navy_leader = {
+						set_unit_leader_flag = GEX_exile_leader
+						set_nationality = GEX
+					}
+				}
+			}
+		}
+		
+		option = {
+			name = GEX_foreign_east.1.b
+			ai_chance = {
+				factor = 20
+				modifier = {
+					factor = 0
+					OR = {
+						has_game_rule = {
+							rule = GEX_east
+							option = GEX_EAST_PEACE
+						}
+						has_game_rule = {
+							rule = GEX_east
+							option = GEX_EAST_PEACE_GEA
+						}
+						has_game_rule = {
+							rule = GEX_east
+							option = GEX_EAST_PEACE_AOG
+						}
+						has_game_rule = {
+							rule = GEX_east
+							option = GEX_EAST_PEACE_BOTH
+						}
+						has_game_rule = {
+							rule = GEX_east
+							option = GEX_EAST_PEACE_NEITHER
+						}
+					}
+				}
+			}
+			declare_war_on = {
+				target = JAP
+				type = annex_everything
+			}
+		}
+	}
+	
+	country_event = {#GEX says fhack the east
+		id = GEX_foreign_east.2
+		immediate = {log = "[GetDateText]: [Root.GetName]: event GEX_foreign_east.2"}
+		title = GEX_foreign_east.2.t
+		desc = GEX_foreign_east.2.d
+		picture = GFX_ger_coltroops
+
+		is_triggered_only = yes
+		
+		option = {
+			name = GEX_foreign_east.2.a
+			ai_chance = {
+				factor = 100
+			}
+			set_global_flag = GEX_japan_wins_treaty
+			GEA = {
+				overlord = {
+					set_autonomy = {
+						target = GEA
+						autonomy_state = autonomy_free
+					}
+				}
+				leave_faction = yes
+			}
+			AOG = {
+				overlord = {
+					set_autonomy = {
+						target = GEA
+						autonomy_state = autonomy_free
+					}
+				}
+				leave_faction = yes
+			}
+			GEX = {
+				if = {
+					limit = {
+						has_war_with = JAP
+					}
+					white_peace =  JAP
+				}
+			}
+			GEX = {
+				country_event = {
+					id = GEX_foreign_east.3
+				}
+			}
+		}
+		
+		option = {
+			name = GEX_foreign_east.2.b
+			ai_chance = {
+				factor = 0
+			}
+			GEX = {
+				country_event = {
+					id = GEX_foreign_east.4
+				}
+			}
+		}
+	}
+	
+	country_event = {#YAY
+		id = GEX_foreign_east.3
+		immediate = {log = "[GetDateText]: [Root.GetName]: event GEX_foreign_east.4"}
+		title = GEX_foreign_east.3.t
+		desc = GEX_foreign_east.3.d
+		picture = GFX_ger_coltroops
+		immediate = {
+			set_global_flag = GEX_Japan_concession_treaty
+			hidden_effect = {
+				JAP = { activate_mission = GEX_treaty_timeout_timer }
+				activate_mission = GEX_treaty_timeout_timer
+				GEA = {
+					country_event = {
+						id = GEX_foreign_east.5
+						days = 1
+					}
+				}
+				AOG = {
+					country_event = {
+						id = GEX_foreign_east.5
+						days = 1
+					}
+				}
+			}
+		}
+
+		is_triggered_only = yes
+		
+		option = {
+			name = GEX_foreign_east.4.a
+			add_war_support = -0.05
+			add_political_power = 25
+		}
+	}
+	
+	country_event = {#sadde
+		id = GEX_foreign_east.4
+		immediate = {log = "[GetDateText]: [Root.GetName]: event GEX_foreign_east.4"}
+		title = GEX_foreign_east.4.t
+		desc = GEX_foreign_east.4.d
+		picture = GFX_ger_coltroops
+
+		is_triggered_only = yes
+		
+		option = {
+			name = GEX_foreign_east.4.a
+			complete_national_focus = GEX_kill_japan
+		}
+	}
+	
+	country_event = {#GEX says fhack the east, POV GEX/JAP
+		id = GEX_foreign_east.5
+		immediate = {log = "[GetDateText]: [Root.GetName]: event GEX_foreign_east.4"}
+		title = GEX_foreign_east.5.t
+		desc = GEX_foreign_east.5.d
+		picture = GFX_ger_coltroops
+
+		is_triggered_only = yes
+		
+		option = {
+			name = GEX_foreign_east.5.a
+			trigger = {
+				NOT = { has_country_flag = GEX_rejected_exiles }
+			}
+			ai_chance = {
+				factor = 70
+				modifier = {
+					factor = 0
+					OR = {
+						AND = {
+							tag = GEA
+							has_game_rule = {
+								rule = GEX_east
+								option = GEX_EAST_PEACE_GEA
+							}
+						}
+						AND = {
+							tag = AOG
+							has_game_rule = {
+								rule = GEX_east
+								option = GEX_EAST_PEACE_AOG
+							}
+						}
+						has_game_rule = {
+							rule = GEX_east
+							option = GEX_EAST_PEACE_BOTH
+						}
+					}
+				}
+			}
+			set_country_flag = GEX_japan_wins_treaty_tag
+			GEX = {
+				if = {
+					limit = {
+						has_war_with = JAP
+					}
+					white_peace =  JAP
+				}
+			}
+			if = {
+				limit = {
+					NOT = {
+						has_country_flag = GEX_rejected_exiles
+					}
+				}
+				GEX = {
+					set_autonomy = {
+						target = THIS
+						autonomy_state = autonomy_free
+					}
+				}
+				separate_peace_all_wars = yes
+				leave_faction = yes
+				give_military_access = GEX
+				give_military_access = JAP
+				JAP = {
+					give_guarantee = THIS
+					diplomatic_relation = {
+						country = THIS
+						relation = non_aggression_pact
+						active = yes
+					}
+				}
+				GEX = {
+					give_guarantee = THIS
+					diplomatic_relation = {
+						country = THIS
+						relation = non_aggression_pact
+						active = yes
+					}
+				}
+				if = {
+					limit = {
+						tag = GEA
+					}
+					JAP = {
+						country_event = GEX_foreign_east.6
+					}
+					GEX = {
+						country_event = GEX_foreign_east.6
+					}
+				}
+				if = {
+					limit = {
+						tag = AOG
+					}
+					JAP = {
+						country_event = GEX_foreign_east.7
+					}
+					GEX = {
+						country_event = GEX_foreign_east.7
+					}
+				}
+			}
+		}
+		
+		option = {
+			name = GEX_foreign_east.5.b
+			trigger = {
+				NOT = { has_country_flag = GEX_rejected_exiles }
+			}
+			ai_chance = {
+				factor = 30
+				modifier = {
+					factor = 0
+					OR = {
+						AND = {
+							tag = AOG
+							has_game_rule = {
+								rule = GEX_east
+								option = GEX_EAST_PEACE_GEA
+							}
+						}
+						AND = {
+							tag = GEA
+							has_game_rule = {
+								rule = GEX_east
+								option = GEX_EAST_PEACE_AOG
+							}
+						}
+						has_game_rule = {
+							rule = GEX_east
+							option = GEX_EAST_PEACE_NEITHER
+						}
+					}
+				}
+			}
+			GEX = {
+				set_autonomy = {
+					target = THIS
+					autonomy_state = autonomy_free
+				}
+			}
+			leave_faction = yes
+			set_country_flag = GEX_rejected_exiles
+			add_war_support = 0.10
+			if = {
+				limit = {
+					tag = GEA
+				}
+				JAP = {
+					country_event = GEX_foreign_east.8
+				}
+				GEX = {
+					country_event = GEX_foreign_east.8
+				}
+			}
+			if = {
+				limit = {
+					tag = AOG
+				}
+				JAP = {
+					country_event = GEX_foreign_east.9
+				}
+				GEX = {
+					country_event = GEX_foreign_east.9
+				}
+			}
+		}
+		
+		option = {
+			name = GEX_foreign_east.5.c
+			trigger = {
+				has_country_flag = GEX_rejected_exiles
+			}
+			ai_chance = {
+				factor = 100
+			}
+			add_political_power = 100
+		}
+	}
+	
+	country_event = {#GEA say Ya
+		id = GEX_foreign_east.6
+		immediate = {log = "[GetDateText]: [Root.GetName]: event GEX_foreign_east.4"}
+		title = GEX_foreign_east.6.t
+		desc = GEX_foreign_east.6.d
+		picture = GFX_ger_coltroops
+
+		is_triggered_only = yes
+		
+		option = {
+			name = GEX_foreign_east.6.a
+		}
+	}
+	
+	country_event = {#AOG say Ya
+		id = GEX_foreign_east.7
+		immediate = {log = "[GetDateText]: [Root.GetName]: event GEX_foreign_east.4"}
+		title = GEX_foreign_east.7.t
+		desc = GEX_foreign_east.7.d
+		picture = GFX_ger_coltroops
+
+		is_triggered_only = yes
+		
+		option = {
+			name = GEX_foreign_east.6.a
+		}
+	}
+	
+	country_event = {#sadde
+		id = GEX_foreign_east.8
+		immediate = {log = "[GetDateText]: [Root.GetName]: event GEX_foreign_east.4"}
+		title = GEX_foreign_east.8.t
+		desc = GEX_foreign_east.8.d
+		picture = GFX_ger_coltroops
+
+		is_triggered_only = yes
+		
+		option = {
+			name = GEX_foreign_east.8.a
+		}
+	}
+	
+	country_event = {#sadde
+		id = GEX_foreign_east.9
+		immediate = {log = "[GetDateText]: [Root.GetName]: event GEX_foreign_east.4"}
+		title = GEX_foreign_east.9.t
+		desc = GEX_foreign_east.9.d
+		picture = GFX_ger_coltroops
+
+		is_triggered_only = yes
+		
+		option = {
+			name = GEX_foreign_east.9.a
+		}
+	}
+	
+	country_event = {#Germany is late!
+		id = GEX_foreign_east.10
+		immediate = {log = "[GetDateText]: [Root.GetName]: event GEX_foreign_east.4"}
+		title = GEX_foreign_east.10.t
+		desc = GEX_foreign_east.10.d
+		picture = GFX_ger_coltroops
+
+		is_triggered_only = yes
+		
+		immediate = {
+			set_global_flag = GEX_treaty_done
+		}
+		
+		option = {#trolled!
+			name = GEX_foreign_east.10.a
+			trigger = {
+				tag = JAP
+			}
+			if = {
+				limit = {
+					GEA = { has_country_flag = GEX_rejected_exiles }
+				}
+				GEA = {
+					add_timed_idea = {
+						idea = GEX_abandoned_by_germany
+						days = 180
+					}
+				}
+			}
+			if = {
+				limit = {
+					AOG = { has_country_flag = GEX_rejected_exiles }
+				}
+				AOG = {
+					add_timed_idea = {
+						idea = GEX_abandoned_by_germany
+						days = 180
+					}
+				}
+			}
+			hidden_effect = {
+				if = {
+					limit = {
+						NOT = {
+							GEA = { has_country_flag = GEX_rejected_exiles }
+						}
+					}
+					every_state = {
+						limit = {
+							is_owned_by = GEA
+						}
+						set_state_flag = GEX_japan_treaty_concession_state
+					}
+					GEA = {
+						every_unit_leader = {
+							set_unit_leader_flag = GEX_exile_leader
+							set_nationality = GEX
+						}
+						every_navy_leader = {
+							set_unit_leader_flag = GEX_exile_leader
+							set_nationality = GEX
+						}
+					}
+				}
+				if = {
+					limit = {
+						NOT = {
+							AOG = { has_country_flag = GEX_rejected_exiles }
+						}
+					}
+					every_state = {
+						limit = {
+							is_owned_by = AOG
+						}
+						set_state_flag = GEX_japan_treaty_concession_state
+					}
+					AOG = {
+						every_unit_leader = {
+							set_unit_leader_flag = GEX_exile_leader
+							set_nationality = GEX
+						}
+						every_navy_leader = {
+							set_unit_leader_flag = GEX_exile_leader
+							set_nationality = GEX
+						}
+					}
+				}
+				every_state = {
+					limit = {
+						has_state_flag = GEX_japan_treaty_concession_state
+					}
+					JAP = {
+						transfer_state = PREV
+					}
+				}
+			}
+		}
+		
+		option = {#got trolled
+			name = GEX_foreign_east.10.a
+			trigger = {
+				NOT = { tag = JAP }
+			}
+			add_political_power = -150
+		}
+	}
+	
+	country_event = {#Germany isn't late
+		id = GEX_foreign_east.11
+		immediate = {log = "[GetDateText]: [Root.GetName]: event GEX_foreign_east.4"}
+		title = GEX_foreign_east.11.t
+		desc = GEX_foreign_east.11.d
+		picture = GFX_ger_coltroops
+
+		is_triggered_only = yes
+		
+		immediate = {
+			set_global_flag = GEX_treaty_done
+		}
+		
+		option = {#trolled!
+			name = GEX_foreign_east.11.a
+		}
+	}
+	
+	country_event = {#Paratroopers or Marines?
+		id = GEX_foreign_east.12
+		immediate = {log = "[GetDateText]: [Root.GetName]: event GEX_foreign_east.4"}
+		title = GEX_foreign_east.12.t
+		desc = GEX_foreign_east.12.d
+		picture = GFX_ger_coltroops
+
+		is_triggered_only = yes
+		
+		option = {#swim
+			name = GEX_foreign_east.12.a
+			add_equipment_to_stockpile = {
+				type = convoy
+				amount = 100
+			}
+			add_tech_bonus = {
+				name = GEX_an_avenue_of_attack
+				bonus = 1
+				uses = 1
+				category = marine_tech
+				category = tp_tech
+			}
+		}
+		
+		option = {#fly
+			name = GEX_foreign_east.12.b
+			add_equipment_to_stockpile = {
+				type = transport_plane_equipment
+				amount = 100
+			}
+			add_tech_bonus = {
+				name = GEX_an_avenue_of_attack
+				bonus = 1
+				uses = 1
+				category = para_tech
+			}
+		}
+	}
+	
+	country_event = {#Japanese tech's back on the menu boys!
+		id = GEX_foreign_east.13
+		immediate = {log = "[GetDateText]: [Root.GetName]: event GEX_foreign_east.4"}
+		title = GEX_foreign_east.13.t
+		desc = GEX_foreign_east.13.d
+		picture = GFX_ger_coltroops
+
+		is_triggered_only = yes
+		
+		option = {#Remember how to Naval
+			name = GEX_foreign_east.13.a
+			trigger = {
+				NOT = {
+					has_idea = GEX_kill_japan_remember
+				}
+			}
+			add_ideas = GEX_kill_japan_remember
+			GEX_JAP_buff_choosing_fire = yes
+		}
+		option = {#Fly like the Japanese(just not into boats)
+			name = GEX_foreign_east.13.b
+			trigger = {
+				NOT = {
+					has_idea = GEX_weeb_flying
+				}
+			}
+			add_ideas = GEX_weeb_flying
+			GEX_JAP_buff_choosing_fire = yes
+		}
+		
+		option = {#Weeb Torpedoes
+			name = GEX_foreign_east.13.c
+			trigger = {
+				NOT = {
+					has_idea = JAP_long_dong
+				}
+			}
+			add_ideas = JAP_long_dong
+			GEX_JAP_buff_choosing_fire = yes
+		}
+		
+		option = {#Nippon Steel Ships
+			name = GEX_foreign_east.13.e
+			trigger = {
+				NOT = {
+					has_idea = JAP_nav_mass_1
+					has_idea = JAP_nav_qual_1
+				}
+			}
+			if = {
+				limit = {
+					JAP = { has_completed_focus = JAP_MIL_MOAR_SHIPS }
+				}
+				add_ideas = JAP_nav_mass_1
+			}
+			else = { add_ideas = JAP_nav_qual_1 }
+			GEX_JAP_buff_choosing_fire = yes
+		}
+		
+		option = {#give civs
+			name = GEX_foreign_east.13.f
+			trigger = {
+				country_exists = JAP
+				JAP = {
+					NOT = {
+						has_idea = GEX_JAP_civilian_concession
+					}
+				}
+			}
+			JAP = { add_ideas = GEX_JAP_civilian_concession }
+			GEX_JAP_buff_choosing_fire = yes
+		}
+		
+		option = {#giv mils
+			name = GEX_foreign_east.13.g
+			trigger = {
+				country_exists = JAP
+				JAP = {
+					NOT = {
+						has_idea = GEX_JAP_military_concession
+					}
+				}
+			}
+			JAP = { add_ideas = GEX_JAP_military_concession }
+			GEX_JAP_buff_choosing_fire = yes
+		}
+	}
+	
+	country_event = {#Japanese tech's back on the menu boys!(clone)
+		id = GEX_foreign_east.14
+		immediate = {log = "[GetDateText]: [Root.GetName]: event GEX_foreign_east.4"}
+		title = GEX_foreign_east.13.t
+		desc = GEX_foreign_east.13.d
+		picture = GFX_ger_coltroops
+
+		is_triggered_only = yes
+		
+		option = {#Remember how to Naval
+			name = GEX_foreign_east.13.a
+			trigger = {
+				NOT = {
+					has_idea = GEX_kill_japan_remember
+				}
+			}
+			add_ideas = GEX_kill_japan_remember
+		}
+		option = {#Fly like the Japanese(just not into boats)
+			name = GEX_foreign_east.13.b
+			trigger = {
+				NOT = {
+					has_idea = GEX_weeb_flying
+				}
+			}
+			add_ideas = GEX_weeb_flying
+		}
+		
+		option = {#Weeb Torpedoes
+			name = GEX_foreign_east.13.c
+			trigger = {
+				NOT = {
+					has_idea = JAP_long_dong
+				}
+			}
+			add_ideas = JAP_long_dong
+		}
+		
+		option = {#Nippon Steel Ships
+			name = GEX_foreign_east.13.e
+			trigger = {
+				NOT = {
+					has_idea = JAP_nav_mass_1
+					has_idea = JAP_nav_qual_1
+				}
+			}
+			if = {
+				limit = {
+					JAP = { has_completed_focus = JAP_MIL_MOAR_SHIPS }
+				}
+				add_ideas = JAP_nav_mass_1
+			}
+			else = { add_ideas = JAP_nav_qual_1 }
+		}
+		
+		option = {#give civs
+			name = GEX_foreign_east.13.f
+			trigger = {
+				country_exists = JAP
+				JAP = {
+					NOT = {
+						has_idea = GEX_JAP_civilian_concession
+					}
+				}
+			}
+			JAP = { add_ideas = GEX_JAP_civilian_concession }
+		}
+		
+		option = {#giv mils
+			name = GEX_foreign_east.13.g
+			trigger = {
+				country_exists = JAP
+				JAP = {
+					NOT = {
+						has_idea = GEX_JAP_military_concession
+					}
+				}
+			}
+			JAP = { add_ideas = GEX_JAP_military_concession }
+		}
+	}
+	
+	country_event = {#Eastern Invite
+		id = GEX_foreign_east.15
+		immediate = {log = "[GetDateText]: [Root.GetName]: event GEX_foreign_east.4"}
+		title = GEX_foreign_east.15.t
+		desc = GEX_foreign_east.15.d
+		picture = GFX_ger_coltroops
+
+		is_triggered_only = yes
+		
+		option = {#Yes
+			name = GEX_foreign_east.15.a
+			if = {
+				limit = {
+					is_faction_leader = yes
+				}
+				every_country = {
+					limit = {
+						is_in_faction_with = THIS
+						is_subject = no
+					}
+					FROM = {
+						add_to_faction = PREV
+					}
+				}
+			}
+			add_to_faction = FROM
+		}
+		
+		option = {#No
+			name = GEX_foreign_east.15.b
+		}
+	}
