@@ -65,6 +65,27 @@ on_actions = {
 			if = {
 				limit = {
 					AND = {
+						ROOT = {
+							tag = BRY 
+							NOT = { country_exists = TRM }
+							NOT = { country_exists = SIB }
+							has_global_flag = TRM_civil_war
+							BRY = { 
+								OR = {
+									has_government = paternal_autocrat
+									has_government = totalist
+								}
+								owns_state = 408
+							}
+						}
+						FROM = { tag = TRM }
+					}
+				}
+				ROOT = { country_event = tram.303 }
+			}
+			if = {
+				limit = {
+					AND = {
 						tag = RUS
 						FROM = { tag = SOV }
 					}
@@ -105,6 +126,35 @@ on_actions = {
 			}			
 		}
 	} 
+	on_capitulation = {
+		effect = {
+			# Disable SOV civil war unit lock
+			if = {
+				limit = {
+					ROOT = {
+						tag = SOV
+						has_idea = SOV_chaotic_revolution
+					}
+				}
+				ROOT = {
+					remove_ideas = SOV_chaotic_revolution
+					country_lock_all_division_template = no
+				}
+			}
+			# Disband the Russian Academy of Sciences
+			if = {
+				limit = {
+					tag = RUS
+					is_in_tech_sharing_group = russian_research
+				}
+				remove_from_tech_sharing_group = russian_research
+				every_other_country = {
+					limit = { is_in_tech_sharing_group = russian_research }
+					remove_from_tech_sharing_group = russian_research
+				}
+			}
+		}
+	}
 	
 	
 	# ROOT is capitulated country, FROM is winner
@@ -326,20 +376,64 @@ on_actions = {
 					OR = {
 						tag = SIB
 						tag = TRM
-						tag = BRY
 					}
 					FROM = { 
-						OR = {
-							tag = TRM
-							tag = JAP
-							tag = BRY
-						}
+						tag = JAP
+					}
+					FROM.FROM = { state = 408 } #Yekaterinburg
+					ROOT = { controls_province = 957 }
+					FROM = { NOT = { owns_state = 408 } }
+				}
+				custom_effect_tooltip = KR_separate_peace
+				FROM = { white_peace = ROOT }
+			}
+			# TCW - Buryatia
+			if = {
+				limit = {
+					ROOT = {
+						tag = BRY
+						NOT = { has_government = totalist }
+						NOT = { has_government = paternal_autocrat }
+					}
+					FROM = { 
+						tag = TRM
 					}
 					FROM.FROM = { state = 408 } #Yekaterinburg
 					ROOT = { controls_province = 957 }
 				}
 				custom_effect_tooltip = KR_separate_peace
 				FROM = { white_peace = ROOT }
+				BRY = { transfer_state = 565 }
+				if = {
+					limit = {
+						NOT = { country_exists = YAK }
+					}
+					YAK = {
+						transfer_state = 574
+						add_state_core = 574
+						set_country_flag = YAK_secured_its_independence
+						white_peace = TRM
+					}
+				}
+				FROM = {
+					add_war_support = -0.25
+					add_stability = -0.25
+					add_popularity = {
+						ideology = authoritarian_democrat
+						popularity = 0.15
+					}
+					remove_ideas = TRM_dream
+					diplomatic_relation = {
+						country = ROOT
+						relation = non_aggression_pact
+						active = yes
+					}
+					diplomatic_relation = {
+						country = YAK
+						relation = non_aggression_pact
+						active = yes
+					}						
+				}
 			}
 			if = {
 				limit = {
