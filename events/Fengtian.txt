@@ -8,6 +8,8 @@ add_namespace = fengtian
 add_namespace = fngpolitic
 add_namespace = fngunif
 add_namespace = fngsystem
+add_namespace = fngdynasty
+add_namespace = fngrebels
 
 #################################
 ### Fengtian Political Events ###
@@ -13191,6 +13193,10 @@ country_event = { #Yuting Takes Over
 				id = fengtian.310
 				days = 37
 			}
+			country_event = {
+				id = fngrebels.1
+				days = 10
+			}
 		}
 	}
 }
@@ -13585,7 +13591,7 @@ country_event = { #reeeee
 	}
 }
 
-country_event = { #Debate over who to entrone
+country_event = { #Debate over who to enthrone
 	id = fengtian.312
 	title = fengtian.312.t
 	desc = fengtian.312.d
@@ -13901,6 +13907,311 @@ country_event = { #Coronation
 		add_stability = 0.05
 		add_political_power = 100
 		set_global_flag = MON_FNG_new_mandate_enforced
+	}
+}
+
+country_event = { #Nobles
+	id = fngdynasty.1
+	title = fngdynasty.1.t
+	desc = fngdynasty.1.d
+
+	picture = GFX_report_event_FNG_several_prisoners
+
+	is_triggered_only = yes
+
+	fire_only_once = yes
+
+	option = { #Mint a new nobility out of loyalists and generals
+		name = fngdynasty.1.a
+		add_political_power = 100
+	}
+	
+	option = { #Revive the old nobility
+		name = fngdynasty.1.b
+		FNG_increase_legitimacy = yes
+		set_temp_variable = { CAPOP = -15 }
+		FNG_CAPOP = yes
+	}
+	
+	option = { #We don't need nobles
+		name = fngdynasty.1.c
+		add_war_support = 0.10
+		add_political_power = 250
+		set_temp_variable = { CAPOP = -10 }
+		FNG_CAPOP = yes
+	}
+	
+	option = { #Import Japanese nobles
+		trigger = {
+			has_country_flag = FNG_japanese_emperor
+		}
+		name = fngdynasty.1.e
+		set_country_flag = FNG_japanese_nobles
+		if = {
+			limit = { has_country_flag = FNG_dropout }
+			country_event =	fngrebels.4
+		}
+		add_stability = -0.10
+		add_manpower = 5000
+		army_experience = 25
+		navy_experience = 25
+		set_temp_variable = { CAPOP = 10 }
+		FNG_CAPOP = yes
+		add_popularity = {
+			ideology = national_populist
+			popularity = 0.05
+		}
+	}
+}
+
+country_event = { #Imperial examinations?
+	id = fngdynasty.2
+	title = fngdynasty.2.t
+	desc = fngdynasty.2.d
+
+	picture = GFX_report_event_FNG_several_prisoners
+
+	is_triggered_only = yes
+
+	fire_only_once = yes
+
+	option = { #The examinations are backwards and primitive, stick with the current bureaucracy
+		name = fngdynasty.2.a
+		add_stability = 0.10
+		set_country_flag = FNG_dropout
+		if = {
+			limit = { has_country_flag = FNG_japanese_nobles }
+			country_event =	fngrebels.4
+		}
+	}
+	
+	option = { #Revive the practice, but gradually
+		name = fngdynasty.2.b
+		add_stability = -0.10
+		add_ideas = FNG_examinations
+		add_timed_idea = {
+			idea = FNG_bureacucratic_vacuum
+			days = 180
+		}
+	}
+	
+	option = { #Revive the practice, AND DO IT NAO REEEEEEE
+		name = fngdynasty.2.c
+		add_stability = -0.25
+		add_ideas = FNG_average_asian_school_examinations
+		add_timed_idea = {
+			idea = FNG_bureacucratic_empty
+			days = 280
+		}
+	}
+}
+
+country_event = { #Imperial examinations?
+	id = fngdynasty.3
+	title = fngdynasty.3.t
+	desc = fngdynasty.3.d
+
+	picture = GFX_report_event_FNG_several_prisoners
+
+	is_triggered_only = yes
+
+	fire_only_once = yes
+
+	option = { #Those concordia guys aren't causing trouble
+		name = fngdynasty.3.a
+		ai_chance = {
+			factor = 0
+		}
+		set_temp_variable = { CAPOP = 3 }
+		FNG_CAPOP = yes
+	}
+	
+	option = { #DIRECT RULE FROM TOKYO
+		name = fngdynasty.3.b
+		ai_chance = {
+			factor = 100
+		}
+		custom_effect_tooltip = FNG_direct_rule_tooltip
+		set_country_flag = FNG_direct_rule
+		set_party_name = {
+			ideology = paternal_autocrat
+			long_name = FNG_dynastic_japan_party_long
+			name = FNG_dynastic_japan_party
+		}
+		set_party_name = {
+			ideology = authoritarian_democrat
+			long_name = FNG_dynastic_japan_party_long
+			name = FNG_dynastic_japan_party
+		}
+		if = {
+			limit = { JAP = { OR = { has_government = national_populist has_government = paternal_autocrat } } }
+			set_politics = { ruling_party = paternal_autocrat }
+		}
+		else = {
+			limit = { JAP = { has_government = authoritarian_democrat } }
+			set_politics = { ruling_party = authoritarian_democrat }
+		}
+		hidden_effect = {
+			set_temp_variable = { CAPOP = party_popularity@market_liberal }
+			set_temp_variable = { ZCPOP = party_popularity@paternal_autocrat }
+			add_to_temp_variable = { ZCPOP = party_popularity@authoritarian_democrat }
+			set_temp_variable = { RLPOP = party_popularity@national_populist }
+			set_temp_variable = { temp = ZCPOP }
+			add_popularity = { ideology = market_liberal popularity = -1 }
+			add_popularity = { ideology = paternal_autocrat popularity = -1 }
+			add_popularity = { ideology = authoritarian_democrat popularity = -1 }
+			add_popularity = { ideology = national_populist popularity = -1 }
+			
+			multiply_temp_variable = { temp = 0.5 }
+			add_to_temp_variable = { RLPOP = temp }
+			
+			set_temp_variable = { temp = ZCPOP }
+			multiply_temp_variable = { temp = 0.8 }
+			add_popularity = { ideology = radical_socialist popularity = temp }
+			
+			set_temp_variable = { temp = ZCPOP }
+			multiply_temp_variable = { temp = 0.2 }
+			add_popularity = { ideology = social_democrat popularity = temp }
+			add_popularity = { ideology = social_liberal popularity = temp }
+			
+			add_popularity = { ideology = national_populist popularity = RLPOP }
+			
+			if = {
+				limit = { JAP = { OR = { has_government = national_populist has_government = paternal_autocrat } } }
+				add_popularity = { ideology = paternal_autocrat popularity = CAPOP }
+			}
+			else = {
+				add_popularity = { ideology = authoritarian_democrat popularity = CAPOP }
+			}
+		}
+	}
+}
+
+country_event = { #Going after zhang
+	id = fngrebels.1
+	title = fngrebels.1.t
+	desc = fngrebels.1.d
+
+	picture = GFX_report_event_FNG_several_prisoners
+
+	is_triggered_only = yes
+
+	fire_only_once = yes
+
+	option = { #We got him!
+		name = fngrebels.1.a
+		ai_chance = {
+			factor = 50
+		}
+		add_political_power = 20
+		set_temp_variable = { CAPOP = -2 }
+		kill_ideology_leader = authoritarian_democrat
+		kill_ideology_leader = paternal_autocrat
+		set_country_flag = FNG_zhang_dead
+		hidden_effect = {
+			country_event = {
+				id = fngrebels.2
+				days = 22
+			}
+		}
+	}
+	
+	option = { #He got away
+		name = fngrebels.1.b
+		ai_chance = {
+			factor = 50
+		}
+		add_manpower = -1
+		set_country_flag = FNG_zhang_lives
+		hidden_effect = {
+			country_event = {
+				id = fngrebels.3
+				days = 43
+			}
+		}
+	}
+}
+
+country_event = { #Huanghanhui seething
+	id = fngrebels.2
+	title = fngrebels.2.t
+	desc = fngrebels.2.d
+
+	picture = GFX_report_event_FNG_several_prisoners
+
+	is_triggered_only = yes
+
+	fire_only_once = yes
+
+	option = { #Cry about it
+		name = fngrebels.2.a
+		add_popularity = { ideology = market_liberal popularity = -0.03 }
+		add_popularity = { ideology = national_populist popularity = 0.03 }
+	}
+}
+
+country_event = { #Huanghanhui gloating
+	id = fngrebels.3
+	title = fngrebels.3.t
+	desc = fngrebels.3.d
+
+	picture = GFX_report_event_FNG_several_prisoners
+
+	is_triggered_only = yes
+
+	fire_only_once = yes
+
+	option = { #Smh who reads this trash
+		name = fngrebels.3.a
+		add_popularity = { ideology = national_populist popularity = 0.05 }
+		create_country_leader = {
+			name = "Zhang Xueliang"
+			desc = "POLITICS_ZHANG_XUELIANG_DESC"
+			picture = "Portrait_FNG_Zhang_Xueliang.png"
+			expire = "1965.1.1"
+			ideology = national_populist_subtype
+		}
+	}
+}
+
+country_event = { #Huanghanhui grows
+	id = fngrebels.4
+	title = fngrebels.4.t
+	desc = fngrebels.4.d
+
+	picture = GFX_report_event_FNG_several_prisoners
+
+	is_triggered_only = yes
+
+	fire_only_once = yes
+
+	option = { #Uh oh
+		name = fngrebels.4.a
+		add_popularity = { ideology = national_populist popularity = 0.10 }
+	}
+}
+
+country_event = { #Huanghanhui march
+	id = fngrebels.5
+	title = fngrebels.5.t
+	desc = fngrebels.5.d
+
+	picture = GFX_report_event_FNG_several_prisoners
+
+	is_triggered_only = yes
+
+	fire_only_once = yes
+
+	option = { #ZHONGGUO WANSUI
+		name = fngrebels.5.a
+		add_popularity = { ideology = national_populist popularity = 0.20 }
+	}
+	
+	option = { #Uh oh
+		name = fngrebels.5.b
+		add_stability = -0.10
+		add_war_support = 0.05
+		add_popularity = { ideology = national_populist popularity = -0.25 }
 	}
 }
 
