@@ -6358,3 +6358,164 @@ country_event = {
 		add_political_power = 100
 	}
 }
+country_event = { #ROM-RUS peace deal
+	id = crm.200
+	immediate = { log = "[GetDateText]: [Root.GetName]: event crm.200" }
+	title = crm.200.t
+	desc = crm.200.d
+
+	is_triggered_only = yes
+	fire_only_once = no
+
+	trigger = {
+		has_war_with = CRM
+		is_valid_peace_target = yes
+		OR = {
+			# we loose
+			OR = {
+				all_owned_state = {
+					is_claimed_by = CRM
+					is_controlled_by = CRM
+				}
+				surrender_progress > 0.15
+			}
+		}
+		NOT = { set_global_flag = @ROOT_offered_CRM_peace }
+	}
+	
+	immediate = {
+		set_global_flag = { flag = @ROOT_offered_CRM_peace days = 60 value 1 }
+	}
+
+	option = {
+		name = crm.200.a #We have no choice
+		ai_chance = {
+			base = 95
+			modifier = {
+				factor = 0
+				OR = {
+					controls_state = 137
+					controls_state = 196
+					controls_state = 1221
+					controls_state = 1220
+				}
+			}
+		}
+		CRM = {
+			country_event = { id = crm.201 days = 1 random = 24 }
+		}
+	}
+
+	option = {
+		name = crm.200.b #We can still win this!
+		ai_chance = {
+			base = 5
+			modifier = {
+				factor = 20
+				OR = {
+					controls_state = 137
+					controls_state = 196
+					controls_state = 1221
+					controls_state = 1220
+				}
+			}
+		}
+		if = {
+			limit = {
+				OR = {
+					controls_state = 137
+					controls_state = 196
+					controls_state = 1221
+					controls_state = 1220
+				}
+			}
+		}
+		else = {
+			add_stability = -0.1
+			hidden_effect = {
+				country_event = {
+					id = crm.200
+					days = 61
+				}
+			}
+		}
+	}
+
+}
+
+country_event = { #Peace with FROM?
+	id = crm.201
+	immediate = { log = "[GetDateText]: [Root.GetName]: event crm.201" }
+	
+	title = crm.201.t
+	desc = crm.201.d
+	is_triggered_only = yes
+	
+	trigger = {
+		is_valid_peace_target = yes
+		has_war_with = FROM
+		FROM = { is_valid_peace_target = yes }
+	}
+
+	option = {
+		name = crm.201.a #Accept; no point in wasting any more Russian lives.
+		ai_chance = {
+			base = 100
+		}
+		every_enemy_country = {
+			limit = {
+				is_faction_leader = yes
+				OR = {
+					is_in_faction_with = FROM
+					FROM = { is_subject_of = THIS }
+				}
+			}
+			ROOT = { white_peace = PREV }
+		}				
+		every_enemy_country = {
+			limit = {
+				OR = {
+					tag = FROM
+					is_in_faction_with = FROM
+					is_subject_of = FROM
+				}
+			}
+			ROOT = { white_peace = PREV }
+		}
+		FROM = {
+			every_owned_state = {
+				limit = {
+					is_claimed_by = ROOT
+				}
+				ROOT = { transfer_state = PREV }
+			}
+		}
+		diplomatic_relation = {
+			country = FROM
+			relation = non_aggression_pact
+		}
+	}
+
+	option = {
+		name = crm.201.b #Refuse; they must be taught a lesson!
+		trigger = {
+			is_ai = no
+		}
+		add_political_power = -50
+		FROM = { country_event = crm.202 }
+	}
+}
+
+country_event = { #
+	id = crm.202
+	immediate = { log = "[GetDateText]: [Root.GetName]: event crm.202" }
+	title = crm.202.t
+	desc = crm.202.d
+
+	is_triggered_only = yes
+
+	option = {
+		name = crm.202.a #United just to be torn asunder again...
+		add_war_support = -0.1
+	}
+}
