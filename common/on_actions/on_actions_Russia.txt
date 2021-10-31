@@ -12,15 +12,15 @@ on_actions = {
 			}
 			for_each_scope_loop = {
 				array = TRK.owned_states
-				add_to_array = { RUS.RUS_turkestan_region = THIS }
+				add_to_array = { RUS.RUS_bukhara_region = THIS }
 			}
 			for_each_scope_loop = {
 				array = UZB.owned_states
-				add_to_array = { RUS.RUS_turkestan_region = THIS }
+				add_to_array = { RUS.RUS_khiva_region = THIS }
 			}
 			for_each_scope_loop = {
 				array = KYR.owned_states
-				add_to_array = { RUS.RUS_turkestan_region = THIS }
+				add_to_array = { RUS.RUS_kokand_region = THIS }
 			}
 			880 = { #Dvinsk
 				add_dynamic_modifier = { modifier = BAT_Latgale_autonomous_region }
@@ -65,6 +65,46 @@ on_actions = {
 			if = {
 				limit = {
 					AND = {
+						ROOT = {
+							tag = BRY 
+							NOT = { country_exists = TRM }
+							NOT = { country_exists = SIB }
+							has_global_flag = TRM_civil_war
+							BRY = { 
+								OR = {
+									has_government = paternal_autocrat
+									has_government = totalist
+								}
+								owns_state = 408
+							}
+						}
+						FROM = { tag = TRM }
+					}
+				}
+				ROOT = { country_event = tram.303 }
+			}
+			if = {
+				limit = {
+					AND = {
+						ROOT = {
+							tag = JAP
+							NOT = { country_exists = TRM }
+							NOT = { country_exists = SIB }
+							has_global_flag = TRM_civil_war
+							has_global_flag = JAP_will_support_BRY
+							BRY = { 
+								exists = yes
+								has_government = paternal_autocrat
+							}
+						}
+						FROM = { tag = TRM }
+					}
+				}
+				ROOT = { country_event = tram.304 }
+			}
+			if = {
+				limit = {
+					AND = {
 						tag = RUS
 						FROM = { tag = SOV }
 					}
@@ -105,6 +145,35 @@ on_actions = {
 			}			
 		}
 	} 
+	on_capitulation = {
+		effect = {
+			# Disable SOV civil war unit lock
+			if = {
+				limit = {
+					ROOT = {
+						tag = SOV
+						has_idea = SOV_chaotic_revolution
+					}
+				}
+				ROOT = {
+					remove_ideas = SOV_chaotic_revolution
+					country_lock_all_division_template = no
+				}
+			}
+			# Disband the Russian Academy of Sciences
+			if = {
+				limit = {
+					tag = RUS
+					is_in_tech_sharing_group = russian_research
+				}
+				remove_from_tech_sharing_group = russian_research
+				every_other_country = {
+					limit = { is_in_tech_sharing_group = russian_research }
+					remove_from_tech_sharing_group = russian_research
+				}
+			}
+		}
+	}
 	
 	
 	# ROOT is capitulated country, FROM is winner
@@ -170,6 +239,47 @@ on_actions = {
 					country_event = {
 						id = rusfor.51
 						days = 3
+					}
+				}
+			}
+			if = {
+				limit = {
+					OR = {
+						tag = RUS
+						tag = SOV
+					}
+					FROM = {
+						tag = UTR
+					}
+				}
+				RUS = {
+					country_event = {
+						id = rusfor.1464
+						days = 180
+					}
+				}
+			}
+			if = {
+				limit = {
+					ROOT = {
+						tag = BRY
+						OR = {
+							has_government = totalist
+							has_government = paternal_autocrat
+						}
+					}
+					FROM = {
+						tag = TRM
+					}
+				}
+				ROOT = {
+					set_global_flag = TRM_civil_war
+					every_state = {
+						limit = {
+							is_core_of = TRM
+							is_owned_by = TRM
+						}
+						add_claim_by = ROOT
 					}
 				}
 			}
@@ -326,20 +436,64 @@ on_actions = {
 					OR = {
 						tag = SIB
 						tag = TRM
-						tag = BRY
 					}
 					FROM = { 
-						OR = {
-							tag = TRM
-							tag = JAP
-							tag = BRY
-						}
+						tag = JAP
+					}
+					FROM.FROM = { state = 408 } #Yekaterinburg
+					ROOT = { controls_province = 957 }
+					FROM = { NOT = { owns_state = 408 } }
+				}
+				custom_effect_tooltip = KR_separate_peace
+				FROM = { white_peace = ROOT }
+			}
+			# TCW - Buryatia
+			if = {
+				limit = {
+					ROOT = {
+						tag = BRY
+						NOT = { has_government = totalist }
+						NOT = { has_government = paternal_autocrat }
+					}
+					FROM = { 
+						tag = TRM
 					}
 					FROM.FROM = { state = 408 } #Yekaterinburg
 					ROOT = { controls_province = 957 }
 				}
 				custom_effect_tooltip = KR_separate_peace
 				FROM = { white_peace = ROOT }
+				BRY = { transfer_state = 565 }
+				if = {
+					limit = {
+						NOT = { country_exists = YAK }
+					}
+					YAK = {
+						transfer_state = 574
+						add_state_core = 574
+						set_country_flag = YAK_secured_its_independence
+						white_peace = TRM
+					}
+				}
+				FROM = {
+					add_war_support = -0.25
+					add_stability = -0.25
+					add_popularity = {
+						ideology = authoritarian_democrat
+						popularity = 0.15
+					}
+					remove_ideas = TRM_dream
+					diplomatic_relation = {
+						country = ROOT
+						relation = non_aggression_pact
+						active = yes
+					}
+					diplomatic_relation = {
+						country = YAK
+						relation = non_aggression_pact
+						active = yes
+					}						
+				}
 			}
 			if = {
 				limit = {
@@ -457,6 +611,29 @@ on_actions = {
 					has_cosmetic_tag = TRM_SIB
 				}
 				drop_cosmetic_tag = yes
+			}
+			if = {
+				limit = {
+					tag = TRM
+					NOT = {
+						has_country_leader = {
+							name = "Aleksandr Kolchak"
+							ruling_only = yes
+						}
+					}
+				}
+				if = {
+					limit = {
+						country_exists = BRY
+						BRY = { is_subject_of = TRM }
+					}
+					BRY = {
+						country_event = {
+							id = bry.50
+							days = 4
+						}
+					}
+				}
 			}
 		}
 	}

@@ -491,6 +491,10 @@ country_event = { #Pardon Gorgulov?
 	trigger = {
 		tag = RUS
 		has_country_flag = RUS_SAVI
+		has_country_leader = {
+			name = "Boris Savinkov"
+			ruling_only = yes
+		}
 		has_country_flag = RUS_GOR_ALIVE
 	}
 	mean_time_to_happen = {
@@ -1075,7 +1079,6 @@ country_event = { #Guchkov dies
 	}
 	option = {
 		name = russia.15.a
-		add_stability = -0.01
 	}
 }
 
@@ -8211,6 +8214,7 @@ country_event = { #Savinkov Proclaimed Vozhd
 				ruling_party = national_populist
 				elections_allowed = no
 			}
+			set_country_flag = PORTRAIT_PICKER_ACTIVE
 			add_stability = 0.15
 			RUS = {
 				set_cosmetic_tag = RUS_vozhdct
@@ -17031,22 +17035,7 @@ country_event = { #Unlock political decisions
 		}
 	}
 	fire_only_once = yes
-	trigger = {
-		tag = SOV
-		SOV = {
-			NOT = { has_global_flag = TRM_siberia_panic }
-			NOT = {
-				has_country_leader = {
-					ruling_only = yes
-					name = "Grigory Zinoviev"
-				}
-			}
-			NOT = { has_country_flag = SOV_restored_in_transamur }
-		}
-	}
-	mean_time_to_happen = {
-		days = 7
-	}
+	is_triggered_only = yes
 	
 	option = {#Popular Front decision
 		name = russoc.1.a
@@ -20529,16 +20518,7 @@ country_event = { #Germany's Reaction on Russian plans in Caucasus
 		name = rusfor.1000.b #Threaten Russia and invite the endangered nations into the Völkerbund!
 		trigger = {
 			country_exists = DKB
-			DKB = {
-				has_war = no
-				is_subject = no
-				is_in_faction = no
-			}
-			KUB = {
-				has_war = no
-				is_subject = no
-				is_in_faction = no
-			}
+			country_exists = KUB
 			OR = {
 				is_neighbor_of = DKB
 				any_allied_country = {
@@ -20563,10 +20543,23 @@ country_event = { #Germany's Reaction on Russian plans in Caucasus
 			}
 		}
 		add_political_power = -30
-		DKB = {
-			country_event = {
-				id = rusfor.1001
-				days = 2
+		if = {
+			limit = {
+				DKB = { has_socialist_government = no }
+			}
+			DKB = {
+				country_event = {
+					id = rusfor.1001
+					days = 2
+				}
+			}
+		}
+		else = {
+			KUB = {
+				country_event = {
+					id = rusfor.1001
+					days = 2
+				}
 			}
 		}
 		FROM = {
@@ -20908,6 +20901,8 @@ country_event = { #The Crimea
 			factor = 80
 		}
 		add_state_claim = 137
+		add_state_claim = 1220
+		add_state_claim = 1221
 		UKR = {
 			country_event = {
 				id = rusfor.8
@@ -20941,6 +20936,8 @@ country_event = { #Russia asks to lease the Crimea
 		add_political_power = -100
 		FROM = {
 			effect_tooltip = { transfer_state = 137 }
+			effect_tooltip = { transfer_state = 1220 }
+			effect_tooltip = { transfer_state = 1221 }
 			send_equipment = {
 				target = ROOT
 				type = infantry_equipment
@@ -21019,6 +21016,8 @@ country_event = { #The Ukrainians refuse to lease the Crimea!
 		}
 		add_political_power = -50
 		remove_state_claim = 137
+		remove_state_claim = 1220
+		remove_state_claim = 1221
 	}
 
 	option = {
@@ -24684,6 +24683,32 @@ country_event = { #Russia offers us an alliance
 			factor = 70
 			modifier = {
 				factor = 0
+				tag = LAT
+				has_game_rule = {
+					rule = LAT_FORPOL
+					option = LAT_FORPOL_NEUTRALITY
+				}
+			}
+			modifier = {
+				factor = 0
+				tag = EST
+				OR = {
+					has_game_rule = {
+						rule = EST_FORPOL
+						option = EST_FORPOL_NEUTRALITY
+					}
+					has_game_rule = {
+						rule = EST_FORPOL
+						option = EST_FORPOL_GERMANY
+					}
+					has_game_rule = {
+						rule = EST_FORPOL
+						option = EST_FORPOL_SCANDI
+					}
+				}
+			}
+			modifier = {
+				factor = 0
 				FROM = {
 					any_owned_state = { is_claim_or_core_of_ROOT = yes }
 				}
@@ -24704,6 +24729,40 @@ country_event = { #Russia offers us an alliance
 						FROM = { has_authoritarian_government = yes }
 					}
 				}
+			}
+		}
+		GER = {
+			if = {
+				limit = { has_non_aggression_pact_with = ROOT }
+				diplomatic_relation = {
+					country = ROOT
+					relation = non_aggression_pact
+					active = no
+				}
+			}
+			if = {
+				limit = { has_guaranteed = ROOT }
+				diplomatic_relation = {
+					country = ROOT
+					relation = guarantee
+					active = no
+				}
+			}
+			if = {
+				limit = { gives_military_access_to = ROOT }
+				diplomatic_relation = {
+					country = ROOT
+					relation = military_access
+					active = no
+				}
+			}
+		}
+		if = {
+			limit = { gives_military_access_to = GER }
+			diplomatic_relation = {
+				country = GER
+				relation = military_access
+				active = no
 			}
 		}
 		hidden_effect = {
@@ -24741,6 +24800,44 @@ country_event = { #Russia offers us an alliance
 	}
 	option = {
 		name = rusfor.52.b
+		trigger = {
+			FROM = {
+				any_owned_state = { is_claim_or_core_of_ROOT = yes }
+			}
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				factor = 0
+				tag = LAT
+				has_game_rule = {
+					rule = LAT_FORPOL
+					option = LAT_FORPOL_NEUTRALITY
+				}
+			}
+			modifier = {
+				factor = 0
+				tag = EST
+				OR = {
+					has_game_rule = {
+						rule = EST_FORPOL
+						option = EST_FORPOL_NEUTRALITY
+					}
+					has_game_rule = {
+						rule = EST_FORPOL
+						option = EST_FORPOL_GERMANY
+					}
+					has_game_rule = {
+						rule = EST_FORPOL
+						option = EST_FORPOL_SCANDI
+					}
+				}
+			}
+		}
+		FROM = { country_event = { id = rusfor.58 days = 1 } }
+	}
+	option = {
+		name = rusfor.52.c
 		ai_chance = {
 			factor = 30
 			modifier = {
@@ -24789,6 +24886,7 @@ country_event = { #Russia offers us an alliance
 			}
 		}
 	}
+	
 }
 
 country_event = { #Country responds
@@ -24831,6 +24929,7 @@ country_event = { #Country responds
 		trigger = {
 			NOT = { has_country_flag = RUS_allied_@FROM }
 		}
+		set_country_flag = RUS_alliance_refused_@FROM
 		add_opinion_modifier = {
 			target = FROM
 			modifier = KR_disapproves_of_govt
@@ -24936,6 +25035,7 @@ country_event = { #FROM wants to join Russia
 				factor = 0.5
 				has_completed_focus = RUS_Expansionism
 				FROM = { owns_state = 78 } #Bessarabia
+				FROM = { owns_state = 1222 } #Bessarabia
 			}
 		}
 		add_to_faction = FROM
@@ -24996,6 +25096,132 @@ country_event = { #Russia refuses former Serbian ally
 		}
 	}
 }
+country_event = { #Country wants their claims back
+	id = rusfor.58
+	immediate = { log = "[GetDateText]: [Root.GetName]: event rusfor.58 FROM = [From.GetName]" }
+	title = rusfor.58.t
+	desc = rusfor.58.d
+	picture = GFX_report_event_generic_diplomacy1
+
+	trigger = {
+		is_faction_leader = yes
+		NOT = { has_war_with = FROM }
+		FROM = { is_valid_peace_target = yes }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = rusfor.58.a
+		ai_chance = {
+			base = 100
+			modifier = {
+				factor = 0
+				has_completed_focus = RUS_Expansionism
+				RUS_savinkov_in_power = no
+			}
+			modifier = {
+				factor = 0.6
+				RUS_savinkov_in_power = yes
+			}
+		}
+		effect_tooltip = {
+			add_to_faction = FROM
+			every_owned_state = {
+				limit = { is_claim_or_core_of_FROM = yes }
+				if = {
+					limit = { is_claimed_by = ROOT }
+					remove_claim_by = ROOT
+				}
+				FROM = { transfer_state = PREV }
+			}
+			FROM = {
+				every_owned_state = {
+					limit = { is_claimed_by = ROOT }
+					remove_claim_by = ROOT
+				}
+			}
+		}
+		FROM = { country_event = rusfor.59 }
+	}
+
+	option = {
+		name = rusfor.58.b
+		ai_chance = {
+			base = 0
+			modifier = {
+				add = 100
+				has_completed_focus = RUS_Expansionism
+				RUS_savinkov_in_power = no
+			}
+			modifier = {
+				add = 40
+				RUS_savinkov_in_power = yes
+			}
+		}
+		set_country_flag = RUS_alliance_refused_@FROM
+		add_opinion_modifier = {
+			target = FROM
+			modifier = KR_hates_govt
+		}
+		FROM = { country_event = rusfor.60 }
+	}
+}
+
+country_event = { #Russia accepts
+	id = rusfor.59
+	immediate = { log = "[GetDateText]: [Root.GetName]: event rusfor.59 FROM = [From.GetName]" }
+	title = rusfor.59.t
+	desc = rusfor.59.d
+	picture = GFX_report_event_generic_diplomacy1
+
+	trigger = {
+		is_valid_peace_target = yes
+		NOT = { has_war_with = FROM }
+		FROM = { is_faction_leader = yes }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = rusfor.59.a
+		FROM = {
+			add_to_faction = ROOT
+			every_owned_state = {
+				limit = { is_claim_or_core_of_ROOT = yes }
+				if = {
+					limit = { is_claimed_by = FROM }
+					remove_claim_by = FROM
+				}
+				ROOT = { transfer_state = PREV }
+			}
+			every_owned_state = {
+				limit = { is_claimed_by = FROM }
+				remove_claim_by = FROM
+			}
+		}
+	}
+}
+
+country_event = { #Russia refuses
+	id = rusfor.60
+	immediate = { log = "[GetDateText]: [Root.GetName]: event rusfor.60 FROM = [From.GetName]" }
+	title = rusfor.60.t
+	desc = rusfor.60.d
+	picture = GFX_report_event_generic_diplomacy1
+
+	is_triggered_only = yes
+
+	option = {
+		name = rusfor.60.a
+		add_opinion_modifier = {
+			target = FROM
+			modifier = KR_hates_govt
+		}
+	}
+}
+
+
 
 #Foreign Politics Focuses Events ###########################
 
@@ -25010,8 +25236,23 @@ country_event = { #Germany invites DKB/GEO/AZE to the Reichspakt
 
 	option = {
 		name = rusfor.1001.a #Accept
+		trigger = {
+			has_socialist_government = no
+		}
 		ai_chance = {
 			factor = 50
+			modifier = {
+				factor = 0
+				don_is_pro_russian = yes
+			}
+			modifier = {
+				factor = 0
+				kuban_is_pro_russian = yes
+			}
+			modifier = {
+				factor = 0 
+				has_government = national_populist
+			}
 		}
 		FROM = {
 			country_event = {
@@ -25027,11 +25268,13 @@ country_event = { #Germany invites DKB/GEO/AZE to the Reichspakt
 					limit = {
 						OR = {
 							tag = KUB
+							tag = DKB
 							tag = KLY
 							tag = MTR
 							tag = GEO
 							tag = AZE
 						}
+						NOT = { tag = ROOT }
 						has_war = no
 						is_subject = no
 						is_in_faction = no
@@ -25872,9 +26115,10 @@ country_event = { #The Georgian question
 		name = rusfor.1025.c # For Mensheviks
 		trigger = {
 			OR = {
-				has_government = social_democrat
-				has_country_flag = social_democrat_coalition
+				has_left_democratic_government = yes
+				has_socialist_government = yes
 			}
+			GEO = { has_government = social_democrat }
 		}
 		ai_chance = {
 			factor = 100
@@ -25906,9 +26150,9 @@ country_event = { #Russian demands GEO
 			}
 		}
 		add_stability = -0.04
-		RUS = {
+		FROM = {
 			set_autonomy = {
-				target = GEO
+				target = ROOT
 				autonomous_state = kr_autonomous_puppet
 				freedom_level = 0.75
 			}
@@ -25920,8 +26164,8 @@ country_event = { #Russian demands GEO
 			factor = 50
 		}
 		add_stability = 0.08
-		RUS = {
-			add_to_faction = FROM
+		FROM = {
+			add_to_faction = ROOT
 		}
 	}
 		
@@ -26881,9 +27125,6 @@ country_event = { #Protect Persia at a cost RUS
 
 	option = {
 		name = rusfor.1065.b #Northern Iran and alliance
-		trigger = {
-			has_completed_focus = RUS_Expansionism
-		}
 		ai_chance = {
 			factor = 75
 		}
@@ -26900,6 +27141,9 @@ country_event = { #Protect Persia at a cost RUS
 
 	option = {
 		name = rusfor.1065.c #Puppet
+		trigger = {
+			has_completed_focus = RUS_Expansionism
+		}
 		ai_chance = {
 			factor = 25
 		}
@@ -26947,28 +27191,32 @@ country_event = { #Russia demands northern iran
 			factor = 30
 			modifier = {
 				add = -15
-				FROM = { has_country_flag = RUS_demands_territory_@ROOT }
+				FROM = { has_country_flag = RUS_demands_territory_PER }
 			}
 			modifier = {
 				add = -25
-				FROM = { has_country_flag = RUS_demands_puppet_@ROOT }
+				FROM = { has_country_flag = RUS_demands_puppet_PER }
+			}
+			modifier = {
+				factor = 2
+				FROM = { same_government_type_as_ROOT = yes }
 			}
 		}
 		add_political_power = -100
 		FROM = {
 			effect_tooltip = {
 				if = {
-					limit = { has_country_flag = RUS_demands_territory_@ROOT }
+					limit = { has_country_flag = RUS_demands_territory_PER }
 					transfer_state = 420
 					transfer_state = 418
 					transfer_state = 804
 				}
 				if = {
-					limit = { has_country_flag = RUS_demands_alliance_@ROOT }
+					limit = { has_country_flag = RUS_demands_alliance_PER }
 					add_to_faction = ROOT
 				}
 				if = {
-					limit = { has_country_flag = RUS_demands_puppet_@ROOT }					
+					limit = { has_country_flag = RUS_demands_puppet_PER }					
 					puppet = ROOT
 			}
 			country_event = {
@@ -27008,17 +27256,17 @@ country_event = { #Iran accepts!
 		name = rusfor.1067.a #Hurray!
 		add_political_power = 30
 		if = {
-			limit = { has_country_flag = RUS_demands_territory_@FROM }
+			limit = { has_country_flag = RUS_demands_territory_PER }
 			transfer_state = 420
 			transfer_state = 418
 			transfer_state = 804
 		}
 		if = {
-			limit = { has_country_flag = RUS_demands_alliance_@FROM }
+			limit = { has_country_flag = RUS_demands_alliance_PER }
 			add_to_faction = FROM
 		}
 		if = {
-			limit = { has_country_flag = RUS_demands_puppet_@FROM }
+			limit = { has_country_flag = RUS_demands_puppet_PER }
 			puppet = FROM
 		}
 	}
@@ -28177,6 +28425,8 @@ country_event = { #Ukraine
 		add_stability = -0.1
 		FROM = {
 			transfer_state = 137
+			transfer_state = 1220
+			transfer_state = 1221
 			transfer_state = 196
 			transfer_state = 227
 			transfer_state = 200
@@ -28240,7 +28490,15 @@ country_event = { #Ukraine
 		ai_chance = {
 			factor = 60 
 		}
-		
+		add_state_claim = 137
+		add_state_claim = 1220
+		add_state_claim = 1221
+		add_state_claim = 196
+		add_state_claim = 227
+		add_state_claim = 200
+		add_state_claim = 221
+		add_state_claim = 821
+		add_state_claim = 228
 	}
 }
 country_event = { #Ukraine
@@ -28316,8 +28574,17 @@ country_event = { #Ukraine
 	option = {
 		name = rusfor.1165.a #passports
 		ai_chance = {
-			factor = 60 
+			factor = 60
 		}
+		add_state_claim = 137
+		add_state_claim = 1220
+		add_state_claim = 1221
+		add_state_claim = 196
+		add_state_claim = 227
+		add_state_claim = 200
+		add_state_claim = 221
+		add_state_claim = 821
+		add_state_claim = 228
 	}
 }		
 		
@@ -28896,6 +29163,21 @@ country_event = { #Transfer of the territory
 			country = FROM
 			relation = non_aggression_pact
 		}
+		every_owned_state = {
+			limit = {
+				OR = {
+					is_core_of = FROM
+					is_claimed_by = FROM
+					state = 146 #Viipuri
+					state = 147 #Kuolajarvi
+				}
+				OR = {
+					NOT = { region = 13 } #Finland
+					state = 146 #Viipuri
+				}
+			}
+			FROM = { transfer_state = PREV }
+		}
 	}
 }
 
@@ -29167,6 +29449,7 @@ country_event = { #ROM-RUS peace deal
 		tag = ROM
 		has_war_with = 219.owner
 		owns_state = 78
+		owns_state = 1222
 		is_valid_peace_target = yes
 		set_temp_variable = { RUS_enemy_tag = 219.owner }
 		var:RUS_enemy_tag = {
@@ -29177,6 +29460,7 @@ country_event = { #ROM-RUS peace deal
 			#Romania loses
 			var:RUS_enemy_tag = {
 				controls_state = 78 #Bessarabia
+				controls_state = 1222 # Bujak
 				controls_state = 79 #Moldavia
 			}
 			surrender_progress > 0.15
@@ -29352,6 +29636,7 @@ country_event = { #Treaty of Chisinau
 					is_core_of = FROM
 					is_claimed_by = FROM
 					state = 78 #Bessarabia
+					state = 1222
 					if = {
 						limit = {
 							FROM = { owns_state = 89 } #Stanislawow
@@ -29376,6 +29661,7 @@ country_event = { #Treaty of Chisinau
 		trigger = { has_global_flag = RUS_defeated_by_ROM }
 		FROM = {
 			remove_state_claim = 78 #Bessarabia
+			remove_state_claim = 1222
 			white_peace_with_ROOT = yes
 			diplomatic_relation = {
 				country = FROM
@@ -31551,10 +31837,37 @@ country_event = { #vladivostok captured
 		name = rusfor.1422.a
 		remove_ideas = RUS_Siberian_War_Buff
 		TRM = { separate_peace_all_wars = yes }
+		if = {
+			limit = {
+				TRM = { is_subject_of = JAP }
+			}
+			white_peace = JAP
+		}
 		annex_country = {
 			target = TRM
 			transfer_troops = yes
-		} 
+		}		
+	}
+	option = {
+		name = rusfor.1422.b
+		trigger = {
+			TRM = { is_subject_of = JAP }
+		}
+		remove_ideas = RUS_Siberian_War_Buff
+		TRM = { separate_peace_all_wars = yes }
+		annex_country = {
+			target = TRM
+			transfer_troops = yes
+		}
+		if = {
+			limit = {
+				NOT = { has_war_with = JAP }
+			}
+			declare_war_on = {
+				target = JAP
+				type = annex_everything
+			}
+		}
 	}
 }
 country_event = { #Hidden failsafe event if TRM peaces out before Vladivostok is captured
@@ -33801,6 +34114,155 @@ country_event = { # Turkestan refused
 		}
 	}
 }
+country_event = { # Japan-RUS peace
+	id = rusfor.1462
+	immediate = { log = "[GetDateText]: [Root.GetName]: event rusfor.1462" }
+	title = rusfor.1462.t
+	desc = rusfor.1462.d
+	trigger = {
+		tag = JAP
+		OR = {
+			has_war_with = RUS
+			has_war_with = SOV
+		}
+		NOT = { country_exists = TRM }
+		408 = { is_controlled_by_ROOT_or_ally = yes }
+		409 = { is_controlled_by_ROOT_or_ally = yes }
+	}
+	mean_time_to_happen = {
+		days = 7
+	}
+	option = {
+		name = rusfor.1462.a
+		408 = {
+			owner = {
+				country_event = {
+					id = rusfor.1463
+					days = 3
+				}
+			}
+		}
+	}
+}
+country_event = { # Japan-RUS peace
+	id = rusfor.1463
+	immediate = { log = "[GetDateText]: [Root.GetName]: event rusfor.1463" }
+	title = rusfor.1463.t
+	desc = rusfor.1463.d
+	is_triggered_only = yes
+	option = {
+		name = rusfor.1462.a
+		save_event_target_as = peace_country
+		every_enemy_country = {
+			limit = {
+				tag = JAP
+			}
+			event_target:peace_country = { white_peace = PREV }
+		}
+		every_enemy_country = {
+			limit = {
+				is_in_faction_with = JAP
+			}
+			event_target:peace_country = { white_peace = PREV }
+		}
+		every_enemy_country = {
+			limit = {
+				is_in_asia = yes
+			}
+			event_target:peace_country = { white_peace = PREV }
+		}
+		JAP = { transfer_state = 408 }
+		JAP = { transfer_state = 409 }
+		JAP = { transfer_state = 637 }
+		JAP = { transfer_state = 562 }
+		637 = { add_claim_by = JAP }
+		562 = { add_claim_by = JAP }
+		every_other_country = {
+			limit = {
+				is_chinese_tag = yes
+				is_subject_of = ROOT
+			}
+			release = PREV
+		}
+		decrease_ruling_party_popularity_by_10 = yes
+		add_stability = -0.2
+		add_war_support = -0.5
+		set_truce = {
+			target = FROM
+			days = 900
+		}
+		diplomatic_relation = {
+			country = FROM
+			relation = non_aggression_pact
+			active = yes
+		}
+	}
+}
+country_event = { # UTR-RUS peace
+	id = rusfor.1464
+	immediate = { log = "[GetDateText]: [Root.GetName]: event rusfor.1464" }
+	title = rusfor.1464.t
+	desc = rusfor.1464.d
+	trigger = {
+		is_russian_tag = yes
+		has_war_with = UTR
+		UTR = { surrender_progress < 0.1 }
+	}
+	is_triggered_only = yes
+	option = {
+		name = rusfor.1464.b
+		ai_chance = {
+			base = 100
+		}
+		UTR = {
+			country_event = {
+				id = rusfor.1465
+				days = 3
+			}
+		}
+		add_stability = 0.1
+	}
+	option = {
+		name = rusfor.1464.a
+		ai_chance = {
+			base = 0
+		}
+		add_war_support = -0.2
+		add_stability = -0.1
+	}
+}
+country_event = { # UTR-RUS peace
+	id = rusfor.1465
+	immediate = { log = "[GetDateText]: [Root.GetName]: event rusfor.1465" }
+	title = rusfor.1465.t
+	desc = rusfor.1465.d
+	is_triggered_only = yes
+	option = {
+		name = rusfor.1465.a
+		save_event_target_as = peace_country
+		white_peace = FROM
+		every_enemy_country = {
+			limit = {
+				OR = {
+					is_in_faction_with = FROM
+					is_subject_of = FROM
+				}
+			}
+			event_target:peace_country = { white_peace = PREV }
+		}
+		add_stability = 0.2
+		set_truce = {
+			target = FROM
+			days = 900
+		}
+		diplomatic_relation = {
+			country = FROM
+			relation = non_aggression_pact
+			active = yes
+		}
+		set_country_flag = RUS_UTR_peace
+	}
+}
 
 news_event = { #Vozhd Takes Power in Russia!
 	id = russianews.1
@@ -34056,7 +34518,7 @@ news_event = { #Eurasian Union
 	immediate = { log = "[GetDateText]: [Root.GetName]: event russianews.10" }
 	title = russianews.10.t
 	desc = russianews.10.d
-	picture = GFX_rus_eurasia_event
+	picture = GFX_news_event_RUS_moscow
 
 	major = yes
 
@@ -34353,6 +34815,44 @@ country_event = { #force TRM to collapse if the war drags on too long
 
 	option = {
 		force_capitulate = yes
+	}
+}
+country_event = { #soviet generals
+	id = russia.1923
+	immediate = { log = "[GetDateText]: [Root.GetName]: event russia.1919 FROM = [From.GetName]" }
+	title = russia.1923.t
+	desc = russia.1923.d
+	fire_only_once = yes
+
+	trigger = {
+		country_exists = SOV
+		tag = SOV
+		NOT = {
+			has_government = syndicalist
+			has_government = social_democrat
+			#AND = {
+			#	has_government = radical_socialist
+			#	has_idea = RUS_Vladimir_K_Volsky_hog_rso
+			#}
+		}
+	}
+	mean_time_to_happen = {
+		days = 15
+	}
+	option = {
+		name = russia.1923.a
+		bolsheviks_gome_home = yes
+		add_stability = -0.05
+		add_war_support = 0.05
+		add_popularity = {
+			ideology = totalist
+			popularity = 0.05
+		}
+	}
+	option = {
+		name = russia.1923.b
+		add_stability = 0.05
+		add_political_power = 50
 	}
 }
 
@@ -34685,4 +35185,58 @@ country_event = { #flag event
 		set_cosmetic_tag = RUS_GOR_VGH	
 	}
 }
+
+country_event = { #scythia
+	id = russia.442
+	immediate = {log = "[GetDateText]: [Root.GetName]: event russia.442"}
+	title = russia.442.t
+	desc = russia.442.d
 	
+	picture = GFX_report_event_RUS_troops2
+	
+	fire_only_once = yes
+
+	is_triggered_only = yes
+
+	option = { #yes
+		name = russia.442.a
+		add_political_power = 50
+        set_cosmetic_tag = RUS_SCY
+	    country_event = {
+			id = russia.443
+			days = 1
+		}
+	}	
+	option = { #no
+		name = russia.442.b
+                add_political_power = 25
+	}
+}
+
+country_event = { #scythia flag
+	id = russia.443
+	immediate = {log = "[GetDateText]: [Root.GetName]: event russia.443"}
+	title = russia.443.t
+	desc = russia.443.d
+	
+	picture = GFX_report_event_RUS_meeting
+	
+	fire_only_once = yes
+
+	is_triggered_only = yes
+
+	option = { #black and yellow
+		name = russia.443.a
+		add_political_power = 50
+ 		set_cosmetic_tag = RUS_SCY2
+	}
+	option = { #black and white
+		name = russia.443.b
+      	add_political_power = 50
+       	set_cosmetic_tag = RUS_SCY3
+	}
+        option = { #no change
+		name = russia.443.c
+        add_political_power = 50
+	}
+}				
