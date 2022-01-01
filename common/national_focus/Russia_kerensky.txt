@@ -227,12 +227,14 @@ focus = {
 			set_country_flag = rsdrp_coalition
 			set_temp_variable = { coalition_partner_var = token:social_democrat }
 			add_to_coalition = yes
-
+			
+			set_country_leader_ideology = RUS_psr_rsdrp_coalition
 			add_ideas = RUS_Vladimir_M_Zenzinov_hog_sde
 			add_ideas = RUS_Aleksey_M_Nikitin_for_mli
 		}
 		else = {
 			custom_effect_tooltip = "New Coalition Partners will join the government"
+			set_country_leader_ideology = RUS_psr_kdp_coalition
 		}
 		add_to_variable = { kerensky_endurance_regime = 5 }
 		add_to_variable = { kerensky_endurance_coalition = 12 }
@@ -384,7 +386,27 @@ focus = {
 		factor = 110
 	}
 	completion_reward = {
-		#changing electoral law for duma or senate
+		if = {
+			limit = { has_completed_focus = RUS_Appease_Duma }
+			custom_effect_tooltip = "Senate Electoral Law restrictions will be lifted"
+			set_country_flag = RUS_UNIVERSAL_VOTING_SENATE_accepted
+			add_stability = 0.04
+			add_popularity = {
+				ideology = social_liberal
+				popularity = 0.04
+			}
+			set_variable = { RUS_state_senate_turnout = 0.8 }
+			set_variable = { RUS_nonconservative_senate_state_turnout = 1 }
+			set_variable = { RUS_conservative_senate_state_turnout = 0.8 } 
+		}
+		else_if = {
+			limit = { has_completed_focus = RUS_Appease_Senate }
+			custom_effect_tooltip = "Electoral Threshold to the Duma will be increased to 7%"
+			set_variable = { RUS_parliament_barrier = 0.07 }
+		}
+		else = {
+			custom_effect_tooltip = "The Electoral Law will be changed depending on whom Kerensky will ally with"
+		}
 	}
 }
 focus = {
@@ -726,6 +748,7 @@ focus = {
 		factor = 80
 	}
 	completion_reward = {
+		custom_effect_tooltip = "Endurance of our regime will increase"
 		add_to_variable = { kerensky_endurance_regime = 15 }
 		add_to_variable = { kerensky_endurance_coalition = -15 }
 		add_to_variable = { kerensky_strength_opposition = 15 }
@@ -1099,6 +1122,7 @@ focus = {
 		set_country_leader_portrait = {
 			portrait = "gfx/leaders/RUS/Portrait_RUS_Aleksandr_Kerenskiy_Dictator.png"
 		}
+		set_country_leader_ideology = kerenskyism_subtype
 		add_ideas = rus_soc_lib_dictator
 		add_to_variable = { kerensky_endurance_regime = 10  }
 		if = {
@@ -1213,9 +1237,24 @@ focus = {
 focus = {
 	id = RUS_Try_To_Change_Terms
 	icon = GFX_goal_MEX_open_markets_for_reichspakt
-	cost = 5
+	cost = 10
 	prerequisite = {
 		focus = RUS_Respect_The_Minsk_Treaty
+	}
+	available = {
+		OR = {
+			has_idea = rus_brest_litovsk
+			has_idea = rus_brest_litovsk_renegotiated 
+		}
+	}
+	bypass = {
+		has_idea = rus_brest_litovsk_renegotiated
+	}
+	select_effect = {
+		country_event = {
+			id = rusfor.115
+			days = 2
+		}
 	}
 	relative_position_id = RUS_Respect_The_Minsk_Treaty
 	x = 0
@@ -1224,7 +1263,7 @@ focus = {
 		factor = 1000
 	}
 	completion_reward = {
-		
+		custom_effect_tooltip = "We will attempt to change terms of the Minsk Treaty"
 	}
 }
 focus = {
@@ -1235,7 +1274,7 @@ focus = {
 		focus = RUS_Respect_The_Minsk_Treaty
 	}
 	available = {
-		has_country_flag = RUS_KER_reichspakt_agreement
+		always = no
 	}
 	relative_position_id = RUS_Respect_The_Minsk_Treaty
 	x = 3
@@ -1277,11 +1316,6 @@ focus = {
 		factor = 1000
 	}
 	completion_reward = {
-		remove_ideas = rus_brest_litovsk
-		add_named_threat = { 
-			threat = 7
-			name = "Russia Repudiated Minsk Treaty!"
-		}
 		unlock_decision_tooltip = RUS_Attack_Germany
 	}
 }
@@ -1301,17 +1335,18 @@ focus = {
 		factor = 1000
 	}
 	cost = 4
-		available = {
-			is_subject = no
-		}
-		bypass = {
-			hidden_trigger = { 
-				OR = {
-					has_war_with = TRM
-					has_war_with = JAP
-				}
+	available = {
+		is_subject = no
+		NOT = { has_country_flag = RUS_KER_blocks_transamur }
+	}
+	bypass = {
+		hidden_trigger = { 
+			OR = {
+				has_war_with = TRM
+				has_war_with = JAP
 			}
 		}
+	}
 
 	ai_will_do = {
 		factor = 5
@@ -1412,6 +1447,7 @@ focus = {
 	cost = 5
 	prerequisite = {
 		focus = RUS_Join_The_Reichspakt
+		focus = RUS_Try_To_Change_Terms
 	}
 	relative_position_id = RUS_Respect_The_Minsk_Treaty
 	x = 3
@@ -1440,6 +1476,7 @@ focus = {
 		}
 	}
 	completion_reward = {
+		setup_bjorko_pact = yes
 	}
 }
 focus = {
@@ -1480,7 +1517,6 @@ focus = {
 		}
 	}
 	prerequisite = {
-		focus = RUS_Try_To_Change_Terms
 		focus = RUS_Negotiations_Fail
 	}
 	bypass = {
@@ -1535,6 +1571,10 @@ focus = {
 	cost = 2
 	available = {
 		is_subject = no
+		OR = {
+			has_completed_focus = RUS_Negotiations_Fail
+			has_completed_focus = RUS_Join_The_Reichspakt
+		}
 	}
 	bypass = {
 		hidden_trigger = { has_war_with = AFG }
@@ -1571,7 +1611,10 @@ focus = {
 	cost = 2
 	available = {
 		is_subject = no
-		has_completed_focus = RUS_Expansionism
+		OR = {
+			has_completed_focus = RUS_Negotiations_Fail
+			has_completed_focus = RUS_Join_The_Reichspakt
+		}
 	}
 	bypass = {
 		hidden_trigger = { has_war_with = PER }
@@ -1620,6 +1663,12 @@ focus = {
 	cost = 2
 	available = {
 		is_subject = no
+		AFG = {
+			OR = {
+				is_in_faction_with = ROOT
+				is_subject_of = ROOT
+			}
+		}
 		if = {
 			limit = {
 				has_completed_focus = RUS_KER_Claim_The_Straits
@@ -1638,8 +1687,7 @@ focus = {
 			}
 		}
 	prerequisite = {
-		focus = RUS_KER_Demand_North_Iran
-		focus = RUS_Claim_Afghanistan
+		focus = RUS_Central_Asia_Intervention
 	}
 	ai_will_do = {
 		factor = 5
@@ -1692,7 +1740,7 @@ focus = {
 	cost = 2
 	available = {
 		is_subject = no
-		is_faction_leader = yes
+		NOT = { has_country_flag = RUS_KER_blocks_china }
 	}
 	prerequisite = {
 		focus = RUS_KER_Enemy_In_The_East
@@ -1715,7 +1763,21 @@ focus = {
 	completion_reward = {
 		custom_effect_tooltip = RUS_china_policy_tooltip
 		unlock_decision_category_tooltip = RUS_China_Policy_decisions
-		
+		every_state = {
+			limit = {
+				OR = {
+					state = 883
+					state = 884
+					state = 714
+					state = 717
+				}
+			}
+			add_claim_by = ROOT
+		}
+		country_event = {
+			id = rusfor.1401
+			days = 1
+		}
 	}
 }
 
