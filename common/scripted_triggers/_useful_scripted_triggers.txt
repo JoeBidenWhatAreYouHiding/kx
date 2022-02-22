@@ -54,6 +54,41 @@ is_actual_major = {
 	}
 }
 
+is_actual_major_without_exceptions = {
+	custom_trigger_tooltip = {
+		tooltip = is_actual_major_without_exceptions
+		is_major = yes
+
+		# rank the majors according to their num_of_factories
+		clear_temp_array = global.actual_majors
+		get_sorted_scored_countries_temp = {
+			scorer = actual_majors_score
+			array = global.actual_majors
+		}
+
+		# limit that ranking to the top 7
+		resize_temp_array = { global.actual_majors = 7 }
+
+		# now figure out what 70% of the average of those 7 is, with a minimum of 35
+		set_temp_variable = { global.factory_average = 0 }
+		all_of_scopes = {
+			array = global.actual_majors
+			add_to_temp_variable = { global.factory_average = THIS.num_of_factories }
+		}
+		divide_temp_variable = { global.factory_average = 7 }
+		multiply_temp_variable = { global.factory_average = 0.7 }
+		clamp_temp_variable = { var = global.factory_average min = 35 }
+
+		OR = {
+			# is actually in the top 7
+			is_in_array = { global.actual_majors = THIS }
+			# has more than 70% of the average of the top 7
+			check_variable = { num_of_factories > global.factory_average }
+			# is in the list of "always acts like a major" countries
+		}
+	}
+}
+
 # checks whether the country in scope has the same government as ROOT (the country running the event/focus)
 has_same_government_as_ROOT = {
 	OR = {
