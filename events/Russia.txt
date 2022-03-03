@@ -46316,38 +46316,55 @@ country_event = { #Russian claims FIN
 
 	option = {
 		name = rusfor.1229.b #All right.
-		trigger = {
-			NOT = {
-				840 = { is_claimed_by = FROM }
-			}
-		}
 		ai_chance = {
-			factor = 5
+			base = 5
+			modifier = {
+				factor = 40
+				is_in_faction = no
+				RUS = {
+					NOT = {
+						surrender_progress > 0
+						any_enemy_country = { is_actual_major = yes }
+					}
+				}
+			}
+			modifier = {
+				factor = 0
+				tag = FIN
+				has_government = national_populist
+			}
 		}
 		add_political_power = -150
-		every_owned_state = {
-			limit = {
-				OR = {
-					is_core_of = FROM
-					is_claimed_by = FROM
+		effect_tooltip = {
+			FIN = {
+				every_owned_state = {
+					limit = {
+						OR = {
+							is_core_of = FROM
+							is_claimed_by = FROM
+							state = 146 #Viipuri
+							state = 147 #
+						}
+					}
+					transfer_state_to = FROM
 				}
 			}
-			FROM = { transfer_state = PREV }
 		}
-		custom_effect_tooltip = received_equipment_5000
-		random_owned_state = {
-			limit = {
-				free_building_slots = {
-					building = industrial_complex
-					size > 0
-					include_locked = yes
+		if = {
+			limit = { tag = FIN }
+			custom_effect_tooltip = received_equipment_5000
+			random_owned_controlled_state = {
+				limit = {
+					is_core_of = ROOT
+					impassable = no
+					free_building_slots = { building = industrial_complex size > 0 include_locked = yes }
 				}
-			}
-			add_extra_state_shared_building_slots = 1
-			add_building_construction = {
-				type = industrial_complex
-				level = 1
-				instant_build = yes
+				add_extra_state_shared_building_slots = 1
+				add_building_construction = {
+					type = industrial_complex
+					level = 1
+					instant_build = yes
+				}
 			}
 		}
 		FROM = {
@@ -46377,6 +46394,18 @@ country_event = { #Finland refused!
 			target = FROM
 			type = annex_everything
 		}
+		if = {
+			limit = {
+				KAR = {
+					exists = yes
+					is_subject_of = ROOT
+				}
+			}
+			declare_war_on = {
+				target = KAR
+				type = annex_everything
+			}
+		}		
 	}
 }
 
@@ -46391,29 +46420,43 @@ country_event = { #Transfer of the territory
 	option = {
 		name = rusfor.1231.a #Another victory for Russian diplomacy!
 		add_political_power = 50
-		send_equipment = {
-			target = FROM
-			type = infantry_equipment
-			amount = 5000
-		}
-		diplomatic_relation = {
-			country = FROM
-			relation = non_aggression_pact
-		}
-		every_owned_state = {
+		if = {
 			limit = {
-				OR = {
-					is_core_of = FROM
-					is_claimed_by = FROM
-					state = 146 #Viipuri
-					state = 147 #Kuolajarvi
-				}
-				OR = {
-					NOT = { region = 13 } #Finland
-					state = 146 #Viipuri
+				KAR = {
+					exists = yes
+					is_subject_of = ROOT
 				}
 			}
-			ROOT = { transfer_state = PREV }
+			annex_country = {
+				target = KAR
+			}
+		}		
+		FIN = {
+			every_owned_state = {
+				limit = {
+					OR = {
+						is_core_of = ROOT
+						is_claimed_by = ROOT
+						state = 146 #Viipuri
+						state = 147 #Kuolajarvi
+					}
+				}
+				transfer_state_to = ROOT
+			}
+		}
+		if = {
+			limit = {
+				FROM = { tag = FIN }
+			}
+			send_equipment = {
+				target = FROM
+				type = infantry_equipment
+				amount = 5000
+			}
+			diplomatic_relation = {
+				country = FROM
+				relation = non_aggression_pact
+			}
 		}
 	}
 }
@@ -46597,17 +46640,19 @@ country_event = { #Treaty of Petrograd FIN
 				OR = {
 					NOT = { region = 13 } #Finland
 					state = 146 #Viipuri
+					state = 147 #Kuolajarvi
 				}
 			}
-			FROM = { transfer_state = PREV }
+			transfer_state_to = FROM
 		}
 		FROM = {
 			white_peace_with_ROOT = yes
 			diplomatic_relation = {
-				country = FROM
+				country = ROOT
 				relation = non_aggression_pact
 			}
-		}
+			set_truce = { target = ROOT days = 730 }
+		}		
 	}
 	
 	option = {
@@ -46634,6 +46679,7 @@ country_event = { #Treaty of Petrograd FIN
 				country = FROM
 				relation = non_aggression_pact
 			}
+			set_truce = { target = ROOT days = 730 }		
 		}
 	}
 }
@@ -46931,6 +46977,546 @@ country_event = { #Russia Refuses Peace
 	}
 }
 
+country_event = { #WHR question
+	id = rusfor.1240
+	title = rusfor.1240.t
+	desc = rusfor.1240.d
+	is_triggered_only = yes
+	
+	option = {
+		name = rusfor.1240.a
+		trigger = {
+			OR = {
+				has_authoritarian_government = yes
+				has_right_democratic_government = yes
+			}
+		}
+		ai_chance = {
+			factor = 100
+		}
+		WHR = {
+			country_event = {
+				id = rusfor.1241
+				days = 5
+			}
+		}
+	}
+	option = {
+		name = rusfor.1240.b
+		trigger = {
+			NOT = { has_completed_focus = RUS_Realpolitik }
+		}
+		ai_chance = {
+			factor = 10
+			modifier = {
+				factor = 0
+				WHR = { is_in_faction_with = GER }
+			}
+		}
+		declare_war_on = {
+			target = WHR
+			type = annex_everything
+		}
+	}
+	option = {
+		name = rusfor.1240.c
+		trigger = {
+			WHR = { same_government_type_as_ROOT = yes }
+		}
+		ai_chance = {
+			factor = 90
+		}
+		WHR = {
+			country_event = {
+				id = rusfor.1248
+				days = 5
+			}
+		}
+	}
+	option = {
+		name = rusfor.1265.c
+		ai_chance = {
+			factor = 5
+		}
+		add_political_power = -15
+	}
+}
+country_event = { #WHR question
+	id = rusfor.1241
+	title = rusfor.1241.t
+	desc = rusfor.1241.d
+	is_triggered_only = yes
+	
+	option = {
+		name = rusfor.1241.a
+		ai_chance = {
+			base = 50
+			modifier = {
+				factor = 0
+				OR = {
+					has_game_rule = {
+						rule = WHR_situation
+						option = WHR_SITUATION_ULADZIMIR_DEMOCRACY_SOCIAL_DEMOCRAT_BSDP
+					}
+					has_game_rule = {
+						rule = WHR_situation
+						option = WHR_SITUATION_SIGISMUND_COUP
+					}
+					has_game_rule = {
+						rule = WHR_situation
+						option = WHR_SITUATION_BPSF_GERMAN_INTERVENTION
+					}
+					has_game_rule = {
+						rule = WHR_situation
+						option = WHR_SITUATION_BPSF_GERMAN_ACQUIESCENCE
+					}					
+				}
+			}
+			modifier = {
+				factor = 0
+				OR = {
+					has_game_rule = {
+						rule = WHR_situation
+						option = WHR_SITUATION_ULADZIMIR_DEMOCRACY_SOCIAL_DEMOCRAT_BSDP
+					}
+					has_game_rule = {
+						rule = WHR_situation
+						option = WHR_SITUATION_SIGISMUND_COUP
+					}
+					has_game_rule = {
+						rule = WHR_situation
+						option = WHR_SITUATION_BPSF_GERMAN_INTERVENTION
+					}
+					has_game_rule = {
+						rule = WHR_situation
+						option = WHR_SITUATION_BPSF_GERMAN_ACQUIESCENCE
+					}					
+				}
+			}
+		}
+		clear_all_relations = yes
+		set_cosmetic_tag = WHR_ANDRU
+		create_country_leader = {
+			name = "Stanisłaŭ Bułak-Bałachowič"
+			desc = "POLITICS_BULAK_BALACHOWIC_DESC"
+			picture = "gfx/leaders/WHR/Portrait_WHR_Stanislaw_Bulak_Balachowicz.png"
+			expire = "1965.1.1"
+			ideology = junta_subtype
+		}
+		set_party_name = {
+			ideology = paternal_autocrat
+			name = WHR_paternal_autocrat_party
+			long_name = WHR_paternal_autocrat_party_long
+		}
+		remove_all_ministers = yes
+		add_ideas = {
+			WHR_Stanislav_Bulak_Balakhovich_hog_sco
+			WHR_Vatslav_Lastovsky_for_pau
+			WHR_Mikalaj_Skjalenak_eco_npo
+			WHR_Jan_Stankievic_sec_npo
+		}
+		add_popularity = {
+			ideology = paternal_autocrat
+			popularity = 0.15
+		}
+		if = {
+			limit = {
+				country_exists = RUS
+				RUS = {
+					is_subject = no
+					has_socialist_government = no
+					has_left_democratic_government = no
+					NOT = {
+						is_in_faction_with = GER
+					}
+				}
+				NOT = {
+					soviets_exist = yes
+					has_war_with = RUS
+				}
+			}
+			get_current_government_type = yes
+			RUS = {
+				set_autonomy = {
+					target = WHR
+					autonomy_state = kr_autonomous_puppet
+				}
+			}
+			restore_previous_government_type = yes
+		}
+		FROM = {
+			country_event = {
+				id = rusfor.1242
+				days = 2
+			}
+		}
+	}
+	option = {
+		name = rusfor.1241.b
+		trigger = {
+			NOT = { has_completed_focus = RUS_Realpolitik }
+		}
+		ai_chance = {
+			base = 50
+			modifier = {
+				factor = 0
+				WHR = { has_stability > 0.7 }
+			}
+		}
+		FROM = {
+			country_event = {
+				id = rusfor.1249
+				days = 2
+			}
+		}
+	}	
+}
+country_event = { #WHR question
+	id = rusfor.1242
+	title = rusfor.1242.t
+	desc = rusfor.1242.d
+	is_triggered_only = yes
+	
+	option = {
+		name = rusfor.1242.a
+		ai_chance = {
+			base = 10
+			modifier = {
+				factor = 0
+				NOT = { has_completed_focus = RUS_Realpolitik }
+			}
+		}
+		add_stability = 0.05
+	}
+	option = {
+		name = rusfor.1242.e
+		ai_chance = {
+			base = 50
+			modifier = {
+				factor = 2
+				NOT = { has_completed_focus = RUS_Realpolitik }
+			}
+			modifier = {
+				factor = 0
+				has_completed_focus = RUS_Realpolitik
+			}
+		}
+		if = {
+			limit = {
+				FROM = { is_subject_of = ROOT }
+			}
+			annex_country = {
+				target = FROM
+				transfer_troops = yes
+			}
+			every_owned_state = {
+				limit = {
+					is_core_of = FROM
+				}
+				add_compliance = 20
+			}
+		}
+		else = {
+			FROM = {
+				country_event = {
+					id = rusfor.1245
+					days = 2
+				}
+			}
+		}
+	}	
+}
+country_event = { #WHR question
+	id = rusfor.1243
+	title = rusfor.1243.t
+	desc = rusfor.1243.d
+	is_triggered_only = yes
+	
+	option = {
+		name = rusfor.1243.a
+		ai_chance = {
+			base = 15
+		}
+		FROM = {
+			country_event = {
+				id = rusfor.1244
+				days = 3
+			}
+		}
+	}
+	option = {
+		name = rusfor.1243.b
+		ai_chance = {
+			base = 85
+		}
+		get_current_government_type = yes
+		FROM = {
+			puppet = ROOT
+		}
+		restore_previous_government_type = yes
+	}
+}
+country_event = { #WHR question
+	id = rusfor.1244
+	title = rusfor.1244.t
+	desc = rusfor.1244.d
+	is_triggered_only = yes
+	
+	option = {
+		name = rusfor.1244.a
+		ai_chance = {
+			base = 15
+		}
+		declare_war_on = {
+			target = FROM
+			type = annex_everything
+		}
+	}
+}
+country_event = { #WHR question
+	id = rusfor.1245
+	title = rusfor.1245.t
+	desc = rusfor.1245.d
+	is_triggered_only = yes
+	
+	option = {
+		name = rusfor.1243.a
+		ai_chance = {
+			base = 15
+		}
+		FROM = {
+			country_event = {
+				id = rusfor.1244
+				days = 3
+			}
+		}
+	}
+	option = {
+		name = rusfor.1243.b
+		ai_chance = {
+			base = 85
+		}
+		FROM = {
+			annex_country = {
+				target = ROOT
+				transfer_troops = yes
+			}
+			every_owned_state = {
+				limit = {
+					is_core_of = ROOT
+				}
+				add_compliance = 15
+			}
+		}
+	}
+}
+
+country_event = { #WHR question
+	id = rusfor.1246
+	title = rusfor.1246.t
+	desc = rusfor.1246.d
+	is_triggered_only = yes
+	
+	option = {
+		name = rusfor.1246.a
+		ai_chance = {
+			base = 10
+		}
+		FROM = {
+			country_event = {
+				id = rusfor.1244
+				days = 3
+			}
+		}
+	}
+	option = {
+		name = rusfor.1246.b
+		ai_chance = {
+			base = 90
+		}
+		FROM = {
+			transfer_state = 1087
+			add_state_core = 1087
+		}
+	}
+}
+
+country_event = { #WHR question
+	id = rusfor.1247
+	title = rusfor.1247.t
+	desc = rusfor.1247.d
+	is_triggered_only = yes
+	
+	option = {
+		name = rusfor.1247.a
+		ai_chance = {
+			base = 100
+			modifier = {
+				factor = 0
+				has_government = social_liberal
+			}
+		}
+		clear_all_relations = yes
+		FROM = {
+			country_event = {
+				id = rusfor.1248
+				days = 3
+			}
+		}
+	}
+	option = {
+		name = rusfor.1247.b
+		ai_chance = {
+			base = 90
+		}
+		FROM = {
+			country_event = {
+				id = rusfor.1249
+				days = 3
+			}
+		}
+	}
+}
+
+country_event = { #WHR question
+	id = rusfor.1248
+	title = rusfor.1248.t
+	desc = rusfor.1248.d
+	is_triggered_only = yes
+	
+	
+	option = {
+		name = rusfor.1242.a
+		ai_chance = {
+			base = 10
+			modifier = {
+				factor = 0
+				NOT = { has_completed_focus = RUS_Realpolitik }
+			}
+		}
+		add_stability = 0.05
+	}
+	option = {
+		name = rusfor.1242.b
+		trigger = {
+			FROM = { NOT = { has_government = paternal_autocrat } }
+		}
+		ai_chance = {
+			base = 50
+			modifier = {
+				factor = 0
+				NOT = { has_completed_focus = RUS_Realpolitik }
+			}
+		}
+		FROM = {
+			country_event = {
+				id = rusfor.1247
+				days = 2
+			}
+		}
+	}
+	option = {
+		name = rusfor.1242.c
+		trigger = {
+			FROM = { NOT = { has_government = paternal_autocrat } }
+		}
+		ai_chance = {
+			base = 15
+			modifier = {
+				factor = 0
+				NOT = { has_completed_focus = RUS_Realpolitik }
+			}
+		}
+		FROM = {
+			country_event = {
+				id = rusfor.1243
+				days = 2
+			}
+		}
+	}
+	option = {
+		name = rusfor.1242.e
+		ai_chance = {
+			base = 50
+			modifier = {
+				factor = 2
+				NOT = { has_completed_focus = RUS_Realpolitik }
+			}
+			modifier = {
+				factor = 0
+				has_completed_focus = RUS_Realpolitik
+			}
+		}
+		if = {
+			limit = {
+				FROM = { is_subject_of = ROOT }
+			}
+			annex_country = {
+				target = FROM
+				transfer_troops = yes
+			}
+			every_owned_state = {
+				limit = {
+					is_core_of = FROM
+				}
+				add_compliance = 20
+			}
+		}
+		else = {
+			FROM = {
+				country_event = {
+					id = rusfor.1245
+					days = 2
+				}
+			}
+		}
+	}	
+}
+
+country_event = { #WHR question
+	id = rusfor.1249
+	title = rusfor.1249.t
+	desc = rusfor.1249.d
+	is_triggered_only = yes
+	
+	
+	option = {
+		name = rusfor.12677.a
+		trigger = {
+			has_completed_focus = RUS_Expansionism
+		}
+		ai_chance = {
+			factor = 10
+			modifier = {
+				factor = 10
+				GER = { has_war_with = FRA }
+			}
+			modifier = {
+				factor = 10
+				WHR = { is_subject = no }
+				WHR = { is_in_faction = no }
+			}
+		}
+		add_stability = -0.05
+		declare_war_on = {
+			target = FROM
+			type = annex_everything
+		}
+	}
+	option = {
+		name = rusfor.12677.b
+		ai_chance = {
+			factor = 50
+		}
+		add_political_power = -50
+		RUS = { add_opinion_modifier = {
+			target = WHR
+			modifier = KR_disapproves_of_govt
+			}
+		}
+	}
+}
+
 country_event = { #WHR bonds
 	id = rusfor.1265
 	title = rusfor.1265.t
@@ -47223,6 +47809,7 @@ country_event = { #WHR bonds
 			modifier = {
 				factor = 10
 				WHR = { is_subject = no }
+				WHR = { is_in_faction = no }
 			}
 		}
 		add_stability = -0.05
@@ -56087,25 +56674,9 @@ country_event = { #Gridlock focus - grindlock result #todo boring stuff
 	
 	option = { #k
 		name = rusdroz.64.a
-		}
-}
-
-country_event = { #Grindlock focus - coup
-	id = rusdroz.65
-	title = rusdroz.65.t 
-	desc = rusdroz.65.d 
-	picture = GFX_rus_droz1_event
-	is_triggered_only = yes
-
-	option = { #k
-		name = rusdroz.65.a
-		load_focus_tree = RUS_MONARCHY_FOCUS
-		country_event = {
-			id = rusd.19
-			days = 2
-		}
 	}
 }
+
 
 country_event = { #abakumov purge
 	id = russia.450
