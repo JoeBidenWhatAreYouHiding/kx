@@ -18,11 +18,30 @@ separate_peace_all_wars = {
 				event_target:peace_country = { white_peace = PREV }
 			}
 
+			# then all non-puppets whose faction leaders aren't in the war
+			every_enemy_country = {
+				limit = {
+					is_subject = no
+					is_in_faction = yes
+					faction_leader = { NOT = { has_war_with = ROOT } }
+				}
+				event_target:peace_country = { white_peace = PREV }
+			}
+
 			# then all non-puppets who aren't in factions
 			every_enemy_country = {
 				limit = {
-					is_in_faction = no
 					is_subject = no
+					is_in_faction = no
+				}
+				event_target:peace_country = { white_peace = PREV }
+			}
+
+			# then all puppets whose overlords aren't in the war
+			every_enemy_country = {
+				limit = {
+					is_subject = yes
+					overlord = { NOT = { has_war_with = ROOT } }
 				}
 				event_target:peace_country = { white_peace = PREV }
 			}
@@ -45,9 +64,32 @@ clear_all_relations = {
 		limit = { is_in_faction = yes }
 		leave_faction = yes
 	}
+	separate_peace_all_wars = yes
+	every_other_country = {
+		limit = { has_guaranteed = ROOT }
+		diplomatic_relation = {
+			country = ROOT
+			relation = guarantee
+			active = no
+		}
+	}
 	if = {
-		limit = { has_war = yes }
-		separate_peace_all_wars = yes
+		limit = { has_country_flag = CAN_joined_iedc }
+		CAN_remove_from_iedc = yes
+	}
+	if = {
+		limit = { is_in_tech_sharing_group = entente_research }
+		remove_from_tech_sharing_group = entente_research
+	}
+	GER_remove_from_mitteleuropa = yes
+	MIE_remove_from_intermarium = yes
+	if = {
+		limit = { is_in_tech_sharing_group = german_research }
+		remove_from_tech_sharing_group = german_research
+	}
+	if = {
+		limit = { is_in_tech_sharing_group = phalanstere_research }
+		remove_from_tech_sharing_group = phalanstere_research
 	}
 }
 
@@ -109,45 +151,75 @@ remove_all_ministers_but_hog = {
 
 # changes the government of the country in scope to that of ROOT (the country running the event)
 copy_government_of_ROOT = {
-	if = {
-		limit = { ROOT = { has_government = totalist } }
-		set_politics = { ruling_party = totalist elections_allowed = no }
+	set_politics = { ruling_party = var:ROOT.current_party_ideology_group }
+	hidden_effect = {
+		set_popularities = {
+			totalist = ROOT.party_popularity_100@totalist
+			syndicalist = ROOT.party_popularity_100@syndicalist
+			radical_socialist = ROOT.party_popularity_100@radical_socialist
+			social_democrat = ROOT.party_popularity_100@social_democrat
+			social_liberal = ROOT.party_popularity_100@social_liberal
+			market_liberal = ROOT.party_popularity_100@market_liberal
+			social_conservative = ROOT.party_popularity_100@social_conservative
+			authoritarian_democrat = ROOT.party_popularity_100@authoritarian_democrat
+			paternal_autocrat = ROOT.party_popularity_100@paternal_autocrat
+			national_populist = ROOT.party_popularity_100@national_populist
+		}
 	}
-	if = {
-		limit = { ROOT = { has_government = syndicalist } }
-		set_politics = { ruling_party = syndicalist elections_allowed = no }
+}
+
+# changes the government of the country in scope to that of PREV
+copy_government_of_PREV = {
+	set_politics = { ruling_party = var:PREV.current_party_ideology_group }
+	hidden_effect = {
+		set_popularities = {
+			totalist = PREV.party_popularity_100@totalist
+			syndicalist = PREV.party_popularity_100@syndicalist
+			radical_socialist = PREV.party_popularity_100@radical_socialist
+			social_democrat = PREV.party_popularity_100@social_democrat
+			social_liberal = PREV.party_popularity_100@social_liberal
+			market_liberal = PREV.party_popularity_100@market_liberal
+			social_conservative = PREV.party_popularity_100@social_conservative
+			authoritarian_democrat = PREV.party_popularity_100@authoritarian_democrat
+			paternal_autocrat = PREV.party_popularity_100@paternal_autocrat
+			national_populist = PREV.party_popularity_100@national_populist
+		}
 	}
-	if = {
-		limit = { ROOT = { has_government = radical_socialist } }
-		set_politics = { ruling_party = radical_socialist elections_allowed = no }
+}
+
+# changes the popularites of the country in scope to that of ROOT (the country running the event)
+copy_popularities_of_ROOT = {
+	hidden_effect = {
+		set_popularities = {
+			totalist = ROOT.party_popularity_100@totalist
+			syndicalist = ROOT.party_popularity_100@syndicalist
+			radical_socialist = ROOT.party_popularity_100@radical_socialist
+			social_democrat = ROOT.party_popularity_100@social_democrat
+			social_liberal = ROOT.party_popularity_100@social_liberal
+			market_liberal = ROOT.party_popularity_100@market_liberal
+			social_conservative = ROOT.party_popularity_100@social_conservative
+			authoritarian_democrat = ROOT.party_popularity_100@authoritarian_democrat
+			paternal_autocrat = ROOT.party_popularity_100@paternal_autocrat
+			national_populist = ROOT.party_popularity_100@national_populist
+		}
 	}
-	if = {
-		limit = { ROOT = { has_government = social_democrat } }
-		set_politics = { ruling_party = social_democrat elections_allowed = no }
-	}
-	if = {
-		limit = { ROOT = { has_government = social_liberal } }
-		set_politics = { ruling_party = social_liberal elections_allowed = no }
-	}
-	if = {
-		limit = { ROOT = { has_government = market_liberal } }
-		set_politics = { ruling_party = market_liberal elections_allowed = no }
-	}
-	if = {
-		limit = { ROOT = { has_government = social_conservative } }
-		set_politics = { ruling_party = social_conservative elections_allowed = no }
-	}
-	if = {
-		limit = { ROOT = { has_government = authoritarian_democrat } }
-		set_politics = { ruling_party = authoritarian_democrat elections_allowed = no }
-	}
-	if = {
-		limit = { ROOT = { has_government = paternal_autocrat } }
-		set_politics = { ruling_party = paternal_autocrat elections_allowed = no }
-	}
-	if = {
-		limit = { ROOT = { has_government = national_populist } }
-		set_politics = { ruling_party = national_populist elections_allowed = no }
+}
+
+# changes the popularites of the country in scope to that of PREV (the country running the event)
+copy_popularities_of_PREV = {
+	hidden_effect = {
+		set_popularities = {
+			totalist = PREV.party_popularity_100@totalist
+			syndicalist = PREV.party_popularity_100@syndicalist
+			radical_socialist = PREV.party_popularity_100@radical_socialist
+			social_democrat = PREV.party_popularity_100@social_democrat
+			social_liberal = PREV.party_popularity_100@social_liberal
+			market_liberal = PREV.party_popularity_100@market_liberal
+			social_conservative = PREV.party_popularity_100@social_conservative
+			authoritarian_democrat = PREV.party_popularity_100@authoritarian_democrat
+			paternal_autocrat = PREV.party_popularity_100@paternal_autocrat
+			national_populist = PREV.party_popularity_100@national_populist
+		}
 	}
 }
 
@@ -155,171 +227,70 @@ copy_government_of_ROOT = {
 # use the first command in the scope of the about-to-be-puppeted country right before the puppet command is executed
 # and then the second, also in the scope of the puppet, right after
 get_current_government_type = {
-	clr_country_flag = was_radical_socialist
-	clr_country_flag = was_syndicalist
-	clr_country_flag = was_totalist
-	clr_country_flag = was_social_democrat
-	clr_country_flag = was_social_liberal
-	clr_country_flag = was_market_liberal
-	clr_country_flag = was_social_conservative
-	clr_country_flag = was_authoritarian_democrat
-	clr_country_flag = was_paternal_autocrat
-	clr_country_flag = was_national_populist
+	clear_variable = original_government_type
+	set_variable = { original_government_type = current_party_ideology_group }
 
-	set_variable = { var = radsoc value = party_popularity@radical_socialist }
-	set_variable = { var = synd value = party_popularity@syndicalist }
-	set_variable = { var = tot value = party_popularity@totalist }
-	set_variable = { var = socdem value = party_popularity@social_democrat }
-	set_variable = { var = soclib value = party_popularity@social_liberal }
-	set_variable = { var = marklib value = party_popularity@market_liberal }
-	set_variable = { var = soccon value = party_popularity@social_conservative }
-	set_variable = { var = authdem value = party_popularity@authoritarian_democrat }
-	set_variable = { var = pataut value = party_popularity@paternal_autocrat }
-	set_variable = { var = natpop value = party_popularity@national_populist }
+	clear_array = original_popularities
+	add_to_array = { original_popularities = party_popularity_100@totalist }
+	add_to_array = { original_popularities = party_popularity_100@syndicalist }
+	add_to_array = { original_popularities = party_popularity_100@radical_socialist }
+	add_to_array = { original_popularities = party_popularity_100@social_democrat }
+	add_to_array = { original_popularities = party_popularity_100@social_liberal }
+	add_to_array = { original_popularities = party_popularity_100@market_liberal }
+	add_to_array = { original_popularities = party_popularity_100@social_conservative }
+	add_to_array = { original_popularities = party_popularity_100@authoritarian_democrat }
+	add_to_array = { original_popularities = party_popularity_100@paternal_autocrat }
+
+	set_temp_variable = { sum = 100 }
+	for_each_loop = {
+		array = original_popularities
+		subtract_from_temp_variable = { sum = v }
+	}
+	add_to_array = { original_popularities = sum } #last value (natpop), calculated directly to avoid rounding errors
 
 	if = {
-		limit = { has_government = radical_socialist }
-		set_country_flag = was_radical_socialist
-	}
-	if = {
-		limit = { has_government = syndicalist }
-		set_country_flag = was_syndicalist
-	}
-	if = {
-		limit = { has_government = totalist }
-		set_country_flag = was_totalist
-	}
-	if = {
-		limit = { has_government = social_democrat }
-		set_country_flag = was_social_democrat
-	}
-	if = {
-		limit = { has_government = social_liberal }
-		set_country_flag = was_social_liberal
-	}
-	if = {
-		limit = { has_government = market_liberal }
-		set_country_flag = was_market_liberal
-	}
-	if = {
-		limit = { has_government = social_conservative }
-		set_country_flag = was_social_conservative
-	}
-	if = {
-		limit = { has_government = authoritarian_democrat }
-		set_country_flag = was_authoritarian_democrat
-	}
-	if = {
-		limit = { has_government = paternal_autocrat }
-		set_country_flag = was_paternal_autocrat
-	}
-	if = {
-		limit = { has_government = national_populist }
-		set_country_flag = was_national_populist
+		limit = { has_coalition = yes }
+		for_each_loop = {
+			array = coalition_partners
+			add_to_array = { original_coalitions = v }
+		}
 	}
 }
 
 restore_previous_government_type = {
 	hidden_effect = {
 		if = {
-			limit = { has_country_flag = was_radical_socialist }
-			set_politics = { ruling_party = radical_socialist }
+			limit = { has_variable = original_government_type } #needed to avoid a CTD
+			set_politics = { ruling_party = var:original_government_type }
 		}
-		if = {
-			limit = { has_country_flag = was_syndicalist }
-			set_politics = { ruling_party = syndicalist }
-		}
-		if = {
-			limit = { has_country_flag = was_totalist }
-			set_politics = { ruling_party = totalist }
-		}
-		if = {
-			limit = { has_country_flag = was_social_democrat }
-			set_politics = { ruling_party = social_democrat }
-		}
-		if = {
-			limit = { has_country_flag = was_social_liberal }
-			set_politics = { ruling_party = social_liberal }
-		}
-		if = {
-			limit = { has_country_flag = was_market_liberal }
-			set_politics = { ruling_party = market_liberal }
-		}
-		if = {
-			limit = { has_country_flag = was_social_conservative }
-			set_politics = { ruling_party = social_conservative }
-		}
-		if = {
-			limit = { has_country_flag = was_authoritarian_democrat }
-			set_politics = { ruling_party = authoritarian_democrat }
-		}
-		if = {
-			limit = { has_country_flag = was_paternal_autocrat }
-			set_politics = { ruling_party = paternal_autocrat }
-		}
-		if = {
-			limit = { has_country_flag = was_national_populist }
-			set_politics = { ruling_party = national_populist }
-		}
-
-		multiply_variable = { var = radsoc value = 100 }
-		multiply_variable = { var = synd value = 100 }
-		multiply_variable = { var = tot value = 100 }
-		multiply_variable = { var = socdem value = 100 }
-		multiply_variable = { var = soclib value = 100 }
-		multiply_variable = { var = marklib value = 100 }
-		multiply_variable = { var = soccon value = 100 }
-		multiply_variable = { var = authdem value = 100 }
-		multiply_variable = { var = pataut value = 100 }
-		multiply_variable = { var = natpop value = 100 }
-
-		set_variable = { totalpop = 100 }
-
-		subtract_from_variable = { var = totalpop value = radsoc }
-		subtract_from_variable = { var = totalpop value = synd }
-		subtract_from_variable = { var = totalpop value = tot }
-		subtract_from_variable = { var = totalpop value = socdem }
-		subtract_from_variable = { var = totalpop value = soclib }
-		subtract_from_variable = { var = totalpop value = marklib }
-		subtract_from_variable = { var = totalpop value = soccon }
-		subtract_from_variable = { var = totalpop value = authdem }
-		subtract_from_variable = { var = totalpop value = pataut }
-		subtract_from_variable = { var = totalpop value = natpop }
+		clear_variable = original_government_type
 
 		if = {
-			limit = {
-				OR = {
-					check_variable = { totalpop < 0 }
-					check_variable = { totalpop > 0 }
-				}
+			limit = { check_variable = { original_popularities^num > 0 } }
+			set_popularities = {
+				totalist = original_popularities^0
+				syndicalist = original_popularities^1
+				radical_socialist = original_popularities^2
+				social_democrat = original_popularities^3
+				social_liberal = original_popularities^4
+				market_liberal = original_popularities^5
+				social_conservative = original_popularities^6
+				authoritarian_democrat = original_popularities^7
+				paternal_autocrat = original_popularities^8
+				national_populist = original_popularities^9
 			}
-			add_to_variable = { var = natpop value = totalpop }
+			clear_array = original_popularities
 		}
 
-		set_popularities = {
-			radical_socialist = radsoc
-			syndicalist = synd
-			totalist = tot
-			social_democrat = socdem
-			social_liberal = soclib
-			market_liberal = marklib
-			social_conservative = soccon
-			authoritarian_democrat = authdem
-			paternal_autocrat = pataut
-			national_populist = natpop
+		if = {
+			limit = { check_variable = { original_coalitions^num > 0 } }
+			for_each_loop = {
+				array = original_coalitions
+				set_temp_variable = { coalition_partner_var = v }
+				add_to_coalition = yes
+			}
+			clear_array = original_coalitions
 		}
-
-		clear_variable = radsoc
-		clear_variable = synd
-		clear_variable = tot
-		clear_variable = socdem
-		clear_variable = soclib
-		clear_variable = marklib
-		clear_variable = soccon
-		clear_variable = authdem
-		clear_variable = pataut
-		clear_variable = natpop
-		clear_variable = totalpop
 	}
 }
 
@@ -330,37 +301,81 @@ restore_previous_government_type = {
 restore_control_of_all_non_enemy_states = {
 	every_state = {
 		limit = {
-			owner = {
-				NOT = { controls_state = PREV }
-				PREV = {
-					controller = {
-						NOT = { has_war_with = PREV.PREV }
-					}
-				}
+			NOT = {
+				is_controlled_by = owner
+				controller = { has_war_with = var:PREV.owner }
 			}
 		}
 		controller = { save_event_target_as = state_controller }
-		owner = {
+		if = {
+			limit = {
+				controller = { is_in_faction = yes }
+			}
+			every_country = {
+				limit = { is_ally_with = PREV.controller }
+				give_military_access = var:v
+			}
+			set_state_controller_to = owner
+		}
+		else = {
 			if = {
 				limit = {
-					event_target:state_controller = { is_in_faction = yes }
+					controller = { is_subject = yes }
 				}
-				for_each_loop = {
-					array = event_target:state_controller.faction_members
-					give_military_access = var:v
-				}
+				owner = { give_military_access = var:PREV.controller:overlord }
+			}
+			owner = {
+				give_military_access = PREV.controller
 				set_state_controller = PREV
 			}
-			else = {
-				if = {
-					limit = {
-						event_target:state_controller = { is_subject = yes }
-					}
-					owner = { give_military_access = var:event_target:state_controller.overlord }
+		}
+	}
+
+	# additional check for any states which are only partially controlled and have non-enemy units in them
+	# this will grant military access to the non-enemy and any of its allies
+	every_country = {
+		limit = {
+			OR = {
+				is_government_in_exile = yes
+				has_capitulated = yes
+			}
+			any_owned_state = {
+				controller = {
+					has_war_with = PREV.PREV
+					NOT = { has_full_control_of_state = PREV }
 				}
-				owner = {
-					give_military_access = event_target:state_controller
-					set_state_controller = PREV
+			}
+		}
+		save_event_target_as = original_owner
+		every_owned_state = {
+			limit = {
+				controller = {
+					has_war_with = event_target:original_owner
+					NOT = { has_full_control_of_state = PREV }
+				}
+			}
+			controller = {
+				every_enemy_country = {
+					limit = {
+						divisions_in_state = { state = PREV.PREV size > 0 }
+						NOT = {
+							is_ally_with = event_target:original_owner
+							has_military_access_to = event_target:original_owner
+							has_war_with = event_target:original_owner
+						}
+					}
+					event_target:original_owner = { give_military_access = PREV }
+					every_other_country = {
+						limit = {
+							is_ally_with = PREV
+							NOT = {
+								is_ally_with = event_target:original_owner
+								has_military_access_to = event_target:original_owner
+								has_war_with = event_target:original_owner
+							}
+						}
+						event_target:original_owner = { give_military_access = PREV }
+					}
 				}
 			}
 		}
@@ -368,73 +383,162 @@ restore_control_of_all_non_enemy_states = {
 }
 
 embargo_ROOT = {
-	add_opinion_modifier = {
-		modifier = embargo
-		target = ROOT
-	}
-	reverse_add_opinion_modifier = {
-		modifier = embargo
-		target = ROOT
+	if = {
+		limit = {
+			NOT = { has_country_flag = embargoed_@ROOT }
+		}
+		set_country_flag = embargoed_@ROOT
+		ROOT = { set_country_flag = embargoed_@PREV }
+		add_opinion_modifier = {
+			modifier = embargo
+			target = ROOT
+		}
+		reverse_add_opinion_modifier = {
+			modifier = embargo
+			target = ROOT
+		}
 	}
 }
 
 clear_embargo_ROOT = {
-	remove_opinion_modifier = {
-		modifier = embargo
-		target = ROOT
-	}
-	ROOT = {
+	if = {
+		limit = { has_country_flag = embargoed_@ROOT }
+		clr_country_flag = embargoed_@ROOT
 		remove_opinion_modifier = {
 			modifier = embargo
-			target = PREV
+			target = ROOT
+		}
+		ROOT = {
+			clr_country_flag = embargoed_@PREV
+			remove_opinion_modifier = {
+				modifier = embargo
+				target = PREV
+			}
 		}
 	}
 }
 
 embargo_PREV = {
-	add_opinion_modifier = {
-		modifier = embargo
-		target = PREV
-	}
-	reverse_add_opinion_modifier = {
-		modifier = embargo
-		target = PREV
-	}
-}
-
-clear_embargo_PREV = {
-	remove_opinion_modifier = {
-		modifier = embargo
-		target = PREV
-	}
-	PREV = {
-		remove_opinion_modifier = {
+	if = {
+		limit = {
+			NOT = { has_country_flag = embargoed_@PREV }
+		}
+		set_country_flag = embargoed_@PREV
+		PREV = { set_country_flag = embargoed_@PREV }
+		add_opinion_modifier = {
+			modifier = embargo
+			target = PREV
+		}
+		reverse_add_opinion_modifier = {
 			modifier = embargo
 			target = PREV
 		}
 	}
 }
 
-embargo_FROM = {
-	add_opinion_modifier = {
-		modifier = embargo
-		target = FROM
+clear_embargo_PREV = {
+	if = {
+		limit = { has_country_flag = embargoed_@PREV }
+		clr_country_flag = embargoed_@PREV
+		remove_opinion_modifier = {
+			modifier = embargo
+			target = PREV
+		}
+		PREV = {
+			clr_country_flag = embargoed_@PREV
+			remove_opinion_modifier = {
+				modifier = embargo
+				target = PREV
+			}
+		}
 	}
-	reverse_add_opinion_modifier = {
-		modifier = embargo
-		target = FROM
+}
+
+embargo_FROM = {
+	if = {
+		limit = {
+			NOT = { has_country_flag = embargoed_@FROM }
+		}
+		set_country_flag = embargoed_@FROM
+		FROM = { set_country_flag = embargoed_@PREV }
+		add_opinion_modifier = {
+			modifier = embargo
+			target = FROM
+		}
+		reverse_add_opinion_modifier = {
+			modifier = embargo
+			target = FROM
+		}
 	}
 }
 
 clear_embargo_FROM = {
-	remove_opinion_modifier = {
-		modifier = embargo
-		target = FROM
-	}
-	FROM = {
+	if = {
+		limit = { has_country_flag = embargoed_@FROM }
+		clr_country_flag = embargoed_@FROM
 		remove_opinion_modifier = {
 			modifier = embargo
-			target = PREV
+			target = FROM
+		}
+		FROM = {
+			clr_country_flag = embargoed_@PREV
+			remove_opinion_modifier = {
+				modifier = embargo
+				target = PREV
+			}
+		}
+	}
+}
+
+remove_all_AI_templates = {
+	hidden_effect = {
+		if = {
+			limit = { has_template = "Cavalry Division" }
+			delete_unit_template_and_units = { division_template = "Cavalry Division" }
+		}
+		if = {
+			limit = { has_template = "Police Division" }
+			delete_unit_template_and_units = { division_template = "Police Division" }
+		}
+		if = {
+			limit = { has_template = "Anti-Tank Division" }
+			delete_unit_template_and_units = { division_template = "Anti-Tank Division" }
+		}
+		if = {
+			limit = { has_template = "Marine Division" }
+			delete_unit_template_and_units = { division_template = "Marine Division" }
+		}
+		if = {
+			limit = { has_template = "Mechanized Division" }
+			delete_unit_template_and_units = { division_template = "Mechanized Division" }
+		}
+		if = {
+			limit = { has_template = "Heavy Armoured Division" }
+			delete_unit_template_and_units = { division_template = "Heavy Armoured Division" }
+		}
+		if = {
+			limit = { has_template = "Medium Armoured Division" }
+			delete_unit_template_and_units = { division_template = "Medium Armoured Division" }
+		}
+		if = {
+			limit = { has_template = "Modern Armoured Division" }
+			delete_unit_template_and_units = { division_template = "Modern Armoured Division" }
+		}
+		if = {
+			limit = { has_template = "Motorized Division" }
+			delete_unit_template_and_units = { division_template = "Motorized Division" }
+		}
+		if = {
+			limit = { has_template = "Mountaineer Division" }
+			delete_unit_template_and_units = { division_template = "Mountaineer Division" }
+		}
+		if = {
+			limit = { has_template = "Paratroopers" }
+			delete_unit_template_and_units = { division_template = "Paratroopers" }
+		}
+		if = {
+			limit = { has_template = "Armoured Division" }
+			delete_unit_template_and_units = { division_template = "Armoured Division" }
 		}
 	}
 }
@@ -527,11 +631,61 @@ increase_state_category_by_one_level = {
 	}
 	else_if = {
 		limit = { has_state_category = nine }
+		set_state_category = ten
+	}
+	else_if = {
+		limit = { has_state_category = ten }
 		set_state_category = eleven
 	}
 	else_if = {
 		limit = { has_state_category = eleven }
 		set_state_category = twelve
+	}
+}
+decrease_state_category_by_one_level = {
+	if = {
+		limit = { has_state_category = twelve }
+		set_state_category = eleven
+	}
+	else_if = {
+		limit = { has_state_category = eleven }
+		set_state_category = ten
+	}
+	else_if = {
+		limit = { has_state_category = ten }
+		set_state_category = nine
+	}
+	else_if = {
+		limit = { has_state_category = nine }
+		set_state_category = eight
+	}
+	else_if = {
+		limit = { has_state_category = eight }
+		set_state_category = seven
+	}
+	else_if = {
+		limit = { has_state_category = seven }
+		set_state_category = six
+	}
+	else_if = {
+		limit = { has_state_category = six }
+		set_state_category = five
+	}
+	else_if = {
+		limit = { has_state_category = five }
+		set_state_category = four
+	}
+	else_if = {
+		limit = { has_state_category = four }
+		set_state_category = three
+	}
+	else_if = {
+		limit = { has_state_category = three }
+		set_state_category = two
+	}
+	else_if = {
+		limit = { has_state_category = two }
+		set_state_category = one
 	}
 }
 
@@ -556,6 +710,111 @@ add_research_slot_until_five = {
 	}
 }
 
+# used for restoring factories lost when states are transferred to a new owners
+# example of use:
+#	every_owned_state = {
+#		limit = { is_core_of = TAG }
+#		save_current_factory_count = yes
+#transfer_state_to =  		TAG
+#		restore_previous_factory_count = yes
+# 	}
+
+save_current_factory_count = {
+	if = {
+		limit = { industrial_complex > 0 }
+		set_variable = { previous_industrial_complex_count = building_level@industrial_complex }
+	}
+	if = {
+		limit = { arms_factory > 0 }
+		set_variable = { previous_arms_factory_count = building_level@arms_factory }
+	}
+	if = {
+		limit = { dockyard > 0 }
+		set_variable = { previous_dockyard_count = building_level@dockyard }
+	}
+	if = {
+		limit = { synthetic_refinery > 0 }
+		set_variable = { previous_synthetic_refinery_count = building_level@synthetic_refinery }
+	}
+	if = {
+		limit = { fuel_silo > 0 }
+		set_variable = { previous_fuel_silo_count = building_level@fuel_silo }
+	}
+	if = {
+		limit = { rocket_site > 0 }
+		set_variable = { previous_rocket_site_count = building_level@rocket_site }
+	}
+	if = {
+		limit = { nuclear_reactor > 0 }
+		set_variable = { previous_nuclear_reactor_count = building_level@nuclear_reactor }
+	}
+}
+
+restore_previous_factory_count = {
+	if = {
+		limit = { has_variable = previous_industrial_complex_count }
+		subtract_from_variable = { previous_industrial_complex_count = building_level@industrial_complex }
+		if = {
+			limit = { check_variable = { previous_industrial_complex_count > 0 } }
+			add_building_construction = { type = industrial_complex level = previous_industrial_complex_count instant_build = yes }
+		}
+		clear_variable = previous_industrial_complex_count
+	}
+	if = {
+		limit = { has_variable = previous_arms_factory_count }
+		subtract_from_variable = { previous_arms_factory_count = building_level@arms_factory }
+		if = {
+			limit = { check_variable = { previous_arms_factory_count > 0 } }
+			add_building_construction = { type = arms_factory level = previous_arms_factory_count instant_build = yes }
+		}
+		clear_variable = previous_arms_factory_count
+	}
+	if = {
+		limit = { has_variable = previous_dockyard_count }
+		subtract_from_variable = { previous_dockyard_count = building_level@dockyard }
+		if = {
+			limit = { check_variable = { previous_dockyard_count > 0 } }
+			add_building_construction = { type = dockyard level = previous_dockyard_count instant_build = yes }
+		}
+		clear_variable = previous_dockyard_count
+	}
+	if = {
+		limit = { has_variable = previous_synthetic_refinery_count }
+		subtract_from_variable = { previous_synthetic_refinery_count = building_level@synthetic_refinery }
+		if = {
+			limit = { check_variable = { previous_synthetic_refinery_count > 0 } }
+			add_building_construction = { type = synthetic_refinery level = previous_synthetic_refinery_count instant_build = yes }
+		}
+		clear_variable = previous_synthetic_refinery_count
+	}
+	if = {
+		limit = { has_variable = previous_fuel_silo_count }
+		subtract_from_variable = { previous_fuel_silo_count = building_level@fuel_silo }
+		if = {
+			limit = { check_variable = { previous_fuel_silo_count > 0 } }
+			add_building_construction = { type = fuel_silo level = previous_fuel_silo_count instant_build = yes }
+		}
+		clear_variable = previous_fuel_silo_count
+	}
+	if = {
+		limit = { has_variable = previous_rocket_site_count }
+		subtract_from_variable = { previous_rocket_site_count = building_level@rocket_site }
+		if = {
+			limit = { check_variable = { previous_rocket_site_count > 0 } }
+			add_building_construction = { type = rocket_site level = previous_rocket_site_count instant_build = yes }
+		}
+		clear_variable = previous_rocket_site_count
+	}
+	if = {
+		limit = { has_variable = previous_nuclear_reactor_count }
+		subtract_from_variable = { previous_nuclear_reactor_count = building_level@nuclear_reactor }
+		if = {
+			limit = { check_variable = { previous_nuclear_reactor_count > 0 } }
+			add_building_construction = { type = nuclear_reactor level = previous_nuclear_reactor_count instant_build = yes }
+		}
+		clear_variable = previous_nuclear_reactor_count
+	}
+}
 Faction_mergable_invite = {
 	if = {
 		limit = {
@@ -576,3 +835,197 @@ Faction_mergable_invite = {
 	add_to_faction = FROM
 }
 
+# used for transferring states that are partially occupied by an enemy without breaking frontlines
+# use in state scope
+# requires a temp_variable target
+transfer_state_during_war = {
+	if = {
+		limit = { owner = { has_war = no } }
+		transfer_state_to = var:target
+	}
+	else = {
+		set_state_owner_to = var:target
+		set_state_province_controller = {
+			controller = owner
+			limit = { NOT = { has_war_with = PREV.owner } }
+		}
+	}
+}
+
+#Gives a random agency upgrade or grants a free agency if one has not yet been established
+gain_random_agency_upgrade = {
+	custom_effect_tooltip = free_agency_upgrade_tt
+	hidden_effect = {
+		if = {
+			limit = {
+				has_intelligence_agency = no
+			}
+			create_intelligence_agency = yes
+		}
+		else = {
+			random_list = {
+				1 = {
+					upgrade_intelligence_agency = upgrade_economy_civilian
+					modifier = {
+						factor = 0
+						has_done_agency_upgrade = upgrade_economy_civilian
+					}
+				}
+				1 = {
+					upgrade_intelligence_agency = upgrade_army_department
+					modifier = {
+						factor = 0
+						has_done_agency_upgrade = upgrade_army_department
+					}
+				}
+				1 = {
+					upgrade_intelligence_agency = upgrade_naval_department
+					modifier = {
+						factor = 0
+						has_done_agency_upgrade = upgrade_naval_department
+					}
+				}
+				1 = {
+					upgrade_intelligence_agency = upgrade_airforce_department
+					modifier = {
+						factor = 0
+						has_done_agency_upgrade = upgrade_airforce_department
+					}
+				}
+				1 = {
+					upgrade_intelligence_agency = upgrade_passive_defense
+					modifier = {
+						factor = 0
+						has_done_agency_upgrade = upgrade_passive_defense
+					}
+				}
+				1 = {
+					upgrade_intelligence_agency = upgrade_anti_partisan
+					modifier = {
+						factor = 0
+						has_done_agency_upgrade = upgrade_anti_partisan
+					}
+				}
+				1 = {
+					upgrade_intelligence_agency = upgrade_blueprint_stealing
+					modifier = {
+						factor = 0
+						has_done_agency_upgrade = upgrade_blueprint_stealing
+					}
+				}
+				1 = {
+					upgrade_intelligence_agency = upgrade_portable_radios
+					modifier = {
+						factor = 0
+						has_done_agency_upgrade = upgrade_portable_radios
+					}
+				}
+				1 = {
+					upgrade_intelligence_agency = upgrade_invisible_ink
+					modifier = {
+						factor = 0
+						has_done_agency_upgrade = upgrade_invisible_ink
+					}
+				}
+				1 = {
+					upgrade_intelligence_agency = upgrade_plastic_explosives
+					modifier = {
+						factor = 0
+						has_done_agency_upgrade = upgrade_plastic_explosives
+					}
+				}
+				1 = {
+					upgrade_intelligence_agency = upgrade_suicide_pills
+					modifier = {
+						factor = 0
+						has_done_agency_upgrade = upgrade_suicide_pills
+					}
+				}
+				1 = {
+					upgrade_intelligence_agency = upgrade_training_centers
+					modifier = {
+						factor = 0
+						has_done_agency_upgrade = upgrade_training_centers
+					}
+				}
+				1 = {
+					upgrade_intelligence_agency = upgrade_commando_training
+					modifier = {
+						factor = 0
+						has_done_agency_upgrade = upgrade_commando_training
+					}
+				}
+				1 = {
+					upgrade_intelligence_agency = upgrade_interrogation_techniques
+					modifier = {
+						factor = 0
+						has_done_agency_upgrade = upgrade_interrogation_techniques
+					}
+				}
+				1 = {
+					upgrade_intelligence_agency = upgrade_diplo_training
+					modifier = {
+						factor = 0
+						has_done_agency_upgrade = upgrade_diplo_training
+					}
+				}
+				1 = {
+					upgrade_intelligence_agency = upgrade_psycho_warfare
+					modifier = {
+						factor = 0
+						has_done_agency_upgrade = upgrade_psycho_warfare
+					}
+				}
+				1 = {
+					upgrade_intelligence_agency = upgrade_form_department
+					modifier = {
+						factor = 0
+						has_done_agency_upgrade = upgrade_form_department
+					}
+				}
+				1 = {
+					upgrade_intelligence_agency = upgrade_decryption_boost
+					modifier = {
+						factor = 0
+						OR = {
+							has_done_agency_upgrade = upgrade_decryption_boost
+							NOT = { has_done_agency_upgrade = upgrade_form_department }
+						}
+					}
+				}
+				1 = {
+					upgrade_intelligence_agency = upgrade_decryption_boost_2
+					modifier = {
+						factor = 0
+						OR = {
+							has_done_agency_upgrade = upgrade_decryption_boost_2
+							NOT = { has_done_agency_upgrade = upgrade_form_department }
+							NOT = { has_done_agency_upgrade = upgrade_decryption_boost }
+						}
+					}
+				}
+				1 = {
+					upgrade_intelligence_agency = upgrade_crypto_strength
+					modifier = {
+						factor = 0
+						OR = {
+							has_done_agency_upgrade = upgrade_crypto_strength
+							NOT = { has_done_agency_upgrade = upgrade_form_department }
+						}
+					}
+				}
+				1 = {
+					upgrade_intelligence_agency = upgrade_crypto_strength_2
+					modifier = {
+						factor = 0
+						OR = {
+							has_done_agency_upgrade = upgrade_crypto_strength_2
+							NOT = { has_done_agency_upgrade = upgrade_form_department }
+							NOT = { has_done_agency_upgrade = upgrade_crypto_strength }
+						}
+					}
+				}
+			}
+		}
+	}
+}

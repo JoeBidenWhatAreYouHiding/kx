@@ -6,6 +6,125 @@ on_actions = {
 			}
 		}
 	}
+	
+	on_government_change = {
+		effect = {
+			if = {
+				limit = {
+					tag = UKR
+					has_socialist_government = yes
+				}
+				if = {
+					limit = {
+						KUB = {
+							OR = {
+								is_in_faction_with = UKR
+								is_subject_of = UKR
+							}
+						}
+					}
+					KUB = {
+						clear_all_relations = yes
+						drop_cosmetic_tag = yes
+						add_opinion_modifier = {
+							target = UKR
+							modifier = faction_traitor
+						}
+						diplomatic_relation = {
+							country = UKR
+							relation = military_access
+							active = no
+						}
+						country_event = kub.105
+					}
+				}						
+			}
+			if = {
+				limit = {
+					tag = LIT
+					has_government = national_populist
+				}
+				LIT = {
+					country_event = {
+						id = lithuania.29
+						days = 45
+					}
+				}
+			}
+			if = {
+				limit = {
+					tag = FIN
+					has_democratic_government = no
+					NOT = { has_government = paternal_autocrat }
+				}
+				if = {
+					limit = {
+						KAR = {	is_subject_of = FIN }
+						FIN = { has_socialist_government = yes }
+					}
+					end_puppet = KAR
+				}
+				else_if = {
+					limit = {
+						FIN = { has_government = national_populist }
+					}
+					annex_country = {
+						target = KAR
+					}
+				}
+			}
+			if = {
+				limit = {
+					tag = WHR
+				}
+				if = {
+					limit = {
+						WHR = {
+							NOT = {
+								has_country_leader = {
+									name = "Uladzimir"
+									ruling_only = yes
+								}
+								has_country_leader = {
+									name = "Žyhimont"
+									ruling_only = yes
+								}
+							}
+							NOT = { has_country_flag = WHR_republic_installed }
+						}
+					}
+					WHR = { clr_country_flag = WHR_monarchy_kept }
+					set_country_flag = WHR_republic_installed
+					set_cosmetic_tag = WHR_BEL
+				}
+				if = {
+					limit = {
+						NOT = { has_government = social_democrat }
+						NOT = { has_government = radical_socialist }
+					}
+					clr_country_flag = WHR_bsdpvictory
+				}	
+				if = {
+					limit = {
+						NOT = { has_government = syndicalist }
+					}
+					clr_country_flag = WHR_bpsrvictory
+				}	
+				if = {
+					limit = {
+						NOT = { has_government = social_liberal }
+					}
+					clr_country_flag = WHR_bpsfvictory
+				}	
+				if = {
+					limit = {
+						NOT = { has_government = social_conservative }
+					}
+					clr_country_flag = WHR_bkhdvictory
+				}					
+			}
+		}
+	}
 
 	#ROOT is winner #FROM gets annexed - For civil wars on_civil_war_end is also fired
 	on_annex = {
@@ -17,6 +136,27 @@ on_actions = {
 				}
 				ROM = {
 					country_event = { id = poland.117 days = 3 }
+				}
+			}
+			if = {
+				limit = {
+					FROM = { tag = BAT }
+				}
+				LAT = {
+					remove_ideas = {
+						LAT_EST_roads_to_riga_1
+						LAT_EST_roads_to_riga_2
+						LAT_EST_roads_to_riga_3
+						LAT_EST_roads_to_riga_4
+					}
+				}
+				EST = {
+					remove_ideas = {
+						LAT_EST_roads_to_riga_1
+						LAT_EST_roads_to_riga_2
+						LAT_EST_roads_to_riga_3
+						LAT_EST_roads_to_riga_4
+					}
 				}
 			}
 			if = {
@@ -51,6 +191,37 @@ on_actions = {
 					country_event = { id = ukraine.91 days = 2 }
 				}
 			}
+			# set up White Ruthenia
+			if = {
+				limit = {
+					tag = WHR
+					LIT = {
+						is_in_faction_with = WHR
+						has_full_control_of_state = 96
+						has_elected_government = yes
+					}
+				}
+				if = {
+					limit = { has_dlc = "Man the Guns" }
+					if = {
+						limit = { has_idea = WHR_weak_national_identity }
+						become_exiled_in = { target = LIT legitimacy = 0.20 }
+					}
+					else = {
+						become_exiled_in = { target = LIT legitimacy = 0.50 }
+					}
+				}
+				country_event = whrpol.30 #government flees to Hrodna
+				LIT = {
+					country_event = whrpol.31 #WHR establishes govt-in-exile in LIT
+					set_country_flag = WHR_exiled_in_LIT
+					activate_targeted_decision = { target = THIS decision = LIT_LitBel_lastouski_speech }
+					activate_targeted_decision = { target = THIS decision = LIT_internationale_propaganda }
+					activate_targeted_decision = { target = THIS decision = LIT_commit_to_the_reichspakt }
+					activate_targeted_decision = { target = THIS decision = LIT_encourage_agricultural_cooperatives }
+					activate_targeted_decision = { target = THIS decision = LIT_combat_nationalist_sentiment }
+				}
+			}
 		}
 	}
 
@@ -73,6 +244,21 @@ on_actions = {
 				country_event = poland.46
 				country_event = poland.47
 				country_event = plcommon.15
+			}
+			### White Ruthenia ###
+			if = {
+				limit = {
+					tag = WHR
+					has_war = no
+				}
+				country_event = whrpol.26 #1943
+			}
+			if = {
+				limit = {
+					tag = WHR
+					has_war = yes
+				}
+				country_event = whrpol.27 #polls closed
 			}
 		}
 	}
@@ -139,6 +325,45 @@ on_actions = {
 					days = 1
 					random_days = 1
 				}
+			}
+		}
+	}
+	#ROOT = attacking side
+	#FROM = defending side
+	#fired when two countries end up at war with each other (on_war is fired when a country goes to war against anyone and is not fired again when it enters war against another country unless it went to peace first)
+	on_war_relation_added = {
+		effect = {
+			if = {
+				limit = {
+					OR = {
+						AND = {
+							tag = LIT
+							FROM = {
+								tag = RUS
+							}
+						}
+						AND = {
+							tag = RUS
+							FROM = { tag = LIT }
+						}
+					}
+				}
+				LIT = { country_event = { id = LIT.300 days = 15 random_days = 45 } }
+			}
+			else_if = {
+				limit = {
+					OR = {
+						tag = POL
+						tag = GER
+					}
+					FROM = {
+						OR = {
+							tag = POL
+							tag = GER
+						}
+					}
+				}
+				POL = { country_event = { id = poland.226 days = 1 random_days = 1 } }
 			}
 		}
 	}

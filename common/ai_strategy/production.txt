@@ -236,7 +236,7 @@ we_need_civ_factories_2 = {
 	}
 }
 
-we_need_civ_factories_2 = {
+we_need_civ_factories_3 = {
 	allowed = {
 		NOT = {
 			tag = FRA
@@ -269,6 +269,10 @@ we_need_dockyards_1 = {
 		}
 	}
 	enable = {
+		if = {
+			limit = { tag = CAN }
+			NOT = { country_exists = GBR }
+		}
 		num_of_military_factories > 9
 		surrender_progress < 0.05
 		set_temp_variable = { mil_fact = num_of_naval_factories }
@@ -299,6 +303,7 @@ we_need_dockyards_2 = {
 		}
 	}
 	enable = {
+		is_major = yes
 		is_actual_major = yes
 		num_of_military_factories > 9
 		surrender_progress < 0.05
@@ -327,6 +332,14 @@ we_need_dockyards_3 = {
 			tag = ENG
 			tag = GBR
 			tag = JAP
+			tag = GER
+			tag = FRA
+			tag = NFA
+			tag = USA
+			tag = CSA
+			tag = TEX
+			tag = PSA
+			tag = RUS
 		}
 	}
 	enable = {
@@ -401,11 +414,10 @@ major_artillery_production = {
 default_marine_production = {
 	enable = {
 		has_tech = marines
-		is_actual_major = yes
+		num_of_naval_factories > 0
 	}
-	abort = {
-		is_actual_major = no
-	}
+
+	abort_when_not_enabled = yes
 
 	ai_strategy = {
 		type = role_ratio
@@ -417,18 +429,27 @@ default_marine_production = {
 		id = marine
 		value = 2
 	}
+	ai_strategy = {
+		type = template_prio
+		id = marine
+		value = 40
+	}
 }
 
 extra_marine_production = {
 	enable = {
 		has_tech = marines
 		OR = {
-			tag = CAN
+			AND = {
+				tag = CAN
+				NOT = { country_exists = GBR }
+			}
 			tag = GBR
 			tag = ENG
 			tag = JAP
 			tag = NFA
 			tag = GEX
+			tag = AST
 			AND = {
 				has_war = yes
 				num_of_naval_factories > 10
@@ -440,25 +461,8 @@ extra_marine_production = {
 			}
 		}
 	}
-	abort = {
-		if = {
-			limit = {
-				NOT = {
-					tag = CAN
-					tag = GBR
-					tag = ENG
-					tag = JAP
-					tag = NFA
-					tag = GEX
-				}
-			}
-			OR = {
-				has_war = no
-				num_of_naval_factories < 11
-				any_enemy_country = { is_neighbor_of = ROOT }
-			}
-		}
-	}
+
+	abort_when_not_enabled = yes
 
 	ai_strategy = {
 		type = role_ratio
@@ -467,8 +471,18 @@ extra_marine_production = {
 	}
 	ai_strategy = {
 		type = role_ratio
+		id = mountaineer
+		value = -1
+	}
+	ai_strategy = {
+		type = role_ratio
 		id = marine
 		value = 3
+	}
+	ai_strategy = {
+		type = template_prio
+		id = marine
+		value = 20
 	}
 }
 
@@ -490,12 +504,17 @@ default_bicycle_production = {
 	ai_strategy = {
 		type = role_ratio
 		id = infantry
-		value = -5
+		value = -2
 	}
 	ai_strategy = {
 		type = role_ratio
 		id = bicycle
-		value = 5
+		value = 2
+	}
+	ai_strategy = {
+		type = template_prio
+		id = bicycle
+		value = 20
 	}
 }
 
@@ -514,18 +533,27 @@ default_mountaineer_production = {
 		id = mountaineer
 		value = 3
 	}
+	ai_strategy = {
+		type = template_prio
+		id = mountaineer
+		value = 40
+	}
 }
 
 more_mountaineer_focused_nation = {
 	allowed = {
 		OR = {
 			tag = SWI
+			tag = AUS
 			tag = FIN
 			tag = NOR
 			tag = TIB
 			tag = NEP
 			tag = MON
 			tag = CHL
+			tag = GRE
+			is_chinese_tag = yes
+			num_of_naval_factories < 1
 		}
 	}
 	enable = {
@@ -600,9 +628,13 @@ more_cavalry_focused_nation = {
 			tag = DKB
 			tag = KUB
 			tag = KLY
+			tag = MTR
 			tag = SAU
 			tag = JBS
 			tag = EGY
+			tag = LBA
+			tag = TRP
+			tag = IRQ
 		}
 	}
 
@@ -611,15 +643,13 @@ more_cavalry_focused_nation = {
 			limit = { tag = EGY }
 			has_tech = mobile_warfare
 		}
+		else = {
+			always = yes
+		}
 	}
 	abort = {
-		OR = {
-			has_tech = mechanised_infantry
-			AND = {
-				date > 1940.1.1
-				has_tech = motorised_infantry
-			}
-		}
+		date > 1940.1.1
+		has_tech = motorised_infantry
 	}
 
 	ai_strategy = {
@@ -632,6 +662,11 @@ more_cavalry_focused_nation = {
 		id = cavalry
 		value = 20
 	}
+	ai_strategy = {
+		type = template_prio
+		id = cavalry
+		value = 50
+	}
 }
 
 default_mobile_production = {
@@ -640,48 +675,69 @@ default_mobile_production = {
 			tag = MON
 			tag = ALO
 			tag = TRK
+			tag = UZB
+			tag = KYR
+			tag = DKB
+			tag = KUB
 			tag = SAU
 			tag = JBS
+			tag = LBA
+			tag = TRP
+			tag = IRQ
 		}
 	}
 	enable = {
 		has_tech = motorised_infantry
 		num_of_military_factories > 10
 	}
-	abort = {
-		num_of_military_factories < 11
-	}
+
+	abort_when_not_enabled = yes
 
 	ai_strategy = {
 		type = role_ratio
 		id = cavalry
-		value = -5
+		value = -3
+	}
+
+	ai_strategy = {
+		type = role_ratio
+		id = infantry
+		value = -2
 	}
 
 	ai_strategy = {
 		type = role_ratio
 		id = mobile
-		value = 3
+		value = 5
+	}
+
+	ai_strategy = {
+		type = template_prio
+		id = motorized
+		value = 20
 	}
 }
 
 late_mobile_production = {
-	enable = {
+	allowed = {
 		OR = {
-			has_tech = mechanised_infantry
-			AND = {
-				date > 1940.1.1
-				has_tech = motorised_infantry
-			}
-		}
-		OR = {
-			num_of_military_factories < 11
 			tag = MON
 			tag = ALO
 			tag = TRK
+			tag = UZB
+			tag = KYR
+			tag = DKB
+			tag = KUB
 			tag = SAU
 			tag = JBS
+			tag = LBA
+			tag = TRP
+			tag = IRQ
 		}
+	}
+	enable = {
+		date > 1940.1.1
+		has_tech = motorised_infantry
 	}
 
 	ai_strategy = {
@@ -693,7 +749,7 @@ late_mobile_production = {
 	ai_strategy = {
 		type = role_ratio
 		id = mobile
-		value = 3
+		value = 5
 	}
 }
 
@@ -744,12 +800,11 @@ more_mobile_production = {
 
 default_armored_production = {
 	enable = {
-		has_tech = basic_light_tank
 		num_of_military_factories > 10
+		has_design_based_on = light_tank_chassis
 	}
-	abort = {
-		num_of_military_factories < 11
-	}
+
+	abort_when_not_enabled = yes
 
 	ai_strategy = {
 		type = role_ratio
@@ -763,59 +818,129 @@ default_armored_production = {
 	}
 }
 
-higher_armored_production = {
-	enable = {
-		has_tech = basic_light_tank
-		num_of_military_factories > 25
+heavy_armor_production = {
+	allowed = {
+		OR = {
+			tag = FRA
+			tag = GER
+			tag = RUS
+			tag = USA
+			tag = CSA
+			tag = TEX
+			tag = CAL
+			tag = COR
+			tag = WCC
+		}
 	}
-	abort = {
-		num_of_military_factories < 26
+	enable = {
+		num_of_military_factories > 25
+		OR = {
+			has_tech = basic_heavy_tank
+			has_tech = gwtank_chassis
+		}
+	}
+
+	abort_when_not_enabled = yes
+
+	ai_strategy = {
+		type = role_ratio
+		id = heavy_armor
+		value = 3
 	}
 
 	ai_strategy = {
 		type = role_ratio
 		id = infantry
-		value = -10
+		value = -3
+	}
+
+	ai_strategy = {
+		type = template_prio
+		id = heavy_armor
+		value = 20
+	}
+}
+
+more_heavy_armor_production = {
+	enable = {
+		num_of_military_factories > 49
+		OR = {
+			has_tech = basic_heavy_tank
+			has_tech = gwtank_chassis
+		}
+	}
+
+	abort_when_not_enabled = yes
+
+	ai_strategy = {
+		type = role_ratio
+		id = heavy_armor
+		value = 3
+	}
+
+	ai_strategy = {
+		type = role_ratio
+		id = infantry
+		value = -3
+	}
+
+	ai_strategy = {
+		type = template_prio
+		id = heavy_armor
+		value = 20
+	}
+}
+
+higher_armored_production = {
+	enable = {
+		num_of_military_factories > 49
+		has_design_based_on = light_tank_chassis
+	}
+
+	abort_when_not_enabled = yes
+
+	ai_strategy = {
+		type = role_ratio
+		id = infantry
+		value = -5
 	}
 	ai_strategy = {
 		type = role_ratio
 		id = armor
-		value = 10
+		value = 5
 	}
 }
 
 more_armor_focused_nation = {
 	enable = {
-		num_of_military_factories > 25
 		OR = {
-			tag = GER
-			tag = FRA
-			tag = USA
-			tag = CSA
-			tag = TEX
-			tag = CAL
-			num_of_military_factories > 50
+			num_of_military_factories > 49
+			AND = {
+				num_of_military_factories > 19
+				country_has_armor_focus = yes
+			}
 		}
 	}
-	abort = {
-		num_of_military_factories < 26
-	}
+
+	abort_when_not_enabled = yes
 
 	ai_strategy = {
 		type = role_ratio
 		id = infantry
-		value = -15
+		value = -12
 	}
 	ai_strategy = {
 		type = role_ratio
 		id = armor
-		value = 15
+		value = 12
 	}
+
 	ai_strategy = {
 		type = template_prio
 		id = light_armor
 		value = 50
 	}
+
 	ai_strategy = {
 		type = template_prio
 		id = medium_armor
@@ -828,19 +953,19 @@ halt_light_armor_production_in_transitioning = {
 		has_template_majority_unit = medium_armor
 		num_of_military_factories > 30
 		OR = {
-			has_equipment = { light_tank_equipment > 600 }
+			has_equipment = { light_tank_chassis > 600 }
 			date > 1939.1.1
 		}
 	}
 
 	ai_strategy = {
 		type = equipment_variant_production_factor
-		id = light_tank_equipment
+		id = light_tank_chassis
 		value = -100
 	}
 	ai_strategy = {
 		type = equipment_variant_production_factor
-		id = medium_tank_equipment
+		id = medium_tank_chassis
 		value = 100
 	}
 }
@@ -859,10 +984,10 @@ super_boost_light_for_med_armor = {
 		}
 	}
 
-	ai_strategy = {
-		type = template_xp_reserve
-		value = -125
-	}
+	#ai_strategy = {
+	#	type = template_xp_reserve
+	#	value = -125
+	#}
 	ai_strategy = {
 		type = template_prio
 		id = light_armor
@@ -889,10 +1014,10 @@ super_boost_medium_for_modern_armor = {
 		}
 	}
 
-	ai_strategy = {
-		type = template_xp_reserve
-		value = -125
-	}
+	#ai_strategy = {
+	#	type = template_xp_reserve
+	#	value = -125
+	#}
 	ai_strategy = {
 		type = template_prio
 		id = medium_armor
