@@ -7,12 +7,13 @@ foreign_politics = {
 		}
 
 		available = {
-			is_neighbor_of = BAT
+			is_neighbor_of = FROM
+			FROM = { has_war_with = RUS }
 		}
 
 		visible = {
 			is_subject = no
-			can_declare_war_on = BAT
+			can_declare_war_on = FROM
 		}
 
 		targets = { BAT }
@@ -21,6 +22,7 @@ foreign_politics = {
 		}
 
 		cost = 10
+		days_remove = 14
 		fire_only_once = yes
 		war_with_target_on_remove = yes
 
@@ -34,38 +36,41 @@ foreign_politics = {
 
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision LAT_attack_riga target: [From.GetName]"
-			country_event = KRLAT.9
+			FROM = {
+				add_ai_strategy = {
+					type = prepare_for_war
+					id = ROOT
+					value = 1000
+				}
+				country_event = KRLAT.9
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove LAT_attack_riga target: [From.GetName]"
+			FROM = {
+				add_ai_strategy = {
+					type = prepare_for_war
+					id = ROOT
+					value = -1000
+				}
+			}
+			declare_war_on = {
+				target = FROM
+				type = annex_everything
+			}
 		}
 	}
 	LAT_join_internationale = {
 		icon = generic_political_discourse
-		allowed = {
-			original_tag = LAT
-		}
-
+		allowed = { always = no }						# Activated by focus LAT_a_world_revolution
 		available = {
-			OR = {
-				has_completed_focus = LAT_a_world_revolution
-				INT = { has_war_with = GER }
-				at_peace_or_same_enemies_as_FROM = yes
-			}
+			FROM = { has_war_with = GER }
 		}
 
 		visible = {
 			has_socialist_government = yes
 			is_in_faction = no
 			is_subject = no
-			FROM = {
-				is_faction_leader = yes
-				NOT = { has_war_with = ROOT }
-			}
-		}
-
-		targets = { INT }
-		target_root_trigger = {
-			has_completed_focus = LAT_a_world_revolution
-		}
-		target_trigger = {
 			FROM = {
 				is_faction_leader = yes
 				NOT = { has_war_with = ROOT }
@@ -93,8 +98,12 @@ foreign_politics = {
 		}
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision LAT_join_internationale target: [From.GetName]"
-			FROM = {
-				country_event = KRLAT.6
+			if = {
+				limit = { SOV = { is_faction_leader = yes } }
+				SOV = { country_event = KRLAT.6 }
+			}
+			else = {
+				FROM = { country_event = KRLAT.6 }
 			}
 		}
 	}
@@ -148,7 +157,11 @@ foreign_politics = {
 			}
 		}
 
-		targets = { SOV RUS }
+		targets = { SOV }
+
+		target_root_trigger = {
+			is_ai = no
+		}
 
 		target_trigger = {
 			can_declare_war_on = FROM
@@ -165,6 +178,8 @@ foreign_politics = {
 		cost = 0
 		days_remove = 7
 
+		war_with_on_remove = RUS
+
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision LAT_demand_western_dvinsk target: [From.GetName]"
 			add_war_support = 0.05
@@ -178,10 +193,7 @@ foreign_politics = {
 				limit = {
 					can_declare_war_on = FROM
 					FROM = {
-						OR = {
-							has_war_with = RUS
-							has_war_with = SOV
-						}
+						has_war_with = RUS
 						owns_state = 880 #dvinsk
 					}
 				}
@@ -569,21 +581,20 @@ political_actions = {
 
 	LAT_mutual_protection = {
 		icon = GFX_decision_generic_agreement
-		allowed = {
-			original_tag = LAT
-		}
+
+		allowed = { always = no }						# Activated by focus LAT_Baltic_brothers
 
 		available = {
 			has_idea = LAT_cooperation_with_estonia
+			is_in_faction = no
 		}
 		visible = {
-			has_completed_focus = LAT_Baltic_brothers
 			OR = {
 				has_government = authoritarian_democrat
 				has_government = paternal_autocrat
 			}
-			country_exists = EST
-			NOT = { has_war_with = EST }
+			country_exists = FROM
+			NOT = { has_war_with = FROM }
 		}
 
 		ai_will_do = {
@@ -595,45 +606,41 @@ political_actions = {
 		cost = 20
 		days_remove = 20
 
-
 		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove LAT_mutual_protection"
-			EST = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove LAT_mutual_protection target: [From.GetName]"
+			FROM = {
 				add_opinion_modifier = { target = LAT modifier = KR_close_allies }
 				country_event = { id = LATFOR.19 hours = 8 }
 			}
 		}
 	}
-	LAT_Last_Stand = {
+	LAT_EST_Last_Stand = {
 		icon = GFX_decision_generic_agreement
-		allowed = {
-			original_tag = LAT
-		}
-
+		allowed = { always = no }						# Activated by focus LAT_Baltic_brothers
 		available = {
-			has_completed_focus = LAT_Baltic_brothers
 			OR = {
 				has_war_with = GER
 				has_war_with = RUS
+				has_war_with = SOV
 			}
-
-			EST = {
+			FROM = {
 				OR = {
 					has_war_with = GER
 					has_war_with = RUS
+					has_war_with = SOV
 				}
 
 			}
 		}
 		visible = {
-			has_completed_focus = LAT_Baltic_brothers
 			is_valid_peace_target = yes
-			country_exists = EST
-			EST = { is_valid_peace_target = yes }
+			country_exists = FROM
+			FROM = { is_valid_peace_target = yes }
 			OR = {
 				has_government = authoritarian_democrat
 				has_government = paternal_autocrat
 			}
+			NOT = { has_country_flag = LAT_setting_up_faction }
 		}
 
 		ai_will_do = {
@@ -643,9 +650,66 @@ political_actions = {
 		fire_only_once = yes
 
 		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision LAT_Last_Stand"
-			create_faction = Baltic_last_stand
-			LAT = { add_to_faction = EST }
+			log = "[GetDateText]: [Root.GetName]: Decision LAT_EST_Last_Stand target: [From.GetName]"
+			FROM = { country_event = LATFOR.27 }
+			set_country_flag = LAT_setting_up_faction
+			custom_effect_tooltip = if_they_accept_tt
+			effect_tooltip = {
+				create_faction = Baltic_last_stand
+				LAT = { add_to_faction = FROM }
+			}
+			hidden_effect = {
+				LIT = { activate_targeted_decision = { target = LAT decision = LIT_Last_Stand } }
+			}
+		}
+	}
+	LAT_LIT_Last_Stand = {
+		icon = GFX_decision_generic_agreement
+		allowed = { always = no }						# Activated by focus LAT_Baltic_brothers
+		available = {
+			OR = {
+				has_war_with = GER
+				has_war_with = RUS
+				has_war_with = SOV
+			}
+			FROM = {
+				OR = {
+					has_war_with = GER
+					has_war_with = RUS
+					has_war_with = SOV
+				}
+
+			}
+		}
+		visible = {
+			is_valid_peace_target = yes
+			country_exists = FROM
+			FROM = { is_valid_peace_target = yes }
+			OR = {
+				has_government = authoritarian_democrat
+				has_government = paternal_autocrat
+			}
+			NOT = { has_country_flag = LAT_setting_up_faction }
+		}
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		fire_only_once = yes
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision LAT_LIT_Last_Stand target: [From.GetName]"
+			FROM = { country_event = LATFOR.27 }
+			set_country_flag = LAT_setting_up_faction
+			custom_effect_tooltip = if_they_accept_tt
+			effect_tooltip = {
+				create_faction = Baltic_last_stand
+				LAT = { add_to_faction = FROM }
+			}
+			hidden_effect = {
+				EST = { activate_targeted_decision = { target = LAT decision = EST_Last_Stand } }
+			}
 		}
 	}
 }

@@ -40,7 +40,6 @@ is_actual_major = {
 			tag = GBR
 			tag = NFA
 			tag = RUS
-			tag = SOV
 			tag = JAP
 			tag = USA
 			tag = CSA
@@ -50,6 +49,41 @@ is_actual_major = {
 				tag = CAN
 				is_faction_leader = yes
 			}
+		}
+	}
+}
+
+is_actual_major_without_exceptions = {
+	custom_trigger_tooltip = {
+		tooltip = is_actual_major_without_exceptions
+		is_major = yes
+
+		# rank the majors according to their num_of_factories
+		clear_temp_array = global.actual_majors
+		get_sorted_scored_countries_temp = {
+			scorer = actual_majors_score
+			array = global.actual_majors
+		}
+
+		# limit that ranking to the top 7
+		resize_temp_array = { global.actual_majors = 7 }
+
+		# now figure out what 70% of the average of those 7 is, with a minimum of 35
+		set_temp_variable = { global.factory_average = 0 }
+		all_of_scopes = {
+			array = global.actual_majors
+			add_to_temp_variable = { global.factory_average = THIS.num_of_factories }
+		}
+		divide_temp_variable = { global.factory_average = 7 }
+		multiply_temp_variable = { global.factory_average = 0.7 }
+		clamp_temp_variable = { var = global.factory_average min = 35 }
+
+		OR = {
+			# is actually in the top 7
+			is_in_array = { global.actual_majors = THIS }
+			# has more than 70% of the average of the top 7
+			check_variable = { num_of_factories > global.factory_average }
+			# is in the list of "always acts like a major" countries
 		}
 	}
 }
@@ -124,6 +158,13 @@ has_socialist_government = {
 				has_government = social_democrat
 				has_country_flag = soc_dems_are_socialists
 			}
+			has_country_leader_ideology = syndie_social_democrat_subtype
+			has_country_leader_ideology = socdem_democratic_socialism_subtype
+			has_country_leader_ideology = austromarxism_subtype
+			has_country_leader_ideology = socdem_fascism_subtype
+			has_country_leader_ideology = red_tinted_autocracy_subtype
+			has_country_leader_ideology = socdem_tridemism_subtype
+			has_country_leader_ideology = georgism_subtype
 		}
 	}
 }
@@ -140,7 +181,7 @@ has_elected_government = {
 			has_government = social_liberal
 			has_government = market_liberal
 			has_government = social_conservative
-		}
+		}		
 	}
 }
 
@@ -222,6 +263,23 @@ same_government_type_as_ROOT = {
 		AND = {
 			has_dictatorship_government = yes
 			ROOT = { has_dictatorship_government = yes }
+		}
+	}
+}
+
+same_government_type_as_ROOT_authoritarian = {
+	OR = {
+		AND = {
+			has_socialist_government = yes
+			ROOT = { has_socialist_government = yes }
+		}
+		AND = {
+			has_elected_government = yes
+			ROOT = { has_elected_government = yes }
+		}
+		AND = {
+			has_authoritarian_government = yes
+			ROOT = { has_authoritarian_government = yes }
 		}
 	}
 }
@@ -854,8 +912,15 @@ has_war_with_china = {
 
 # Civil Wars
 russian_civil_war = {
-	RUS = {
-		has_war_with = SOV
+	custom_trigger_tooltip = {
+		tooltip = RUS_cw_ongoing_tt
+		OR = {
+			country_exists = RVA
+			country_exists = RRF
+			russian_civil_war = yes
+			has_global_flag = RUS_cw_begun
+		}
+		NOT = { has_global_flag = RUS_cw_over }
 	}
 }
 
