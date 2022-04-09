@@ -20,6 +20,13 @@ syndicalist_socdem_government_change = {
 	}
 }
 
+occupy_tiny_country = {
+	add_political_power = -10
+	add_stability = -0.01
+	add_war_support = -0.01
+	recheck_annexations = yes
+}
+
 occupy_small_country = {
 	add_political_power = -25
 	add_stability = -0.025
@@ -56,15 +63,62 @@ occupy_massive_country = {
 }
 
 # state scope
+retain_state = {
+	set_state_flag = { flag = retain_state_@PREV days = 2 value = 1 }
+}
+
+# state scope
+transfer_state_without_overriding_occupation = {
+	if = {
+		limit = { is_fully_controlled_by = owner }
+		transfer_state_to = var:tag_to_release
+	}
+	else = {
+		set_state_owner_to = var:tag_to_release
+		set_state_province_controller = {
+			controller = owner
+			limit = { NOT = { has_war_with = var:tag_to_release } }
+		}
+	}
+}
+
+# state scope
 transfer_state_and_add_core = {
 	remove_claim_and_add_core_of_target = yes
-	var:tag_to_release = { transfer_state = PREV }
+	transfer_state_without_overriding_occupation = yes
+	ROOT = { recheck_annexations = yes }
 }
 
 # state scope
 transfer_state_and_add_claim = {
-	remove_claim_and_add_claim_of_target = yes
-	var:tag_to_release = { transfer_state = PREV }
+	add_claim_of_target = yes
+	transfer_state_without_overriding_occupation = yes
+	ROOT = { recheck_annexations = yes }
+}
+
+# state scope
+transfer_state_and_add_claim_or_core = {
+	if = {
+		limit = { has_state_flag = was_core_of_@var:tag_to_release }
+		transfer_state_and_add_core = yes
+		clr_state_flag = was_core_of_@var:tag_to_release
+	}
+	else = {
+		transfer_state_and_add_claim = yes
+	}
+}
+
+# state scope
+remove_claim_and_add_core_of_ROOT = {
+	if = {
+		limit = { is_claimed_by = ROOT }
+		remove_claim_by = ROOT
+	}
+	if = {
+		limit = { NOT = { is_core_of = ROOT } }
+		add_core_of = ROOT
+	}
+	ROOT = { recheck_annexations = yes }
 }
 
 # state scope
@@ -77,6 +131,48 @@ remove_claim_and_add_core_of_target = {
 		limit = { NOT = { is_core_of = var:tag_to_release } }
 		add_core_of = var:tag_to_release
 	}
+	ROOT = { recheck_annexations = yes }
+}
+
+# state scope
+remove_claim_and_core_of_target = {
+	if = {
+		limit = { is_core_of = var:tag_to_release }
+		remove_core_of = var:tag_to_release
+	}
+	if = {
+		limit = { is_claimed_by = var:tag_to_release }
+		remove_claim_by = var:tag_to_release
+	}
+	ROOT = { recheck_annexations = yes }
+}
+
+# state scope
+add_claim_of_ROOT = {
+	if = {
+		limit = {
+			NOT = {
+				is_claimed_by = ROOT
+				is_core_of = ROOT
+			}
+		}
+		add_claim_by = ROOT
+	}
+	ROOT = { recheck_annexations = yes }
+}
+
+# state scope
+add_claim_of_target = {
+	if = {
+		limit = {
+			NOT = {
+				is_claimed_by = var:tag_to_release
+				is_core_of = var:tag_to_release
+			}
+		}
+		add_claim_by = var:tag_to_release
+	}
+	ROOT = { recheck_annexations = yes }
 }
 
 # state scope
@@ -89,6 +185,78 @@ remove_claim_and_add_claim_of_target = {
 			}
 		}
 		add_claim_by = var:tag_to_release
+	}
+	ROOT = { recheck_annexations = yes }
+}
+
+# state scope
+transfer_if_owned = {
+	if = {
+		limit = { is_valid_annexation_state = yes }
+		transfer_state_without_overriding_occupation = yes
+	}
+	ROOT = { recheck_annexations = yes }
+}
+
+# state scope
+add_claim_of_target_and_transfer_if_owned = {
+	add_claim_of_target = yes
+	if = {
+		limit = { is_valid_annexation_state = yes }
+		transfer_state_without_overriding_occupation = yes
+	}
+	ROOT = { recheck_annexations = yes }
+}
+
+# state scope
+add_core_of_target_and_transfer_if_owned = {
+	remove_claim_and_add_core_of_target = yes
+	if = {
+		limit = { is_valid_annexation_state = yes }
+		transfer_state_without_overriding_occupation = yes
+	}
+	ROOT = { recheck_annexations = yes }
+}
+
+# state scope
+add_core_and_transfer_if_owned_else_add_claim = {
+	if = {
+		limit = { is_valid_annexation_state = yes }
+		remove_claim_and_add_core_of_target = yes
+		transfer_state_without_overriding_occupation = yes
+	}
+	else = {
+		add_claim_of_target = yes
+	}
+	ROOT = { recheck_annexations = yes }
+}
+
+# state scope
+add_core_if_owned_else_add_claim = {
+	if = {
+		limit = {
+			OR = {
+				is_valid_annexation_state = yes
+				is_owned_by = var:tag_to_release
+			}
+		}
+		remove_claim_and_add_core_of_target = yes
+	}
+	else = {
+		add_claim_of_target = yes
+	}
+	ROOT = { recheck_annexations = yes }
+}
+
+# state scope
+add_core_or_claim_of_target_and_transfer_if_owned = {
+	if = {
+		limit = { has_state_flag = was_core_of_@var:tag_to_release }
+		add_core_of_target_and_transfer_if_owned = yes
+		clr_state_flag = was_core_of_@var:tag_to_release
+	}
+	else = {
+		add_claim_of_target_and_transfer_if_owned = yes
 	}
 }
 
@@ -114,32 +282,75 @@ remove_all_cores_and_claims_of_tags = {
 
 # global scope
 transfer_territory_from_core_regions = {
-	every_owned_state = {
-		limit = {
-			any_of = {
-				array = target_cores_to_release
-				is_core_of = var:v
+	if = {
+		limit = { has_war = yes }
+		every_owned_state = {
+			limit = {
+				any_of = {
+					array = target_cores_to_release
+					is_core_of = var:v
+				}
+				is_claim_or_core_of_ROOT = no
+				NOT = { has_state_flag = retain_state_@PREV }
 			}
-			is_claim_or_core_of_ROOT = no
+			set_state_owner_to = var:tag_to_release
+			set_state_province_controller = {
+				controller = owner
+				limit = { NOT = { has_war_with = PREV.owner } }
+			}
 		}
-		var:tag_to_release = { transfer_state = PREV }
+	}
+	else = {
+		every_owned_state = {
+			limit = {
+				any_of = {
+					array = target_cores_to_release
+					is_core_of = var:v
+				}
+				is_claim_or_core_of_ROOT = no
+				NOT = { has_state_flag = retain_state_@PREV }
+			}
+			transfer_state_to = var:tag_to_release
+		}
 	}
 	recheck_annexations = yes
 }
 
 # global scope
 transfer_territory_from_core_regions_and_add_claims = {
-	every_owned_state = {
-		limit = {
-			any_of = {
-				array = target_cores_to_release
-				is_core_of = var:v
+	if = {
+		limit = { has_war = yes }
+		every_owned_state = {
+			limit = {
+				any_of = {
+					array = target_cores_to_release
+					is_core_of = var:v
+				}
+				is_claim_or_core_of_ROOT = no
+				NOT = { has_state_flag = retain_state_@PREV }
 			}
-			is_claim_or_core_of_ROOT = no
+			add_claim_by = var:tag_to_release
+			set_state_owner_to = var:tag_to_release
+			set_state_province_controller = {
+				controller = owner
+				limit = { NOT = { has_war_with = PREV.owner } }
+			}
 		}
-		var:tag_to_release = {
-			add_state_claim = PREV
-			transfer_state = PREV
+	}
+	else = {
+		every_owned_state = {
+			limit = {
+				any_of = {
+					array = target_cores_to_release
+					is_core_of = var:v
+				}
+				is_claim_or_core_of_ROOT = no
+				NOT = { has_state_flag = retain_state_@PREV }
+			}
+			var:tag_to_release = {
+				add_state_claim = PREV
+				transfer_state = PREV
+			}
 		}
 	}
 	recheck_annexations = yes
@@ -147,17 +358,39 @@ transfer_territory_from_core_regions_and_add_claims = {
 
 # global scope
 transfer_territory_from_core_regions_and_add_cores = {
-	every_owned_state = {
-		limit = {
-			any_of = {
-				array = target_cores_to_release
-				is_core_of = var:v
+	if = {
+		limit = { has_war = yes }
+		every_owned_state = {
+			limit = {
+				any_of = {
+					array = target_cores_to_release
+					is_core_of = var:v
+				}
+				is_claim_or_core_of_ROOT = no
+				NOT = { has_state_flag = retain_state_@PREV }
 			}
-			is_claim_or_core_of_ROOT = no
+			add_core_of = var:tag_to_release
+			set_state_owner_to = var:tag_to_release
+			set_state_province_controller = {
+				controller = owner
+				limit = { NOT = { has_war_with = PREV.owner } }
+			}
 		}
-		var:tag_to_release = {
-			add_state_core = PREV
-			transfer_state = PREV
+	}
+	else = {
+		every_owned_state = {
+			limit = {
+				any_of = {
+					array = target_cores_to_release
+					is_core_of = var:v
+				}
+				is_claim_or_core_of_ROOT = no
+				NOT = { has_state_flag = retain_state_@PREV }
+			}
+			var:tag_to_release = {
+				add_state_core = PREV
+				transfer_state = PREV
+			}
 		}
 	}
 	recheck_annexations = yes
@@ -177,32 +410,98 @@ release_targeted_tag_from_core_regions_and_add_cores = {
 
 # global scope
 release_targeted_tag_with_claims = {
-	every_owned_state = {
-		limit = {
-			OR = {
-				is_core_of = var:tag_to_release
-				AND = {
+	if = {
+		limit = { has_war = yes }
+		every_owned_state = {
+			limit = {
+				OR = {
+					is_core_of = var:tag_to_release
 					is_claimed_by = var:tag_to_release
-					is_clear_other_claims = yes
 				}
+				is_claim_or_core_of_ROOT = no
+				NOT = { has_state_flag = retain_state_@PREV }
 			}
-			is_claim_or_core_of_ROOT = no
+			set_state_owner_to = var:tag_to_release
+			set_state_province_controller = {
+				controller = owner
+				limit = { NOT = { has_war_with = PREV.owner } }
+			}
 		}
-		var:tag_to_release = { transfer_state = PREV }
+	}
+	else = {
+		every_owned_state = {
+			limit = {
+				OR = {
+					is_core_of = var:tag_to_release
+					is_claimed_by = var:tag_to_release
+				}
+				is_claim_or_core_of_ROOT = no
+				NOT = { has_state_flag = retain_state_@PREV }
+			}
+			transfer_state_to = var:tag_to_release
+		}
 	}
 	puppet_released_tag = yes
 }
 
 # global scope
 release_targeted_tag = {
-	every_owned_state = {
-		limit = {
-			is_core_of = var:tag_to_release
-			is_claim_or_core_of_ROOT = no
+	if = {
+		limit = { has_war = yes }
+		every_owned_state = {
+			limit = {
+				is_core_of = var:tag_to_release
+				is_claim_or_core_of_ROOT = no
+				NOT = { has_state_flag = retain_state_@PREV }
+			}
+			set_state_owner_to = var:tag_to_release
+			set_state_province_controller = {
+				controller = owner
+				limit = { NOT = { has_war_with = PREV.owner } }
+			}
 		}
-		var:tag_to_release = { transfer_state = PREV }
+	}
+	else = {
+		every_owned_state = {
+			limit = {
+				is_core_of = var:tag_to_release
+				is_claim_or_core_of_ROOT = no
+				NOT = { has_state_flag = retain_state_@PREV }
+			}
+			transfer_state_to = var:tag_to_release
+		}
 	}
 	puppet_released_tag = yes
+}
+
+# global scope
+release_targeted_tag_nocosmetic = {
+	if = {
+		limit = { has_war = yes }
+		every_owned_state = {
+			limit = {
+				is_core_of = var:tag_to_release
+				is_claim_or_core_of_ROOT = no
+				NOT = { has_state_flag = retain_state_@PREV }
+			}
+			set_state_owner_to = var:tag_to_release
+			set_state_province_controller = {
+				controller = owner
+				limit = { NOT = { has_war_with = PREV.owner } }
+			}
+		}
+	}
+	else = {
+		every_owned_state = {
+			limit = {
+				is_core_of = var:tag_to_release
+				is_claim_or_core_of_ROOT = no
+				NOT = { has_state_flag = retain_state_@PREV }
+			}
+			transfer_state_to = var:tag_to_release
+		}
+	}
+	puppet_released_tag_nocosmetic = yes
 }
 
 # global scope
@@ -240,6 +539,7 @@ transfer_to_ROOT = {
 	}
 }
 
+# global scope
 puppet_released_tag = {
 	hidden_effect = {
 		var:tag_to_release = {
@@ -254,9 +554,33 @@ puppet_released_tag = {
 		syndicalist_socdem_government_change = yes
 		mark_focus_tree_layout_dirty = yes
 		remove_all_minister_types = yes
-		hidden_effect = { set_puppet_minister = yes }
+		hidden_effect = {
+			set_puppet_minister = yes
+			transfer_technology_without_doctrines = yes
+			remove_ideas = ready_to_surrender
+			if = {
+				limit = { ROOT = { has_elected_government = no } }
+				set_politics = {
+					ruling_party = var:current_party_ideology_group
+					elections_allowed = no
+				}
+			}
+			else = {
+				meta_effect = {
+					text = {
+						set_politics = {
+							ruling_party = var:current_party_ideology_group
+							last_election = "[CURRENT_DATE]"
+							elections_allowed = yes
+						}
+					}
+					CURRENT_DATE = "[?global.date.GetDateStringNoHour]"
+				}
+			}
+		}
 		custom_effect_tooltip = general_minister_change_tt
 	}
+	recheck_annexations = yes
 }
 
 # global scope
@@ -274,7 +598,24 @@ puppet_released_tag = {
 		syndicalist_socdem_government_change = yes
 		mark_focus_tree_layout_dirty = yes
 		remove_all_minister_types = yes
-		hidden_effect = { set_puppet_minister = yes }
+		hidden_effect = {
+			set_puppet_minister = yes
+			transfer_technology_without_doctrines = yes
+			remove_ideas = ready_to_surrender
+			if = {
+				limit = { has_elected_government = no }
+				set_politics = {
+					ruling_party = var:current_party_ideology_group
+					elections_allowed = no
+				}
+			}
+			else = {
+				set_politics = {
+					ruling_party = var:current_party_ideology_group
+					elections_allowed = yes
+				}
+			}
+		}
 		custom_effect_tooltip = general_minister_change_tt
 	}
 	recheck_annexations = yes
@@ -287,10 +628,41 @@ puppet_released_tag_nocosmetic = {
 		syndicalist_socdem_government_change = yes
 		mark_focus_tree_layout_dirty = yes
 		remove_all_minister_types = yes
-		hidden_effect = { set_puppet_minister = yes }
+		hidden_effect = {
+			set_puppet_minister = yes
+			transfer_technology_without_doctrines = yes
+			remove_ideas = ready_to_surrender
+			if = {
+				limit = { has_elected_government = no }
+				set_politics = {
+					ruling_party = var:current_party_ideology_group
+					elections_allowed = no
+				}
+			}
+			else = {
+				set_politics = {
+					ruling_party = var:current_party_ideology_group
+					elections_allowed = yes
+				}
+			}
+		}
 		custom_effect_tooltip = general_minister_change_tt
 	}
 	recheck_annexations = yes
+}
+
+transfer_state_during_war_target_tag_to_release = {
+	if = {
+		limit = { owner = { has_war = no } }
+		transfer_state_to = var:tag_to_release
+	}
+	else = {
+		set_state_owner_to = var:tag_to_release
+		set_state_province_controller = {
+			controller = owner
+			limit = { NOT = { has_war_with = PREV.owner } }
+		}
+	}
 }
 
 setup_PIR_cores = {
@@ -718,17 +1090,20 @@ release_chinese_government = {
 				NOT = { has_variable = ambition_area_@ROOT }
 			}
 		}
-		var:tag_to_release = { transfer_state = PREV }
+		var:tag_to_release = {
+			add_state_core = PREV
+			transfer_state = PREV
+		}
 	}
 	puppet_released_tag = yes
 	hidden_effect = {
-		var:tag_to_release = { 
+		var:tag_to_release = {
 			if = {
 				limit = {
 					NOT = { has_cosmetic_tag = FNG_ROC }
 				}
+				drop_cosmetic_tag = yes
 			}
-			var:tag_to_release = { drop_cosmetic_tag = yes }
 		}
 	}
 }
@@ -745,17 +1120,20 @@ release_chinese_government_in_manchuria = {
 				NOT = { has_variable = ambition_area_@ROOT }
 			}
 		}
-		var:tag_to_release = { transfer_state = PREV }
+		var:tag_to_release = {
+			add_state_core = PREV
+			transfer_state = PREV
+		}
 	}
 	puppet_released_tag = yes
 	hidden_effect = {
-		var:tag_to_release = { 
+		var:tag_to_release = {
 			if = {
 				limit = {
 					NOT = { has_cosmetic_tag = FNG_ROC }
 				}
+				drop_cosmetic_tag = yes
 			}
-			var:tag_to_release = { drop_cosmetic_tag = yes }
 		}
 	}
 }
@@ -798,32 +1176,6 @@ setup_puppet_mexico = {
 	}
 }
 
-release_chinese_government_in_manchuria = {
-	every_owned_state = {
-		limit = {
-			is_manchuria = yes
-			is_not_claim_or_core_of_ROOT = yes
-			if = {
-				limit = {
-					ROOT = { tag = JAP }
-				}
-				NOT = { has_variable = ambition_area_@ROOT }
-			}
-		}
-		event_target:released_china_tag = { transfer_state = PREV }
-	}
-	puppet = event_target:released_china_tag
-	hidden_effect = {
-		if = {
-			limit = {
-				NOT = {
-					event_target:released_china_tag = { has_cosmetic_tag = FNG_ROC }
-				}
-			}
-			event_target:released_china_tag = { drop_cosmetic_tag = yes }
-		}
-	}
-}
 
 determine_chinese_ally = {
 	hidden_effect = {
@@ -1250,12 +1602,13 @@ setup_puppet_leader_XSM = {
 transfer_iraq = {
 	every_owned_state = {
 		limit = {
+			is_claim_or_core_of_ROOT = no
 			OR = {
 				region = 239 #Mesopotamia
 				AND = {
 					state = 677 #Aleppo
 					NOT = {
-						ROOT = { is_ally_with = SYR }
+						SYR = { is_ally_with = ROOT }
 						554 = { is_valid_annexation_state = yes } #Syria
 					}
 				}
@@ -1279,6 +1632,10 @@ transfer_iraq = {
 			}
 		}
 		if = {
+			limit = { var:tag_to_release = { tag = OTT } }
+			remove_claim_and_add_core_of_target = yes
+		}
+		else_if = {
 			limit = {
 				NOT = {
 					is_core_of = var:tag_to_release
@@ -1287,7 +1644,7 @@ transfer_iraq = {
 			}
 			add_claim_by = var:tag_to_release
 		}
-		var:tag_to_release = { transfer_state = PREV }
+		transfer_state_to = var:tag_to_release
 	}
 }
 
