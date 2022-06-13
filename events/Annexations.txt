@@ -6455,7 +6455,11 @@ country_event = { #Fate of Transcarpathia
 	option = {
 		name = annex.43.b #Give it to UKR
 		trigger = {
-			UKR = { is_ally_of_ROOT = yes }
+			UKR = { 
+				is_ally_of_ROOT = yes
+				owns_state = 91
+			}
+			NOT = { country_exists = WSU }
 			NOT = {
 				tag = UKR
 				tag = HUN
@@ -6505,13 +6509,13 @@ country_event = { #Fate of Transcarpathia
 		73 = {
 			if = {
 				limit = { NOT = { is_claimed_by = ROOT } }
-				add_claim_by = ROOT
+				add_core_of = ROOT
 			}
 		}
 		1119 = {
 			if = {
 				limit = { NOT = { is_claimed_by = ROOT } }
-				add_claim_by = ROOT
+				add_core_of = ROOT
 			}
 		}
 	}
@@ -9094,13 +9098,27 @@ country_event = { #Fate of Latvia
 	immediate = { log = "[GetDateText]: [Root.GetName]: event annex.61" }
 	title = annexation_LAT_CONQ
 	desc = annexation_LAT_CONQ_desc
+	immediate = {
+		if = {
+			limit = {
+				NOT = { country_exists = BAT }
+			}
+			add_to_temp_array = { core_removal_array = BAT }
+			remove_all_cores_and_claims_of_tags = yes
+		}
+		hidden_effect = {
+			LAT = { drop_cosmetic_tag = yes }
+			13 = { remove_core_of = LAT }
+			191 = { remove_core_of = LAT }
+		}
+	}
 	
 	is_triggered_only = yes
 
 	option = { #puppet
 		name = annex.61.a
 		ai_chance = {
-			factor = 70
+			base = 80
 			modifier = {
 				factor = 0
 				has_completed_focus = RUS_Expansionism
@@ -9109,9 +9127,64 @@ country_event = { #Fate of Latvia
 				factor = 0
 				is_ally_with = BAT
 			}
+			modifier = {
+				factor = 0.25
+				tag = GER
+			}
+			modifier = {
+				factor = 0
+				has_country_flag = RUS_will_annex_baltic
+			}
+		}
+		if = {
+			limit = { tag = RUS }
+			set_country_flag = RUS_will_liberate_baltic
 		}
 		set_temp_variable = { tag_to_release = LAT }
 		release_targeted_tag = yes
+		hidden_effect = {
+			LAT = {
+				if = {
+					limit = { has_socialist_government = yes }
+					load_focus_tree = LAT_socialist_focus
+					unlock_national_focus = LAT_the_second_iskolat
+				}
+				else = {
+					load_focus_tree = LAT_auth_tree
+					unlock_national_focus = LAT_2nd_awakening
+				}
+				if = {
+					limit = {
+						is_russian_tag = no
+					}
+					set_party_name = {
+						ideology = national_populist
+						name = LAT_national_populist_party3
+						long_name = LAT_national_populist_party3_long
+					}
+					create_country_leader = {
+						name = "Gustavs Celmiņš"
+						picture = "gfx/leaders/LAT/Portrait_LAT_Gustavs_Celmins.png"
+						expire = "1965.1.1"
+						ideology = national_populist_subtype
+					}
+				}
+				else = {
+					set_party_name = {
+						ideology = national_populist
+						name = LAT_national_populist_party
+						long_name = LAT_national_populist_party_long
+					}
+					create_country_leader = {
+						name = "Kārlis Goppers"
+						desc = "POLITICS_KARLIS_GOPPERS_DESC"
+						picture = "gfx/leaders/LAT/Portrait_LAT_Karlis_Goppers.png"
+						expire = "1965.1.1"
+						ideology = savinkovism_subtype
+					}
+				}
+			}
+		}
 	}
 	
 	option = { #Liberate the Baltic Union!
@@ -9121,11 +9194,18 @@ country_event = { #Fate of Latvia
 			NOT = { tag = EST }
 			NOT = { country_exists = BAT }
 			has_socialist_government = yes
-			owns_state = 13
-			owns_state = 96
+			OR = {
+				11 = { is_valid_annexation_state = yes } #Kaunas
+				13 = { is_valid_annexation_state = yes } #Estonia
+				96 = { is_valid_annexation_state = yes } #Vilnius
+			}
 		}
 		ai_chance = {
-			factor = 80
+			base = 80
+			modifier = {
+				factor = 0
+				has_country_flag = RUS_will_annex_baltic
+			}
 		}
  
 		every_owned_state = {
@@ -9141,6 +9221,67 @@ country_event = { #Fate of Latvia
 		set_temp_variable = { tag_to_release = BAT }
 		puppet_released_tag = yes
 		setup_puppet_baltic_union = yes
+	}
+	option = { #Liberate the Baltic Union!
+		name = annex.61.b3
+		trigger = {
+			is_russian_tag = yes
+			has_dictatorship_government = yes
+			RUS_russian_monarch = no
+			OR = {
+				11 = { is_valid_annexation_state = yes } #Kaunas
+				13 = { is_valid_annexation_state = yes } #Estonia
+				96 = { is_valid_annexation_state = yes } #Vilnius
+			}
+		}
+		ai_chance = {
+			base = 80
+			modifier = {
+				factor = 0
+				has_country_flag = RUS_will_annex_baltic
+			}
+		}
+ 
+		every_owned_state = {
+			limit = {
+				region = 37 #Baltic States
+				is_claim_or_core_of_ROOT = no
+			}
+			LAT = {
+				add_state_core = PREV
+				transfer_state = PREV
+			}
+		}
+		set_temp_variable = { tag_to_release = LAT }
+		puppet_released_tag = yes
+		hidden_effect = {
+			set_politics = {
+				ruling_party = national_populist
+				elections_allowed = no
+			}
+			set_political_party = {
+				ideology = national_populist
+				popularity = 50
+			}
+			create_country_leader = {
+				name = "Kārlis Goppers"
+				desc = "POLITICS_KARLIS_GOPPERS_DESC"
+				picture = "gfx/leaders/LAT/Portrait_LAT_Karlis_Goppers.png"
+				expire = "1965.1.1"
+				ideology = savinkovism_subtype
+			}
+			set_autonomy = {
+				target = LAT
+				autonomous_state = kr_military_district
+				freedom_level = 0.75
+			}
+			set_cosmetic_tag = BAT_PRI
+			set_party_name = {
+				ideology = national_populist
+				name = LAT_national_populist_party2
+				long_name = LAT_national_populist_party2_long
+			}
+		}
 	}
 
 	option = { #restore UBD
@@ -9182,14 +9323,10 @@ country_event = { #Fate of Latvia
 			is_russian_tag = yes
 		}
 		ai_chance = {
-			base = 100
+			base = 30
 			modifier = {
 				factor = 0
-				has_left_democratic_government = yes
-			}
-			modifier = {
-				factor = 0
-				RUS_savinkov_in_power = yes #Savinkov respecting Baltic independence
+				has_country_flag = RUS_will_liberate_baltic
 			}
 		}
 		every_owned_state = {
@@ -9219,6 +9356,7 @@ country_event = { #Fate of Latvia
 				add_claim_by = ROOT
 			}
 		}
+		set_country_flag = RUS_will_annex_baltic
 		add_political_power = -25
 		add_to_array = { RUS_integration_array = LAT }
 		recheck_annexations = yes
@@ -9255,6 +9393,14 @@ country_event = { #Fate of Estonia
 				factor = 0
 				is_ally_with = BAT
 			}
+			modifier = {
+				factor = 0
+				has_country_flag = RUS_will_annex_baltic
+			}
+		}
+		if = {
+			limit = { tag = RUS }
+			set_country_flag = RUS_will_liberate_baltic
 		}
 		set_temp_variable = { tag_to_release = EST }
 		release_targeted_tag = yes
@@ -9266,7 +9412,11 @@ country_event = { #Fate of Estonia
 			is_ally_with = BAT
 		}
 		ai_chance = {
-			factor = 80
+			base = 80
+			modifier = {
+				factor = 0
+				has_country_flag = RUS_will_annex_baltic
+			}
 		}
 		set_temp_variable = { tag_to_release = BAT }
 		add_to_temp_array = { target_cores_to_release = EST }
@@ -9279,14 +9429,10 @@ country_event = { #Fate of Estonia
 			is_russian_tag = yes
 		}
 		ai_chance = {
-			base = 100
+			base = 30
 			modifier = {
 				factor = 0
-				has_left_democratic_government = yes
-			}
-			modifier = {
-				factor = 0
-				RUS_savinkov_in_power = yes #Savinkov respecting Baltic independence
+				has_country_flag = RUS_will_liberate_baltic
 			}
 		}
 		every_owned_state = {
@@ -9316,6 +9462,7 @@ country_event = { #Fate of Estonia
 				add_claim_by = ROOT
 			}
 		}
+		set_country_flag = RUS_will_annex_baltic
 		add_political_power = -25
 		add_to_array = { RUS_integration_array = EST }
 		recheck_annexations = yes
@@ -16962,6 +17109,10 @@ country_event = { #Fate of Mexico
 				tag = CAR
 				tag = SPR
 				tag = POR
+				AND = {
+					tag = YUC
+					has_government = national_populist
+				}
 			}
 		}
 		set_temp_variable = { tag_to_release = MEX }
@@ -17059,14 +17210,41 @@ country_event = { #Fate of Mexico
 		ai_chance = {
 			factor = 0
 		}
+		trigger = {
+			AND = {
+				tag = YUC
+				has_government = national_populist
+			}
+		}
 		set_country_flag = MEX_CONQ
-		occupy_medium_country = yes
+		occupy_tiny_country_country = yes
 		if = {
 			limit = {
 				country_exists = YUC
 				NOT = {
 					YUC = { has_country_flag = YUC_indepedence_war_over }
 				}
+			}
+			YUC = { country_event = mexico.66 }
+		}
+	}
+	
+	option = { #Occupy Mexico
+		name = annex.145.i
+		ai_chance = { factor = 0 }
+		trigger = {
+			AND = {
+				tag = YUC
+				has_government = national_populist
+			}
+		}
+		set_country_flag = MEX_CONQ
+		add_stability = -0.05
+		add_political_power = 50
+		if = {
+			limit = {
+				country_exists = YUC
+				NOT = { YUC = { has_country_flag = YUC_indepedence_war_over } }
 			}
 			YUC = { country_event = mexico.66 }
 		}
@@ -21066,6 +21244,14 @@ country_event = { #Fate of Lithuania
 				factor = 0
 				has_completed_focus = RUS_Expansionism
 			}
+			modifier = {
+				factor = 0
+				has_country_flag = RUS_will_annex_baltic
+			}
+		}
+		if = {
+			limit = { tag = RUS }
+			set_country_flag = RUS_will_liberate_baltic
 		}
 		set_temp_variable = { tag_to_release = LIT }
 		every_owned_state = {
@@ -21087,6 +21273,10 @@ country_event = { #Fate of Lithuania
 		}
 		ai_chance = {
 			base = 70
+			modifier = {
+				factor = 0
+				has_country_flag = RUS_will_annex_baltic
+			}
 		}
 		set_temp_variable = { tag_to_release = BAT }
 		every_state = {
@@ -21105,14 +21295,10 @@ country_event = { #Fate of Lithuania
 			is_russian_tag = yes
 		}
 		ai_chance = {
-			base = 100
+			base = 30
 			modifier = {
 				factor = 0
-				has_left_democratic_government = yes
-			}
-			modifier = {
-				factor = 0
-				RUS_savinkov_in_power = yes #Savinkov respecting Baltic independence
+				has_country_flag = RUS_will_liberate_baltic
 			}
 		}
 		every_state = {
@@ -21154,6 +21340,7 @@ country_event = { #Fate of Lithuania
 				add_claim_by = ROOT
 			}
 		}
+		set_country_flag = RUS_will_annex_baltic
 		add_political_power = -40
 		add_to_array = { RUS_integration_array = LIT }
 		recheck_annexations = yes
@@ -38464,7 +38651,7 @@ country_event = { #Fate of Southern Belarus
 					state = 194 #Mozyr
 				}
 			}
-			transfer_state_and_add_claim = yes
+			transfer_state_and_add_core = yes
 		}
 		recheck_annexations = yes
 	}
