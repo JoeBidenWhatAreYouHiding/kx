@@ -181,20 +181,14 @@ GEO_foreign_policy_decisions = {
 		icon = generic_prepare_civil_war
 
 		available = {
-			NOT = {
-				has_government = totalist
-			}
-			FROM = {
-				if = {
-					limit = { tag = AZE }
-					has_war_with = PER
-				}
-			}
+			has_war = no
+			FROM = { has_war = yes }
 		}
 
 		visible = {
-			is_subject = no
-			can_declare_war_on = FROM
+			NOT = {
+				has_government = totalist
+			}
 			1081 = {
 				is_claimed_by = ROOT
 				is_owned_by = FROM
@@ -207,8 +201,12 @@ GEO_foreign_policy_decisions = {
 		war_with_target_on_remove = yes
 		
 		targets = { 1081.OWNER }
+		target_root_trigger = {
+			is_subject = no
+		}
 		target_trigger = {
 			can_declare_war_on = FROM
+			1081 = { is_owned_by = FROM }
 		}
 
 		ai_will_do = {
@@ -250,10 +248,10 @@ GEO_foreign_policy_decisions = {
 		}
 
 		highlight_states = {
-		highlight_state_targets = {
-			state = 1081
+			highlight_state_targets = {
+				state = 1081
+			}
 		}
-}
 
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision GEO_attack_azerbaijan_zaqatala_claim_decision"
@@ -273,12 +271,14 @@ GEO_foreign_policy_decisions = {
 
 		available = {
 			has_war = no
-			PER = { has_war_with = AZE }
 		}
 
 		visible = {
 			has_completed_focus = GEO_kept_pipeline
 			NOT = { has_country_flag = GEO_zaqatala_decision_flag }
+			NOT = {
+				has_government = totalist
+			}
 			is_subject = no
 		}
 
@@ -291,14 +291,15 @@ GEO_foreign_policy_decisions = {
 		}
 
 		highlight_states = {
-highlight_state_targets = {
-			state = 1081
+			highlight_state_targets = {
+				state = 1081
+			}
 		}
-}
 
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision GEO_renounce_claim_to_zaqatala_decision"
 			remove_state_claim = 1081
+			activate_targeted_decision = { target = AZE decision = GEO_Save_Azeri }
 		}
 	}
 	GEO_attack_armenia_getting_too_strong_decision = {
@@ -307,13 +308,13 @@ highlight_state_targets = {
 
 		available = {
 			NOT = { is_in_faction_with = GER }
-			NOT = {
-				has_government = totalist
-			}
 			1213 = { is_owned_and_controlled_by = FROM }
 		}
 
 		visible = {
+			NOT = {
+				has_government = totalist
+			}
 			is_subject = no
 			can_declare_war_on = FROM
 			1213 = { is_owned_and_controlled_by = FROM }
@@ -382,6 +383,83 @@ highlight_state_targets = {
 			}
 		}
 	}
+	GEO_Save_Azeri = {
+		icon = hol_war_on_pacifism
+		allowed = { always = no } # Activated by event cp.1 End of an Era
+
+		available = {
+			NOT = { is_in_faction_with = GER }
+			FROM = { 
+				is_in_faction = no 
+				has_war = yes
+			}
+		}
+
+		visible = {
+			is_subject = no
+			NOT = {
+				has_government = totalist
+			}
+		}
+
+		cost = 0
+		days_remove = 30
+		fire_only_once = yes
+		war_with_target_on_remove = yes
+		
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0
+				enemies_strength_ratio > 0.8
+			}
+			modifier = {
+				factor = 0
+				surrender_progress > 0
+			}
+			modifier = {
+				factor = 0
+				strength_ratio = { tag = FROM ratio < 1.0 }
+			}
+			modifier = {
+				factor = 0
+				FROM = {
+					is_subject = yes
+					overlord = {
+						strength_ratio = { tag = ROOT ratio > 0.8 }
+					}
+				}
+			}
+			modifier = {
+				factor = 0
+				FROM = {
+					is_in_faction = yes
+					faction_leader = {
+						strength_ratio = { tag = ROOT ratio > 0.8 }
+					}
+				}
+			}
+			modifier = {
+				factor = 0
+				has_country_flag = imminent_war
+			}
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision GEO_Save_Azeri"
+			set_country_flag = { flag = imminent_war days = 35 value = 1 }
+			setup_decision_attack_AI = yes
+			FROM = { country_event = kr.political.30 } #warning event
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove GEO_Save_Azeri"
+			declare_war_on = {
+				target = FROM
+				type = annex_everything
+			}
+		}
+	}
 	GEO_attack_ottos_decision = {
 		icon = AA_small
 
@@ -394,7 +472,14 @@ highlight_state_targets = {
 			is_subject = no
 			can_declare_war_on = FROM
 		}
-
+		targets = { OTT }
+		target_root_trigger = {
+			is_subject = no
+		}
+		target_trigger = {
+			can_declare_war_on = FROM
+			FROM = { owns_state = 1213 }
+		}
 		cost = 0
 		days_remove = 30
 		fire_only_once = yes
@@ -425,7 +510,7 @@ highlight_state_targets = {
 		}
 
 		highlight_states = {
-			highlight_state_targets = { state = 585 }
+			highlight_state_targets = { state = 1213 }
 		}
 
 		complete_effect = {
@@ -439,6 +524,40 @@ highlight_state_targets = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove GEO_attack_ottos_decision target: [From.GetName]"
 			FROM = { country_event = cp.24 }
 		}		
+	}
+	GEO_form_transcaucasia = {
+		icon = GFX_decision_generic_political_discourse
+
+		available = {
+			229 = { is_owned_by_ROOT_or_subject = yes }
+			998 = { is_owned_by_ROOT_or_subject = yes }
+			1082 = { is_owned_by_ROOT_or_subject = yes }
+			1081 = { is_owned_by_ROOT_or_subject = yes }
+			990 = { is_owned_by_ROOT_or_subject = yes }
+		}
+
+		visible = {
+			is_subject = no
+			NOT = { has_government = totalist }
+		}
+		
+		cost = 0
+		fire_only_once = yes
+		
+		ai_will_do = {
+			factor = 1000
+		}		
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision GEO_form_transcaucasia target: [From.GetName]"
+			add_state_core = 230
+			add_state_core = 229
+			add_state_core = 998
+			add_state_core = 1082
+			add_state_core = 1081
+			add_state_core = 990
+			set_cosmetic_tag = GEO_TCU
+		}
 	}
 }
 
