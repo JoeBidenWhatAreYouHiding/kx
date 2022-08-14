@@ -13521,15 +13521,23 @@ country_event = { #The Annexation of Persia
 
 	immediate = {
 		hidden_effect = {
-			if = {
-				limit = { tag = OTT }
-				add_state_claim = 347 #Khasab
-				add_state_claim = 413 #Khuzestan
-				add_state_claim = 417 #Western Azerbaijan
-				add_state_claim = 419 #Eastern Azerbaijan
-				add_state_claim = 421 #Kurdistan
+			every_state = {
+				limit = {
+					OR = {
+						is_core_of = PER
+						is_claimed_by = PER
+					}
+					NOT = {
+						region = 116 #Persia
+						state = 413 #Khuzestan
+						state = 417 #Urmia
+						state = 421 #Kermanshah
+					}
+				}
+				remove_core_of = PER
+				remove_claim_by = PER
 			}
-			else_if = {
+			if = {
 				limit = { tag = IRQ }
 				add_state_claim = 413 #Khuzestan
 			}
@@ -13539,51 +13547,34 @@ country_event = { #The Annexation of Persia
 	option = { #puppet
 		name = annex.109.a
 		ai_chance = {
-			factor = 99
+			factor = 100
+			modifier = {
+				factor = 0
+				tag = IRQ
+				413 = { is_valid_annexation_state = yes } #Khuzestan
 		}
-
-		every_owned_state = {
-			limit = {
+			modifier = {
+				factor = 0
+				tag = OTT
 				OR = {
-					is_core_of = PER
-					AND = {
-						is_claimed_by = PER
-						is_clear_other_claims = yes
+					413 = { is_valid_annexation_state = yes } #Khuzestan
+					417 = { is_valid_annexation_state = yes } #Urmia
+					419 = { is_valid_annexation_state = yes } #Tabriz
+					421 = { is_valid_annexation_state = yes } #Kermanshah
 					}
-					AND = {
-						state = 352 #Van
-						ROOT = {
-							NOT = {
-								owns_state = 291 #Baghdad
-								owns_state = 49 #Ankara
 							}
 						}
-					}
-				}
-				NOT = {
-					is_claim_or_core_of_ROOT = yes
-					region = 28 #Syria
-					region = 129 #Anatolia
-					region = 239 #Mesopotamia
-					AND = {
-						OR = {
-							state = 418 #Golestan
-							state = 420 #Mazandaran
-							state = 804 #Northern Khorasan
-						}
-						ROOT = { is_russian_tag_that_can_integrate = yes }
-					}
-				}
-			}
-
-			PER = {
-				transfer_state = PREV
-			}
-		}
-
 		set_temp_variable = { tag_to_release = PER }
-		puppet_released_tag = yes
-
+		every_owned_state = {
+			limit = {
+				is_core_of = var:tag_to_release
+				is_claim_or_core_of_ROOT = no
+				NOT = { is_core_of = KUR }
+				NOT = { state = 413 } #Khuzestan has its own release event
+					}
+			transfer_state_to = var:tag_to_release
+				}
+		puppet_released_tag_nocosmetic = yes
 		hidden_effect = {
 			var:tag_to_release = {
 				if = {
@@ -14653,26 +14644,8 @@ country_event = { #Fate of Anatolia
 
 	immediate = {
 		hidden_effect = {
-			add_to_temp_array = { core_removal_array = TUR }
-			add_to_temp_array = { core_removal_array = OTT }
-			remove_all_cores_and_claims_of_tags = yes
-			every_state = {
-				limit = {
-					OR = {
-						is_core_anatolia = yes
-						state = 344 #Adana
-						state = 1000 #Kars-Igdir
-						state = 1001 #Lazistan
-						state = 341 #Adrianople
-						state = 1225 #Halipoli
-						state = 773 #Constantinople
-						state = 339 #Smyrna
-						state = 340 #Bursa
-						state = 342 #Mugla
-					}
-				}
-				add_core_of = TUR
-			}
+			OTT_remove_ottoman_ambitions_claims = yes
+			TUR = { OTT_changes_into_turkey = yes }
 		}
 	}
 
@@ -14700,35 +14673,35 @@ country_event = { #Fate of Anatolia
 		puppet_released_tag = yes
 	}
 
-	option = { #Ottomans
-		name = annex.120.b
-		trigger = {
-			OR = {
-				tag = GER
-				tag = GEX
-				tag = AUS
-				tag = HUN
-				tag = BUL
-			}
-			has_socialist_government = no
-		}
-		ai_chance = {
-			factor = 80
-		}
-		hidden_effect = {
-			every_state = {
-				limit = { is_core_of = TUR }
-				add_core_of = OTT
-				remove_core_of = TUR
-			}
-		}
-		set_temp_variable = { tag_to_release = OTT }
-		every_owned_state = {
-			limit = { should_transfer_anatolian_state = yes }
-			var:tag_to_release = { transfer_state = PREV }
-		}
-		puppet_released_tag = yes
-	}
+	#option = { #Ottomans
+	#	name = annex.120.b
+	#	trigger = {
+	#		OR = {
+	#			tag = GER
+	#			tag = GEX
+	#			tag = AUS
+	#			tag = HUN
+	#			tag = BUL
+	#		}
+	#		has_socialist_government = no
+	#	}
+	#	ai_chance = {
+	#		factor = 80
+	#	}
+	#	hidden_effect = {
+	#		every_state = {
+	#			limit = { is_core_of = TUR }
+	#			add_core_of = OTT
+	#			remove_core_of = TUR
+	#		}
+	#	}
+	#	set_temp_variable = { tag_to_release = OTT }
+	#	every_owned_state = {
+	#		limit = { should_transfer_anatolian_state = yes }
+	#		var:tag_to_release = { transfer_state = PREV }
+	#	}
+	#	puppet_released_tag = yes
+	#}
 	option = { #occupation
 		name = annex.occupation
 		trigger = { is_ai = no }
@@ -14792,13 +14765,28 @@ country_event = { #The Fate of the Levant
 	option = { #give to OTT ally
 		name = annex.121.b
 		trigger = {
-			NOT = { tag = EGY }
-			is_ally_with = OTT
+			OTT = { is_ally_of_ROOT = yes }
+			NOT = {
+				tag = OTT
+				tag = EGY
+				has_cosmetic_tag = IRQ_federation
+			}
 		}
 		ai_chance = {
 			factor = 20
 		}
-		set_temp_variable = { tag_to_release = OTT }
+		every_owned_state = {
+			limit = {
+				OR = {
+					is_core_of = SYR
+					is_claimed_by = SYR
+				}
+			}
+			OTT = {
+				add_state_core = PREV
+				transfer_state = PREV
+			}
+		}
 		add_to_temp_array = { target_cores_to_release = SYR }
 		transfer_territory_from_core_regions_and_add_claims = yes
 		transfer_sinai_if_annexation_unavailable = yes
@@ -26851,37 +26839,14 @@ country_event = { #Cyprus Liberation
 			factor = 200
 		}
 		trigger = {
-			OR = {
-				is_in_faction_with = TUR
-				TUR = {
-					is_subject_of = ROOT
-				}
-				is_in_faction_with = OTT
-				OTT = {
-					is_subject_of = ROOT
-				}
+			NOT = {
+				tag = TUR
+				tag = GRE
 			}
+			TUR = { ROOT_can_grant_land = yes }
 		}
-
-
-		if = {
-			limit = {
-				OR = {
-					is_in_faction_with = TUR
-					TUR = {
-						is_subject_of = ROOT
-					}
-				}
-			}
-			TUR = {
-				transfer_state = 183
-			}
-			else = {
-				OTT = {
-					transfer_state = 183
-				}
-			}
-		}
+		set_temp_variable = { tag_to_release = TUR }
+		183 = { transfer_state_and_add_core = yes }
 	}
 
 	option = { #Give it to Greece
@@ -26890,19 +26855,32 @@ country_event = { #Cyprus Liberation
 			factor = 100
 		}
 		trigger = {
+			NOT = {
+				tag = TUR
+				tag = GRE
+			}
+			GRE = { ROOT_can_grant_land = yes }
+		}
+		ai_chance = {
+			base = 80
+		}
+		set_temp_variable = { tag_to_release = GRE }
+		183 = { transfer_state_and_add_core = yes }
+	}
+	option = { #Integrate
+		name = annex.integration
+		trigger = {
 			OR = {
-				is_in_faction_with = GRE
-				GRE = {
-					is_subject_of = ROOT
+				tag = TUR
+				tag = GRE
 				}
 			}
+		ai_chance = {
+			base = 100
 		}
-
-		GRE = {
-			transfer_state = 183
+		add_state_claim = 183
+		recheck_annexations = yes
 		}
-	}
-
 	option = { #occupy
 		name = annex.occupation
 		ai_chance = {
@@ -27513,6 +27491,7 @@ country_event = { #The Fate of Hejaz
 			NOT = {
 				tag = JBS
 				tag = SAU
+				has_cosmetic_tag = IRQ_federation
 			}
 		}
 		ai_chance = {
@@ -27625,6 +27604,8 @@ country_event = { #The Fate of Hejaz
 			NOT = {
 				tag = JBS
 				tag = SAU
+				tag = OTT
+				has_cosmetic_tag = IRQ_federation
 			}
 			OTT = {
 				is_ally_with = ROOT
@@ -27633,7 +27614,7 @@ country_event = { #The Fate of Hejaz
 			}
 		}
 		ai_chance = {
-			factor = 20
+			base = 20
 		}
 		every_owned_state = {
 			limit = {
@@ -27643,7 +27624,10 @@ country_event = { #The Fate of Hejaz
 				}
 				is_claim_or_core_of_ROOT = no
 			}
-			OTT = { transfer_state = PREV }
+			OTT = {
+				add_state_core = PREV
+				transfer_state = PREV
+			}
 		}
 		recheck_annexations = yes
 	}
@@ -27654,28 +27638,21 @@ country_event = { #The Fate of Hejaz
 			OR = {
 				tag = JBS
 				tag = SAU
+				has_cosmetic_tag = IRQ_federation
 			}
 		}
 		ai_chance = {
 			factor = 1000
 		}
-		every_owned_state = {
-			limit = {
-				is_claim_or_core_of_ROOT = no
-				OR = {
-					state = 679 #Hejaz
-					state = 754 #Medina
-				}
-			}
-			add_claim_by = ROOT
-		}
 		if = {
-			limit = {
-				tag = SAU
-			}
-			add_state_core = 679 #Hejaz
-			add_state_core = 754 #Medina
+			limit = { tag = SAU }
+			679 = { remove_claim_and_add_core_of_ROOT = yes } #Hejaz
+			754 = { remove_claim_and_add_core_of_ROOT = yes } #Medina
 			set_cosmetic_tag = SAU_ARA
+			}
+		else = {
+			679 = { add_claim_of_ROOT = yes } #Hejaz
+			754 = { add_claim_of_ROOT = yes } #Medina
 		}
 		recheck_annexations = yes
 	}
@@ -27687,6 +27664,7 @@ country_event = { #The Fate of Hejaz
 			NOT = {
 				tag = JBS
 				tag = SAU
+				has_cosmetic_tag = IRQ_federation
 			}
 		}
 		set_country_flag = HEJ_CONQ
@@ -27709,9 +27687,6 @@ country_event = { # Sinai
 				tag = OTT
 				tag = SYR
 				tag = PAL
-				tag = JBS
-				tag = SAU
-				tag = HEJ
 			}
 			EGY = { ROOT_can_grant_land = yes }
 		}
@@ -27723,9 +27698,6 @@ country_event = { # Sinai
 					OR = {
 						tag = SYR
 						tag = PAL
-						tag = JBS
-						tag = SAU
-						tag = HEJ
 					}
 					is_ally_with = ROOT
 				}
@@ -27741,14 +27713,16 @@ country_event = { # Sinai
 	option = { #Give to owner of Jerusalem
 		name = annex.237.b
 		trigger = {
+			NOT = {
+				tag = OTT
+				tag = SYR
+				tag = PAL
+			}
 			var:454.owner = {
 				OR = {
 					tag = OTT
 					tag = SYR
 					tag = PAL
-					tag = JBS
-					tag = SAU
-					tag = HEJ
 				}
 				ROOT_can_grant_land = yes
 			}
@@ -27774,9 +27748,6 @@ country_event = { # Sinai
 				tag = OTT
 				tag = SYR
 				tag = PAL
-				tag = JBS
-				tag = SAU
-				tag = HEJ
 			}
 		}
 		ai_chance = {
@@ -27830,6 +27801,9 @@ country_event = { #The Annexation of Iraq
 
 	option = { #release Iraq
 		name = annex.239.a
+		trigger = {
+			NOT = { has_cosmetic_tag = IRQ_federation }
+		}
 		ai_chance = {
 			factor = 80
 			modifier = {
@@ -27976,8 +27950,11 @@ country_event = { #The Annexation of Iraq
 	option = { #give to OTT ally
 		name = annex.239.d
 		trigger = {
-			NOT = { tag = PER }
-			is_ally_with = OTT
+			NOT = {
+				tag = PER
+				has_cosmetic_tag = IRQ_federation
+			}
+			OTT = { is_ally_of_ROOT = yes }
 			OTT = {
 				OR = {
 					owns_state = 350 #Diyarbakir
@@ -28206,9 +28183,14 @@ country_event = { #Fate of Kurdistan
 	option = { #Puppet Kurdistan
 		name = annex.248.a
 		trigger = {
-			NOT = {
-				tag = TUR
-				country_exists = KUR
+			NOT = { country_exists = KUR }
+			if = {
+				limit = { original_tag = TUR }
+				NOT = { tag = OTT }
+				OR = {
+					417 = { is_valid_annexation_state = yes } #Urmia
+					421 = { is_valid_annexation_state = yes } #Kermanshah
+				}
 			}
 		}
 		ai_chance = {
@@ -28216,17 +28198,17 @@ country_event = { #Fate of Kurdistan
 			modifier = {
 				factor = 0.5
 				OR = {
-					is_ally_with = IRQ
-					is_ally_with = TUR
-					is_ally_with = OTT
-					is_ally_with = PER
+					IRQ = { is_ally_of_ROOT = yes }
+					TUR = { is_ally_of_ROOT = yes }
+					PER = { is_ally_of_ROOT = yes }
 				}
 			}
 			modifier = {
 				factor = 0.5
 				OR = {
-					tag = IRQ
-					tag = PER
+					original_tag = IRQ
+					original_tag = TUR
+					original_tag = PER
 				}
 			}
 		}
@@ -28237,37 +28219,45 @@ country_event = { #Fate of Kurdistan
 	option = { #Give them to KUR
 		name = annex.248.b
 		trigger = {
-			country_exists = KUR
-			NOT = {
-				tag = IRQ
-				tag = TUR
-				tag = PER
-				is_ally_with = KUR
+			KUR = { ROOT_can_grant_land = yes }
+			if = {
+				limit = { original_tag = TUR }
+				NOT = { tag = OTT }
+				OR = {
+					417 = { is_valid_annexation_state = yes } #Urmia
+					421 = { is_valid_annexation_state = yes } #Kermanshah
+				}
 			}
 		}
 		ai_chance = {
 			factor = 80
 			modifier = {
 				factor = 0
+				NOT = { is_ally_with = KUR }
 				OR = {
-					is_ally_with = IRQ
-					is_ally_with = OTT
-					is_ally_with = PER
+					IRQ = { is_ally_of_ROOT = yes }
+					TUR = { is_ally_of_ROOT = yes }
+					PER = { is_ally_of_ROOT = yes }
+				}
 				}
 			}
-			modifier = {
-				factor = 0.5
-				OR = {
-					tag = IRQ
-					tag = PER
-				}
-			}
-		}
+		set_temp_variable = { tag_to_release = KUR }
 		every_owned_state = {
-			limit = { is_core_of = KUR }
-			KUR = { transfer_state = PREV }
+			limit = {
+				if = {
+					limit = { ROOT = { original_tag = TUR } }
+				OR = {
+						state = 417 #Urmia
+						state = 421 #Kermanshah
+					}
+				}
+				else = {
+					region = 252 #Kurdistan
+			}
+				is_claim_or_core_of_ROOT = no
 		}
-		recheck_annexations = yes
+			transfer_state_and_add_core = yes
+		}
 	}
 
 	option = { #give to IRQ ally
@@ -28286,7 +28276,6 @@ country_event = { #Fate of Kurdistan
 				factor = 0
 				OR = {
 					is_ally_with = TUR
-					is_ally_with = OTT
 					is_ally_with = PER
 				}
 				NOT = { is_ally_with = IRQ }
@@ -28301,124 +28290,137 @@ country_event = { #Fate of Kurdistan
 		name = annex.248.d
 		trigger = {
 			NOT = {
-				tag = IRQ
-				tag = TUR
-				tag = PER
+				original_tag = TUR
+				original_tag = IRQ
+				original_tag = PER
 			}
-			var:354.owner = {
 				OR = {
-					tag = TUR
-					tag = OTT
+				350 = { is_valid_annexation_state = yes } #Diyarbakir
+				352 = { is_valid_annexation_state = yes } #Van
+				TUR = { owns_state = 350 } #Diyarbakir
+				TUR = { owns_state = 352 } #Van
 				}
+			TUR = {
 				ROOT_can_grant_land = yes
+				if = {
+					limit = { NOT = { tag = OTT } }
+					OR = {
+						PER = { ROOT_can_grant_land = no }
+						AND = {
+							417 = { is_valid_annexation_state = no } #Urmia
+							421 = { is_valid_annexation_state = no } #Kermanshah
+						}
+					}
+				}
 			}
 		}
 		ai_chance = {
-			factor = 20
+			base = 20
 			modifier = {
 				factor = 0
 				OR = {
-					is_ally_with = IRQ
-					is_ally_with = PER
+					IRQ = { is_ally_of_ROOT = yes }
+					PER = { is_ally_of_ROOT = yes }
 				}
-				NOT = {
-					is_ally_with = TUR
-					is_ally_with = OTT
-				}
+				NOT = { is_ally_with = TUR }
 			}
 		}
-		set_temp_variable = { tag_to_release = var:354.owner }
-		add_to_temp_array = { target_cores_to_release = KUR }
-		transfer_territory_from_core_regions_and_add_claims = yes
+		set_temp_variable = { tag_to_release = TUR }
+		every_owned_state = {
+			limit = {
+				region = 252 #Kurdistan
+				is_claim_or_core_of_ROOT = no
+			}
+			transfer_state_and_add_claim = yes
+		}
 	}
 
 	option = { #give to PER ally
 		name = annex.248.e
 		trigger = {
 			NOT = {
-				tag = IRQ
-				tag = TUR
-				tag = PER
+				original_tag = TUR
+				original_tag = IRQ
+				original_tag = PER
 			}
 			PER = { ROOT_can_grant_land = yes }
 			OR = {
-				owns_state = 417 #Western Azerbaijan
-				owns_state = 421 #Kurdistan
-				PER = { owns_state = 417 } #Western Azerbaijan
-				PER = { owns_state = 421 } #Kurdistan
+				417 = { is_valid_annexation_state = yes } #Urmia
+				421 = { is_valid_annexation_state = yes } #Kermanshah
+				PER = { owns_state = 417 } #Urmia
+				PER = { owns_state = 421 } #Kermanshah
 			}
 		}
 		ai_chance = {
-			factor = 20
+			base = 20
 			modifier = {
 				factor = 0
 				OR = {
-					is_ally_with = TUR
-					is_ally_with = OTT
-					is_ally_with = IRQ
+					TUR = { is_ally_of_ROOT = yes }
+					IRQ = { is_ally_of_ROOT = yes }
 				}
 				NOT = { is_ally_with = PER }
 			}
 		}
 		set_temp_variable = { tag_to_release = PER }
-		add_to_temp_array = { target_cores_to_release = KUR }
-		transfer_territory_from_core_regions_and_add_claims = yes
+		every_owned_state = {
+			limit = {
+				region = 252 #Kurdistan
+				is_claim_or_core_of_ROOT = no
+			}
+			transfer_state_and_add_claim = yes
+		}
 	}
 
 	option = { #split TUR/IRQ
 		name = annex.248.f
 		trigger = {
 			NOT = {
-				tag = IRQ
-				tag = TUR
-				tag = PER
+				original_tag = TUR
+				original_tag = IRQ
+				original_tag = PER
 			}
+			417 = { is_valid_annexation_state = no } #Urmia
+			421 = { is_valid_annexation_state = no } #Kermanshah
 			OR = {
-				owns_state = 350 #Smyrna
-				owns_state = 352 #Bursa
-				owns_state = 417 #Western Azerbaijan
+				350 = { is_valid_annexation_state = yes } #Diyarbakir
+				352 = { is_valid_annexation_state = yes } #Van
 			}
-			OR = {
-				owns_state = 421 #Kurdistan
-				owns_state = 819 #Sulaymaniyah
-			}
-			var:354.owner = {
-				OR = {
-					tag = TUR
-					tag = OTT
-				}
-				ROOT_can_grant_land = yes
-			}
+			819 = { is_valid_annexation_state = yes } #Sulaymaniyah
+			TUR = { ROOT_can_grant_land = yes }
+			IRQ = { ROOT_can_grant_land = yes }
 		}
 		ai_chance = {
-			factor = 40
+			base = 40
 			modifier = {
 				factor = 0.5
-				is_ally_with = IRQ
-				NOT = { is_ally_with = 354.owner }
+				IRQ = { is_ally_of_ROOT = yes }
+				NOT = { is_ally_with = TUR }
 			}
 			modifier = {
 				factor = 0.5
-				is_ally_with = 354.owner
+				TUR = { is_ally_of_ROOT = yes }
 				NOT = { is_ally_with = IRQ }
 			}
 		}
-		set_temp_variable = { tag_to_release = 354.owner }
+		set_temp_variable = { tag_to_release = TUR }
 		every_owned_state = {
 			limit = {
 				OR = {
 					state = 350 #Diyarbakir
 					state = 352 #Van
-					state = 417 #Western Azerbaijan
+					state = 417 #Urmia
 				}
 			}
 			transfer_state_and_add_claim = yes
 		}
+		custom_effect_tooltip = tooltip_white_line
+
 		set_temp_variable = { tag_to_release = IRQ }
 		every_owned_state = {
 			limit = {
 				OR = {
-					state = 421 #Kurdistan
+					state = 421 #Kermanshah
 					state = 819 #Sulaymaniyah
 				}
 			}
@@ -28429,35 +28431,98 @@ country_event = { #Fate of Kurdistan
 	option = { #Integrate
 		name = annex.integration
 		trigger = {
+			original_tag = PER
 			OR = {
-				tag = TUR
-				tag = IRQ
-				tag = PER
+				417 = { is_valid_annexation_state = yes } #Urmia
+				421 = { is_valid_annexation_state = yes } #Kermanshah
+				owns_state = 417 #Urmia
+				owns_state = 421 #Kermanshah
 			}
 		}
 		ai_chance = {
-			factor = 100
+			base = 1000
 		}
 		every_owned_state = {
 			limit = {
-				is_not_claim_or_core_of_ROOT = yes
-				is_core_of = KUR
+				region = 252 #Kurdistan
+				is_claim_or_core_of_ROOT = no
 			}
-			add_claim_by = ROOT
+			add_claim_of_ROOT = yes
 		}
-		recheck_annexations = yes
+	}
+
+	option = { #Integrate
+		name = annex.integration
+		trigger = {
+			original_tag = TUR
+			OR = {
+				tag = OTT
+				350 = { is_valid_annexation_state = yes } #Diyarbakir
+				352 = { is_valid_annexation_state = yes } #Van
+				819 = { is_valid_annexation_state = yes } #Sulaymaniyah
+			}
+		}
+		ai_chance = {
+			base = 1000
+		}
+		if = {
+			limit = { tag = OTT }
+		every_owned_state = {
+			limit = {
+					region = 252 #Kurdistan
+					is_claim_or_core_of_ROOT = no
+				}
+				add_claim_of_ROOT = yes
+			}
+		}
+		else = {
+			350 = { add_claim_of_ROOT = yes } #Diyarbakir
+			352 = { add_claim_of_ROOT = yes } #Van
+			819 = { add_claim_of_ROOT = yes } #Sulaymaniyah
+		}
+	}
+
+	option = { #Integrate
+		name = annex.integration
+		trigger = {
+			original_tag = IRQ
+			819 = { is_valid_annexation_state = yes } #Sulaymaniyah
+			}
+		ai_chance = {
+			base = 1000
+		}
+		819 = { add_claim_of_ROOT = yes } #Sulaymaniyah
 	}
 
 	option = { #Occupy it
 		name = annex.occupation
 		trigger = {
-			is_ai = no
 			NOT = {
-				tag = TUR
-				tag = IRQ
-				tag = PER
+				AND = {
+					original_tag = PER
+					OR = {
+						417 = { is_valid_annexation_state = yes } #Urmia
+						421 = { is_valid_annexation_state = yes } #Kermanshah
+						owns_state = 417 #Urmia
+						owns_state = 421 #Kermanshah
+					}
+				}
+				AND = {
+					original_tag = TUR
+					OR = {
+						tag = OTT
+						350 = { is_valid_annexation_state = yes } #Diyarbakir
+						352 = { is_valid_annexation_state = yes } #Van
+						819 = { is_valid_annexation_state = yes } #Sulaymaniyah
+					}
+				}
+				AND = {
+					original_tag = IRQ
+					819 = { is_valid_annexation_state = yes } #Sulaymaniyah
+				}
 			}
 		}
+		ai_chance = { base = 0 }
 		occupy_medium_country = yes
 		set_country_flag = KUR_CONQ
 	}
@@ -29385,40 +29450,29 @@ country_event = { #Fate of Constantinople
 	option = { #transfer TUR/OTT
 		name = annex.265.a
 		trigger = {
-			var:340.owner = { #Bursa
-				OR = {
-					tag = OTT
-					tag = TUR
-				}
-				ROOT_can_grant_land = yes
-			}
+			TUR = { ROOT_can_grant_land = yes }
 			NOT = {
 				tag = GRE
-				tag = BUL
-				tag = OTT
 				tag = TUR
 			}
 		}
 		ai_chance = {
-			factor = 50
+			base = 50
+			modifier = {
+				factor = 0.1
+				NOT = { is_ally_with = TUR }
+			}
 		}
+		set_temp_variable = { tag_to_release = TUR }
 		every_owned_state = {
 			limit = {
 				OR = {
 					state = 773 #Constantinople
 					state = 341 #Adrianople
 				}
-				is_not_claim_or_core_of_ROOT = yes
+				is_claim_or_core_of_ROOT = no
 			}
-			if = {
-				limit = { is_claimed_by = var:340.owner }
-				remove_claim_by = var:340.owner
-			}
-			if = {
-				limit = { NOT = { is_core_of = var:340.owner } }
-				add_core_of = var:340.owner
-			}
-			var:340.owner = { transfer_state = PREV }
+			add_core_of_target_and_transfer_if_owned = yes
 		}
 	}
 	option = { #transfer to GRE
@@ -29427,9 +29481,14 @@ country_event = { #Fate of Constantinople
 			GRE = { ROOT_can_grant_land = yes }
 			NOT = {
 				tag = GRE
-				tag = BUL
-				tag = OTT
 				tag = TUR
+			}
+		}
+		ai_chance = {
+			base = 50
+			modifier = {
+				factor = 0.1
+				NOT = { is_ally_with = GRE }
 			}
 		}
 		ai_chance = {
@@ -29462,7 +29521,6 @@ country_event = { #Fate of Constantinople
 			NOT = {
 				tag = GRE
 				tag = BUL
-				tag = OTT
 				tag = TUR
 			}
 		}
@@ -29492,10 +29550,7 @@ country_event = { #Fate of Constantinople
 	option = { #annex
 		name = annex.integration
 		trigger = {
-			OR = {
-				tag = OTT
 				tag = TUR
-			}
 		}
 		ai_chance = {
 			factor = 1000
@@ -29503,18 +29558,12 @@ country_event = { #Fate of Constantinople
 		every_owned_state = {
 			limit = {
 				OR = {
-					state = 773
-					state = 341
+					state = 773 #Constantinople
+					state = 341 #Adrianople
 				}
+				is_claim_or_core_of_ROOT = no
 			}
-			if = {
-				limit = { is_claimed_by = ROOT }
-				remove_claim_by = ROOT
-			}
-			if = {
-				limit = { NOT = { is_core_of = ROOT } }
-				add_core_of = ROOT
-			}
+			remove_claim_and_add_core_of_ROOT = yes
 		}
 	}
 	option = { #annex
@@ -29530,11 +29579,11 @@ country_event = { #Fate of Constantinople
 		}
 		every_owned_state = {
 			limit = {
-				is_not_claim_or_core_of_ROOT = yes
 				OR = {
-					state = 773
-					state = 341
+					state = 773 #Constantinople
+					state = 341 #Adrianople
 				}
+				is_claim_or_core_of_ROOT = no
 			}
 			add_claim_by = ROOT
 		}
@@ -29546,7 +29595,6 @@ country_event = { #Fate of Constantinople
 			NOT = {
 				tag = GRE
 				tag = BUL
-				tag = OTT
 				tag = TUR
 			}
 		}
@@ -37226,87 +37274,56 @@ country_event = { #Fate of Lazistan
 	is_triggered_only = yes
 
 	option = {
-		name = annex.354.a #give it to Armenia
+		name = annex.4015.a #give it to Georgia
 		trigger = {
 			NOT = {
-				tag = ARM
-				tag = GEO
-				tag = TUR
-				tag = OTT
+				original_tag = GEO
+				original_tag = TUR
 			}
-			ARM = { ROOT_can_grant_land = yes }
+			GEO = {
+				owns_state = 585 #Batumi
+				ROOT_can_grant_land = yes
+			}
 		}
 		ai_chance = {
-			factor = 100
+			base = 100
 			modifier = {
 				factor = 0
-				OR = {
-					is_ally_with = GEO
-					is_ally_with = TUR
-					is_ally_with = OTT
-				}
-				NOT = { is_ally_with = ARM }
-			}
-		}
-		set_temp_variable = { tag_to_release = ARM }
-		1001 = { transfer_state_and_add_claim = yes }
-	}
-
-	option = {
-		name = annex.354.b #give it to Georgia
-		trigger = {
-			NOT = {
-				tag = ARM
-				tag = GEO
-				tag = TUR
-				tag = OTT
-			}
-			GEO = { ROOT_can_grant_land = yes }
-		}
-		ai_chance = {
-			factor = 100
-			modifier = {
-				factor = 0
-				OR = {
-					is_ally_with = ARM
-					is_ally_with = var:355.owner
-				}
+				is_russian_tag = no
+				TUR = { is_ally_of_ROOT = yes }
 				NOT = { is_ally_with = GEO }
+				}
 			}
-		}
 		set_temp_variable = { tag_to_release = GEO }
 		1001 = { transfer_state_and_add_claim = yes }
 	}
 
 	option = {
-		name = annex.354.c #give it to Turkey
+		name = annex.4015.b #give it to Turkey
 		trigger = {
 			NOT = {
-				tag = ARM
-				tag = GEO
-				tag = TUR
-				tag = OTT
+				original_tag = GEO
+				original_tag = TUR
 			}
-			var:355.owner = { #Trebizond
-				OR = {
-					tag = TUR
-					tag = OTT
-				}
-				ROOT_can_grant_land = yes
-			}
+			TUR = { ROOT_can_grant_land = yes }
 		}
 		ai_chance = {
-			factor = 100
+			base = 100
+			modifier = {
+				factor = 0
+				GEO = { is_ally_of_ROOT = yes }
+				NOT = { is_ally_with = TUR }
+	}
 			modifier = {
 				factor = 0
 				OR = {
-					is_ally_with = ARM
-					is_ally_with = GEO
+					original_tag = ARM
+					is_russian_tag = yes
 				}
-				NOT = { is_ally_with = var:355.owner }
+				GEO = { ROOT_can_grant_land = yes }
 			}
 		}
-		set_temp_variable = { tag_to_release = var:355.owner }
+		set_temp_variable = { tag_to_release = TUR }
 		1001 = { transfer_state_and_add_core = yes }
 	}
 
@@ -37314,22 +37331,15 @@ country_event = { #Fate of Lazistan
 		name = annex.integration
 		trigger = {
 			OR = {
-				tag = ARM
-				tag = GEO
-				tag = TUR
-				tag = OTT
+				original_tag = TUR
 				AND = {
-					is_russian_tag_that_can_integrate = yes
-					has_completed_focus = RUS_Expansionism
-					OR = {
-						owns_state = 230 #Yerevan
-						owns_state = 231 #Georgia
-					}
+					original_tag = GEO
+					owns_state = 585 #Batumi
 				}
 			}
 		}
 		ai_chance = {
-			factor = 100
+			base = 1000
 		}
 		add_state_claim = 1001
 		recheck_annexations = yes
@@ -37341,16 +37351,10 @@ country_event = { #Fate of Lazistan
 			is_ai = no
 			is_russian_tag_that_can_integrate = no
 			NOT = {
-				tag = ARM
-				tag = GEO
-				tag = TUR
-				tag = OTT
+				original_tag = TUR
 				AND = {
-					is_russian_tag_that_can_integrate = yes
-					OR = {
-						owns_state = 230 #Yerevan
-						owns_state = 231 #Georgia
-					}
+					original_tag = GEO
+					owns_state = 585 #Batumi
 				}
 			}
 		}
@@ -37368,23 +37372,20 @@ country_event = { #Fate of Kars
 	is_triggered_only = yes
 
 	option = {
-		name = annex.355.a #give it to Armenia
+		name = annex.4014.a #give it to Armenia
 		trigger = {
 			NOT = {
-				tag = ARM
-				tag = TUR
-				tag = OTT
+				original_tag = ARM
+				original_tag = TUR
 			}
 			ARM = { ROOT_can_grant_land = yes }
 		}
 		ai_chance = {
-			factor = 100
+			base = 100
 			modifier = {
 				factor = 0
-				OR = {
-					is_ally_with = TUR
-					is_ally_with = OTT
-				}
+				is_russian_tag = no
+				TUR = { is_ally_of_ROOT = yes }
 				NOT = { is_ally_with = ARM }
 			}
 		}
@@ -37393,30 +37394,31 @@ country_event = { #Fate of Kars
 	}
 
 	option = {
-		name = annex.355.b #give it to Turkey
+		name = annex.4014.b #give it to Turkey
 		trigger = {
 			NOT = {
-				tag = ARM
-				tag = TUR
-				tag = OTT
+				original_tag = ARM
+				original_tag = TUR
 			}
-			var:354.owner = { #Erzurum
-				OR = {
-					tag = TUR
-					tag = OTT
-				}
-				ROOT_can_grant_land = yes
+			TUR = { ROOT_can_grant_land = yes }
 			}
-		}
 		ai_chance = {
-			factor = 100
+			base = 100
 			modifier = {
 				factor = 0
-				is_ally_with = ARM
-				NOT = { is_ally_with = var:354.owner }
+				ARM = { is_ally_of_ROOT = yes }
+				NOT = { is_ally_with = TUR }
+		}
+			modifier = {
+				factor = 0
+				is_russian_tag = yes
+				OR = {
+					ARM = { ROOT_can_grant_land = yes }
+					owns_state = 230 #Yerevan
+				}
 			}
 		}
-		set_temp_variable = { tag_to_release = var:354.owner }
+		set_temp_variable = { tag_to_release = TUR }
 		1000 = { transfer_state_and_add_core = yes }
 	}
 
@@ -37426,46 +37428,32 @@ country_event = { #Fate of Kars
 			OR = {
 				tag = ARM
 				tag = TUR
-				tag = OTT
 				AND = {
-					is_russian_tag_that_can_integrate = yes
-					has_completed_focus = RUS_Expansionism
-					OR = {
-						owns_state = 1001 #Lazistan
+					is_russian_tag = yes
 						owns_state = 230 #Yerevan
 					}
 				}
 			}
-		}
 		ai_chance = {
-			factor = 100
+			base = 1000
 		}
 		add_state_claim = 1000
-		if = {
-			limit = { is_russian_tag_that_can_integrate = yes }
-			add_to_array = { RUS_integration_state_array = 1000 }
-		}
 		recheck_annexations = yes
 	}
 
 	option = { #occupy
 		name = annex.occupation
 		trigger = {
-			is_ai = no
-			is_russian_tag_that_can_integrate = no
 			NOT = {
 				tag = ARM
 				tag = TUR
-				tag = OTT
 				AND = {
-					is_russian_tag_that_can_integrate = yes
-					OR = {
-						owns_state = 1001 #Lazistan
+					is_russian_tag = yes
 						owns_state = 230 #Yerevan
 					}
 				}
 			}
-		}
+		ai_chance = { base = 0 }
 		occupy_small_country = yes
 		set_country_flag = KARS_CONQ
 	}
@@ -37507,7 +37495,7 @@ country_event = { #Fate of Lebanon
 	option = { #give to OTT ally
 		name = annex.356.b
 		trigger = {
-			is_ally_with = OTT
+			OTT = { is_ally_of_ROOT = yes }
 			OTT = { owns_state = 554 } #Syria
 		}
 		ai_chance = {
@@ -37973,7 +37961,10 @@ country_event = { #Fate of the Suez Canal
 				has_socialist_government = no
 			}
 		}
-		EGY = { transfer_state = 753 }
+		OTT = {
+			add_state_core = 753
+			transfer_state = 753
+		}
 		recheck_annexations = yes
 	}
 
