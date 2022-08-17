@@ -15113,7 +15113,7 @@ country_event = { #Fate of Ukraine
 				is_claim_or_core_of_ROOT = no
 			}
 			transfer_state_and_add_claim = yes
-			add_to_array = { RUS_integration_state_array = PREV }
+			add_to_array = { RUS_integration_state_array = THIS }
 		}		
 	}
 	option = { #Puppet
@@ -15281,6 +15281,7 @@ country_event = { #Fate of Ukraine
 			any_allied_country = {
 				is_russian_tag_that_can_integrate = yes
 				owns_state = 219
+				ROOT_can_grant_land = yes
 			}
 		}
 		ai_chance = { factor = 99 }
@@ -19386,12 +19387,92 @@ country_event = { #Netherlands Liberation
 	
 	immediate = {
 		hidden_effect = {
-			HOL = { drop_cosmetic_tag = yes }
+			add_to_temp_array = { core_removal_array = HOL }
+			remove_all_cores_and_claims_of_tags = yes
+			HOL = { 
+				drop_cosmetic_tag = yes
+				add_state_core = 7 #Holland
+				add_state_core = 35 #North Brabant
+				add_state_core = 36 #Frisia
+				add_state_core = 866 #Guelders
+				add_state_core = 978 #Limburg
+				add_state_core = 979 #Zeeuws-Vlaanderen
+				if = {				# Removing socialist ideas from non-socialist puppet
+					limit = { ROOT = { has_socialist_government = no } }
+					remove_ideas = {
+						HOL_idea_labour_camps
+						HOL_idea_mass_collectivisation
+						HOL_syn_rebuilding_idea
+						HOL_Rebuild_The_Bureaucracy_idea
+						HOL_Proletarian_humanism_idea
+						HOL_Proletarian_humanism_idea_final
+						HOL_Industrial_Dem_idea
+						HOL_Industrial_Dem_idea_final
+						HOL_idea_democratic_workplace
+						HOL_idea_democratic_workplace_final
+						HOL_idea_verzorgingsstaat
+						HOL_idea_transition_to_fair_economy
+						HOL_idea_market_socialism
+						HOL_british_designs_tanks
+						HOL_war_communism
+						HOL_Red_Sky
+						HOL_Red_Sky_1
+						HOL_red_navy
+						HOL_red_navy_1
+						HOL_red_navy_2
+						HOL_red_advisors
+						HOL_rev_vanguard_idea
+						HOL_rev_vanguard_idea_final
+					}
+				}
+				else = {				# Removing non-socialist ideas from socialist puppet
+					remove_ideas = {
+						HOL_idea_ambtenarenverbod
+						HOL_idea_ambtenarenverbod_01
+						HOL_idea_ambtenarenverbod_02
+						HOL_idea_february_strike
+						HOL_idea_neutrality
+						HOL_idea_strict_weapon_laws
+						HOL_idea_orde_van_oranje_nassau
+						HOL_idea_secret_police
+						HOL_idea_outlawed_unions
+						HOL_idea_staatsvakbond
+						HOL_idea_nationalist_renaissance
+					}
+				}
+				remove_ideas = {	# Common ideas that should be removed for puppets
+					HOL_idea_negotiate_with_extremists
+					HOL_idea_agreement_with_left_0
+					HOL_idea_agreement_with_left_1
+					HOL_idea_agreement_with_left_2
+					HOL_idea_agreement_with_right_1
+					HOL_idea_agreement_with_right_2
+					HOL_idea_crisis
+					HOL_idea_economic_recovery
+					HOL_idea_batavian_courage
+					HOL_idea_batavian_courage_1
+					HOL_idea_batavian_courage_2
+					HOL_idea_instability
+					HOL_idea_instability_above_50
+				}
+			}
+		}
+		var:6.owner = {
+			if = {
+				limit = {
+					is_belgian_tag = yes
+					ROOT_can_grant_land = yes
+				}
+				save_event_target_as = belgium
+			}
 		}
 	}
 
 	option = { #liberate
 		name = annex.154.a
+		trigger = {
+			NOT = { is_in_faction_with = DEI }
+		}
 		ai_chance = {
 			factor = 20
 			modifier = {
@@ -19404,242 +19485,238 @@ country_event = { #Netherlands Liberation
 			}
 		}
 
-		HOL = {
-			add_state_core = 979
-			add_state_core = 978
-		}
-
 		set_temp_variable = { tag_to_release = HOL }
 		release_targeted_tag = yes
-
+		HOL_puppet_setup = yes
 		if = {
-			limit = {
-				is_in_faction_with = DEI
-			}
-			country_event = holex.41
-		}
-		else_if = {
 			limit = { tag = GER }
 			country_event = hol.4
 		}
 	}
-
 	option = { #Restore to the government in exile
-		name = annex.154.f
+		name = annex.1048.f
 		trigger = {
 			is_in_faction_with = DEI
 		}
 		ai_chance = {
-			factor = 160
+			base = 1000
+			modifier = {
+				factor = 0
+				is_belgian_tag = yes
+			}
 		}
 		every_owned_state = {
 			limit = {
 				is_core_of = HOL
-				is_not_claim_or_core_of_ROOT = yes
+				is_claim_or_core_of_ROOT = no
 			}
-			DEI = {
-				transfer_state = PREV
-			}
+			transfer_state_to = DEI
 		}
 	}
-
-	option = { #liberate but give Limburg and Zeeuws-Vlaanderen to Belgium/Flanders-Wallonia
+	option = { #Annex Limburg, give BEL its claims, liberate the rest
 		name = annex.154.b
 		ai_chance = {
-			factor = 80
+			base = 80
 		}
 		trigger = {
-			OR = {
-				AND = {
-					country_exists = BEL
-					OR = {
-						tag = BEL
-						is_in_faction_with = BEL
+			NOT = { is_in_faction_with = DEI }
+			has_event_target = belgium
+			is_germany_or_splinter_tag = yes
+			978 = { is_valid_annexation_state = yes } #Limburg
+			979 = { is_valid_annexation_state = yes } #Zeeuws-Vlaanderen
 					}
-				}
-				AND = {
-					country_exists = FLN
-					OR = {
-						tag = FLN
-						is_in_faction_with = FLN
-					}
-				}
-				AND = {
-					tag = FRA
-					owns_state = 6
-					OR = {
-						has_country_flag = BEL_CONQ
-						NOT = {
-							is_ai = yes
-						}
-					}
-				}
-			}
-			OR = {
-				978 = {
-					is_owned_by = ROOT
-				}
-				979 = {
-					is_owned_by = ROOT
-				}
-			}
-		}
-
-		978 = {
-			remove_core_of = HOL
-		}
+		add_state_claim = 978 #Limburg
+		set_temp_variable = { tag_to_release = event_target:belgium }
 		979 = {
-			remove_core_of = HOL
-		}
-
+			transfer_state_and_add_claim = yes #Zeeuws-Vlaanderen
+			save_event_target_as = transfer_state
+			hidden_effect = { state_event = { id = gre.257 trigger_for = owner } }
+				}
+		custom_effect_tooltip = tooltip_white_line
 		set_temp_variable = { tag_to_release = HOL }
 		release_targeted_tag = yes
-
+		HOL_puppet_setup = yes
 		if = {
-			limit = {
-				978 = {
-					is_owned_by = ROOT
-				}
-				NOT = {
-					AND = {
-						OR = {
-							tag = FRA
-							tag = NFA
-							tag = BEL
-							tag = WLL
-							tag = FLN
-							AND = {
-								is_german_tag = yes
-								781 = { is_claim_or_core_of_ROOT = yes } #Western Rhineland
-							}
-						}
-						6 = { is_claimed_by = ROOT } #Flanders
-					}
-				}
-			}
-			if = {
-				limit = {
-					country_exists = BEL
-				}
-				BEL = {
-					transfer_state = 978
-				}
-			}
-			if = {
-				limit = {
-					WLL = {
-						owns_state = 6
-					}
-				}
-				WLL = {
-					transfer_state = 978
-				}
-			}
-			if = {
-				limit = {
-					country_exists = FLN
-				}
-				FLN = {
-					transfer_state = 978
-				}
-			}
-		}
-
-		if = {
-			limit = {
-				979 = {
-					is_owned_by = ROOT
-				}
-			}
-			if = {
-				limit = {
-					country_exists = BEL
-				}
-				BEL = {
-					transfer_state = 979
-				}
-			}
-			if = {
-				limit = {
-					WLL = {
-						owns_state = 6
-					}
-				}
-				WLL = {
-					transfer_state = 979
-				}
-			}
-			if = {
-				limit = {
-					country_exists = FLN
-				}
-				FLN = {
-					transfer_state = 979
-				}
-			}
-		}
-
-		if = {
-			limit = {
-				is_in_faction_with = DEI
-			}
-			country_event = holex.41
-		}
-		else_if = {
 			limit = { tag = GER }
 			country_event = hol.4
-		}
-	}
-
+					}
+				}
 	option = { #liberate but keep Limbourg
 		name = annex.154.c
 		ai_chance = {
-			factor = 80
-		}
+			base = 20
+			modifier = {
+				factor = 4
+				NOT = { has_event_target = belgium }
+						}
+					}
 		trigger = {
-			OR = {
-				tag = GER
-				tag = GRU #For the future
-			}
-		}
-
-		978 = {
-			remove_core_of = HOL
-		}
-
+			NOT = { is_in_faction_with = DEI }
+			is_germany_or_splinter_tag = yes
+			978 = { is_valid_annexation_state = yes } #Limburg
+				}
+		add_state_claim = 978 #Limburg
 		set_temp_variable = { tag_to_release = HOL }
 		release_targeted_tag = yes
-
+		HOL_puppet_setup = yes
 		country_event = {
 			id = hol.4
 			days = 2
+			}
+				}
+	option = { #Annex Limburg + Zeeuws-Vlaanderen, liberate the rest
+		name = annex.154.d
+		ai_chance = {
+			base = 80
+				}
+		trigger = {
+			NOT = { is_in_faction_with = DEI }
+			is_belgian_tag = yes
+			OR = {
+				978 = { is_valid_annexation_state = yes } #Limburg
+				979 = { is_valid_annexation_state = yes } #Zeeuws-Vlaanderen
+			}
+		}
+		add_state_claim = 978 #Limburg
+		add_state_claim = 979 #Zeeuws-Vlaanderen
+		set_temp_variable = { tag_to_release = HOL }
+		release_targeted_tag = yes
+		HOL_puppet_setup = yes
+	}	
+	option = { #Give Limburg + Zeeuws-Vlaanderen to Belgium, liberate the rest
+		name = annex.154.e
+		ai_chance = {
+			base = 80
+				}
+		trigger = {
+			NOT = { is_in_faction_with = DEI }
+			has_event_target = belgium
+						OR = {
+				978 = { is_valid_annexation_state = yes } #Limburg
+				979 = { is_valid_annexation_state = yes } #Zeeuws-Vlaanderen
+							}
+						}
+		set_temp_variable = { tag_to_release = event_target:belgium }
+		every_owned_state = {
+				limit = {
+				OR = {
+					state = 978 #Limburg
+					state = 979 #Zeeuws-Vlaanderen
+				}
+				is_claim_or_core_of_ROOT = no
+				}
+			transfer_state_to = var:tag_to_release
+			}
+		custom_effect_tooltip = tooltip_white_line
+		set_temp_variable = { tag_to_release = HOL }
+		release_targeted_tag = yes
+		HOL_puppet_setup = yes
+					}
+	option = { #Annex Limburg, restore the government in exile
+		name = annex.154.g
+		trigger = {
+			is_in_faction_with = DEI
+			is_germany_or_splinter_tag = yes
+			978 = { is_valid_annexation_state = yes } #Limburg
+				}
+		ai_chance = {
+			base = 1000
+				}
+		add_state_claim = 978 #Limburg
+		every_owned_state = {
+				limit = {
+				is_core_of = HOL
+				is_claim_or_core_of_ROOT = no
+				}
+			transfer_state_to = DEI
+			}
 		}
 
-		if = {
-			limit = {
-				is_in_faction_with = DEI
+	option = { #Annex Limburg, give BEL its claims, restore the government in exile
+		name = annex.154.h
+		trigger = {
+			is_in_faction_with = DEI
+			is_germany_or_splinter_tag = yes
+			978 = { is_valid_annexation_state = yes } #Limburg
+			979 = { is_valid_annexation_state = yes } #Zeeuws-Vlaanderen
+				}
+		ai_chance = {
+			base = 1000
 			}
-			country_event = holex.41
+		add_state_claim = 978 #Limburg
+		set_temp_variable = { tag_to_release = event_target:belgium }
+		979 = {
+			transfer_state_and_add_claim = yes #Zeeuws-Vlaanderen
+			save_event_target_as = transfer_state
+			hidden_effect = { state_event = { id = gre.257 trigger_for = owner } }
+				}
+		custom_effect_tooltip = tooltip_white_line
+		every_owned_state = {
+				limit = {
+				is_core_of = HOL
+				is_claim_or_core_of_ROOT = no
+					}
+			transfer_state_to = DEI
+				}
+				}
+	option = { #Annex Limburg + Zeeuws-Vlaanderen, restore the government in exile
+		name = annex.154.i
+		trigger = {
+			is_in_faction_with = DEI
+			is_belgian_tag = yes
+			OR = {
+				978 = { is_valid_annexation_state = yes } #Limburg
+				979 = { is_valid_annexation_state = yes } #Zeeuws-Vlaanderen
+			}
+				}
+		ai_chance = {
+			base = 1000
+				}
+		add_state_claim = 978 #Limburg
+		add_state_claim = 979 #Zeeuws-Vlaanderen
+		every_owned_state = {
+			limit = {
+				is_core_of = HOL
+				is_claim_or_core_of_ROOT = no
+			}
+			transfer_state_to = DEI
 		}
 	}
 
-	option = { #occupy
-		name = annex.154.e
-		ai_chance = {
-			factor = 80
-			modifier = {
-				factor = 0
-				NOT = {
-					AND = {
-						tag = BEL
-						OR = {
-							has_government = national_populist
-							has_government = paternal_autocrat
-						}
-					}
-				}
+	option = { #Give Limburg + Zeeuws-Vlaanderen to Belgium, restore the government in exile
+		name = annex.154.j
+		trigger = {
+			is_in_faction_with = DEI
+			is_belgian_tag = no
+			OR = {
+				BEL = { is_ally_of_ROOT = yes }
+				FLN = { is_ally_of_ROOT = yes }
+				WLL = { is_ally_of_ROOT = yes }
 			}
+			OR = {
+				978 = { is_valid_annexation_state = yes } #Limburg
+				979 = { is_valid_annexation_state = yes } #Zeeuws-Vlaanderen
 		}
+		}
+		ai_chance = {
+			base = 1000
+		}
+		add_state_claim = 978 #Limburg
+		add_state_claim = 979 #Zeeuws-Vlaanderen
+		every_owned_state = {
+			limit = {
+				is_core_of = HOL
+				is_claim_or_core_of_ROOT = no
+			}
+			transfer_state_to = DEI
+		}
+	}
+	option = { #occupy
+		name = annex.occupation
+		trigger = {
+			NOT = { is_in_faction_with = DEI }
+		}
+		ai_chance = { base = 0 }
 		set_country_flag = HOL_CONQ
 		occupy_medium_country = yes
 		if = {
@@ -21221,6 +21298,7 @@ country_event = { #Fate of Belgium
 			}
 		}
 		else = {
+			BEL = {
 			load_focus_tree = BEL_Independent_focus
 			set_cosmetic_tag = BELG
 			unlock_national_focus = BEL_Elections
@@ -21233,6 +21311,7 @@ country_event = { #Fate of Belgium
 			}
 			unlock_national_focus = BEL_Republic
 		}
+	}
 	}
 
 	option = { #Divide Belgium
@@ -21432,7 +21511,7 @@ country_event = { #Fate of Wallonia
 		WLL = { WLL_reset_focus_tree_and_ideas = yes }
 	}
 	
-	option = { #Give it to FLA
+	option = { #Give it to FLN
 		name = annex.162.b
 		trigger = {
 			FLN = {
@@ -27085,33 +27164,56 @@ country_event = { #Fate of Transamur
 
 	is_triggered_only = yes
 
+	immediate = {
+		hidden_effect = {
+			add_to_temp_array = { core_removal_array = TRM }
+			remove_all_cores_and_claims_of_tags = yes
+			every_state = {
+				limit = { is_russian_far_east = yes }
+				add_core_of = TRM
+			}
+			TRM = {
+				remove_ideas = TRM_dream
+				clr_country_flag = TRM_Dem_coup
+				clr_country_flag = TRM_Yui
+				clr_country_flag = TRM_Moryaki_Coup
+				clr_country_flag = TRM_NRA_coup
+				clr_country_flag = TRM_Semyonov_Coup
+				clr_country_flag = TRM_Kolchak_alive
+				clr_country_flag = TRM_Mlad_in_power
+				clr_country_flag = TRM_Nats_in_power
+				clr_country_flag = LEADER_GUI_VISIBLE
+				drop_cosmetic_tag = yes
+			}
+			if = {
+				limit = {
+					ROOT = { tag = JAP }
+			}
+				add_state_claim = 637
+				add_state_claim = 562
+		}
+		}
+	}
+
 	option = { #liberate
 		name = annex.226.a
 		trigger = {
-			NOT = {
-				tag = JAP
+			is_russian_tag_that_can_integrate = no
+		}
+		ai_chance = {
+			base = 10
+			modifier = {
+				factor = 5
+				is_in_faction_with = ENT
+				RUS = { is_ally_of_ROOT = no }
 			}
 		}
-		ai_chance = {
-			factor = 100
-		}
 		set_temp_variable = { tag_to_release = TRM }
 		release_targeted_tag = yes
-		TRM = { remove_ideas = TRM_dream }
-	}
-	option = { #liberate
-		name = annex.226.e
-		trigger = {
-			tag = JAP
-		}
-		ai_chance = {
-			factor = 100
-		}
-		408 = { add_core_of = TRM }
-		1246 = { add_core_of = TRM }
-		409 = { add_core_of = TRM }
-		set_temp_variable = { tag_to_release = TRM }
-		release_targeted_tag = yes
+		if = {
+			limit = {
+				tag = JAP
+			}
 		TRM = {
 			remove_ideas = TRM_dream
 			clr_country_flag = TRM_Mil_coup
@@ -27136,6 +27238,7 @@ country_event = { #Fate of Transamur
 			set_country_flag = TRM_Yui
 		}
 	}
+	}
 	option = { #Give it to RUS
 		name = annex.226.b
 		ai_chance = {
@@ -27156,6 +27259,7 @@ country_event = { #Fate of Transamur
 					is_subject_of = ROOT
 				}
 			}
+			is_russian_tag_that_can_integrate = no
 		}
 		if = {
 			limit = {
@@ -27186,6 +27290,7 @@ country_event = { #Fate of Transamur
 					is_subject_of = ROOT
 				}
 			}
+			is_russian_tag_that_can_integrate = no
 		}
 		every_owned_state = {
 			limit = {
@@ -27197,13 +27302,81 @@ country_event = { #Fate of Transamur
 			}
 		}
 	}
+	option = { #Split between SIB and TRM
+		name = annex.226.g
+		ai_chance = {
+			factor = 10
+		}
+		trigger = {
+			is_russian_tag_that_can_integrate = no
+			SIB = {
+				exists = yes
+				is_ally_of_ROOT = yes
+				ROOT_can_grant_land = yes
+			}
+		}
+		set_temp_variable = { tag_to_release = SIB }
+		every_owned_state = {
+			limit = {
+				is_russian_far_east = yes
+				NOT = {
+					state = 408
+					state = 409
+					state = 1246
+				}
+				is_claim_or_core_of_ROOT = no
+			}
+			transfer_state_and_add_core = yes
+		}
+		set_temp_variable = { tag_to_release = TRM }
+		release_targeted_tag = yes
+	}
+		
+	option = { #Integrate
+		name = annex.integration
+		ai_chance = {
+			factor = 200
+		}
+		trigger = {
+			is_russian_tag_that_can_integrate = yes
+		}
+		every_owned_state = {
+			limit = {
+				is_core_of = TRM
+				is_claim_or_core_of_ROOT = no
+			}
+			hidden_effect = {
+				if = {
+					limit = { has_resistance = yes }
+					set_temp_variable = { original_compliance = THIS.compliance }
+					set_temp_variable = { original_resistance = THIS.resistance }
+					cancel_resistance = yes
+				}
+				start_resistance = TRM
+				if = {
+					limit = { has_variable = original_compliance }
+					set_compliance = original_compliance
+				}
+				if = {
+					limit = { has_variable = original_resistance }
+					set_resistance = original_resistance
+				}
+			}
+			if = {
+				limit = { is_claim_or_core_of_ROOT = no }
+				add_claim_by = ROOT
+			}
+		}
+		add_to_array = { RUS_integration_array = TRM }
+		recheck_annexations = yes
+	}
 
 	option = { #occupy
 		name = annex.occupation
 		ai_chance = {
 			factor = 0
 		}
-		occupy_medium_country = yes
+		occupy_large_country = yes
 		set_country_flag = TRM_CONQ
 	}
 }
@@ -29431,7 +29604,142 @@ country_event = { #Fate of Nis
 		occupy_small_country = yes
 	}
 }
+country_event = { #Fate of Greenland
+	id = annex.261
+	immediate = { log = "[GetDateText]: [Root.GetName]: event annex.261 FROM = [From.GetName]" }
+	title = annexation_GRN_CONQ
+	desc = annexation_GRN_CONQ_desc
+	picture = GFX_report_event_generic_conference2
 
+	is_triggered_only = yes
+
+	option = { #Give Greenland to DEN
+		name = annex.261.a
+		ai_chance = {
+			base = 30
+			modifier = {
+				factor = 0
+				is_american_tag = yes
+			}
+		}
+		trigger = {
+			DEN = { is_ally_of_ROOT = yes }
+		}
+		DEN = {
+			transfer_state = 101
+			transfer_state = 926
+		}
+		recheck_annexations = yes
+	}
+	option = { #Give Greenland to NOR
+		name = annex.261.b
+		ai_chance = {
+			base = 30
+			modifier = {
+				factor = 0
+				is_american_tag = yes
+			}
+			modifier = {
+				factor = 0
+				OR = {
+					DEN = { is_ally_of_ROOT = yes }
+					SCA = { is_ally_of_ROOT = yes }
+				}
+			}
+		}
+		trigger = {
+			NOR = { is_ally_of_ROOT = yes }
+		}
+		NOR = {
+			transfer_state = 101
+			transfer_state = 926
+		}
+		recheck_annexations = yes
+	}
+	option = { #Give Greenland to SWE-NOR
+		name = annex.261.c
+		ai_chance = {
+			base = 30
+			modifier = {
+				factor = 0
+				is_american_tag = yes
+			}
+			modifier = {
+				factor = 0
+				DEN = { is_ally_of_ROOT = yes }
+			}
+		}
+		trigger = {
+			SWE = {
+				has_country_flag = swe_flag_sweden_norway
+				is_ally_of_ROOT = yes
+			}
+		}
+		SWE = {
+			transfer_state = 101
+			transfer_state = 926
+		}
+		recheck_annexations = yes
+	}
+	option = { #Give Greenland to SCA
+		name = annex.261.d
+		ai_chance = {
+			base = 30
+			modifier = {
+				factor = 0
+				is_american_tag = yes
+			}
+		}
+		trigger = {
+			SCA = { is_ally_of_ROOT = yes }
+		}
+		SCA = {
+			transfer_state = 101
+			transfer_state = 926
+		}
+		recheck_annexations = yes
+	}
+	option = { #Give Greenland to CAN
+		name = annex.261.e
+		ai_chance = {
+			base = 30
+			modifier = {
+				factor = 0
+				DEN = { is_ally_of_ROOT = yes }
+			}
+		}
+		trigger = {
+			CAN = {
+				is_ally_of_ROOT = yes
+				NOT = { owns_state = 101 }
+				OR = {
+					is_faction_leader = yes
+					is_subject = yes
+					NOT = {
+						DEN = { is_ally_of_ROOT = yes }
+						SCA = { is_ally_of_ROOT = yes }
+					}
+				}
+			}
+		}
+		CAN = {
+			transfer_state = 101
+			transfer_state = 926
+		}
+		recheck_annexations = yes
+	}
+	option = { #occupy
+		name = annex.occupation
+		ai_chance = {
+			base = 0
+			modifier = {
+				add = 10
+				is_american_tag = yes
+			}
+		}
+		set_country_flag = GRN_CONQ
+	}
+}
 country_event = { #The Annexation of Euskadi
 
 	id = annex.262
@@ -40355,12 +40663,13 @@ country_event = { #Fate of Donbas
 			UKR = { ROOT_can_grant_land = yes }
 		}
 		ai_chance = {
-			base = 40
+			base = 80
 			modifier = {
 				factor = 0
 				NOT = { is_ally_with = UKR }
 				var:218.owner = {
 					is_ally_with = ROOT
+					ROOT_can_grant_land = yes
 				}
 			}
 		}
@@ -40382,10 +40691,11 @@ country_event = { #Fate of Donbas
 		trigger = {
 			var:218.owner = {
 				ROOT_can_grant_land = yes
+				is_ally_of_ROOT = yes
 			}
 		}
 		ai_chance = {
-			base = 60
+			base = 20
 			modifier = {
 				factor = 0
 				NOT = { is_ally_with = 218.owner }
@@ -40413,8 +40723,14 @@ country_event = { #Fate of Donbas
 			owns_state = 227 #Mariupol
 			owns_state = 228 #Yuzivka
 			owns_state = 1231 #Taganrog
-			UKR = { ROOT_can_grant_land = yes }
-			var:218.owner = { ROOT_can_grant_land = yes }
+			UKR = { 
+				ROOT_can_grant_land = yes
+				is_ally_of_ROOT = yes
+			}
+			var:218.owner = { 
+				ROOT_can_grant_land = yes
+				is_ally_of_ROOT = yes
+			}
 		}
 		ai_chance = {
 			base = 80
@@ -40452,6 +40768,7 @@ country_event = { #Fate of Donbas
 				tag = UKR
 				is_russian_tag_that_can_integrate = yes
 			}
+			owns_state = 1231
 		}
 		ai_chance = {
 			base = 1000
@@ -40594,7 +40911,7 @@ country_event = { #Fate of Astrakhan
 		trigger = {
 			var:236.owner = {
 				ROOT_can_grant_land = yes
-				NOT = { owns_state = 218 }
+				is_russian_tag_that_can_integrate = yes
 			}
 		}
 		ai_chance = {
@@ -40622,7 +40939,10 @@ country_event = { #Fate of Astrakhan
 		trigger = {
 			var:218.owner = {
 				ROOT_can_grant_land = yes
-				NOT = { owns_state = 236 }
+				OR = {
+					tag = DKB
+					tag = KLY
+				}
 			}
 			NOT = { country_exists = KLY }
 		}
@@ -40884,7 +41204,11 @@ country_event = { #Fate of Belgorod
 			NOT = {
 				tag = UKR
 			}
-			UKR = { ROOT_can_grant_land = yes }
+			UKR = { 
+				is_ally_of_ROOT = yes
+				ROOT_can_grant_land = yes
+				owns_state = 221
+			}
 		}
 		ai_chance = {
 			base = 40
@@ -41475,6 +41799,10 @@ country_event = { #Fate of Kalmykia
 			var:218.owner = {
 				is_ally_with = ROOT
 				ROOT_can_grant_land = yes
+				OR = {
+					tag = DKB
+					tag = KUB
+				}
 			}
 			NOT = { tag = DKB }
 			NOT = { tag = KUB }
@@ -41692,6 +42020,10 @@ country_event = { #Fate of Mountain Republic
 				is_ally_with = ROOT
 				ROOT_can_grant_land = yes
 				OR = {
+					tag = KUB
+					tag = DKB
+				}
+				OR = {
 					owns_state = 234
 					owns_state = 237
 				}
@@ -41719,6 +42051,10 @@ country_event = { #Fate of Mountain Republic
 			var:219.owner = {
 				is_russian_tag_that_can_integrate = yes
 				is_ally_with = ROOT
+				OR = {
+					owns_state = 234
+					owns_state = 237
+				}			
 			}
 		}
 		set_temp_variable = { tag_to_release = 219.owner }
@@ -41890,6 +42226,31 @@ country_event = { #Fate of the Crimea
 				}
 			}
 		}
+		else_if = {
+			limit = { tag = GER }
+			CRM = {
+				set_cosmetic_tag = CRM_KRIM
+				add_ideas = CRM_krimdeutsche
+				set_party_name = {
+					ideology = authoritarian_democrat
+					name = CRM_german_party
+					long_name = CRM_german_party_long
+				}
+				create_country_leader = {
+					name = "Voldemar Falz Fein"
+					picture = "gfx/leaders/UKR/Portrait_CRM_Voldemar_Falz_Fein.png"
+					expire = "1965.1.1"
+					ideology = authoritarian_democrat_subtype
+				}
+				set_politics = {
+					ruling_party = authoritarian_democrat
+				}
+				set_political_party = {
+					ideology = authoritarian_democrat
+					popularity = 60
+				}
+			}
+		}
 	}
 	option = { #Integrate not russia
 		name = annex.403.b
@@ -41977,7 +42338,10 @@ country_event = { #Fate of the Crimea
 			}
 		}
 		trigger = {
-			UKR = { is_ally_of_ROOT = yes }
+			UKR = { 
+				is_ally_of_ROOT = yes 
+				ROOT_can_grant_land = yes					
+			}
 		}
 		every_state = {
 			limit = { is_core_of = CRM }
@@ -41993,39 +42357,6 @@ country_event = { #Fate of the Crimea
 			if = {
 				limit = { is_owned_by = ROOT }
 				UKR = { transfer_state = PREV }
-			}
-		}
-	}
-	option = { #Krimdeutsche
-		name = annex.403.c
-		trigger = {
-			tag = GER
-		}
-		ai_chance = {
-			base = 100
-		}
-		set_temp_variable = { tag_to_release = CRM }
-		release_targeted_tag = yes
-		CRM = {
-			set_cosmetic_tag = CRM_KRIM
-			add_ideas = CRM_krimdeutsche
-			set_party_name = {
-				ideology = authoritarian_democrat
-				name = CRM_german_party
-				long_name = CRM_german_party_long
-			}
-			create_country_leader = {
-				name = "Voldemar Falz Fein"
-				picture = "gfx/leaders/UKR/Portrait_CRM_Voldemar_Falz_Fein.png"
-				expire = "1965.1.1"
-				ideology = authoritarian_democrat_subtype
-			}
-			set_politics = {
-				ruling_party = authoritarian_democrat
-			}
-			set_political_party = {
-				ideology = authoritarian_democrat
-				popularity = 60
 			}
 		}
 	}
