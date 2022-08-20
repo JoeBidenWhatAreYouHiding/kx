@@ -16,11 +16,42 @@ scripted_gui = {
 			KR_phalanstere_button_visible = {
 				is_in_tech_sharing_group = phalanstere_research
 			}
+			KR_IEDC_button_visible = {
+				has_country_flag = CAN_joined_iedc
+			}
+			KR_muslim_association_button_visible = {
+				has_idea = ott_AMN_member_idea
+			}
 			KR_co_prosperity_sphere_button_visible = {
 				check_variable = { global.asian_economic_sphere^num > 0 }
 				OR = {
 					tag = JAP
 					is_in_array = { global.asian_economic_sphere = THIS }
+				}
+			}
+			KR_mitteleuropa_button_click_enabled = {
+				NOT = {
+					ROOT = { has_country_flag = economic_sphere_list_open }
+				}
+			}
+			KR_phalanstere_button_click_enabled = {
+				NOT = {
+					ROOT = { has_country_flag = economic_sphere_list_open }
+				}
+			}
+			KR_IEDC_button_click_enabled = {
+				NOT = {
+					ROOT = { has_country_flag = economic_sphere_list_open }
+				}
+			}
+			KR_co_prosperity_sphere_button_click_enabled = {
+				NOT = {
+					ROOT = { has_country_flag = economic_sphere_list_open }
+				}
+			}
+			KR_muslim_association_button_click_enabled = {
+				NOT = {
+					ROOT = { has_country_flag = economic_sphere_list_open }
 				}
 			}
 		}
@@ -55,6 +86,22 @@ scripted_gui = {
 					set_country_flag = economic_sphere_list_open
 				}
 			}
+			KR_IEDC_button_click = {
+				add_to_array = { ROOT.economic_sphere_list_array = ENT }
+				for_each_loop = {
+					array = global.iedc_members
+					if = {
+						limit = {
+							NOT = { is_in_array = { ROOT.economic_sphere_list_array = v } }
+						}
+						add_to_array = { ROOT.economic_sphere_list_array = v }
+					}
+				}
+				ROOT = {
+					set_variable = { economic_sphere_leader = ENT }
+					set_country_flag = economic_sphere_list_open
+				}
+			}
 			KR_co_prosperity_sphere_button_click = {
 				add_to_array = { ROOT.economic_sphere_list_array = JAP }
 				for_each_loop = {
@@ -73,12 +120,27 @@ scripted_gui = {
 					set_country_flag = economic_sphere_list_open
 				}
 			}
+			KR_muslim_association_button_click = {
+				add_to_array = { ROOT.economic_sphere_list_array = TUR }
+				every_country = {
+					limit = {
+						NOT = { tag = TUR }
+						has_idea = ott_AMN_member_idea
+					}
+					add_to_array = { ROOT.economic_sphere_list_array = THIS }
+				}
+				ROOT = {
+					set_variable = { economic_sphere_leader = TUR }
+					set_country_flag = economic_sphere_list_open
+				}
+			}
 		}
 	}
 
 	economic_sphere_list = {
 		context_type = player_context
 		window_name = "economic_sphere_list_window"
+		dirty = economic_sphere_list_variable
 
 		ai_enabled = {
 			always = no
@@ -98,15 +160,6 @@ scripted_gui = {
 		}
 
 		triggers = {
-			icon_mitteleuropa_visible = {
-				check_variable = { ROOT.economic_sphere_leader = GER }
-			}
-			icon_phalanstere_visible = {
-				check_variable = { ROOT.economic_sphere_leader = INT }
-			}
-			icon_co_prosperity_sphere_visible = {
-				check_variable = { ROOT.economic_sphere_leader = JAP }
-			}
 			major_country_overlay_visible = {
 				check_variable = { ROOT.economic_sphere_leader = THIS }
 			}
@@ -114,6 +167,9 @@ scripted_gui = {
 
 		effects = {
 			button_close_click = {
+				for_each_scope_loop = {
+					array = ROOT.economic_sphere_list_array
+				}
 				clear_array = ROOT.economic_sphere_list_array
 				clear_variable = ROOT.economic_sphere_leader
 				clr_country_flag = economic_sphere_list_open
@@ -121,6 +177,9 @@ scripted_gui = {
 		}
 
 		properties = {
+			economic_sphere_icon = {
+				image = "[GetEconomicSphereIcon]"
+			}
 			country_flag = {
 				image = "[This.GetFlag]"
 			}
