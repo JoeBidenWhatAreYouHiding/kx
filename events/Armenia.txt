@@ -7,6 +7,19 @@
 add_namespace = arm
 
 country_event = { # Intro Event
+	id = arm.0
+	immediate = { log = "[GetDateText]: [Root.GetName]: event arm.0 FROM = [From.GetName]" }
+	title = arm.0.t
+	desc = arm.0.d
+	picture = GFX_report_event_ARM_landscape_mountain2
+	fire_only_once = yes
+	is_triggered_only = yes
+
+	option = {
+		name = arm.0.a
+	}
+}
+country_event = { # Intro Event
 	id = arm.1
 	immediate = { log = "[GetDateText]: [Root.GetName]: event arm.1 FROM = [From.GetName]" }
 	title = arm.1.t
@@ -31,6 +44,43 @@ country_event = { # Intro Event
 			country_event = { id = arm.86 days = 35 }
 			country_event = { id = arm.61 days = 420 }
 			country_event = { id = arm.58 days = 555 }
+		}
+	}
+}
+country_event = { #The Armenian Rebellion
+	id = arm.2
+	immediate = { log = "[GetDateText]: [Root.GetName]: event arm.2" }
+	
+	title = arm.2.t
+	desc = arm.2.d
+
+	fire_only_once = yes
+
+	trigger = {
+		tag = ARM
+		is_subject_of = OTT
+		OTT = {
+			has_war_with = PER
+		}
+	}
+
+	option = {
+		name = arm.2.a
+		OTT = {
+			remove_state_core = 230
+			230 = {
+				teleport_armies = {
+					limit = { is_ally_with = OTT }
+					to_state = 49
+				}
+			}
+			ARM = {
+				ARM_initial_spawn_effect = yes
+				declare_war_on = {
+					target = OTT
+					type = annex_everything
+				}
+			}
 		}
 	}
 }
@@ -666,7 +716,7 @@ country_event = { # Nzhdeh Dashnaks and military create a coalition
 			elections_allowed = no
 		}
 		set_temp_variable = { coalition_partner_var = token:social_democrat }
-		add_to_coalition = yes
+		add_to_coalition = yes		
 	}
 }
 country_event = { # Nzhdeh creates his organisation
@@ -818,9 +868,44 @@ country_event = { # Armenian Presidential elections
 	is_triggered_only = yes
 
 	option = { ###Moderate Dashnak Candidate
+		name = arm.33.c
+		ai_chance = {
+			factor = 40
+			modifier = {
+				factor = 0
+				has_game_rule = { rule = ARM_path option = ARM_PATH_MARLIB }
+			}
+		}
+		meta_effect = {
+			text = {
+				set_politics = {
+					ruling_party = social_democrat
+					last_election = "[CURRENT_DATE]"
+					election_frequency = 48
+					elections_allowed = yes
+				}
+			}
+			CURRENT_DATE = "[?global.date.GetDateStringNoHour]"
+		}
+		create_country_leader = {
+			name = "Garegin Nzhdeh"
+			desc = "POLITICS_GAREGIN_NZHDEH_DESC"
+			picture = "gfx/leaders/ARM/Portrait_Armenia_Garegin_Nzhdeh_civilian.png"
+			expire = "1965.1.1"
+			ideology = socdem_democratic_socialism_subtype
+		}
+		set_temp_variable = { coalition_partner_var = token:market_liberal }
+		add_to_coalition = yes
+		set_temp_variable = { coalition_partner_var = token:paternal_autocrat }
+		add_to_coalition = yes
+		hidden_effect = {
+			country_event = { id = arm.34 days = 15 }
+		}
+	}
+	option = { ###Moderate Dashnak Candidate
 		name = arm.33.a
 		ai_chance = {
-			factor = 60
+			factor = 40
 			modifier = {
 				factor = 0
 				has_game_rule = { rule = ARM_path option = ARM_PATH_MARLIB }
@@ -846,7 +931,7 @@ country_event = { # Armenian Presidential elections
 	option = { ###Ramgavar Candidate
 		name = arm.33.b
 		ai_chance = {
-			factor = 40
+			factor = 20
 			modifier = {
 				factor = 0
 				has_game_rule = { rule = ARM_path option = ARM_PATH_SOCDEM }
@@ -882,7 +967,7 @@ country_event = { # Armenian Legislative elections
 	option = { ###Moderate Dashnak Majority
 		name = arm.34.a
 		ai_chance = {
-			factor = 50
+			factor = 33
 			modifier = {
 				factor = 0
 				has_game_rule = { rule = ARM_path option = ARM_PATH_MARLIB }
@@ -893,10 +978,24 @@ country_event = { # Armenian Legislative elections
 			popularity = 0.1
 		}
 	}
+	option = { ###Hunchaks
+		name = arm.34.c
+		ai_chance = {
+			factor = 33
+			modifier = {
+				factor = 0
+				has_game_rule = { rule = ARM_path option = ARM_PATH_MARLIB }
+			}
+		}
+		add_popularity = {
+			ideology = radical_socialist
+			popularity = 0.1
+		}
+	}
 	option = { ###Ramgavar Majority
 		name = arm.34.b
 		ai_chance = {
-			factor = 50
+			factor = 33
 			modifier = {
 				factor = 0
 				has_game_rule = { rule = ARM_path option = ARM_PATH_SOCDEM }
@@ -1204,7 +1303,9 @@ country_event = { #Armenia Asks for enter the Moscow A
 		name = arm.49.a
 		effect_tooltip = {
 			if = {
-				limit = { RUS_is_expansionist = yes }
+				limit = { 
+					RUS = { has_completed_focus = RUS_Expansionism }
+				}
 				set_autonomy = {
 					target = FROM
 					autonomy_state = kr_autonomous_puppet
@@ -1236,7 +1337,7 @@ country_event = { #They said yes
 	option = {
 		name = arm.50.a
 		if = {
-			limit = { FROM = { RUS_is_expansionist = yes } }
+			limit = { FROM = { has_completed_focus = RUS_Expansionism }	}
 			FROM = {
 				set_autonomy = {
 					target = ROOT
@@ -1573,18 +1674,6 @@ country_event = { #Boghos Bey and other Ottoman soldiers desert
 			ideology = authdem_junta_subtype
 			traits = { ARM_prestigious_veteran }
 		}
-		create_corps_commander = {
-			name = "Boghos Bey Dadian "
-			portrait_path = "gfx/leaders/ARM/Portrait_Armenia_Boghos_Dadian.png"
-			traits = {
-				old_guard
-			}
-			skill = 2
-			attack_skill = 1
-			defense_skill = 2
-			planning_skill = 1
-			logistics_skill = 3
-		}
 	}
 }
 
@@ -1709,7 +1798,7 @@ country_event = { #TUR receives bold demands
 		ARM = { country_event = { id = arm.107 days = 1 } }
 		reverse_add_opinion_modifier = {
 			target = ARM
-			modifier = KR_displeased
+			modifier = KR_hates_govt
 		}
 		hidden_effect = {
 			GER = { country_event = { id = arm.108 days = 1 } }
@@ -1772,7 +1861,7 @@ country_event = { #TUR receives relaxed demands
 		ARM = { country_event = { id = arm.107 days = 1 } }
 		reverse_add_opinion_modifier = {
 			target = ARM
-			modifier = KR_displeased
+			modifier = KR_hates_govt
 		}
 		hidden_effect = {
 			GER = { country_event = { id = arm.108 days = 1 } }
@@ -1835,7 +1924,7 @@ country_event = { #ARM not compensated
 				effect_tooltip = {
 					add_opinion_modifier = {
 						target = TUR
-						modifier = KR_displeased
+						modifier = KR_hates_govt
 					}
 				}
 			}
@@ -1859,7 +1948,7 @@ country_event = { #ARM not compensated
 		}
 		add_opinion_modifier = {
 			target = TUR
-			modifier = KR_displeased
+			modifier = KR_hates_govt
 		}
 	}
 }
@@ -1972,5 +2061,52 @@ country_event = { #ARM not recognized
 
 	option = {
 		name = arm.113.a
+	}
+}
+
+country_event = { #
+	id = arm.200
+	immediate = { log = "[GetDateText]: [Root.GetName]: event arm.200 FROM = [From.GetName]" }
+	title = arm.200.t
+	desc = arm.200.d
+	picture = GFX_report_event_ARM_Keresteciyan
+
+	is_triggered_only = yes
+
+	option = {
+		name = arm.200.a
+		effect_tooltip = { retire_country_leader = yes }
+		random_unit_leader = {
+			limit = { has_id = 3524 }
+			retire = yes
+		}
+		create_country_leader = {
+			name = "Berc Keresteciyan"
+			picture = "gfx/leaders/ARM/Portrait_Armenia_Keresteciyan.png"
+			expire = "1965.1.1"
+			ideology = authdem_junta_subtype
+		}
+		add_popularity = {
+			ideology = authoritarian_democrat
+			popularity = -0.1
+		}
+		add_stability = -0.1
+		complete_national_focus = ARM_Wali_Keresteciyan
+	}
+}
+country_event = { #
+	id = arm.201
+	immediate = { log = "[GetDateText]: [Root.GetName]: event arm.201 FROM = [From.GetName]" }
+	title = arm.201.t
+	desc = arm.201.d
+	picture = GFX_OTT_Rize1
+
+	is_triggered_only = yes
+
+	option = {
+		name = arm.201.a
+		add_ideas = ARM_black_monday
+		add_stability = -0.2
+		complete_national_focus = ARM_Black_Monday
 	}
 }
