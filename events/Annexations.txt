@@ -245,7 +245,7 @@ country_event = { #Annexation of Bulgaria
 				add_claim_by = ROOT
 			}
 		}
-		add_political_power = -25
+		occupy_small_country = yes
 		add_to_array = { RUS_integration_array = BUL }
 		recheck_annexations = yes
 	}
@@ -275,7 +275,15 @@ country_event = { #Fate of Brest
 	option = { #give to Poland
 		name = annex.4.a
 		trigger = {
+			OR = {
 			997 = { is_valid_annexation_state = no } #Polesia
+				POL = { 
+					OR = {
+						owns_state = 95 
+						owns_state = 204
+					}
+				}
+			}
 			NOT = {
 				tag = POL
 				tag = WHR
@@ -319,6 +327,10 @@ country_event = { #Fate of Brest
 				}
 			}
 			UKR = { ROOT_can_grant_land = yes }
+			NOT = {
+				95 = { is_owned_by = POL }
+				204 = { is_owned_by = POL }
+			}
 		}
 		ai_chance = {
 			base = 40
@@ -421,7 +433,10 @@ country_event = { #Fate of Brest
 				}
 			}
 			POL = { ROOT_can_grant_land = yes }
-			UKR = { ROOT_can_grant_land = yes }
+			UKR = { 
+				ROOT_can_grant_land = yes
+				owns_state = 95
+			}
 		}
 		ai_chance = {
 			base = 80
@@ -463,6 +478,10 @@ country_event = { #Fate of Brest
 			}
 			POL = { ROOT_can_grant_land = yes }
 			WHR = { ROOT_can_grant_land = yes }
+			NOT = {
+				95 = { is_owned_by = POL }
+				204 = { is_owned_by = POL }
+			}
 		}
 		ai_chance = {
 			base = 80
@@ -503,6 +522,10 @@ country_event = { #Fate of Brest
 			LIT = {
 				owns_state = 206 #Minsk
 				ROOT_can_grant_land = yes
+			}
+			NOT = {
+				95 = { is_owned_by = POL }
+				204 = { is_owned_by = POL }
 			}
 		}
 		ai_chance = {
@@ -547,6 +570,10 @@ country_event = { #Fate of Brest
 			var:204.owner = {
 				is_russian_tag_that_can_integrate = yes
 				ROOT_can_grant_land = yes
+			}
+			NOT = {
+				95 = { is_owned_by = POL }
+				204 = { is_owned_by = POL }
 			}
 		}
 		ai_chance = {
@@ -675,6 +702,48 @@ country_event = { #Fate of Polesia
 
 	is_triggered_only = yes
 
+	option = { #give to Poland
+		name = annex.4.a
+		trigger = {
+			OR = {
+				93 = { is_valid_annexation_state = no } #Polesia
+				POL = { 
+					OR = {
+						owns_state = 95 
+						owns_state = 204
+					}
+				}
+			}
+			NOT = {
+				tag = POL
+				tag = WHR
+				tag = UKR
+				AND = {
+					tag = LIT
+					206 = { is_claim_or_core_of_ROOT = yes } #Minsk
+				}
+			}
+			POL = { ROOT_can_grant_land = yes }
+		}
+		ai_chance = {
+			base = 40
+			modifier = {
+				factor = 0
+				OR = {
+					is_ally_with = UKR
+					is_ally_with = WHR
+					LIT = {
+						is_ally_with = ROOT
+						owns_state = 206 #Minsk
+					}
+				}
+				NOT = { is_ally_with = POL }
+			}
+		}
+		set_temp_variable = { tag_to_release = POL }
+		997 = { transfer_state_and_add_claim = yes }
+	}
+
 	option = { #give to Ukraine
 		name = annex.4.b
 		trigger = {
@@ -687,6 +756,10 @@ country_event = { #Fate of Polesia
 				}
 			}
 			UKR = { ROOT_can_grant_land = yes }
+			NOT = {
+				95 = { is_owned_by = POL }
+				204 = { is_owned_by = POL }
+			}
 		}
 		ai_chance = {
 			base = 40
@@ -712,6 +785,10 @@ country_event = { #Fate of Polesia
 				}
 			}
 			WHR = { ROOT_can_grant_land = yes }
+			NOT = {
+				95 = { is_owned_by = POL }
+				204 = { is_owned_by = POL }
+			}
 		}
 		ai_chance = {
 			base = 20
@@ -736,6 +813,10 @@ country_event = { #Fate of Polesia
 			LIT = {
 				owns_state = 206 #Minsk
 				ROOT_can_grant_land = yes
+			}
+			NOT = {
+				95 = { is_owned_by = POL }
+				204 = { is_owned_by = POL }
 			}
 		}
 		ai_chance = {
@@ -794,12 +875,13 @@ country_event = { #Romanian liberation
 
 	immediate = {
 		hidden_effect = {
-			add_to_temp_array = { core_removal_array = ROM }
-			#ROM_remove_all_ideas = yes
-			remove_all_cores_and_claims_of_tags = yes
 			every_state = {
 				limit = {
 					OR = {
+						is_core_of = ROM
+						is_claimed_by = ROM
+					}
+					NOT = {
 						state = 46 #Muntenia
 						state = 79 #Moldavia
 						state = 78 #Bessarabia
@@ -807,7 +889,12 @@ country_event = { #Romanian liberation
 						state = 81 #Oltenia
 					}
 				}
-				add_core_of = ROM
+				if = {
+					limit = { is_core_of = ROM }
+					set_state_flag = was_core_of_ROM
+					remove_core_of = ROM
+				}
+				remove_claim_by = ROM
 			}
 		}
 	}
@@ -837,22 +924,25 @@ country_event = { #Romanian liberation
 		release_targeted_tag = yes
 		var:tag_to_release = { setup_romanian_puppet_leaders = yes }
 		hidden_effect = {
-			76 = { add_claim_by = ROM } #North Transylvania
-			1112 = { add_claim_by = ROM } #North Transylvania
-			1117 = { add_claim_by = ROM } #North Transylvania
-			1118 = { add_claim_by = ROM } #North Transylvania
-			77 = { add_core_of = ROM } #Silistria
-			80 = { add_core_of = ROM } #Cernauti
-			82 = { add_claim_by = ROM } #Banat
-			1114 = { add_claim_by = ROM } #Banat
-			83 = { add_claim_by = ROM } #Partium
-			84 = { add_claim_by = ROM } #Transylvania
-			1113 = { add_claim_by = ROM } #Transylvania
-			1115 = { add_claim_by = ROM } #Transylvania
-			1116 = { add_claim_by = ROM } #Transylvania
-			713 = { add_core_of = ROM } #Suceava
-			772 = { add_core_of = ROM } #Dobrudja
-			789 = { add_claim_by = ROM } #Szeklerland
+			ROM = {
+				add_state_core = 713
+				add_state_core = 772
+				add_state_core = 77
+				add_state_claim = 80
+				add_state_claim = 76
+				add_state_claim = 1112
+				add_state_claim = 1117
+				add_state_claim = 1118
+				add_state_claim = 1118
+				add_state_claim = 82
+				add_state_claim = 1114
+				add_state_claim = 83
+				add_state_claim = 84
+				add_state_claim = 1113
+				add_state_claim = 1115
+				add_state_claim = 1116
+				add_state_claim = 789
+			}
 		}
 		if = {
 			limit = {
@@ -870,6 +960,7 @@ country_event = { #Romanian liberation
 		}
 		trigger = {
 			is_russian_tag_that_can_integrate = yes
+			NOT = { is_ally_with = UKR }
 			OR = {
 				owns_state = 192
 				owns_state = 791
@@ -901,24 +992,26 @@ country_event = { #Romanian liberation
 				RUS_install_puppet_monarchy = yes
 			}
 		}
-		
 		hidden_effect = {
-			76 = { add_claim_by = ROM } #North Transylvania
-			1112 = { add_claim_by = ROM } #North Transylvania
-			1117 = { add_claim_by = ROM } #North Transylvania
-			1118 = { add_claim_by = ROM } #North Transylvania
-			77 = { add_core_of = ROM } #Silistria
-			80 = { add_core_of = ROM } #Cernauti
-			82 = { add_claim_by = ROM } #Banat
-			1114 = { add_claim_by = ROM } #Banat
-			83 = { add_claim_by = ROM } #Partium
-			84 = { add_claim_by = ROM } #Transylvania
-			1113 = { add_claim_by = ROM } #Transylvania
-			1115 = { add_claim_by = ROM } #Transylvania
-			1116 = { add_claim_by = ROM } #Transylvania
-			713 = { add_core_of = ROM } #Suceava
-			772 = { add_core_of = ROM } #Dobrudja
-			789 = { add_claim_by = ROM } #Szeklerland
+			ROM = {
+				add_state_core = 713
+				add_state_core = 772
+				add_state_core = 77
+				add_state_claim = 80
+				add_state_claim = 76
+				add_state_claim = 1112
+				add_state_claim = 1117
+				add_state_claim = 1118
+				add_state_claim = 1118
+				add_state_claim = 82
+				add_state_claim = 1114
+				add_state_claim = 83
+				add_state_claim = 84
+				add_state_claim = 1113
+				add_state_claim = 1115
+				add_state_claim = 1116
+				add_state_claim = 789
+			}
 		}
 	}
 	option = { #integrate
@@ -930,6 +1023,27 @@ country_event = { #Romanian liberation
 		}
 		ai_chance = {
 			base = 100
+		}
+		hidden_effect = {
+			ROM = {
+				add_state_core = 713
+				add_state_core = 772
+				add_state_core = 77
+				add_state_claim = 80
+				add_state_claim = 76
+				add_state_claim = 1112
+				add_state_claim = 1117
+				add_state_claim = 1118
+				add_state_claim = 1118
+				add_state_claim = 82
+				add_state_claim = 1114
+				add_state_claim = 83
+				add_state_claim = 84
+				add_state_claim = 1113
+				add_state_claim = 1115
+				add_state_claim = 1116
+				add_state_claim = 789
+			}
 		}
 		every_owned_state = {
 			limit = {
@@ -958,7 +1072,7 @@ country_event = { #Romanian liberation
 				add_claim_by = ROOT
 			}
 		}
-		add_political_power = -25
+		occupy_small_country = yes
 		add_to_array = { RUS_integration_array = ROM }
 		recheck_annexations = yes
 	}
@@ -968,10 +1082,25 @@ country_event = { #Romanian liberation
 			factor = 0
 		}
 		hidden_effect = {
-			77 = { add_core_of = ROM } #Silistria
-			80 = { add_core_of = ROM } #Cernauti
-			713 = { add_core_of = ROM } #Suceava
-			772 = { add_core_of = ROM } #Dobrudja
+			ROM = {
+				add_state_core = 713
+				add_state_core = 772
+				add_state_core = 77
+				add_state_claim = 80
+				add_state_claim = 76
+				add_state_claim = 1112
+				add_state_claim = 1117
+				add_state_claim = 1118
+				add_state_claim = 1118
+				add_state_claim = 82
+				add_state_claim = 1114
+				add_state_claim = 83
+				add_state_claim = 84
+				add_state_claim = 1113
+				add_state_claim = 1115
+				add_state_claim = 1116
+				add_state_claim = 789
+			}
 		}
 		set_country_flag = ROM_CONQ
 		occupy_medium_country = yes
@@ -1264,6 +1393,7 @@ country_event = { #Serbian liberation
 				}
 				add_core_of = SER
 			}
+			767 = { retain_state = yes } #Nis
 		}
 	}
 
@@ -1315,7 +1445,7 @@ country_event = { #Serbian liberation
 				add_claim_by = ROOT
 			}
 		}
-		add_political_power = -25
+		occupy_small_country = yes
 		add_to_array = { RUS_integration_array = SER }
 		recheck_annexations = yes
 	}
@@ -1426,6 +1556,9 @@ country_event = { #Fate of Vilnius
 				tag = WHR
 			}
 			LIT = { ROOT_can_grant_land = yes }
+			NOT = {
+				POL = { owns_state = 207 }
+			}
 		}
 		ai_chance = {
 			base = 40
@@ -1454,6 +1587,9 @@ country_event = { #Fate of Vilnius
 				is_ally_with = ROOT
 				owns_state = 11 #Kaunas
 			}
+			NOT = {
+				POL = { owns_state = 207 }
+			}
 		}
 		ai_chance = {
 			base = 1000
@@ -1472,6 +1608,9 @@ country_event = { #Fate of Vilnius
 			POL = {
 				owns_state = 97 #Bialystok
 				ROOT_can_grant_land = yes
+			}
+			NOT = {
+				LIT = { owns_state = 207 }
 			}
 		}
 		ai_chance = {
@@ -1498,7 +1637,10 @@ country_event = { #Fate of Vilnius
 				tag = POL
 				tag = WHR
 			}
-			WHR = { ROOT_can_grant_land = yes }
+			WHR = { 
+				ROOT_can_grant_land = yes
+				owns_state = 207
+			}
 		}
 		ai_chance = {
 			base = 20
@@ -2044,7 +2186,6 @@ country_event = { #HUN liberation
 						state = 155 #Transdanubia
 						state = 1106 #Transdanubia
 						state = 1111 #Transdanubia
-						state = 784 #German West Hungary
 					}
 				}
 				add_core_of = HUN
@@ -2068,21 +2209,6 @@ country_event = { #HUN liberation
 				factor = 10
 				is_german_tag = yes
 			}
-		}
-		if = {
-			limit = {
-				owns_state = 784 #Burgenland
-				AUS = { is_ally_of_ROOT = yes }
-				NOT = { tag = CZE has_global_flag = BOH_czechoslovakism_yes}
-			}
-			AUS = { transfer_state = 784 }
-		}
-		if = {
-			limit = {
-				is_german_tag = yes
-				owns_state = 4
-			}
-			784 = { remove_core_of = HUN }
 		}
 		if = {
 			limit = {
@@ -2141,13 +2267,6 @@ country_event = { #HUN liberation
 					is_ally_of_ROOT = yes
 				}
 			}
-		}
-		if = {
-			limit = {
-				owns_state = 784 #Burgenland
-				AUS = { is_ally_of_ROOT = yes }
-			}
-			AUS = { transfer_state = 784 }
 		}
 		if = {
 			limit = {
@@ -2253,7 +2372,7 @@ country_event = { #HUN liberation
 				add_claim_by = ROOT
 			}
 		}
-		add_political_power = -25
+		occupy_small_country = yes
 		add_to_array = { RUS_integration_array = HUN }
 		recheck_annexations = yes
 	}
@@ -2305,7 +2424,6 @@ country_event = { #Fate of Karelia
 		name = annex.13.a
 		trigger = {
 			country_exists = FIN
-			has_authoritarian_government = yes
 		}
 		ai_chance = {
 			base = 10
@@ -2316,6 +2434,7 @@ country_event = { #Fate of Karelia
 		}
 		set_temp_variable = { tag_to_release = KAR }
 		release_targeted_tag = yes
+		KAR = { KAR_setup_puppet_karelia = yes }
 	}
 	
 	option = { #Give it to Finland
@@ -2444,6 +2563,7 @@ country_event = { #Fate of Karelia
 				tag = FIN
 				tag = SCA
 			}
+			is_russian_tag_that_can_integrate = no
 		}
 		ai_chance = { base = 0 }
 		occupy_medium_country = yes
@@ -2488,10 +2608,6 @@ country_event = { #Liberation of Austria
 				add_core_of = AUS
 			}
 			1235 = { remove_core_of = AUS } #Liechtenstein
-			if = {
-				limit = { NOT = { tag = HUN } }
-				784 = { add_core_of = AUS } #Burgenland
-			}
 		}
 	}
 
@@ -2682,6 +2798,14 @@ country_event = { #Fate of the Aland Islands
 country_event = { #Austrian Littoral liberation
 	id = annex.17
 	immediate = { log = "[GetDateText]: [Root.GetName]: event annex.17" }
+	immediate = { #temporary
+		hidden_effect = {
+			country_event = {
+				id = annex.368
+				days = 5
+			}
+		}
+	}
 	title = annexation_AUS_LIT_CONQ
 	desc = annexation_AUS_LIT_CONQ_desc
 
@@ -3636,7 +3760,7 @@ country_event = { #Liberation of Croatia
 				add_claim_by = ROOT
 			}
 		}
-		add_political_power = -25
+		occupy_small_country = yes
 		add_to_array = { RUS_integration_array = CRO }
 		recheck_annexations = yes
 	}
@@ -3755,6 +3879,52 @@ country_event = { #Liberation of Croatia
 				limit = { is_owned_by = ROOT }
 				HUN = { transfer_state = PREV }
 			}
+		}
+	}
+	option = { #Split
+		name = annex.150.e
+		trigger = {
+			SER = {
+				is_ally_of_ROOT = yes
+				ROOT_can_grant_land = yes
+			}
+			var:109.owner = {
+				OR = {
+					tag = CRO
+					AND = {
+						tag = AUS
+						AUS_is_unified = yes
+					}
+				}
+			}
+			NOT = {
+				tag = HUN
+				tag = SER
+				AND = {
+					tag = AUS
+					AUS_is_unified = yes
+				}
+			}
+		}
+		ai_chance = {
+			factor = 10
+		}
+		set_temp_variable = { tag_to_release = var:109.owner }
+		every_owned_state = {
+			limit = {
+				OR = {
+					state = 1142
+					state = 1143
+				}
+			}
+			transfer_state_and_add_core = yes
+		}
+		set_temp_variable = { tag_to_release = SER }
+		every_owned_state = {
+			limit = {
+				is_core_of = BOS
+			}
+			transfer_state_and_add_claim = yes
 		}
 	}
 	option = { #annex
@@ -3890,9 +4060,31 @@ country_event = { #Liberation of Slovenia
 			transfer_territory_from_core_regions_and_add_cores = yes
 		}
 		else = { transfer_territory_from_core_regions = yes }
-		var:tag_to_release = {
-			occupy_small_country = yes
+		recheck_annexations = yes
+	}
+	option = { #give to Germany
+		name = annex.21.e
+		trigger = {
+			var:835.owner = {
+				is_germany_or_splinter_tag = yes
+				is_ally_with = ROOT
+			}
+			is_germany_or_splinter_tag = no
+			NOT = {
+				tag = SER
+				tag = AUS
+			}
 		}
+		ai_chance = {
+			base = 80
+		}
+		set_temp_variable = { tag_to_release = 835.owner }
+		add_to_temp_array = { target_cores_to_release = SLO }
+		if = {
+			limit = { has_subject = AUS }
+			transfer_territory_from_core_regions_and_add_cores = yes
+		}
+		else = { transfer_territory_from_core_regions = yes }
 		recheck_annexations = yes
 	}
 	option = { #give to Serbia
@@ -3910,29 +4102,59 @@ country_event = { #Liberation of Slovenia
 		trigger = {
 			SER = {
 				is_ally_of_ROOT = yes
+				NOT = { country_exists = CRO }
 				OR = {
 					owns_state = 109
 					owns_state = 103
 				}
 			}
 			NOT = {
+				tag = CRO
 				tag = SER
 				tag = AUS
 			}
 		}
-		102 = {
-			if = {
+		every_owned_state = {
 				limit = {
-					NOT = {
-						is_core_of = SER
-						is_claimed_by = SER
-					}
+				is_core_of = SLO
+			}
+			transfer_state_to = SER
+			add_claim_by = SER
+		}		
+		recheck_annexations = yes
+	}
+	option = { #give to Croatia
+		name = annex.21.d
+		ai_chance = {
+			base = 80
+			modifier = {
+				factor = 0
+				AUS = {
+					is_ally_of_ROOT = yes
+					owns_state = 736
 				}
-				add_claim_by = SER
 			}
 		}
-		SER = {
-			transfer_state = 102
+		trigger = {
+			CRO = {
+				is_ally_of_ROOT = yes
+				OR = {
+					owns_state = 109
+					owns_state = 103
+				}
+			}
+					NOT = {
+				tag = CRO
+				tag = SER
+				tag = AUS
+					}
+				}
+		every_owned_state = {
+			limit = {
+				is_core_of = SLO
+			}
+			transfer_state_to = CRO
+			add_claim_by = CRO
 		}
 		recheck_annexations = yes
 	}
@@ -3940,6 +4162,7 @@ country_event = { #Liberation of Slovenia
 		name = annex.integration
 		trigger = {
 			OR = {
+				tag = CRO
 				tag = SER
 				tag = AUS
 			}
@@ -4134,37 +4357,6 @@ country_event = { #Fate of Poland
 		POL_puppet_setup = yes
 	}	
 
-	option = { #french option
-		trigger = { tag = FRA }
-		name = annex.22.e
-		ai_chance = { factor = 40 }
-		POL = {
-			add_state_core = 67
-			add_state_core = 86
-			add_state_core = 776
-			add_state_core = 777
-		}
-		hidden_effect = {
-			for_each_scope_loop = {
-				array = ROOT.faction_members
-				every_owned_state = {
-					limit = {
-						OR = {
-							is_core_of = POL
-							AND = {
-								is_claimed_by = POL
-								is_clear_other_claims = yes
-							}
-						}
-					}
-					POL = { transfer_state = PREV }
-				}
-			}
-		}
-		set_temp_variable = { tag_to_release = POL }
-		puppet_released_tag = yes
-		POL_puppet_setup = yes
-	}
 	option = { #integrate
 		name = eurasian_integration.option
 		trigger = {
@@ -4212,7 +4404,7 @@ country_event = { #Fate of Poland
 				add_claim_by = ROOT
 			}
 		}
-		add_political_power = -25
+		occupy_small_country = yes
 		add_to_array = { RUS_integration_array = POL }
 		recheck_annexations = yes
 	}
@@ -4489,17 +4681,20 @@ country_event = { #Fate of Murmansk
 				TRM = {
 					add_state_core = 213 #Murmansk
 					add_state_core = 722 #Pechenga
+					add_state_core = 1274 #Kem
 				}
 			}
 			else = {
 				RUS = {
 					add_state_core = 213 #Murmansk
 					add_state_core = 722 #Pechenga
+					add_state_core = 1274 #Kem
 				}
 			}
 			KAR = {
 				add_state_core = 213 #Murmansk
 				add_state_core = 722 #Pechenga
+				add_state_core = 1274 #Kem
 			}
 		}
 	}
@@ -4527,6 +4722,7 @@ country_event = { #Fate of Murmansk
 				OR = {
 					state = 722 #Petsamo
 					state = 213 #Murmansk
+					state = 1274 #Murmansk
 				}
 				is_claim_or_core_of_ROOT = no
 			}
@@ -4566,6 +4762,7 @@ country_event = { #Fate of Murmansk
 				OR = {
 					state = 722 #Petsamo
 					state = 213 #Murmansk
+					state = 1274 #Murmansk
 				}
 				is_claim_or_core_of_ROOT = no
 			}
@@ -4592,6 +4789,7 @@ country_event = { #Fate of Murmansk
 				OR = {
 					state = 722 #Petsamo
 					state = 213 #Murmansk
+					state = 1274 #Murmansk
 				}
 				is_claim_or_core_of_ROOT = no
 			}
@@ -4611,6 +4809,7 @@ country_event = { #Fate of Murmansk
 			FIN = { ROOT_can_grant_land = yes }
 			owns_state = 722
 			owns_state = 213
+			owns_state = 1274
 		}
 		ai_chance = {
 			base = 100
@@ -4622,7 +4821,8 @@ country_event = { #Fate of Murmansk
 		set_temp_variable = { tag_to_release = KAR }
 		213 = { transfer_state_and_add_core = yes }
 		set_temp_variable = { tag_to_release = FIN }	
-		722 = { transfer_state_and_add_core = yes }
+		722 = { transfer_state_and_add_claim = yes }
+		1274 = { transfer_state_and_add_claim = yes }
 		recheck_annexations = yes
 	}
 	option = { #Split between Russia and Finland
@@ -4660,6 +4860,7 @@ country_event = { #Fate of Murmansk
 		}
 		set_temp_variable = { tag_to_release = 219.owner }
 		213 = { transfer_state_and_add_core = yes } #Murmansk
+		1274 = { transfer_state_and_add_core = yes } #Murmansk
 		set_temp_variable = { tag_to_release = FIN }
 		722 = { transfer_state_and_add_core = yes } #Petsamo
 		recheck_annexations = yes
@@ -4682,6 +4883,7 @@ country_event = { #Fate of Murmansk
 				OR = {
 					state = 722 #Pechenga
 					state = 213 #Murmansk
+					state = 1274 #Murmansk
 				}
 				is_claim_or_core_of_ROOT = no
 			}
@@ -4843,16 +5045,14 @@ country_event = { #Fate of Finland
 		}
 		if = {
 			limit = {
-				ROOT = { RUS_russian_monarch = yes }
-			}
-			FIN = { 
-				RUS_install_puppet_monarchy = yes
-			}
-		}
-		else_if = {
-			limit = {
 				is_russian_tag_that_can_integrate = yes
-				RUS_russian_monarch = no
+				OR = {
+					RUS_russian_monarch = yes
+					has_right_democratic_government = yes
+					has_authoritarian_government = yes
+				}
+				NOT = { has_government = national_populist }
+				has_socialist_government = no
 			}
 			FIN = {
 				set_politics = {
@@ -4862,6 +5062,10 @@ country_event = { #Fate of Finland
 				set_political_party = {
 					ideology = authoritarian_democrat
 					popularity = 60
+				}
+				if = {
+					limit = { ROOT = { RUS_russian_monarch = yes } }
+					set_cosmetic_tag = FIN_grand_duchy
 				}
 			}
 		}
@@ -4907,7 +5111,7 @@ country_event = { #Fate of Finland
 				add_claim_by = ROOT
 			}
 		}
-		add_political_power = -25
+		occupy_medium_country = yes
 		add_to_array = { RUS_integration_array = FIN }
 		set_country_flag = FIN_CONQ
 		recheck_annexations = yes
@@ -5606,6 +5810,58 @@ country_event = { #Fate of Pirot
 		}
 		BUL = { country_event = annex.38 }
 	}
+	option = {
+		name = annex.33.f #Give it to MNT Dioclea
+		trigger = {
+			MNT = {
+				is_ally_of_ROOT = yes
+				has_cosmetic_tag = MNT_dioclea
+			}
+			NOT = {
+				tag = MNT
+			}
+		}
+		ai_chance = {
+			factor = 90
+		}
+		841 = {
+			if = {
+				limit = { is_claimed_by = MNT }
+				remove_claim_by = MNT
+			}
+			if = {
+				limit = { NOT = { is_core_of = MNT } }
+				add_core_of = MNT
+			}
+			MNT = { transfer_state = PREV }
+		}
+	}
+	option = {
+		name = annex.33.g #Grant it to MNT Dioclea
+		trigger = {
+			NOT = {
+				MNT = { is_ally_of_ROOT = yes }
+				tag = MNT
+			}
+			MNT = { ROOT_can_grant_land = yes has_cosmetic_tag = MNT_dioclea }
+		}
+		ai_chance = {
+			factor = 90
+		}
+		841 = {
+			save_event_target_as = granted_land
+			if = {
+				limit = { is_claimed_by = MNT }
+				remove_claim_by = MNT
+			}
+			if = {
+				limit = { NOT = { is_core_of = MNT } }
+				add_core_of = MNT
+			}
+			MNT = { transfer_state = PREV }
+		}
+		MNT = { country_event = annex.38 }
+	}
 	option = { #annex
 		name = annex.integration
 		trigger = {
@@ -5643,6 +5899,7 @@ country_event = { #Fate of Pirot
 		occupy_small_country = yes
 	}
 }
+
 
 country_event = { #land granted
 	id = annex.38
@@ -5887,6 +6144,82 @@ country_event = { #Fate of Macedonia
 		}
 		BUL = { country_event = annex.38 }
 	}
+	option = {
+		name = annex.33.f #Give it to MNT Dioclea
+		trigger = {
+			MNT = {
+				is_ally_of_ROOT = yes
+				has_cosmetic_tag = MNT_dioclea
+			}
+			NOT = {
+				tag = MNT
+			}
+		}
+		ai_chance = {
+			factor = 90
+		}
+		106 = {
+			if = {
+				limit = { is_claimed_by = MNT }
+				remove_claim_by = MNT
+			}
+			if = {
+				limit = { NOT = { is_core_of = MNT } }
+				add_core_of = MNT
+			}
+			MNT = { transfer_state = PREV }
+		}
+		1271 = {
+			if = {
+				limit = { is_claimed_by = MNT }
+				remove_claim_by = MNT
+			}
+			if = {
+				limit = { NOT = { is_core_of = MNT } }
+				add_core_of = MNT
+			}
+			MNT = { transfer_state = PREV }
+		}
+	
+	}
+	option = {
+		name = annex.33.g #Grant it to it to MNT Dioclea
+		trigger = {
+			NOT = {
+				MNT = { is_ally_of_ROOT = yes }
+				tag = MNT
+			}
+			MNT = { ROOT_can_grant_land = yes has_cosmetic_tag = MNT_dioclea }
+		}
+		ai_chance = {
+			factor = 90
+		}
+		106 = {
+			save_event_target_as = granted_land
+			if = {
+				limit = { is_claimed_by = MNT }
+				remove_claim_by = MNT
+			}
+			if = {
+				limit = { NOT = { is_core_of = MNT } }
+				add_core_of = MNT
+			}
+			MNT = { transfer_state = PREV }
+		}
+		1271 = {
+			save_event_target_as = granted_land
+			if = {
+				limit = { is_claimed_by = MNT }
+				remove_claim_by = MNT
+			}
+			if = {
+				limit = { NOT = { is_core_of = MNT } }
+				add_core_of = MNT
+			}
+			MNT = { transfer_state = PREV }
+		}
+		MNT = { country_event = annex.38 }
+	}
 	option = { #annex
 		name = annex.integration
 		trigger = {
@@ -6065,6 +6398,58 @@ country_event = { #Fate of Kosovo
 		}
 		ALB = { country_event = annex.38 }
 	}
+	option = {
+		name = annex.33.f #Give it to MNT Dioclea
+		trigger = {
+			MNT = {
+				is_ally_of_ROOT = yes
+				has_cosmetic_tag = MNT_dioclea
+			}
+			NOT = {
+				tag = MNT
+			}
+		}
+		ai_chance = {
+			factor = 90
+		}
+		765 = {
+			if = {
+				limit = { is_claimed_by = MNT }
+				remove_claim_by = MNT
+			}
+			if = {
+				limit = { NOT = { is_core_of = MNT } }
+				add_core_of = MNT
+			}
+			MNT = { transfer_state = PREV }
+		}
+	}
+	option = {
+		name = annex.33.g #Grant it to MNT Dioclea
+		trigger = {
+			NOT = {
+				MNT = { is_ally_of_ROOT = yes }
+				tag = MNT
+			}
+			MNT = { ROOT_can_grant_land = yes has_cosmetic_tag = MNT_dioclea }
+		}
+		ai_chance = {
+			factor = 90
+		}
+		765 = {
+			save_event_target_as = granted_land
+			if = {
+				limit = { is_claimed_by = MNT }
+				remove_claim_by = MNT
+			}
+			if = {
+				limit = { NOT = { is_core_of = MNT } }
+				add_core_of = MNT
+			}
+			MNT = { transfer_state = PREV }
+		}
+		MNT = { country_event = annex.38 }
+	}
 	option = { #annex
 		name = annex.integration
 		trigger = {
@@ -6233,6 +6618,59 @@ country_event = { #Fate of Northern Epirus
 			ALB = { transfer_state = PREV }
 		}
 		ALB = { country_event = annex.38 }
+	}
+	
+	option = {
+		name = annex.33.f #Give it to MNT Dioclea
+		trigger = {
+			MNT = {
+				is_ally_of_ROOT = yes
+				has_cosmetic_tag = MNT_dioclea
+			}
+			NOT = {
+				tag = MNT
+			}
+		}
+		ai_chance = {
+			factor = 90
+		}
+		766 = {
+			if = {
+				limit = { is_claimed_by = MNT }
+				remove_claim_by = MNT
+			}
+			if = {
+				limit = { NOT = { is_core_of = MNT } }
+				add_core_of = MNT
+			}
+			MNT = { transfer_state = PREV }
+		}
+	}
+	option = {
+		name = annex.33.g #Grant it to MNT Dioclea
+		trigger = {
+			NOT = {
+				MNT = { is_ally_of_ROOT = yes }
+				tag = MNT
+			}
+			MNT = { ROOT_can_grant_land = yes has_cosmetic_tag = MNT_dioclea }
+		}
+		ai_chance = {
+			factor = 90
+		}
+		766 = {
+			save_event_target_as = granted_land
+			if = {
+				limit = { is_claimed_by = MNT }
+				remove_claim_by = MNT
+			}
+			if = {
+				limit = { NOT = { is_core_of = MNT } }
+				add_core_of = MNT
+			}
+			MNT = { transfer_state = PREV }
+		}
+		MNT = { country_event = annex.38 }
 	}
 	option = { #annex
 		name = annex.integration
@@ -6447,7 +6885,7 @@ country_event = { #Fate of Transcarpathia
 		trigger = {
 			CZE = {
 				is_ally_of_ROOT = yes
-				owns_state = 71
+				owns_state = 1121
 			}
 			NOT = {
 				tag = HUN
@@ -7469,22 +7907,27 @@ country_event = { #Fate of Vojvodina
 			can_annex_vojvodina = no
 		}
 		ai_chance = {
-			factor = 80
+			base = 40
 			modifier = {
-				factor = 5
-				HUN = { owns_state = 82 }
+				factor = 0
+				OR = {
+					CRO = { is_ally_of_ROOT = yes }
+					SER = { is_ally_of_ROOT = yes }
+				}
+				NOT = { is_ally_with = HUN }
+			}
+			modifier = {
+				factor = 0
+				AUS = {
+					owns_state = 43
+					AUS_is_unified = yes
+					is_ally_of_ROOT = yes
+				}
 			}
 		}
 		set_temp_variable = { tag_to_release = HUN }
-		if = {
-			limit = { owns_state = 45 }
 			45 = { transfer_state_and_add_core = yes }
 		}
-		if = {
-			limit = { owns_state = 875 }
-			875 = { transfer_state_and_add_core = yes }
-		}
-	}
 	option = {
 		name = annex.42.b #Give it to AUS
 		trigger = {
@@ -7496,261 +7939,50 @@ country_event = { #Fate of Vojvodina
 			can_annex_vojvodina = no
 		}
 		ai_chance = {
-			factor = 40
+			base = 40
 		}
 		set_temp_variable = { tag_to_release = AUS }
-		if = {
-			limit = { owns_state = 45 }
 			45 = { transfer_state_and_add_core = yes }
 		}
-		if = {
-			limit = { owns_state = 875 }
-			875 = { transfer_state_and_add_core = yes }
-		}
-	}
 	option = {
 		name = annex.44.a #Give it to CRO
 		trigger = {
 			CRO = {
-				is_ally_of_ROOT = yes
+				ROOT_can_grant_land = yes
 				owns_state = 794
 			}
 			can_annex_vojvodina = no
 		}
 		ai_chance = {
-			factor = 80
+			base = 80
+			modifier = {
+				factor = 0
+				HUN = { is_ally_of_ROOT = yes }
+				NOT = { is_ally_with = 794.owner }
+			}
 		}
 		set_temp_variable = { tag_to_release = CRO }
-		if = {
-			limit = { owns_state = 45 }
 			45 = { transfer_state_and_add_core = yes }
 		}
-		if = {
-			limit = { owns_state = 875 }
-			875 = { transfer_state_and_add_core = yes }
-		}
-	}
 	option = {
 		name = annex.44.b #Give it to SER
 		trigger = {
-			SER = { is_ally_of_ROOT = yes }
-			if = {
-				limit = { owns_state = 45 }
-				SER = { owns_state = 794 }
-			}
-			can_annex_vojvodina = no
-		}
-		ai_chance = {
-			factor = 80
-			modifier = {
-				factor = 5
-				SER = { has_cosmetic_tag = SER_YUG }
-			}
-		}
-		set_temp_variable = { tag_to_release = SER }
-		if = {
-			limit = { owns_state = 45 }
-			45 = { transfer_state_and_add_claim = yes }
-		}
-		if = {
-			limit = { owns_state = 875 }
-			875 = { transfer_state_and_add_claim = yes }
-		}
-	}
-	option = {
-		name = annex.44.c #Split it between SER and ROM
-		trigger = {
-			owns_state = 45
-			owns_state = 875
 			SER = {
-				is_ally_of_ROOT = yes
+				ROOT_can_grant_land = yes
 				owns_state = 794
 			}
-			var:82.owner = {
-				OR = {
-					tag = TRS
-					tag = ROM
-				}
-				is_ally_of_ROOT = yes
-			}
 			can_annex_vojvodina = no
 		}
 		ai_chance = {
-			factor = 100
-		}
-		set_temp_variable = { tag_to_release = SER }
-		if = {
-			limit = { owns_state = 45 }
-			45 = { transfer_state_and_add_claim = yes }
-		}
-		set_temp_variable = { tag_to_release = var:82.owner }
-		if = {
-			limit = { owns_state = 875 }
-			875 = { transfer_state_and_add_claim = yes }
-		}
-	}
-	option = {
-		name = annex.44.c #Split it between CRO and ROM
-		trigger = {
-			owns_state = 45
-			owns_state = 875
-			CRO = { is_ally_of_ROOT = yes }
-			var:82.owner = {
-				OR = {
-					tag = TRS
-					tag = ROM
-				}
-				is_ally_of_ROOT = yes
-			}
-			can_annex_vojvodina = no
-		}
-		ai_chance = {
-			factor = 100
-		}
-		set_temp_variable = { tag_to_release = CRO }
-		if = {
-			limit = { owns_state = 45 }
-			45 = { transfer_state_and_add_core = yes }
-		}
-		set_temp_variable = { tag_to_release = var:82.owner }
-		if = {
-			limit = { owns_state = 875 }
-			875 = { transfer_state_and_add_claim = yes }
-		}
-	}
-	option = {
-		name = annex.44.e #Split it between HUN and ROM
-		trigger = {
-			owns_state = 45
-			owns_state = 875
-			HUN = { is_ally_of_ROOT = yes }
-			var:82.owner = {
-				OR = {
-					tag = TRS
-					tag = ROM
-				}
-				is_ally_of_ROOT = yes
-			}
-			can_annex_vojvodina = no
-		}
-		ai_chance = {
-			factor = 100
-		}
-		set_temp_variable = { tag_to_release = HUN }
-		if = {
-			limit = { owns_state = 45 }
-			45 = { transfer_state_and_add_core = yes }
-		}
-		set_temp_variable = { tag_to_release = var:82.owner }
-		if = {
-			limit = { owns_state = 875 }
-			875 = { transfer_state_and_add_claim = yes }
-		}
-	}
-	option = {
-		name = annex.44.f #Split it with SER
-		trigger = {
-			OR = {
-				tag = ROM
-				tag = TRS
-			}
-			owns_state = 45
-			owns_state = 875
-			SER = {
-				is_ally_of_ROOT = yes
-				owns_state = 794
-			}
-		}
-		ai_chance = {
-			factor = 100
-		}
-		set_temp_variable = { tag_to_release = SER }
-		45 = { transfer_state_and_add_claim = yes }
-		add_state_claim = 875
-	}
-	option = {
-		name = annex.44.g #Split it with CRO
-		trigger = {
-			OR = {
-				tag = ROM
-				tag = TRS
-			}
-			owns_state = 45
-			owns_state = 875
-			CRO = { is_ally_of_ROOT = yes }
-		}
-		ai_chance = {
-			factor = 100
+			base = 80
 			modifier = {
 				factor = 0
-				SER = {
-					is_ally_of_ROOT = yes
-					owns_state = 794
-				}
-			}
-		}
-		set_temp_variable = { tag_to_release = CRO }
-		45 = { transfer_state_and_add_core = yes }
-		add_state_claim = 875
-	}
-	option = {
-		name = annex.44.h #Split it with HUN
-		trigger = {
-			OR = {
-				tag = ROM
-				tag = TRS
-			}
-			owns_state = 45
-			owns_state = 875
 			HUN = { is_ally_of_ROOT = yes }
+				NOT = { is_ally_with = 794.owner }
 		}
-		ai_chance = {
-			factor = 100
-			modifier = {
-				factor = 0
-				SER = {
-					is_ally_of_ROOT = yes
-					owns_state = 794
 				}
-			}
-		}
-		set_temp_variable = { tag_to_release = HUN }
+		set_temp_variable = { tag_to_release = SER }
 		45 = { transfer_state_and_add_core = yes }
-		add_state_claim = 875
-	}
-	option = {
-		name = annex.44.i #Split it with ROM
-		trigger = {
-			OR = {
-				tag = SER
-				tag = CRO
-			}
-			if = {
-				limit = { tag = SER }
-				owns_state = 794
-			}
-			owns_state = 45
-			owns_state = 875
-			var:82.owner = {
-				OR = {
-					tag = TRS
-					tag = ROM
-				}
-				is_ally_of_ROOT = yes
-			}
-		}
-		ai_chance = {
-			factor = 1000
-		}
-		if = {
-			limit = { tag = SER }
-			add_state_claim = 45
-		}
-		else = {
-			add_state_core = 45
-		}
-		set_temp_variable = { tag_to_release = var:82.owner }
-		875 = { transfer_state_and_add_claim = yes }
 	}
 	option = { #annex
 		name = annex.integration
@@ -7758,83 +7990,16 @@ country_event = { #Fate of Vojvodina
 			can_annex_vojvodina = yes
 		}
 		ai_chance = {
-			factor = 1000
-			modifier = {
-				factor = 0
-				OR = {
-					tag = ROM
-					tag = TRS
-				}
-				owns_state = 45
-				owns_state = 875
-				OR = {
-					HUN = { is_ally_of_ROOT = yes }
-					CRO = { is_ally_of_ROOT = yes }
-					SER = {
-						is_ally_of_ROOT = yes
-						owns_state = 794
-					}
-				}
-			}
-			modifier = {
-				factor = 0
-				OR = {
-					tag = SER
-					tag = CRO
-				}
-				owns_state = 45
-				owns_state = 875
-				var:82.owner = {
-					OR = {
-						tag = TRS
-						tag = ROM
-					}
-					is_ally_of_ROOT = yes
-				}
-			}
+			base = 1000
 		}
-		set_temp_variable = { tag_to_release = ROOT }
-		if = {
-			limit = { owns_state = 45 }
-			if = {
-				limit = {
-					OR = {
-						tag = SER
-						tag = ROM
-						tag = TRS
-					}
-				}
-				45 = { transfer_state_and_add_claim = yes }
-			}
-			else = {
-				45 = { transfer_state_and_add_core = yes }
-			}
-		}
-		if = {
-			limit = { owns_state = 875 }
-			if = {
-				limit = {
-					OR = {
-						tag = SER
-						tag = ROM
-						tag = TRS
-					}
-				}
-				875 = { transfer_state_and_add_claim = yes }
-			}
-			else = {
-				875 = { transfer_state_and_add_core = yes }
-			}
-		}
+		45 = { remove_claim_and_add_core_of_ROOT = yes }
 	}
 	option = { #occupy
 		name = annex.occupation
 		trigger = {
 			can_annex_vojvodina = no
 		}
-		ai_chance = {
-			factor = 0
-		}
+		ai_chance = { base = 0 }
 		set_country_flag = VOJVODINA_CONQ
 		occupy_small_country = yes
 	}
@@ -8103,6 +8268,7 @@ country_event = { #Fate of Volhynia
 			}
 			POL = { 
 				ROOT_can_grant_land = yes
+				owns_state = 91
 			}
 		}
 		ai_chance = {
@@ -8318,6 +8484,7 @@ country_event = { #Fate of Transnistria
 		name = annex.47.a
 		trigger = {
 			is_russian_tag_that_can_integrate = yes
+			UKR = { is_ally_of_ROOT = yes }
 			NOT = {
 				tag = UKR
 				tag = ROM
@@ -8337,7 +8504,7 @@ country_event = { #Fate of Transnistria
 					state = 1245 #Bratslav
 				}
 			}
-			transfer_state_and_add_claim = yes
+			transfer_state_and_add_core = yes
 		}
 		add_state_claim = 192
 	}
@@ -8345,6 +8512,7 @@ country_event = { #Fate of Transnistria
 		name = annex.47.b
 		trigger = {
 			is_russian_tag_that_can_integrate = yes
+			ROM = { is_ally_of_ROOT = yes }
 			NOT = {
 				tag = UKR
 				tag = ROM
@@ -8354,7 +8522,7 @@ country_event = { #Fate of Transnistria
 			owns_state = 192
 		}
 		ai_chance = {
-			base = 10
+			base = 0
 		}
 		set_temp_variable = { tag_to_release = ROM }
 		every_owned_state = {
@@ -8372,6 +8540,8 @@ country_event = { #Fate of Transnistria
 		name = annex.47.c
 		trigger = {
 			is_russian_tag_that_can_integrate = no
+			UKR = { is_ally_of_ROOT = yes }
+			ROM = { is_ally_of_ROOT = yes }
 			NOT = {
 				tag = UKR
 				tag = ROM
@@ -8386,7 +8556,10 @@ country_event = { #Fate of Transnistria
 		set_temp_variable = { tag_to_release = ROM }
 		every_owned_state = {
 			limit = {
+				OR = {
 				state = 791 #Transnistria
+					state = 192 #Odesa
+				}
 			}
 			transfer_state_and_add_claim = yes
 		}
@@ -8396,26 +8569,6 @@ country_event = { #Fate of Transnistria
 				state = 1245 #Bratslav
 			}
 			transfer_state_and_add_core = yes
-		}
-		set_temp_variable = { tag_to_release = 1232.owner }
-		if = {
-			limit = {
-				tag = UKR	
-			}
-			every_owned_state = {
-				limit = {
-					state = 192 #Odesa
-				}
-				transfer_state_and_add_core = yes
-			}
-		}
-		else = {
-			every_owned_state = {
-				limit = {
-					state = 192 #Odesa
-				}
-				transfer_state_and_add_claim = yes
-			}
 		}
 	}
 	
@@ -8477,9 +8630,7 @@ country_event = { #The Fate of Russia
 	title = annexation_RUS_CONQ
 	desc = annexation_RUS_CONQ_desc
 	is_triggered_only = yes
-	trigger = {
-		NOT = { tag = TRM }
-	}
+	
 	immediate = {
 		hidden_effect = {
 			if = {
@@ -8502,6 +8653,29 @@ country_event = { #The Fate of Russia
 			}
 			217 = { reset_state_name = yes }
 			reset_province_name = 3529
+			RUS = {
+				drop_cosmetic_tag = yes
+				set_country_flag = nrpr_banned
+				set_country_flag = RUS_NRPR_is_bankrupt
+				clr_country_flag = nsnp_banned
+				set_party_name = {
+					ideology = national_populist
+					name = RUS_solidarist_party
+					long_name = RUS_solidarist_party_long
+				}
+				create_country_leader = {
+					name = "Viktor Baydalakov"
+					picture = "gfx/leaders/RUS/Portrait_RUS_Viktor_Baydalakov.png"
+					expire = "1965.1.1"
+					ideology = solidarism_subtype
+				}
+				hidden_effect = {
+					every_owned_state = {
+						set_variable = { RUS_state_nsnp_popularity = RUS.party_popularity@national_populist }
+						set_variable = { RUS_state_nrpr_popularity = 0 }
+					}
+				}
+			}	
 		}
 	}
 
@@ -8543,6 +8717,12 @@ country_event = { #The Fate of Russia
 					state = 588 #Pavlodar
 					state = 240 #Belgorod
 					state = 821 #Sudzha
+					state = 564 #Verkhneudinsk
+					state = 563 #Chita
+					state = 565 #Bodaybo
+					state = 654 #Ulala
+					state = 811 #Minusinsk
+					state = 329 #Tuva
 				}
 			}
 			transfer_state_to = var:tag_to_release
@@ -8567,9 +8747,24 @@ country_event = { #The Fate of Russia
 			}
 		}
 		set_temp_variable = { tag_to_release = SIB }
-		every_state = {
-			limit = { is_siberia = yes }
-			add_core_of_target_and_transfer_if_owned = yes
+		every_owned_state = {
+			limit = { 
+				is_siberia = yes
+				NOT = {
+					state = 564 #Verkhneudinsk
+					state = 563 #Chita
+					state = 565 #Bodaybo
+					state = 1208 #Orenburg
+					state = 582 #Orsk
+					state = 583 #Kustanai
+					state = 590 #Akmolinsk
+					state = 588 #Pavlodar
+					state = 654 #Ulala
+					state = 811 #Minusinsk
+					state = 329 #Tuva
+				}
+			}
+			transfer_state_and_add_core = yes
 		}
 		puppet_released_tag = yes
 		custom_effect_tooltip = tooltip_white_line
@@ -8590,6 +8785,9 @@ country_event = { #The Fate of Russia
 					state = 722 #Petsamo
 					state = 755 #Vitebsk
 					state = 880 #Dvinsk
+					state = 564 #Verkhneudinsk
+					state = 563 #Chita
+					state = 565 #Bodaybo
 				}
 			}
 			transfer_state_to = var:tag_to_release
@@ -8654,6 +8852,386 @@ country_event = { #The Fate of Russia
 		}
 		occupy_massive_country = yes
 		set_country_flag = RUS_CONQ
+	}
+}
+country_event = { #Fate of West Banat
+	id = annex.49
+	immediate = { log = "[GetDateText]: [Root.GetName]: event annex.49" }
+	title = annexation_WESTBANAT_CONQ
+	desc = annexation_WESTBANAT_CONQ_desc
+	
+	is_triggered_only = yes
+	
+	
+	option = { #give to Serbia
+		name = annex.49.a
+		trigger = {
+			can_annex_west_banat = no
+			SER = { ROOT_can_grant_land = yes }
+		}
+		ai_chance = {
+			base = 40
+			modifier = {
+				factor = 0
+				OR = {
+					ROM = { is_ally_of_ROOT = yes }
+					TRS = { is_ally_of_ROOT = yes }
+					CRO = { is_ally_of_ROOT = yes }
+					HUN = { is_ally_of_ROOT = yes }
+				}
+				NOT = { is_ally_with = SER }
+			}
+		}
+		set_temp_variable = { tag_to_release = SER }
+		875 = { transfer_state_and_add_core = yes }
+	}
+
+	option = { #give to Croatia
+		name = annex.49.b
+		trigger = {
+			can_annex_west_banat = no
+			CRO = {
+				owns_state = 45 #Vojvodina
+				ROOT_can_grant_land = yes
+			}
+		}
+		ai_chance = {
+			base = 40
+			modifier = {
+				factor = 0
+				OR = {
+					BAN = { is_ally_of_ROOT = yes }
+					ROM = { is_ally_of_ROOT = yes }
+					TRS = { is_ally_of_ROOT = yes }
+					SER = { is_ally_of_ROOT = yes }
+					HUN = { is_ally_of_ROOT = yes }
+				}
+				NOT = { is_ally_with = CRO }
+			}
+		}
+		set_temp_variable = { tag_to_release = CRO }
+		875 = { transfer_state_and_add_claim = yes }
+	}
+
+	option = { #give to Romania
+		name = annex.49.c
+		trigger = {
+			can_annex_west_banat = no
+			var:1114.owner = { #Banat
+				OR = {
+					tag = ROM
+					tag = TRS
+					tag = BAN
+				}
+				ROOT_can_grant_land = yes
+			}
+		}
+		ai_chance = {
+			base = 40
+			modifier = {
+				factor = 0
+				OR = {
+					SER = { is_ally_of_ROOT = yes }
+					CRO = { is_ally_of_ROOT = yes }
+					HUN = { is_ally_of_ROOT = yes }
+				}
+				NOT = { is_ally_with = 1114.owner }
+			}
+		}
+		set_temp_variable = { tag_to_release = 1114.owner }
+		if = {
+			limit = {
+				var:tag_to_release = { tag = ROM }
+			}
+			875 = { transfer_state_and_add_claim = yes }
+		}
+		else = {
+			875 = { transfer_state_and_add_core = yes }
+		}
+	}
+
+	option = { #give to Hungary
+		name = annex.49.d
+		trigger = {
+			can_annex_west_banat = no
+			HUN = {
+				owns_state = 45 #Vojvodina
+				ROOT_can_grant_land = yes
+			}
+		}
+		ai_chance = {
+			base = 20
+			modifier = {
+				factor = 0
+				OR = {
+					UKR = { is_ally_of_ROOT = yes }
+					POL = { is_ally_of_ROOT = yes }
+				}
+				NOT = { is_ally_with = WHR }
+			}
+		}
+		set_temp_variable = { tag_to_release = HUN }
+		875 = { transfer_state_and_add_core = yes }
+	}
+
+	option = {
+		name = annex.49.e #Give it to AUS
+		trigger = {
+			can_annex_vojvodina = no
+			AUS = {
+				owns_state = 45 #Vojvodina
+				AUS_is_unified = yes
+				is_ally_of_ROOT = yes
+			}
+		}
+		ai_chance = {
+			base = 40
+		}
+		set_temp_variable = { tag_to_release = AUS }
+		875 = { transfer_state_and_add_core = yes }
+	}
+
+	option = { #Integrate
+		name = annex.integration
+		trigger = {
+			can_annex_west_banat = yes
+		}
+		ai_chance = {
+			base = 1000
+		}
+		875 = { remove_claim_and_add_core_of_ROOT = yes }
+	}
+
+	option = { #occupy
+		name = annex.occupation
+		trigger = {
+			can_annex_west_banat = no
+		}
+		ai_chance = { base = 0 }
+		set_country_flag = WESTBANAT_CONQ
+		occupy_small_country = yes
+	}
+}
+country_event = { #Fate of Banat
+	id = annex.50
+	immediate = { log = "[GetDateText]: [Root.GetName]: event annex.50" }
+	title = annexation_BAN_CONQ
+	desc = annexation_BAN_CONQ_desc
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		hidden_effect = {
+			add_to_temp_array = { core_removal_array = BAN }
+			remove_all_cores_and_claims_of_tags = yes
+			BAN = {
+				add_state_core = 82
+				add_state_core = 1114
+				drop_cosmetic_tag = yes
+			}
+		}
+	}	
+	
+	#option = { #release Banat
+	#	name = annex.50.a
+	#	trigger = {
+	#		NOT = {
+	#			tag = HUN
+	#			tag = ROM
+	#			tag = TRS
+	#			country_exists = BAN
+	#		}
+	#	}
+	#	ai_chance = {
+	#		base = 40
+	#		modifier = {
+	#			factor = 0
+	#			OR = {
+	#				ROM = { is_ally_of_ROOT = yes }
+	#				TRS = { is_ally_of_ROOT = yes }
+	#				HUN = { is_ally_of_ROOT = yes }
+	#			}
+	#		}
+	#	}
+	#	set_temp_variable = { tag_to_release = BAN }
+	#	release_targeted_tag = yes
+	#}
+	option = { #give to Hungary
+		name = annex.50.b
+		trigger = {
+			HUN = {
+				OR = {
+					owns_state = 83
+					owns_state = 1113
+				}
+				ROOT_can_grant_land = yes
+				NOT = { country_exists = TRS }
+			}
+		}
+		ai_chance = {
+			base = 20
+			modifier = {
+				factor = 0
+				OR = {
+					is_ally_with = ROM
+					is_ally_with = TRS
+				}
+			}
+		}
+		set_temp_variable = { tag_to_release = HUN }
+		every_state = {
+			limit = { is_core_of = BAN }
+			add_core_of_target_and_transfer_if_owned = yes
+		}
+		recheck_annexations = yes
+	}
+	option = { #give to Transylvania
+		name = annex.50.c
+		trigger = {
+			TRS = {
+				is_ally_of_ROOT = yes
+				ROOT_can_grant_land = yes
+			}
+		}
+		ai_chance = {
+			base = 20
+			modifier = {
+				factor = 0
+				is_ally_with = HUN
+			}
+		}
+		set_temp_variable = { tag_to_release = TRS }
+		every_state = {
+			limit = { is_core_of = BAN }
+			add_core_of_target_and_transfer_if_owned = yes
+		}
+		recheck_annexations = yes
+	}
+	option = { #give to Romania
+		name = annex.50.d
+		trigger = {
+			ROM = {
+				NOT = { country_exists = TRS }
+				OR = {
+					owns_state = 83
+					owns_state = 1113
+				}
+				ROOT_can_grant_land = yes
+			}
+		}
+		ai_chance = {
+			base = 40
+			modifier = {
+				factor = 0
+				is_ally_with = HUN
+			}
+		}
+		set_temp_variable = { tag_to_release = ROM }
+		every_state = {
+			limit = { is_core_of = BAN }
+			add_core_of_target_and_transfer_if_owned = yes
+		}
+		recheck_annexations = yes
+	}
+
+	option = {
+		name = annex.50.e #Give it to AUS
+		trigger = {
+			AUS = {
+				owns_state = 83
+				AUS_is_unified = yes
+				is_ally_of_ROOT = yes
+			}
+		}
+		ai_chance = {
+			base = 40
+		}
+		set_temp_variable = { tag_to_release = AUS }
+		every_state = {
+			limit = { is_core_of = BAN }
+			add_core_of_target_and_transfer_if_owned = yes
+		}
+		recheck_annexations = yes
+	}
+
+	option = {
+		name = annex.50.f #Split between HUN and ROM
+		trigger = {
+			HUN = {
+				owns_state = 83
+				ROOT_can_grant_land = yes
+				is_ally_of_ROOT = yes
+			}
+			ROM = {
+				owns_state = 1113
+				ROOT_can_grant_land = yes
+				is_ally_of_ROOT = yes
+			}
+		}
+		ai_chance = {
+			base = 40
+		}
+		set_temp_variable = { tag_to_release = HUN }
+		1114 = { add_core_of_target_and_transfer_if_owned = yes }
+		set_temp_variable = { tag_to_release = ROM }
+		82 = { add_core_of_target_and_transfer_if_owned = yes }		
+		recheck_annexations = yes
+	}
+
+	option = {
+		name = annex.50.f #Split between HUN and TRS
+		trigger = {
+			HUN = {
+				owns_state = 83
+				ROOT_can_grant_land = yes
+				is_ally_of_ROOT = yes
+			}
+			TRS = {
+				owns_state = 1113
+				ROOT_can_grant_land = yes
+				is_ally_of_ROOT = yes
+			}
+		}
+		ai_chance = {
+			base = 40
+		}
+		set_temp_variable = { tag_to_release = HUN }
+		1114 = { add_core_of_target_and_transfer_if_owned = yes }
+		set_temp_variable = { tag_to_release = TRS }
+		82 = { add_core_of_target_and_transfer_if_owned = yes }		
+		recheck_annexations = yes
+	}
+
+	option = { #Integrate
+		name = annex.integration
+		trigger = {
+			OR = {
+				tag = ROM
+				tag = TRS
+				tag = HUN
+				tag = AUS
+			}
+		}
+		ai_chance = {
+			base = 1000
+		}
+		82 = { remove_claim_and_add_core_of_ROOT = yes }
+		1114 = { remove_claim_and_add_core_of_ROOT = yes }
+	}
+
+	option = { #occupy
+		name = annex.occupation
+		trigger = {
+			NOT = {
+				tag = ROM
+				tag = TRS
+				tag = HUN
+				tag = AUS
+			}
+		}
+		ai_chance = { base = 0 }
+		set_country_flag = BAN_CONQ
+		occupy_small_country = yes
 	}
 }
 
@@ -9537,7 +10115,7 @@ country_event = { #Fate of Latvia
 			}
 		}
 		set_country_flag = RUS_will_annex_baltic
-		add_political_power = -25
+		occupy_small_country = yes
 		add_to_array = { RUS_integration_array = LAT }
 		recheck_annexations = yes
 	}
@@ -9643,7 +10221,7 @@ country_event = { #Fate of Estonia
 			}
 		}
 		set_country_flag = RUS_will_annex_baltic
-		add_political_power = -25
+		occupy_small_country = yes
 		add_to_array = { RUS_integration_array = EST }
 		recheck_annexations = yes
 	}
@@ -10669,7 +11247,7 @@ country_event = { #The fate of Georgia
 				add_claim_by = ROOT
 			}
 		}
-		add_political_power = -25
+		occupy_small_country = yes
 		add_to_array = { RUS_integration_array = GEO }
 		recheck_annexations = yes
 	}
@@ -10679,19 +11257,15 @@ country_event = { #The fate of Georgia
 		trigger = {
 			is_german_tag = no
 			is_russian_tag_that_can_integrate = no
-			any_allied_country = {
+			var:219.owner = {
 				is_russian_tag_that_can_integrate = yes
-				owns_state = 219
+				is_ally_of_ROOT = yes
 			}
 		}
 		ai_chance = { factor = 99 }
 		add_to_temp_array = { target_cores_to_release = GEO }
 		hidden_effect = {
-			random_other_country = {
-				limit = {
-					is_russian_tag_that_can_integrate = yes
-					is_ally_with = ROOT
-				}
+			var:219.owner = {
 				set_temp_variable = { ROOT.tag_to_release = THIS }
 			}
 		}
@@ -11650,6 +12224,179 @@ country_event = { #Fate of Northern Schleswig
 }
 
 country_event = { #The fate of Turkestan
+	id = annex.78
+	immediate = { log = "[GetDateText]: [Root.GetName]: event annex.78" }
+	title = annexation_TURKESTAN_CONQ
+	desc = annexation_TURKESTAN_CONQ_desc
+	picture = GFX_report_event_SIK_scenery
+
+	is_triggered_only = yes
+
+	immediate = {
+		hidden_effect = {
+			add_to_temp_array = { core_removal_array = TRK }
+			add_to_temp_array = { core_removal_array = UZB }
+			add_to_temp_array = { core_removal_array = KYR }
+			remove_all_cores_and_claims_of_tags = yes
+			for_each_scope_loop = {
+				array = RUS.RUS_bukhara_region
+				add_core_of = TRK
+			}
+			for_each_scope_loop = {
+				array = RUS.RUS_khiva_region
+				add_core_of = UZB
+			}
+			for_each_scope_loop = {
+				array = RUS.RUS_kokand_region
+				add_core_of = KYR
+			}
+		}
+	}
+
+	option = { #Release Turkestan
+		name = annex.78.a
+		trigger = {
+			NOT = {
+				tag = ALO
+				tag = TRK
+				tag = UZB
+				tag = KYR
+			}
+		}
+		ai_chance = {
+			base = 20
+			modifier = {
+				add = -20
+				is_russian_tag_that_can_integrate = yes
+			}
+			modifier = {
+				add = 20
+				has_completed_focus = RUS_Realpolitik
+			}
+		}
+		set_temp_variable = { tag_to_release = KYR }
+		add_to_temp_array = { target_cores_to_release = KYR }
+		add_to_temp_array = { target_cores_to_release = TRK }
+		add_to_temp_array = { target_cores_to_release = UZB }
+		release_targeted_tag_from_core_regions_and_add_cores = yes
+		var:tag_to_release = {
+			set_cosmetic_tag = KYR_united
+			set_country_flag = TRK_turkestan_united
+			set_global_flag = global_turkestan_united
+			KYR = { save_global_event_target_as = turkestan_unifier }
+			hidden_effect = { load_focus_tree = TRK_TURKESTAN_FOCUS_TREE }
+		}
+	}
+
+	option = { #give to Russia
+		name = annex.78.b
+		trigger = {
+			is_russian_tag_that_can_integrate = no
+			NOT = {
+				tag = TRK
+				tag = ALO
+				tag = KYR
+				tag = UZB
+			}
+			var:589.owner = { #Semirechye
+				is_russian_tag_that_can_integrate = yes
+				is_ally_with = ROOT
+			}
+		}
+		ai_chance = {
+			base = 80
+			modifier = {
+				factor = 0
+				is_german_tag = yes
+			}
+		}
+		set_temp_variable = { tag_to_release = 589.owner }
+		add_to_temp_array = { target_cores_to_release = KYR }
+		add_to_temp_array = { target_cores_to_release = TRK }
+		add_to_temp_array = { target_cores_to_release = UZB }
+		transfer_territory_from_core_regions = yes
+	}
+	option = { #Integrate
+		name = annex.78.c
+		trigger = {
+			OR = {
+				tag = ALO
+				tag = UZB
+				tag = KYR
+				is_russian_tag_that_can_integrate = yes
+			}
+		}
+		ai_chance = {
+			base = 100
+		}
+		if = {
+			limit = {
+				is_russian_tag_that_can_integrate = yes
+			}
+			every_state = {
+				limit = {
+					OR = {
+						is_in_array = { RUS.RUS_bukhara_region = THIS }
+						is_in_array = { RUS.RUS_khiva_region = THIS }
+						is_in_array = { RUS.RUS_kokand_region = THIS }
+					}
+					NOT = {
+						is_core_of = ROOT
+						is_claimed_by = ROOT
+					}
+				}
+				add_claim_by = ROOT
+			}
+			occupy_medium_country = yes
+			add_to_array = { RUS_integration_array = TRK }
+			add_to_array = { RUS_integration_array = KYR }
+			add_to_array = { RUS_integration_array = UZB }
+		}
+		else = {
+			every_state = {
+				limit = {
+					OR = {
+						is_in_array = { RUS.RUS_bukhara_region = THIS }
+						is_in_array = { RUS.RUS_khiva_region = THIS }
+						is_in_array = { RUS.RUS_kokand_region = THIS }
+					}
+					NOT = {
+						is_core_of = ROOT
+						is_claimed_by = ROOT
+					}
+				}
+				add_core_of = ROOT
+			}
+		}
+		recheck_annexations = yes
+		hidden_effect = {
+			country_event = {
+				id = rusfor.1273
+				days = 100
+			}
+		}
+	}
+	option = { #occupy
+		name = annex.occupation
+		trigger = {
+			is_ai = no
+			is_russian_tag_that_can_integrate = no
+			NOT = {
+				tag = ALO
+				tag = TRK
+				tag = UZB
+				tag = KYR
+			}
+		}
+		set_country_flag = TURKESTAN_CONQ
+		set_country_flag = TRK_CONQ
+		set_country_flag = UZB_CONQ
+		set_country_flag = KYR_CONQ
+		occupy_large_country = yes
+	}
+}
+
+country_event = { #The fate of Bukhara
 	id = annex.79
 	immediate = { log = "[GetDateText]: [Root.GetName]: event annex.79" }
 	title = annexation_TRK_CONQ
@@ -11676,7 +12423,7 @@ country_event = { #The fate of Turkestan
 		}
 	}
 
-	option = { #Release Turkestan
+	option = { #Release Bukhara
 		name = annex.79.a
 		ai_chance = {
 			base = 20
@@ -11820,7 +12567,7 @@ country_event = { #The fate of Turkestan
 			}
 			
 		}
-		add_political_power = -40
+		occupy_small_country = yes
 		add_to_array = { RUS_integration_array = TRK }
 		recheck_annexations = yes
 		hidden_effect = {
@@ -11830,22 +12577,30 @@ country_event = { #The fate of Turkestan
 			}
 		}
 	}
-	option = { #give to Russian ally
-		name = annex.80.e
+	option = { #give to Central Asian ally
+		name = annex.79.d
 		trigger = {
-			any_allied_country = {
+			has_global_flag = global_turkestan_united
+			has_event_target = turkestan_unifier
+		}
+		ai_chance = { base = 80 }
+		add_to_temp_array = { target_cores_to_release = TRK }
+		set_temp_variable = { ROOT.tag_to_release = event_target:turkestan_unifier }
+		transfer_territory_from_core_regions_and_add_cores = yes
+	}
+
+	option = { #give to Russian ally
+		name = annex.79.b
+		trigger = {
+			var:571.owner = {
 				is_russian_tag_that_can_integrate = yes
-				owns_state = 219
+				is_ally_of_ROOT = yes
 			}
 		}
 		ai_chance = { base = 80 }
 		add_to_temp_array = { target_cores_to_release = TRK }
 		hidden_effect = {
-			random_other_country = {
-				limit = {
-					is_russian_tag_that_can_integrate = yes
-					is_ally_with = ROOT
-				}
+			var:571.owner = {
 				set_temp_variable = { ROOT.tag_to_release = THIS }
 			}
 		}
@@ -11859,7 +12614,7 @@ country_event = { #The fate of Turkestan
 			is_russian_tag_that_can_integrate = no
 		}
 		set_country_flag = TRK_CONQ
-		occupy_large_country = yes
+		occupy_medium_country = yes
 		hidden_effect = {
 			for_each_scope_loop = {
 				array = RUS.RUS_bukhara_region
@@ -11911,6 +12666,13 @@ country_event = { #The fate of Central Asia
 				factor = 0
 				is_russian_tag_that_can_integrate = yes
 			}
+			modifier = {
+				factor = 0
+				var:571.owner = { #Omsk
+					is_russian_tag_that_can_integrate = yes
+					is_ally_with = ROOT
+				}
+			}
 		}
 		set_temp_variable = { tag_to_release = ALO }
 		add_to_temp_array = { target_cores_to_release = ALO }
@@ -11923,87 +12685,25 @@ country_event = { #The fate of Central Asia
 		}
 	}
 
-	option = { #Divide major
-		name = annex.80.b
-		ai_chance = {
-			base = 40
-			modifier = {
-				factor = 0
-				is_russian_tag_that_can_integrate = yes
-			}
-		}
-		#Alash
-		set_temp_variable = { tag_to_release = ALO }
-		release_targeted_tag = yes
-		if = {
-			limit = { is_russian_tag_that_can_integrate = no }
-			ALO = { set_cosmetic_tag = ALO_KAZ }
-		}
-		#Turkestan
-		for_each_scope_loop = {
-			array = RUS.RUS_khiva_region
-			add_core_of = TRK
-		}
-		for_each_scope_loop = {
-			array = RUS.RUS_kokand_region
-			add_core_of = TRK
-		}
-		set_temp_variable = { tag_to_release = TRK }
-		release_targeted_tag = yes
-	}
-
 	option = { #divide minors
 		name = annex.80.c
 		ai_chance = {
-			base = 35
+			base = 80
 			modifier = {
 				factor = 0
 				is_russian_tag_that_can_integrate = yes
 			}
-		}
-		#Kokand
-		hidden_effect = {
-			586 = { #Pishpek
-				add_core_of = KYR
-				remove_core_of = ALO
-			}
-			1042 = { #Osh
-				add_core_of = KYR
-				remove_core_of = TRK
-			}
-			407 = { #Tashkent
-				add_core_of = KYR
-				remove_core_of = TRK
-			}
-			712 = { #Tashkent
-				add_core_of = KYR
-				remove_core_of = TRK
+			modifier = {
+				factor = 0
+				var:571.owner = { #Omsk
+				is_russian_tag_that_can_integrate = yes
+					is_ally_with = ROOT
 			}
 		}
-		set_temp_variable = { tag_to_release = KYR }
-		release_targeted_tag = yes
-		KYR = { set_cosmetic_tag = KYR_KOK }
-		
-		#Khiva
-		hidden_effect = {
-			861 = { #Nukus
-				add_core_of = UZB
-				remove_core_of = TRK
 			}
-			584 = { #Nukus
-				add_core_of = UZB
-				remove_core_of = TRK
-			}
-		}
-		set_temp_variable = { tag_to_release = UZB }
-		release_targeted_tag = yes
-
-		set_temp_variable = { tag_to_release = ALO }
-		release_targeted_tag = yes
-		
-		#Turkestan
-		set_temp_variable = { tag_to_release = TRK }
-		release_targeted_tag = yes
+		custom_effect_tooltip = new_annexation_decisions_tt
+		set_country_flag = { flag = CA_CONQ days = 100 value = 1 }
+		recheck_annexations_immediate = yes
 	}
 
 	option = { #Integrate
@@ -12029,7 +12729,7 @@ country_event = { #The fate of Central Asia
 			}
 			add_claim_by = ROOT
 		}
-		add_political_power = -80
+		occupy_large_country = yes
 		add_to_array = { RUS_integration_array = ALO }
 		add_to_array = { RUS_integration_array = TRK }
 		add_to_array = { RUS_integration_array = KYR }
@@ -12046,9 +12746,9 @@ country_event = { #The fate of Central Asia
 	option = { #give to Russian ally
 		name = annex.80.e
 		trigger = {
-			any_allied_country = {
+			var:571.owner = {
 				is_russian_tag_that_can_integrate = yes
-				owns_state = 219
+				is_ally_of_ROOT = yes
 			}
 		}
 		ai_chance = { base = 80 }
@@ -12061,11 +12761,15 @@ country_event = { #The fate of Central Asia
 				array = RUS.RUS_bukhara_region
 				add_core_of = TRK
 			}
-			random_other_country = {
-				limit = {
-					is_russian_tag_that_can_integrate = yes
-					is_ally_with = ROOT
+			for_each_scope_loop = {
+				array = RUS.RUS_khiva_region
+				add_core_of = UZB
+			}
+			for_each_scope_loop = {
+				array = RUS.RUS_kokand_region
+				add_core_of = KYR
 				}
+			var:571.owner = {
 				set_temp_variable = { ROOT.tag_to_release = THIS }
 			}
 		}
@@ -12078,6 +12782,10 @@ country_event = { #The fate of Central Asia
 			is_russian_tag_that_can_integrate = no
 		}
 		set_country_flag = CA_CONQ
+		set_country_flag = ALO_CONQ
+		set_country_flag = TRK_CONQ
+		set_country_flag = UZB_CONQ
+		set_country_flag = KYR_CONQ
 		occupy_huge_country = yes
 		hidden_effect = {
 			for_each_scope_loop = {
@@ -12149,7 +12857,7 @@ country_event = { #The fate of Uzbekistan
 		}
 	}
 
-	option = { #Release Uzbekistan
+	option = { #Release Khiva
 		name = annex.85.a
 		ai_chance = { 
 			base = 20
@@ -12182,10 +12890,6 @@ country_event = { #The fate of Uzbekistan
 		ai_chance = { 
 			base = 20
 			modifier = {
-				factor = 0
-				tag = ALO
-			}
-			modifier = {
 				add = -20
 				is_russian_tag_that_can_integrate = yes
 			}
@@ -12193,14 +12897,6 @@ country_event = { #The fate of Uzbekistan
 				add = 20
 				is_russian_tag_that_can_integrate = yes
 				has_completed_focus = RUS_Realpolitik
-			}
-			modifier = {
-				factor = 0
-				tag = KYR
-			}
-			modifier = {
-				factor = 0
-				tag = TRK
 			}
 		}
 		584 = { add_claim_by = ROOT }
@@ -12254,22 +12950,30 @@ country_event = { #The fate of Uzbekistan
 		}
 	}
 
+	option = { #give to Central Asian ally
+		name = annex.79.d
+		trigger = {
+			has_global_flag = global_turkestan_united
+			has_event_target = turkestan_unifier
+		}
+		ai_chance = { base = 80 }
+		add_to_temp_array = { target_cores_to_release = UZB }
+		set_temp_variable = { ROOT.tag_to_release = event_target:turkestan_unifier }
+		transfer_territory_from_core_regions_and_add_cores = yes
+	}
+	
 	option = { #give to Russian ally
 		name = annex.80.e
 		trigger = {
-			any_allied_country = {
+			var:571.owner = {
 				is_russian_tag_that_can_integrate = yes
-				owns_state = 219
+				is_ally_of_ROOT = yes
 			}
 		}
 		ai_chance = { base = 80 }
 		add_to_temp_array = { target_cores_to_release = UZB }
 		hidden_effect = {
-			random_other_country = {
-				limit = {
-					is_russian_tag_that_can_integrate = yes
-					is_ally_with = ROOT
-				}
+			var:571.owner = {
 				set_temp_variable = { ROOT.tag_to_release = THIS }
 			}
 		}
@@ -12334,7 +13038,7 @@ country_event = { #The fate of Uzbekistan
 				add_claim_by = ROOT
 			}
 		}
-		add_political_power = -10
+		occupy_small_country = yes
 		add_to_array = { RUS_integration_array = UZB }
 		recheck_annexations = yes
 		hidden_effect = {
@@ -12354,7 +13058,7 @@ country_event = { #The fate of Uzbekistan
 	}
 }
 
-country_event = { #The fate of Kyrgyzstan
+country_event = { #The fate of Kokand
 	id = annex.87
 	immediate = { log = "[GetDateText]: [Root.GetName]: event annex.87"
 		hidden_effect = {
@@ -12376,7 +13080,6 @@ country_event = { #The fate of Kyrgyzstan
 				remove_core_of = KYR
 			}
 		}
-		
 	}
 	}
 	title = annexation_KYR_CONQ
@@ -12416,35 +13119,57 @@ country_event = { #The fate of Kyrgyzstan
 		release_targeted_tag = yes
 		KYR = { set_cosmetic_tag = KYR_KOK }
 	}
-
+	option = { #give to Central Asian ally
+		name = annex.79.d
+		trigger = {
+			has_global_flag = global_turkestan_united
+			has_event_target = turkestan_unifier
+		}
+		ai_chance = { base = 80 }
+		add_to_temp_array = { target_cores_to_release = KYR }
+		set_temp_variable = { ROOT.tag_to_release = event_target:turkestan_unifier }
+		transfer_territory_from_core_regions_and_add_cores = yes
+	}
 	option = { #give to Russian ally
 		name = annex.80.e
 		trigger = {
-			any_allied_country = {
+			var:571.owner = {
 				is_russian_tag_that_can_integrate = yes
-				owns_state = 219
+				is_ally_of_ROOT = yes
 			}
 		}
 		ai_chance = { base = 80 }
-		random_other_country = {
-			limit = {
+		add_to_temp_array = { target_cores_to_release = KYR }
+		set_temp_variable = { ROOT.tag_to_release = var:571.owner }
+		transfer_territory_from_core_regions_and_add_claims = yes
+		var:571.owner = { add_to_array = { RUS_integration_array = KYR } }
+		recheck_annexations = yes
+	}
+	option = { #give 712 to ally
+		name = annex.87.d
+		trigger = {
+			var:1203.owner = {
+				OR = {
 				is_russian_tag_that_can_integrate = yes
-				owns_state = 219
+					tag = ALO
 			}
-			transfer_state = 586 #Pishpek
+				is_ally_of_ROOT = yes
+			}
+			}
+		ai_chance = { base = 80 }
+		set_temp_variable = { tag_to_release = var:1203.owner }
 			if = {
-				limit = { ROOT = { owns_state = 1042 } }
-				transfer_state = 1042
+			limit = {
+				var:1203.owner = { is_russian_tag_that_can_integrate = yes }
 			}
-			if = {
-				limit = { ROOT = { owns_state = 407 } }
-				transfer_state = 407
+			712 = { transfer_state_and_add_claim = yes }
+			var:1203.owner = { add_to_array = { RUS_integration_state_array = 712 } }
 			}
-			if = {
-				limit = { ROOT = { owns_state = 407 } }
-				transfer_state = 712
-			}
+		else = {
+			712 = { transfer_state_and_add_core = yes }
 		}
+		set_temp_variable = { tag_to_release = KYR }
+		release_targeted_tag = yes
 	}
 	option = { #Integrate
 		name = annex.79.c
@@ -12505,7 +13230,7 @@ country_event = { #The fate of Kyrgyzstan
 				add_claim_by = ROOT
 			}
 		}
-		add_political_power = -10
+		occupy_small_country = yes
 		add_to_array = { RUS_integration_array = KYR }
 		recheck_annexations = yes
 		hidden_effect = {
@@ -12574,30 +13299,31 @@ country_event = { #The fate of Kazakhstan
 		release_targeted_tag = yes
 	}
 
-	option = { #Split Kyrgyzstan off
+	option = { #
 		name = annex.88.b
 		trigger = {
 			is_russian_tag_that_can_integrate = no
-			owns_state = 586
-			NOT = { country_exists = KYR }
+			var:1042.owner = {
+				OR = {
+					tag = TRK
+					tag = UZB
+					tag = KYR
 		}
-		ai_chance = {
-			base = 20
-			modifier = {
-				factor = 0
-				is_russian_tag_that_can_integrate = yes
+				is_ally_of_ROOT = yes
 			}
 		}
-		KYR = {
-			add_state_core = 586 #Pishpek
-			add_state_core = 1042 #Osh
-			add_state_core = 407 #Osh
-			add_state_core = 712 #Osh
+		set_temp_variable = { tag_to_release = var:1042.owner }
+		every_owned_state = {
+			limit = {
+				OR = {
+					state = 1212
+					state = 1203
+					state = 589
+			}
+				is_claim_or_core_of_ROOT = no
 		}
-		set_temp_variable = { tag_to_release = KYR }
-		release_targeted_tag = yes
-		KYR = { set_cosmetic_tag = KYR_KOK }
-
+			transfer_state_and_add_core = yes
+		}
 		set_temp_variable = { tag_to_release = ALO }
 		release_targeted_tag = yes
 	}
@@ -12662,7 +13388,7 @@ country_event = { #The fate of Kazakhstan
 				add_claim_by = ROOT
 			}
 		}
-		add_political_power = -10
+		occupy_small_country = yes
 		add_to_array = { RUS_integration_array = ALO }
 		recheck_annexations = yes
 	}
@@ -12671,19 +13397,16 @@ country_event = { #The fate of Kazakhstan
 		name = annex.80.e
 		trigger = {
 			is_russian_tag_that_can_integrate = no
-			any_allied_country = {
+			var:571.owner = {
 				is_russian_tag_that_can_integrate = yes
-				owns_state = 219
+				is_ally_of_ROOT = yes
 			}
+			NOT = { country_exists = SIB }
 		}
 		ai_chance = { base = 80 }
 		add_to_temp_array = { target_cores_to_release = ALO }
 		hidden_effect = {
-			random_other_country = {
-				limit = {
-					is_russian_tag_that_can_integrate = yes
-					is_ally_with = ROOT
-				}
+			var:571.owner = {
 				set_temp_variable = { ROOT.tag_to_release = THIS }
 			}
 		}
@@ -13436,7 +14159,7 @@ country_event = { #The Annexation of Persia
 				add_claim_by = ROOT
 			}
 		}
-		add_political_power = -25
+		occupy_medium_country = yes
 		add_to_array = { RUS_integration_array = PER }
 		recheck_annexations = yes
 	}
@@ -13671,6 +14394,13 @@ country_event = { #The Annexation of Armenia
 			var:tag_to_release = { transfer_state = PREV }
 		}
 		puppet_released_tag = yes
+		hidden_effect = {
+			ARM = { remove_targeted_decision = { target = GER decision = ARM_join_reichspakt } }
+			ARM = { remove_targeted_decision = { target = INT decision = ARM_join_internationale } }
+			ARM = { remove_targeted_decision = { target = GEO decision = ARM_conquer_caucasus } }
+			ARM = { remove_targeted_decision = { target = AZE decision = ARM_conquer_caucasus } }
+			ARM = { remove_targeted_decision = { target = ARM decision = ARM_proclaim_transcaucasia } }
+		}
 	}
 
 	option = { #Integrate
@@ -13713,7 +14443,7 @@ country_event = { #The Annexation of Armenia
 				add_claim_by = ROOT
 			}
 		}
-		add_political_power = -20
+		occupy_small_country = yes
 		add_to_array = { RUS_integration_array = ARM }
 		recheck_annexations = yes
 	}
@@ -13732,14 +14462,29 @@ country_event = { #The Annexation of Armenia
 		add_state_claim = 998
 	}
 
+	option = { #Integrate
+		name = annex.integration
+		trigger = {
+			tag = OTT
+		}
+		ai_chance = {
+			factor = 1000
+		}
+		230 = {
+			hidden_effect = { add_core_of = OTT }
+			ott_set_authority_vilayet_medium = yes
+			ott_set_revolt_risk_high = yes
+		}
+	}
+
 	option = { #Give to Russia
 		name = annex.113.c
 		trigger = {
 			is_german_tag = no
 			is_russian_tag_that_can_integrate = no
-			any_allied_country = {
+			var:219.owner = {
 				is_russian_tag_that_can_integrate = yes
-				owns_state = 219
+				is_ally_of_ROOT = yes
 			}
 		}
 		ai_chance = {
@@ -13751,11 +14496,7 @@ country_event = { #The Annexation of Armenia
 		}
 		add_to_temp_array = { target_cores_to_release = ARM }
 		hidden_effect = {
-			random_other_country = {
-				limit = {
-					is_russian_tag_that_can_integrate = yes
-					is_ally_with = ROOT
-				}
+			var:219.owner = {
 				set_temp_variable = { ROOT.tag_to_release = THIS }
 			}
 		}
@@ -13766,6 +14507,8 @@ country_event = { #The Annexation of Armenia
 		name = annex.occupation
 		trigger = {
 			is_russian_tag_that_can_integrate = no
+			NOT = { tag = PER }
+			NOT = { tag = OTT }
 		}
 		ai_chance = {
 			factor = 0
@@ -13840,7 +14583,7 @@ country_event = { #The Annexation of Azerbaijan
 				add_claim_by = ROOT
 			}
 		}
-		add_political_power = -20
+		occupy_small_country = yes
 		add_to_array = { RUS_integration_array = AZE }
 		recheck_annexations = yes
 	}
@@ -13850,9 +14593,9 @@ country_event = { #The Annexation of Azerbaijan
 		trigger = {
 			is_german_tag = no
 			is_russian_tag_that_can_integrate = no
-			any_allied_country = {
+			var:219.owner = {
 				is_russian_tag_that_can_integrate = yes
-				owns_state = 219
+				is_ally_of_ROOT = yes
 			}
 		}
 		ai_chance = {
@@ -13860,11 +14603,7 @@ country_event = { #The Annexation of Azerbaijan
 		}
 		add_to_temp_array = { target_cores_to_release = AZE }
 		hidden_effect = {
-			random_other_country = {
-				limit = {
-					is_russian_tag_that_can_integrate = yes
-					is_ally_with = ROOT
-				}
+			var:219.owner = {
 				set_temp_variable = { ROOT.tag_to_release = THIS }
 			}
 		}
@@ -14093,7 +14832,7 @@ country_event = { #The Annexation of Afghanistan
 				add_claim_by = ROOT
 			}
 		}
-		add_political_power = -25
+		occupy_small_country = yes
 		add_to_array = { RUS_integration_array = AFG }
 		recheck_annexations = yes
 	}
@@ -14388,10 +15127,8 @@ country_event = { #The fate of Ceylon
 		puppet_released_tag = yes
 		remove_state_core = 422
 	}
-
 	option = { #Integrate
 		trigger = {
-
 			OR = {
 				tag = BHC
 				tag = PRF
@@ -14412,9 +15149,47 @@ country_event = { #The fate of Ceylon
 		}
 		set_country_flag = CEY_CONQ
 	}
+	option = { #Integrate
+		trigger = {
+			OR = {
+				is_ally_with = BHC
+				is_ally_with = PRF
+				is_ally_with = DEH
+				is_ally_with = INR
+			}
+		}
+		name = annex.119.c
+		ai_chance = {
+			factor = 80
+		}
+		if = {
+			limit = {
+				PRF = { is_ally_of_ROOT = yes }
+			}
+			set_temp_variable = { tag_to_release = PRF }
+		}	
+		else_if = {
+			limit = {
+				BHC = { is_ally_of_ROOT = yes }
+			}
+			set_temp_variable = { tag_to_release = BHC }
+		}	
+		else_if = {
+			limit = {
+				DEH = { is_ally_of_ROOT = yes }
+			}
+			set_temp_variable = { tag_to_release = DEH }
+		}	
+		else_if = {
+			limit = {
+				INR = { is_ally_of_ROOT = yes }
+			}
+			set_temp_variable = { tag_to_release = INR }
+		}	
+		422 = { transfer_state_and_add_claim = yes }
+	}
 	option = { #occupation
 		trigger = {
-
 			NOT = {
 				tag = BHC
 				tag = PRF
@@ -14896,7 +15671,7 @@ country_event = { #The Conquest of Bohemia
 				add_claim_by = ROOT
 			}
 		}
-		add_political_power = -25
+		occupy_small_country = yes		
 		add_to_array = { RUS_integration_array = CZE }
 		recheck_annexations = yes
 	}
@@ -14961,7 +15736,7 @@ country_event = { #Fate of Ukraine
 				is_claim_or_core_of_ROOT = no
 				NOT = {
 					state = 80 #Cernauti
-					state = 731 #Bukowina
+					state = 713 #Bukowina
 					state = 91 #West Ukraine
 					state = 1140
 					state = 89
@@ -14979,6 +15754,12 @@ country_event = { #Fate of Ukraine
 					state = 227 #Mariupol
 					state = 228 #Yuzivka
 					state = 1231 #Taganrog
+					state = 792 #Volhynia
+					state = 1228 #Rivne
+					state = 199 #Podolia
+					state = 192 #Odesa
+					state = 791 #Transnistria
+					state = 1245 #Bratslav					
 				}
 			}
 			transfer_state_to = var:tag_to_release
@@ -15034,13 +15815,30 @@ country_event = { #Fate of Ukraine
 				is_claim_or_core_of_ROOT = no
 				NOT = {
 					state = 80 #Cernauti
-					state = 731 #Bukowina
+					state = 713 #Bukowina
 					state = 91 #West Ukraine
 					state = 1140
 					state = 89
 					state = 1126
 					state = 1127
+					state = 93 #Brest
+					state = 241 #Gomel
+					state = 997 #Polesia
+					state = 1088 #Chelm
+					state = 137 #Crimea
+					state = 1220 #Crimea
+					state = 1221 #Crimea
+					state = 1230 #Starodub
+					state = 241 #Gomel
+					state = 227 #Mariupol
+					state = 228 #Yuzivka
 					state = 1231 #Taganrog
+					state = 792 #Volhynia
+					state = 1228 #Rivne
+					state = 199 #Podolia
+					state = 192 #Odesa
+					state = 791 #Transnistria
+					state = 1245 #Bratslav					
 				}
 			}
 			transfer_state_to = var:tag_to_release
@@ -15093,13 +15891,30 @@ country_event = { #Fate of Ukraine
 				is_claim_or_core_of_ROOT = no
 				NOT = {
 					state = 80 #Cernauti
-					state = 731 #Bukowina
+					state = 713 #Bukowina
 					state = 91 #West Ukraine
 					state = 1140
 					state = 89
 					state = 1126
 					state = 1127
+					state = 93 #Brest
+					state = 241 #Gomel
+					state = 997 #Polesia
+					state = 1088 #Chelm
+					state = 137 #Crimea
+					state = 1220 #Crimea
+					state = 1221 #Crimea
+					state = 1230 #Starodub
+					state = 241 #Gomel
+					state = 227 #Mariupol
+					state = 228 #Yuzivka
 					state = 1231 #Taganrog
+					state = 792 #Volhynia
+					state = 1228 #Rivne
+					state = 199 #Podolia
+					state = 192 #Odesa
+					state = 791 #Transnistria
+					state = 1245 #Bratslav					
 				}
 			}
 			transfer_state_to = var:tag_to_release
@@ -15137,13 +15952,30 @@ country_event = { #Fate of Ukraine
 				is_claim_or_core_of_ROOT = no
 				NOT = {
 					state = 80 #Cernauti
-					state = 731 #Bukowina
+					state = 713 #Bukowina
 					state = 91 #West Ukraine
 					state = 1140
 					state = 89
 					state = 1126
 					state = 1127
+					state = 93 #Brest
+					state = 241 #Gomel
+					state = 997 #Polesia
+					state = 1088 #Chelm
+					state = 137 #Crimea
+					state = 1220 #Crimea
+					state = 1221 #Crimea
+					state = 1230 #Starodub
+					state = 241 #Gomel
+					state = 227 #Mariupol
+					state = 228 #Yuzivka
 					state = 1231 #Taganrog
+					state = 792 #Volhynia
+					state = 1228 #Rivne
+					state = 199 #Podolia
+					state = 192 #Odesa
+					state = 791 #Transnistria
+					state = 1245 #Bratslav					
 				}
 			}
 			transfer_state_to = var:tag_to_release
@@ -15182,13 +16014,30 @@ country_event = { #Fate of Ukraine
 				is_claim_or_core_of_ROOT = no
 				NOT = {
 					state = 80 #Cernauti
-					state = 731 #Bukowina
+					state = 713 #Bukowina
 					state = 91 #West Ukraine
 					state = 1140
 					state = 89
 					state = 1126
 					state = 1127
+					state = 93 #Brest
+					state = 241 #Gomel
+					state = 997 #Polesia
+					state = 1088 #Chelm
+					state = 137 #Crimea
+					state = 1220 #Crimea
+					state = 1221 #Crimea
+					state = 1230 #Starodub
+					state = 241 #Gomel
+					state = 227 #Mariupol
+					state = 228 #Yuzivka
 					state = 1231 #Taganrog
+					state = 792 #Volhynia
+					state = 1228 #Rivne
+					state = 199 #Podolia
+					state = 192 #Odesa
+					state = 791 #Transnistria
+					state = 1245 #Bratslav					
 				}
 			}
 			transfer_state_to = var:tag_to_release
@@ -15268,7 +16117,7 @@ country_event = { #Fate of Ukraine
 				add_claim_by = ROOT
 			}
 		}
-		add_political_power = -100
+		occupy_large_country = yes
 		add_to_array = { RUS_integration_array = UKR }
 		recheck_annexations = yes
 	}
@@ -15278,20 +16127,16 @@ country_event = { #Fate of Ukraine
 		trigger = {
 			is_german_tag = no
 			is_russian_tag_that_can_integrate = no
-			any_allied_country = {
+			var:219.owner = {
 				is_russian_tag_that_can_integrate = yes
-				owns_state = 219
+				is_ally_of_ROOT = yes
 				ROOT_can_grant_land = yes
 			}
 		}
 		ai_chance = { factor = 99 }
 		add_to_temp_array = { target_cores_to_release = UKR }
 		hidden_effect = {
-			random_other_country = {
-				limit = {
-					is_russian_tag_that_can_integrate = yes
-					is_ally_with = ROOT
-				}
+			var:219.owner = {
 				set_temp_variable = { ROOT.tag_to_release = THIS }
 			}
 		}
@@ -15503,52 +16348,96 @@ country_event = { #Fate of Japan
 
 	immediate = {
 		log = "[GetDateText]: [Root.GetName]: event annex.127"
+		hidden_effect = {
 		JAP_fading_sun = yes
+			if = {
+				limit = { is_russian_tag = yes }
+				add_state_claim = 537 #Sakhalin
+				add_state_claim = 555 #Kurils
+			}
+		}
 	}
 
 	option = { #liberate
 		name = annex.127.b
-		ai_chance = {
-			factor = 1
+		trigger = {
+			has_socialist_government = no
 		}
-
+		ai_chance = {
+			factor = 100
+		}
+		set_temp_variable = { tag_to_release = JAP }		
 		every_owned_state = {
 			limit = {
+				is_claim_or_core_of_ROOT = no
+				OR = {
 				is_core_of = JAP
-				NOT = {
-					region = 191 #Korea
-					state = 745 #Kwantung
-					is_core_of = TRM
-					is_mainland_china = yes
 					AND = {
-						state = 537
-						ROOT = { is_russian_tag_that_can_integrate = yes }
+						OR = {
+							state = 630 #Johnston Atoll
+							state = 631 #Midway Island
+							state = 632 #Wake Island
+							state = 638 #Guam
+							state = 642 #Phoenix Island
+							state = 726 #Samoa
+							state = 727 #Line Islands
+						}
+						629 = { is_valid_annexation_state = no } #Hawaii
+						any_of = {
+							array = ROOT.faction_members
+							OR = {
+								is_core_of = var:v
+								is_claimed_by = var:v
+							}
+						}
+						any_of = {
+							array = ROOT.subjects
+							OR = {
+								is_core_of = var:v
+								is_claimed_by = var:v
+							}
+						}
+					}
+					AND = {
+						state = 534 #Sakhalin
+						ROOT = { is_russian_tag_that_can_integrate = no }
+				NOT = {
+							ROOT = { tag = SIB }
+							var:560.owner = {
+								is_russian_tag_that_can_integrate = yes
+								is_ally_with = ROOT
+							}
+							AND = {
+								570 = { is_valid_annexation_state = yes } #Novo-Nikolayevsk
+								NOT = {
+									country_exists = SIB
+									ROOT = { has_country_flag = SIB_CONQ }
+								}
+							}
+					AND = {
+								219 = { is_valid_annexation_state = yes } #Moscow
+								NOT = {
+									country_exists = RUS
+									ROOT = { has_country_flag = RUS_CONQ }
+								}
 					}
 				}
-				is_not_claim_or_core_of_ROOT = yes
 			}
-			JAP = {
+			}
+		}
+			var:tag_to_release = {
+				hidden_effect = {
+					if = {
+			limit = {
+							PREV = { NOT = { is_core_of = var:tag_to_release } }
+				}
+						set_variable = { PREV.ambition_area_@JAP = 1 }
+						add_state_claim = PREV
+			}
+				}
 				transfer_state = PREV
 			}
 		}
-
-		every_state = {
-			limit = {
-				OR = {
-					is_claimed_by = JAP
-					is_core_of = JAP
-				}
-				NOT = { is_owned_by = JAP }
-			}
-			hidden_effect = {
-				JAP = {
-					remove_state_claim = PREV
-					remove_state_core = PREV
-				}
-			}
-		}
-
-		set_temp_variable = { tag_to_release = JAP }
 		puppet_released_tag = yes
 		JAP = {
 			hidden_effect = {
@@ -15560,13 +16449,20 @@ country_event = { #Fate of Japan
 	
 	option = { #liberate as republic
 		name = annex.127.e
-		trigger = {
+		ai_chance = {
+			base = 0
+			modifier = {
+				add = 100
 			OR = {
-				has_socialist_government = yes
 				is_american_tag = yes
+					tag = CHI
+					tag = YUN #KMT
+					tag = SZC
+					tag = UPC
+					tag = NPA
+				}
 			}
 		}
-		ai_chance = { base = 10 }
 		set_temp_variable = { tag_to_release = JAP }
 		every_owned_state = {
 			limit = {
@@ -15690,57 +16586,86 @@ country_event = { #Fate of Japan
 		}
 	}
 
-	option = { #occupation
-		name = annex.127.a
-		ai_chance = {
-			factor = 0
-		}
-		set_country_flag = JAP_CONQ
-		occupy_large_country = yes
-	}
-
 	option = { #shogun eddie
 		name = annex.127.c
 		trigger = {
 			tag = CAN
 		}
+		ai_chance = {
+			base = 0
+		}
+		set_temp_variable = { tag_to_release = JAP }
 		every_owned_state = {
 			limit = {
+				is_claim_or_core_of_ROOT = no
+				OR = {
 				is_core_of = JAP
-				NOT = {
-					region = 191 #Korea
-					state = 745 #Kwantung
-					is_core_of = TRM
-					is_mainland_china = yes
 					AND = {
-						state = 537
-						ROOT = { is_russian_tag_that_can_integrate = yes }
+						OR = {
+							state = 630 #Johnston Atoll
+							state = 631 #Midway Island
+							state = 632 #Wake Island
+							state = 638 #Guam
+							state = 642 #Phoenix Island
+							state = 726 #Samoa
+							state = 727 #Line Islands
+						}
+						629 = { is_valid_annexation_state = no } #Hawaii
+						any_of = {
+							array = ROOT.faction_members
+							OR = {
+								is_core_of = var:v
+								is_claimed_by = var:v
+							}
+						}
+						any_of = {
+							array = ROOT.subjects
+							OR = {
+								is_core_of = var:v
+								is_claimed_by = var:v
+							}
+						}
+					}
+					AND = {
+						state = 534 #Sakhalin
+						ROOT = { is_russian_tag_that_can_integrate = no }
+				NOT = {
+							ROOT = { tag = SIB }
+							var:560.owner = {
+								is_russian_tag_that_can_integrate = yes
+								is_ally_with = ROOT
+							}
+							AND = {
+								570 = { is_valid_annexation_state = yes } #Novo-Nikolayevsk
+								NOT = {
+									country_exists = SIB
+									ROOT = { has_country_flag = SIB_CONQ }
+								}
+							}
+					AND = {
+								219 = { is_valid_annexation_state = yes } #Moscow
+								NOT = {
+									country_exists = RUS
+									ROOT = { has_country_flag = RUS_CONQ }
+								}
 					}
 				}
-				is_not_claim_or_core_of_ROOT = yes
 			}
-			JAP = {
+			}
+		}
+			var:tag_to_release = {
+				hidden_effect = {
+					if = {
+			limit = {
+							PREV = { NOT = { is_core_of = var:tag_to_release } }
+				}
+						set_variable = { PREV.ambition_area_@JAP = 1 }
+						add_state_claim = PREV
+			}
+				}
 				transfer_state = PREV
 			}
 		}
-
-		every_state = {
-			limit = {
-				OR = {
-					is_claimed_by = JAP
-					is_core_of = JAP
-				}
-				NOT = { is_owned_by = JAP }
-			}
-			hidden_effect = {
-				JAP = {
-					remove_state_claim = PREV
-					remove_state_core = PREV
-				}
-			}
-		}
-
-		set_temp_variable = { tag_to_release = JAP }
 		puppet_released_tag = yes
 		JAP = {
 			hidden_effect = {
@@ -15806,6 +16731,14 @@ country_event = { #Fate of Japan
 			}
 		}
 	} 
+	option = { #occupation
+		name = annex.127.a
+		ai_chance = {
+			factor = 0
+		}
+		set_country_flag = JAP_CONQ
+		occupy_large_country = yes
+	}
 }
 country_event = { #Fate of Khuzestan
 	id = annex.128
@@ -17879,7 +18812,7 @@ country_event = { #Fate of Galicia
 				add_claim_by = ROOT
 			}
 		}
-		add_political_power = -25
+		occupy_medium_country = yes
 		add_to_array = { RUS_integration_array = GAL }
 		recheck_annexations = yes
 	}
@@ -17943,11 +18876,9 @@ country_event = { #Fate of Belarus
 			modifier = {
 				factor = 0
 				is_russian_tag_that_can_integrate = yes
-				has_left_democratic_government = no
 			}
 		}
 		set_temp_variable = { tag_to_release = WHR }
-		release_targeted_tag = yes
 		every_owned_state = {
 			limit = {
 				is_core_of = WHR
@@ -17956,6 +18887,7 @@ country_event = { #Fate of Belarus
 			}
 			transfer_state_to = var:tag_to_release
 		}
+		puppet_released_tag = yes
 		if = {
 			limit = {
 				NOT = { tag = GER }
@@ -18037,16 +18969,64 @@ country_event = { #Fate of Belarus
 		}			
 	}
 
-	option = { #Integrate
-		name = annex.147.b
+	option = {
+		name = annex.147.g #Liberate White Ruthenia
 		trigger = {
 			is_russian_tag_that_can_integrate = yes
 		}
 		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = 0.5
+				AND = {
+					is_russian_tag_that_can_integrate = yes
+					has_left_democratic_government = yes
+				}
+			}
+		}
+		set_temp_variable = { tag_to_release = WHR }
+		every_owned_state = {
+			limit = {
+				is_core_of = WHR
+				is_claim_or_core_of_ROOT = no
+				NOT = { state = 94 } #Volkovysk
+				NOT = { state = 1087 } #Mogilev
+			}
+			transfer_state_to = var:tag_to_release
+		}
+		puppet_released_tag = yes
+		1087 = { add_claim_of_ROOT = yes }
+		add_to_array = { RUS_integration_state_array = 1087 }
+		if = {
+			limit = {
+				ROOT = { RUS_russian_monarch = yes }
+			}
+			WHR = { 
+				RUS_install_puppet_monarchy = yes
+			}
+		}			
+	}
+
+	option = { #Integrate
+		name = annex.147.b
+		trigger = {
+			OR = {
+			is_russian_tag_that_can_integrate = yes
+				tag = LIT
+			}
+		}
+		ai_chance = {
 			base = 100
 			modifier = {
+				factor = 0.5
+				AND = {
+					is_russian_tag_that_can_integrate = yes
+					has_left_democratic_government = yes
+				}
+			}
+			modifier = {
 				factor = 0
-				has_left_democratic_government = yes
+				tag = LIT
 			}
 		}
 		every_state = {
@@ -18061,6 +19041,10 @@ country_event = { #Fate of Belarus
 			hidden_effect = {
 				add_core_of = WHR
 			}
+			if = {
+				limit = {
+					ROOT = { is_russian_tag_that_can_integrate = yes }
+				}
 			hidden_effect = {
 				if = {
 					limit = { has_resistance = yes }
@@ -18078,13 +19062,19 @@ country_event = { #Fate of Belarus
 					set_resistance = original_resistance
 				}
 			}
+			}
 			if = {
 				limit = { is_claim_or_core_of_ROOT = no }
 				add_claim_by = ROOT
 			}
 		}
-		add_political_power = -50
+		if = {
+			limit = {
+				is_russian_tag_that_can_integrate = yes
+			}
+			occupy_small_country = yes
 		add_to_array = { RUS_integration_array = WHR }
+		}
 		recheck_annexations = yes
 	}
 
@@ -18094,26 +19084,285 @@ country_event = { #Fate of Belarus
 			factor = 100
 		}
 		trigger = {
-			is_german_tag = no
+			is_germany_or_splinter_tag = no
 			is_russian_tag_that_can_integrate = no
-			any_allied_country = {
+			var:219.owner = {
 				is_russian_tag_that_can_integrate = yes
-				owns_state = 219
+				is_ally_of_ROOT = yes
 			}
 		}
 		add_to_temp_array = { target_cores_to_release = WHR }
 		hidden_effect = {
-			random_other_country = {
-				limit = {
-					is_russian_tag_that_can_integrate = yes
-					is_ally_with = ROOT
-				}
+			var:219.owner = {
 				set_temp_variable = { ROOT.tag_to_release = THIS }
 			}
 		}
 		transfer_territory_from_core_regions = yes
 	}
 
+	option = {
+		name = annex.147.d #Take Western Belarus, liberate the rest
+		ai_chance = {
+			factor = 100
+		}
+		trigger = {
+			OR = {
+				tag = POL
+				tag = LIT
+			}
+			owns_state = 96
+		}
+		add_state_claim = 207
+		add_state_claim = 204
+		set_temp_variable = { tag_to_release = WHR }
+		every_owned_state = {
+			limit = {
+				is_core_of = WHR
+				is_claim_or_core_of_ROOT = no
+				NOT = { state = 94 } #Volkovysk
+				NOT = { state = 207 } #Braslaw
+				NOT = { state = 204 } #Bobruisk
+			}
+			transfer_state_to = var:tag_to_release
+		}
+		puppet_released_tag = yes
+		occupy_small_country = yes
+	}
+	
+	option = {
+		name = annex.147.e #Give Western Belarus to POL, liberate the rest
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = 0
+				has_socialist_government = yes
+			}			
+		}
+		trigger = {
+			POL = {
+				is_ally_of_ROOT = yes
+				ROOT_can_grant_land = yes
+			}
+			NOT = {
+				is_russian_tag_that_can_integrate = yes
+				tag = UKR
+				is_germany_or_splinter_tag = yes
+				tag = LIT
+				tag = POL
+			}
+		}
+		set_temp_variable = { tag_to_release = POL }
+		every_owned_state = {
+			limit = {
+				OR = {
+					state = 207 #Braslaw
+					state = 204 #Bobruisk
+				}
+			}
+			add_claim_of_target_and_transfer_if_owned = yes
+		}
+		set_temp_variable = { tag_to_release = WHR }
+		every_owned_state = {
+			limit = {
+				is_core_of = WHR
+				is_claim_or_core_of_ROOT = no
+				NOT = { state = 94 } #Volkovysk
+				NOT = { state = 207 } #Braslaw
+				NOT = { state = 204 } #Bobruisk
+			}
+			transfer_state_to = var:tag_to_release
+		}
+		puppet_released_tag = yes
+		WHR = { WHR_setup_republican_leaders = yes }
+	}	
+	
+	option = {
+		name = annex.147.e2 #Give Western Belarus to POL, liberate the rest
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = 0
+				has_socialist_government = yes
+			}			
+		}
+		trigger = {
+			LIT = {
+				is_ally_of_ROOT = yes
+				ROOT_can_grant_land = yes
+			}
+			NOT = {
+				is_russian_tag_that_can_integrate = yes
+				tag = UKR
+				is_germany_or_splinter_tag = yes
+				tag = POL
+				tag = LIT
+			}
+		}
+		set_temp_variable = { tag_to_release = LIT }
+		every_owned_state = {
+			limit = {
+				OR = {
+					state = 207 #Braslaw
+					state = 204 #Bobruisk
+				}
+			}
+			add_claim_of_target_and_transfer_if_owned = yes
+		}
+		set_temp_variable = { tag_to_release = WHR }
+		every_owned_state = {
+			limit = {
+				is_core_of = WHR
+				is_claim_or_core_of_ROOT = no
+				NOT = { state = 94 } #Volkovysk
+				NOT = { state = 207 } #Braslaw
+				NOT = { state = 204 } #Bobruisk
+			}
+			transfer_state_to = var:tag_to_release
+		}
+		puppet_released_tag = yes
+		WHR = { WHR_setup_republican_leaders = yes }
+	}
+	
+	option = {
+		name = annex.147.f #Give Western Belarus to POL, give the rest to RUS
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = 0
+				has_socialist_government = yes
+			}			
+		}
+		trigger = {
+			POL = {
+				is_ally_of_ROOT = yes
+				ROOT_can_grant_land = yes
+			}
+			var:219.owner = {
+				is_ally_of_ROOT = yes
+				ROOT_can_grant_land = yes
+				is_russian_tag_that_can_integrate = yes
+			}
+			NOT = {
+				is_russian_tag_that_can_integrate = yes
+				tag = UKR
+				is_germany_or_splinter_tag = yes
+				tag = LIT
+				tag = POL
+			}
+		}
+		set_temp_variable = { tag_to_release = POL }
+		every_owned_state = {
+			limit = {
+				OR = {
+					state = 207 #Braslaw
+					state = 204 #Bobruisk
+				}
+			}
+			add_claim_of_target_and_transfer_if_owned = yes
+		}
+		set_temp_variable = { tag_to_release = 219.owner }
+		every_owned_state = {
+			limit = {
+				is_core_of = WHR
+				is_claim_or_core_of_ROOT = no
+				NOT = { state = 94 } #Volkovysk
+				NOT = { state = 207 } #Braslaw
+				NOT = { state = 204 } #Bobruisk
+			}
+			transfer_state_to = var:tag_to_release
+			add_claim_by = var:tag_to_release
+			hidden_effect = {
+				add_core_of = WHR
+				if = {
+					limit = { has_resistance = yes }
+					set_temp_variable = { original_compliance = THIS.compliance }
+					set_temp_variable = { original_resistance = THIS.resistance }
+					cancel_resistance = yes
+				}
+				start_resistance = WHR
+				if = {
+					limit = { has_variable = original_compliance }
+					set_compliance = original_compliance
+				}
+				if = {
+					limit = { has_variable = original_resistance }
+					set_resistance = original_resistance
+				}
+				var:tag_to_release = { add_to_array = { RUS_integration_array = WHR } }
+			}
+		}
+	}
+	
+	option = {
+		name = annex.147.f2 #Give Western Belarus to LIT, give the rest to RUS
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = 0
+				has_socialist_government = yes
+			}			
+		}
+		trigger = {
+			LIT = {
+				is_ally_of_ROOT = yes
+				ROOT_can_grant_land = yes
+			}
+			var:219.owner = {
+				is_ally_of_ROOT = yes
+				ROOT_can_grant_land = yes
+				is_russian_tag_that_can_integrate = yes
+			}
+			NOT = {
+				is_russian_tag_that_can_integrate = yes
+				tag = UKR
+				is_germany_or_splinter_tag = yes
+				tag = LIT
+				tag = POL
+			}
+		}
+		set_temp_variable = { tag_to_release = LIT }
+		every_owned_state = {
+			limit = {
+				OR = {
+					state = 207 #Braslaw
+					state = 204 #Bobruisk
+				}
+			}
+			add_claim_of_target_and_transfer_if_owned = yes
+		}
+		set_temp_variable = { tag_to_release = 219.owner }
+		every_owned_state = {
+			limit = {
+				is_core_of = WHR
+				is_claim_or_core_of_ROOT = no
+				NOT = { state = 94 } #Volkovysk
+				NOT = { state = 207 } #Braslaw
+				NOT = { state = 204 } #Bobruisk
+			}
+			transfer_state_to = var:tag_to_release
+			add_claim_by = var:tag_to_release
+			hidden_effect = {
+				add_core_of = WHR
+				if = {
+					limit = { has_resistance = yes }
+					set_temp_variable = { original_compliance = THIS.compliance }
+					set_temp_variable = { original_resistance = THIS.resistance }
+					cancel_resistance = yes
+				}
+				start_resistance = WHR
+				if = {
+					limit = { has_variable = original_compliance }
+					set_compliance = original_compliance
+				}
+				if = {
+					limit = { has_variable = original_resistance }
+					set_resistance = original_resistance
+				}
+				var:tag_to_release = { add_to_array = { RUS_integration_array = WHR } }
+			}
+		}
+	}
+	
 	option = { #Occupy White Ruthenia
 		name = annex.occupation
 		trigger = {
@@ -18184,6 +19433,59 @@ country_event = { #Fate of Slovakia
 		set_temp_variable = { tag_to_release = SVK }
 		release_targeted_tag = yes
 	}
+	option = {
+		name = annex.148.c2 #Give Southern Slovakia to Hungary, liberate Czechoslovakia
+		trigger = {
+			owns_state = 1136
+			owns_state = 1122
+			HUN = { is_ally_of_ROOT = yes }
+			NOT = { tag = HUN }
+		}
+		ai_chance = {
+			factor = 50
+		}
+		every_state = {
+			limit = {
+				OR = {
+					state = 1136
+					state = 1122
+				}
+			}
+			if = {
+				limit = { is_claimed_by = HUN }
+				remove_claim_by = HUN
+			}
+			if = {
+				limit = { NOT = { is_core_of = HUN } }
+				add_core_of = HUN
+			}
+			HUN = { transfer_state = PREV }
+		}
+		add_to_temp_array = { target_cores_to_release = SVK }
+		set_temp_variable = { tag_to_release = CZE }
+		transfer_territory_from_core_regions_and_add_cores = yes
+		CZE = {
+			set_cosmetic_tag = CZE_czechoslavakia
+			if = {
+				limit = {
+					has_elected_government = yes
+					is_subject_of = ROOT
+				}
+				meta_effect = {
+					text = {
+						create_country_leader = {
+							name = "Vavro Srobar"
+							desc = "POLITICS_VAVRO_SROBAR_DESC"
+							picture = "gfx/leaders/SVK/Portrait_SVK_Vavro_Srobar.png"
+							expire = "1965.1.1"
+							ideology = [CZE_IDEOLOGY]
+						}
+					}
+					CZE_IDEOLOGY = "[CZE.GetRulingIdeologySubtype]"
+				}
+			}
+		}
+	}
 	option = { #Give to Austria
 		name = annex.148.b
 		trigger = {
@@ -18250,25 +19552,28 @@ country_event = { #Fate of Slovakia
 		ai_chance = {
 			factor = 30
 		}
-		every_state = {
+		add_to_temp_array = { target_cores_to_release = SVK }
+		set_temp_variable = { tag_to_release = CZE }
+		transfer_territory_from_core_regions_and_add_cores = yes
+		CZE = {
+			set_cosmetic_tag = CZE_czechoslavakia
+			if = {
 			limit = {
-				OR = {
-					is_core_of = SVK
-					state = 73 #Transcarpathia
-					state = 1119 #Transcarpathia
+					has_elected_government = yes
+					is_subject_of = ROOT
 				}
+				meta_effect = {
+					text = {
+						create_country_leader = {
+							name = "Vavro Srobar"
+							desc = "POLITICS_VAVRO_SROBAR_DESC"
+							picture = "gfx/leaders/SVK/Portrait_SVK_Vavro_Srobar.png"
+							expire = "1965.1.1"
+							ideology = [CZE_IDEOLOGY]
 			}
-			if = {
-				limit = { is_claimed_by = CZE }
-				remove_claim_by = CZE
 			}
-			if = {
-				limit = { NOT = { is_core_of = CZE } }
-				add_core_of = CZE
+					CZE_IDEOLOGY = "[CZE.GetRulingIdeologySubtype]"
 			}
-			if = {
-				limit = { is_owned_by = ROOT }
-				CZE = { transfer_state = PREV }
 			}
 		}
 		CZE = {
@@ -18330,7 +19635,7 @@ country_event = { #Fate of Slovakia
 				add_claim_by = ROOT
 			}
 		}
-		add_political_power = -25
+		occupy_small_country = yes		
 		add_to_array = { RUS_integration_array = SVK }
 		recheck_annexations = yes
 	}
@@ -18458,7 +19763,11 @@ country_event = { #Fate of Transylvania
 			factor = 20
 		}
 		every_state = {
-			limit = { is_core_of = TRS }
+			limit = { 
+				is_core_of = TRS 
+				NOT = { state = 82 }
+				NOT = { state = 1114 }
+			}
 			if = {
 				limit = { is_claimed_by = AUS }
 				remove_claim_by = AUS
@@ -18490,7 +19799,11 @@ country_event = { #Fate of Transylvania
 			factor = 20
 		}
 		every_state = {
-			limit = { is_core_of = TRS }
+			limit = { 
+				is_core_of = TRS 
+				NOT = { state = 82 }
+				NOT = { state = 1114 }
+			}
 			if = {
 				limit = { is_claimed_by = HUN }
 				remove_claim_by = HUN
@@ -18522,7 +19835,11 @@ country_event = { #Fate of Transylvania
 			factor = 80
 		}
 		every_state = {
-			limit = { is_core_of = TRS }
+			limit = { 
+				is_core_of = TRS 
+				NOT = { state = 82 }
+				NOT = { state = 1114 }
+			}
 			if = {
 				limit = {
 					NOT = {
@@ -18559,9 +19876,7 @@ country_event = { #Fate of Transylvania
 		every_state = {
 			limit = {
 				OR = {
-					state = 82
 					state = 83
-					state = 1114
 					state = 1118
 					state = 1117
 				}
@@ -18628,9 +19943,7 @@ country_event = { #Fate of Transylvania
 		every_state = {
 			limit = {
 				OR = {
-					state = 82
 					state = 1112
-					state = 1114
 					state = 83
 					state = 1117
 					state = 1118
@@ -18753,7 +20066,7 @@ country_event = { #Fate of Transylvania
 				add_claim_by = ROOT
 			}
 		}
-		add_political_power = -25
+		occupy_small_country = yes
 		add_to_array = { RUS_integration_array = TRS }
 		recheck_annexations = yes
 	}
@@ -18943,7 +20256,7 @@ country_event = { #Liberation of Bosnia
 				add_claim_by = ROOT
 			}
 		}
-		add_political_power = -25
+		occupy_small_country = yes
 		add_to_array = { RUS_integration_array = BOS }
 		recheck_annexations = yes
 	}
@@ -19015,6 +20328,14 @@ country_event = { #Liberation of Montenegro
 	desc = annexation_MNT_CONQ_desc
 
 	is_triggered_only = yes
+	immediate = {
+		hidden_effect = {
+			add_to_temp_array = { core_removal_array = MNT }
+			remove_all_cores_and_claims_of_tags = yes
+			105 = { add_core_of = MNT }
+			1097 = { add_core_of = MNT }
+		}
+	}
 
 	option = { #liberate
 		name = annex.151.a
@@ -19044,24 +20365,9 @@ country_event = { #Liberation of Montenegro
 				tag = AUS
 			}
 		}
-		every_state = {
-			limit = {
-				OR = {
-					state = 105
-					state = 1097
-					state = 1270
-				}
-			}
-			if = {
-				limit = { is_claimed_by = AUS }
-				remove_claim_by = AUS
-			}
-			if = {
-				limit = { NOT = { is_core_of = AUS } }
-				add_core_of = AUS
-			}
-			AUS = { transfer_state = PREV }
-		}
+		set_temp_variable = { tag_to_release = AUS }
+		105 = { transfer_state_and_add_core = yes }
+		1097 = { transfer_state_and_add_core = yes }		
 	}
 	option = { #Give it to Croatia
 		name = annex.150.c
@@ -19071,7 +20377,7 @@ country_event = { #Liberation of Montenegro
 		trigger = {
 			CRO = {
 				is_ally_of_ROOT = yes
-				owns_state = 163
+				owns_state = 1145
 			}
 			NOT = {
 				tag = CRO
@@ -19081,29 +20387,9 @@ country_event = { #Liberation of Montenegro
 				}
 			}
 		}
-		105 = {
-			if = {
-				limit = { is_claimed_by = CRO }
-				remove_claim_by = CRO
-			}
-			if = {
-				limit = { NOT = { is_core_of = CRO } }
-				add_core_of = CRO
-			}
-			CRO = { transfer_state = PREV }
-		}
-		1097 = {
-			if = {
-				limit = {
-					NOT = {
-						is_claimed_by = SER
-						is_core_of = SER
-					}
-				}
-				add_claim_by = SER
-			}
-			SER = { transfer_state = PREV }
-		}
+		set_temp_variable = { tag_to_release = CRO }
+		105 = { transfer_state_and_add_core = yes }
+		1097 = { transfer_state_and_add_core = yes }		
 	}
 	option = { #Give it to Serbia
 		name = annex.150.d
@@ -19120,29 +20406,59 @@ country_event = { #Liberation of Montenegro
 				}
 			}
 		}
-		105 = {
-			if = {
-				limit = {
-					NOT = {
-						is_claimed_by = SER
-						is_core_of = SER
-					}
-				}
-				add_claim_by = SER
-			}
-			SER = { transfer_state = PREV }
+		set_temp_variable = { tag_to_release = SER }
+		105 = { transfer_state_and_add_claim = yes }
+		1097 = { transfer_state_and_add_claim = yes }
+	}
+	option = { #Form a united Dioclea
+		name = annex.151.b
+		ai_chance = {
+			factor = 100
 		}
-		1097 = {
-			if = {
-				limit = {
-					NOT = {
-						is_claimed_by = SER
-						is_core_of = SER
-					}
+		trigger = {
+			OR = {
+				AND = {
+					SER = { is_ally_of_ROOT = yes }
+					ALB = { is_ally_of_ROOT = yes }
+					tag = AUS
 				}
-				add_claim_by = SER
+				AND = {
+					owns_state = 108
+					owns_state = 767
+					owns_state = 107
+					owns_state = 1269
+					owns_state = 1268
+					owns_state = 44
+					owns_state = 765
+					owns_state = 766
+					
+				}
+				
 			}
-			SER = { transfer_state = PREV }
+			tag = AUS
+			always = no
+		}
+		set_temp_variable = { tag_to_release = MNT }
+		release_targeted_tag = yes
+		105 = { transfer_state_and_add_core = yes }
+		1097 = { transfer_state_and_add_core = yes }
+		1269 = { transfer_state_and_add_core = yes }
+		107 = { transfer_state_and_add_core = yes }
+		108 = { transfer_state_and_add_core = yes }
+		767 = { transfer_state_and_add_core = yes }
+		765 = { transfer_state_and_add_core = yes }
+		1268 = { transfer_state_and_add_core = yes }
+		44 = { transfer_state_and_add_core = yes }
+		766 = { transfer_state_and_add_core = yes }
+		1271 = { add_claim_by = MNT }
+		106 = { add_claim_by = MNT }
+		841 = { add_claim_by = MNT }
+		731 = { add_claim_by = MNT }
+		185 = { add_claim_by = MNT }
+		1076 = { add_claim_by = MNT }
+		989 = { add_claim_by = MNT }
+		MNT = {
+			set_cosmetic_tag = MNT_dioclea
 		}
 	}
 	option = { #annex
@@ -19219,7 +20535,7 @@ country_event = { #Liberation of Montenegro
 				add_claim_by = ROOT
 			}
 		}
-		add_political_power = -25
+		occupy_small_country = yes
 		add_to_array = { RUS_integration_array = MNT }
 		recheck_annexations = yes
 	}
@@ -19257,7 +20573,6 @@ country_event = { #Albania Liberation
 			add_to_temp_array = { core_removal_array = ALB }
 			remove_all_cores_and_claims_of_tags = yes
 			44 = { add_core_of = ALB }
-			766 = { add_core_of = ALB }
 			1268 = { add_core_of = ALB }
 		}
 	}
@@ -19364,7 +20679,7 @@ country_event = { #Albania Liberation
 				add_claim_by = ROOT
 			}
 		}
-		add_political_power = -25
+		occupy_small_country = yes
 		add_to_array = { RUS_integration_array = ALB }
 		recheck_annexations = yes
 	}
@@ -19377,7 +20692,150 @@ country_event = { #Albania Liberation
 		occupy_small_country = yes
 	}
 }
+country_event = { #Fate of Burgenland
+	id = annex.153
+	immediate = { log = "[GetDateText]: [Root.GetName]: event annex.153 FROM = [From.GetName]" }
+	title = annexation_BURGENLAND_CONQ
+	desc = annexation_BURGENLAND_CONQ_desc
+	picture = GFX_report_event_generic_conference2
 
+	is_triggered_only = yes
+
+	option = {
+		name = annex.153.a #give it to Austria/Germany
+		trigger = {
+			var:4.owner = {
+				OR = {
+					tag = AUS
+					is_germany_or_splinter_tag = yes
+				}
+				ROOT_can_grant_land = yes
+			}
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				factor = 0
+				HUN = { is_ally_of_ROOT = yes }
+				NOT = { is_ally_with = 4.owner }
+			}
+			modifier = {
+				factor = 0
+				ENT = { is_ally_of_ROOT = yes }
+			}
+		}
+		set_temp_variable = { tag_to_release = 4.owner }
+		if = {
+			limit = { 4 = { is_core_of = var:tag_to_release } }
+			784 = { transfer_state_and_add_core = yes }
+		}
+		else = {
+			784 = { transfer_state_and_add_claim = yes }
+		}
+	}
+
+	option = {
+		name = annex.153.b #give it to Hungary
+		trigger = {
+			HUN = { ROOT_can_grant_land = yes }
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				factor = 0
+				is_ally_with = 4.owner
+				NOT = { is_ally_with = HUN }
+			}
+			modifier = {
+				factor = 0
+				ENT = { is_ally_of_ROOT = yes }
+			}
+		}
+		set_temp_variable = { tag_to_release = HUN }
+		784 = { transfer_state_and_add_claim = yes }
+	}
+
+	option = {
+		name = annex.153.c #give it to CZE/SVK
+		trigger = {
+			var:1123.owner = {
+				tag = CZE
+				ROOT_can_grant_land = yes
+				is_ally_of_ROOT = yes
+			}
+			var:109.owner = {
+				NOT = {
+					tag = AUS
+					tag = HUN
+				}
+			}
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				factor = 0
+				is_ally_with = 4.owner
+				NOT = { is_ally_with = HUN }
+			}
+		}
+		set_temp_variable = { tag_to_release = var:1123.owner }
+		784 = { transfer_state_and_add_core = yes }
+		1111 = { transfer_state_and_add_core = yes }
+	}
+
+	option = { #Integrate
+		name = annex.integration
+		trigger = {
+			OR = {
+				tag = AUS
+				tag = HUN
+				AND = {
+					is_germany_or_splinter_tag = yes
+					owns_state = 4 #Vienna
+				}
+				AND = {
+					tag = CZE
+					owns_state = 1123
+				}
+			}
+		}
+		ai_chance = {
+			base = 1000
+		}
+		if = {
+			limit = { 4 = { is_core_of = ROOT } }
+			784 = { remove_claim_and_add_core_of_ROOT = yes }
+		}
+		else_if = {
+			limit = { tag = CZE }
+			784 = { remove_claim_and_add_core_of_ROOT = yes }
+			if = {
+				limit = {
+					1111 = {
+						NOT = { is_owned_by = CZE }
+					}
+				}
+				1111 = {
+					transfer_state_to = CZE
+					add_core_of = CZE
+				}
+			}
+			else = {
+				1111 = { remove_claim_and_add_core_of_ROOT = yes }
+			}
+		}
+		else = {
+			784 = { add_claim_of_ROOT = yes }
+		}
+	}
+
+	option = { #occupy
+		name = annex.occupation
+		ai_chance = { base = 0 }
+		occupy_small_country = yes
+		set_country_flag = BURGENLAND_CONQ
+	}
+}
 country_event = { #Netherlands Liberation
 	id = annex.154
 	immediate = { log = "[GetDateText]: [Root.GetName]: event annex.154" }
@@ -19450,8 +20908,6 @@ country_event = { #Netherlands Liberation
 					HOL_idea_crisis
 					HOL_idea_economic_recovery
 					HOL_idea_batavian_courage
-					HOL_idea_batavian_courage_1
-					HOL_idea_batavian_courage_2
 					HOL_idea_instability
 					HOL_idea_instability_above_50
 				}
@@ -20934,6 +22390,16 @@ country_event = { #Fate of Britain
 		name = annex.159.b
 		trigger = {
 			owns_state = 121
+			NOT = {
+				AND = {
+					is_in_faction_with = ENT
+					ENT = {
+						NOT = { tag = CAN }
+					}
+					event_target:KR_king_base = { exists = yes }
+				}
+			}
+			has_socialist_government = no
 		}
 		ai_chance = {
 			factor = 4
@@ -20965,23 +22431,34 @@ country_event = { #Fate of Britain
 		}
 		set_temp_variable = { tag_to_release = GBP }
 		release_targeted_tag = yes
+		if = {
+			limit = { tag = GER }
+			country_event = part.61
+		}
+		else = {
 		GBP = {
 			country_event = annex.131
 		}
+	}
 	}
 	option = { #divide all
 		name = annex.159.a
 		trigger = {
 			owns_state = 121
 			owns_state = 122
+			NOT = {
+				AND = {
+					is_in_faction_with = ENT
+					ENT = {
+						NOT = { tag = CAN }
 		}
-		ai_chance = {
-			factor = 84
-			modifier = {
-				factor = 0
-				is_in_faction_with = ENT
 				event_target:KR_king_base = { exists = yes }
 			}
+		}
+			has_socialist_government = no
+		}
+		ai_chance = {
+			base = 30
 		}
 		hidden_effect = {
 			GBP = {
@@ -21016,7 +22493,18 @@ country_event = { #Fate of Britain
 
 		set_temp_variable = { tag_to_release = SCT }
 		release_targeted_tag = yes
-		
+		if = {
+			limit = { tag = GER }
+			SCT = {
+				country_event = part.65
+			}
+			WAL = {
+				country_event = part.67
+			}
+			GBP = {
+				country_event = part.69
+			}
+		}
 		GBP = {
 			country_event = annex.131
 			set_cosmetic_tag = GBP_england
@@ -21031,15 +22519,14 @@ country_event = { #Fate of Britain
 	option = { #England
 		name = annex.159.g
 		trigger = {
-			NOT = { owns_state = 121 }
+			NOT = {
+				is_in_faction_with = event_target:KR_king_base
+				owns_state = 121
+			}
+			has_socialist_government = no
 		}
 		ai_chance = {
-			factor = 84
-			modifier = {
-				factor = 0
-				is_in_faction_with = ENT
-				event_target:KR_king_base = { exists = yes }
-			}
+			base = 0
 		}
 		hidden_effect = {
 			GBP = {
@@ -21058,6 +22545,12 @@ country_event = { #Fate of Britain
 		}
 		set_temp_variable = { tag_to_release = GBP }
 		release_targeted_tag = yes
+		if = {
+			limit = { tag = GER }
+			GBP = {
+				country_event = part.69
+			}
+		}
 		GBP = {
 			country_event = annex.131
 			set_cosmetic_tag = GBP_england
@@ -21069,10 +22562,18 @@ country_event = { #Fate of Britain
 			factor = 10
 		}
 		trigger = {
-			is_in_faction_with = ENT
-			event_target:KR_king_base = { exists = yes }
-			ENT = {
-				NOT = { tag = CAN }
+			is_in_faction_with = event_target:KR_king_base
+			OR = {
+				AND = {
+					original_tag = CAN
+					is_faction_leader = yes
+				}
+				NOT = {
+					event_target:KR_king_base = {
+						original_tag = CAN
+						is_faction_leader = yes
+					}
+				}
 			}
 		}
 		country_event = uk.1
@@ -21080,25 +22581,39 @@ country_event = { #Fate of Britain
 	option = { #return land to Canada
 		name = annex.159.f
 		ai_chance = {
-			factor = 10
+			base = 1000
 		}
 		trigger = {
-			CAN = { is_faction_leader = yes }
-			is_in_faction_with = CAN
-			event_target:KR_king_base = { tag = CAN }
+			is_in_faction_with = event_target:KR_king_base
+			event_target:KR_king_base = {
+				original_tag = CAN
+				is_faction_leader = yes
+			}
 		}
 		every_owned_state = {
-			limit = {
+			limit = { 
 				OR = {
-					region = 1
-					region = 2
-					region = 3
+					region = 1 #Southern England
+					region = 2 #Northern England
+					region = 3 #Scotland
 				}
 			}
 			CAN = {
 				transfer_state = PREV
 			}
 		}
+	}
+	option = {
+		name = annex.159.h #Restore the Union of Britain!
+		ai_chance = {
+			base = 1000
+			}
+		trigger = {
+			has_socialist_government = yes
+			NOT = { country_exists = ENG }
+		}
+		set_temp_variable = { tag_to_release = ENG }
+		release_targeted_tag = yes
 	}
 	option = { #occupy all
 		name = annex.occupation
@@ -21641,6 +23156,7 @@ country_event = { #Fate of Luxembourg
 				is_ally_with = FRP
 				is_ally_with = NFA
 			}
+			NOT = { is_french_tag = yes }
 		}
 		ai_chance = {
 			factor = 20
@@ -21667,6 +23183,7 @@ country_event = { #Fate of Luxembourg
 				is_ally_with = GRU
 				is_ally_with = WGR
 			}
+			NOT = { is_germany_or_splinter_tag = yes }
 		}
 		ai_chance = {
 			factor = 20
@@ -21913,7 +23430,7 @@ country_event = { #Fate of Lithuania
 			}
 		}
 		set_country_flag = RUS_will_annex_baltic
-		add_political_power = -40
+		occupy_small_country = yes
 		add_to_array = { RUS_integration_array = LIT }
 		recheck_annexations = yes
 	}
@@ -22098,7 +23615,6 @@ country_event = { #Fate of Don
 				add_state_core = 218
 				add_state_core = 238
 				add_state_core = 1226
-				add_state_core = 1231
 				add_state_core = 1265
 				add_state_core = 1264
 				add_state_core = 1263
@@ -22106,13 +23622,16 @@ country_event = { #Fate of Don
 			}			
 		}
 	}
-	title = annexation_DKB_CONQ
-	desc = annexation_DKB_CONQ_desc
+	title = annexation_DKU_CONQ
+	desc = annexation_DKU_CONQ_desc
 
 	is_triggered_only = yes
 
-	option = { #puppet
+	option = { #puppet Don-Caucasus
 		name = annex.168.a
+		trigger = {
+			NOT = { tag = UKR }
+		}
 		ai_chance = {
 			base = 20
 			modifier = {
@@ -22120,23 +23639,88 @@ country_event = { #Fate of Don
 				is_russian_tag_that_can_integrate = yes
 			}
 		}
+		add_to_temp_array = { target_cores_to_release = DKB }
+		add_to_temp_array = { target_cores_to_release = KUB }
+		add_to_temp_array = { target_cores_to_release = KLY }
+		add_to_temp_array = { target_cores_to_release = MTR }
 		set_temp_variable = { tag_to_release = DKB }
-		every_owned_state = {
-			limit = {
-				is_core_of = DKB
-				is_claim_or_core_of_ROOT = no
-				NOT = {
-					state = 1231 #Taganrog
+		release_targeted_tag_from_core_regions = yes
+		hidden_effect = {
+			var:tag_to_release = {
+				every_owned_state = {
+					limit = {
+						region = 135
+					}
+					add_core_of = PREV
 				}
 			}
-			transfer_state_to = var:tag_to_release
 		}
-		release_targeted_tag = yes	
 		setup_puppet_DKB = yes
-		
+		if = {
+			limit = {
+				DKB = {
+					NOT = { has_cosmetic_tag = DKB_don_caucasus }
+					NOT = { has_cosmetic_tag = DKB_auto }
+				}
+			}
+			DKB = { set_cosmetic_tag = DKB_don_caucasus }
+		}
+	}
+	option = { #puppet Don-Kuban
+		name = annex.168.b
+		trigger = {
+			NOT = { tag = UKR }
+		}
+		ai_chance = {
+			base = 20
+			modifier = {
+				factor = 0
+				is_russian_tag_that_can_integrate = yes
+			}
+		}
+		add_to_temp_array = { target_cores_to_release = DKB }
+		add_to_temp_array = { target_cores_to_release = KUB }
+		set_temp_variable = { tag_to_release = DKB }
+		release_targeted_tag_from_core_regions = yes
+		hidden_effect = {
+			var:tag_to_release = {
+		every_owned_state = {
+			limit = {
+						OR = {
+				is_core_of = DKB
+							is_core_of = KUB
+						}
+					}
+					add_core_of = PREV
+				}
+			}
+		}
+		setup_puppet_DKB = yes
+		if = {
+			limit = {
+				DKB = {
+					NOT = { has_cosmetic_tag = DKB_union }
+					NOT = { has_cosmetic_tag = DKB_auto }
+				}
+			}
+			DKB = { set_cosmetic_tag = DKB_union }
+		}
+	}
+	option = { #Divide
+		name = annex.168.c
+		ai_chance = {
+			base = 40
+			modifier = {
+				factor = 0
+				is_russian_tag_that_can_integrate = yes
+			}
+		}
+		custom_effect_tooltip = new_annexation_decisions_tt
+		set_country_flag = { flag = DKU_CONQ days = 100 value = 1 }
+		recheck_annexations_immediate = yes
 	}
 	option = { #Integrate
-		name = annex.168.b
+		name = annex.168.e
 		trigger = {
 			is_russian_tag_that_can_integrate = yes
 		}
@@ -22145,43 +23729,47 @@ country_event = { #Fate of Don
 		}
 		every_state = {
 			limit = {
-				OR = {
-					is_core_of = DKB
+				region = 135
+				NOT = {
+					is_core_of = ROOT
+					is_claimed_by = ROOT
 				}
-				is_claim_or_core_of_ROOT = no
 			}
 			add_claim_by = ROOT
 		}
-		add_political_power = -25
+		occupy_medium_country = yes
 		add_to_array = { RUS_integration_array = DKB }
+		add_to_array = { RUS_integration_array = KUB }
+		add_to_array = { RUS_integration_array = KLY }
+		add_to_array = { RUS_integration_array = MTR }
 		recheck_annexations = yes
-	}
-
-	option = {
-		name = annex.168.c #Give to Russia
-		ai_chance = {
-			base = 80
-		}
-		trigger = {
-			is_russian_tag_that_can_integrate = no
-			var:219.owner = {
-				is_russian_tag_that_can_integrate = yes
-				is_ally_with = ROOT
+		hidden_effect = {
+			country_event = {
+				id = rusfor.1277
+				days = 100
 			}
 		}
+	}
+
+	option = { #give to Russian ally
+		name = annex.168.d
+		trigger = {
+			var:219.owner = {
+				is_russian_tag_that_can_integrate = yes
+				is_ally_of_ROOT = yes
+			}
+		}
+		ai_chance = { base = 80 }
 		add_to_temp_array = { target_cores_to_release = DKB }
-		add_to_array = { target_cores_to_release = DKB }
+		add_to_temp_array = { target_cores_to_release = KUB }
+		add_to_temp_array = { target_cores_to_release = KLY }
+		add_to_temp_array = { target_cores_to_release = MTR }
 		hidden_effect = {
-			random_other_country = {
-				limit = {
-					is_russian_tag_that_can_integrate = yes
-					is_ally_with = ROOT
-				}
+			var:219.owner = {
 				set_temp_variable = { ROOT.tag_to_release = THIS }
 			}
 		}
 		transfer_territory_from_core_regions = yes
-		recheck_annexations = yes
 	}
 
 	option = { #occupy
@@ -22192,8 +23780,8 @@ country_event = { #Fate of Don
 		ai_chance = {
 			base = 0
 		}
-		occupy_medium_country = yes
-		set_country_flag = DKB_CONQ
+		occupy_large_country = yes
+		set_country_flag = DKU_CONQ
 	}
 }
 
@@ -22884,54 +24472,13 @@ country_event = { #Fate of German Somaliland
 
 country_event = { #Fate of China
 	id = annex.174
-
-	title = {
-		text = annexation_CHI_CONQ
-		trigger = {
-			count_triggers = {
-				amount = 2
-				owns_state = 608
-				owns_state = 613
-				owns_state = 592
-			}
-		}
-	}
-	title = {
-		text = annexation_NOR_CHI_CONQ
-		trigger = {
-			owns_state = 608
-			NOT = {
-				owns_state = 613
-				owns_state = 592
-			}
-		}
-	}
-	title = {
-		text = annexation_EAS_CHI_CONQ
-		trigger = {
-			owns_state = 613
-			NOT = {
-				owns_state = 608
-				owns_state = 592
-			}
-		}
-	}
-	title = {
-		text = annexation_SOU_CHI_CONQ
-		trigger = {
-			owns_state = 592
-			NOT = {
-				owns_state = 608
-				owns_state = 613
-			}
-		}
-	}
+	immediate = { log = "[GetDateText]: [Root.GetName]: event annex.174 FROM = [From.GetName]" }
+	title = annexation_CHI_CONQ
 	desc = annexation_CHI_CONQ_desc
 
 	is_triggered_only = yes
 
 	immediate = {
-		log = "[GetDateText]: [Root.GetName]: event annex.174"
 		hidden_effect = {
 			determine_chinese_ally = yes
 			if = {
@@ -22955,439 +24502,45 @@ country_event = { #Fate of China
 			}
 		}
 	}
-
-	option = { #Release the Left Kuomintang
+	option = { #Release China
 		name = annex.174.a
 		trigger = {
-			has_socialist_government = yes
-			NOT = { country_exists = CHI }
+			has_event_target = china_release_target
 		}
 		ai_chance = {
-			factor = 10
-		}
-		set_temp_variable = { tag_to_release = CHI }
+			base = 10
+			}
+		set_temp_variable = { tag_to_release = event_target:china_release_target }
 		release_chinese_government = yes
-		CHI = {
-			set_cosmetic_tag = CHI_ROC
-			hidden_effect = { set_potential_national_government = yes }
-		}
+		var:tag_to_release = { china_puppet_setup = yes }
 	}
 
-	option = { #Release the League of Eight Provinces
-		name = annex.174.e
-		trigger = {
-			tag = GER
-			NOT = { country_exists = LEP }
-		}
-		ai_chance = {
-			factor = 10
-		}
-		set_temp_variable = { tag_to_release = LEP }
-		release_chinese_government = yes
-		LEP = {
-			set_politics = {
-				ruling_party = paternal_autocrat
-				elections_allowed = no
-			}
-			set_cosmetic_tag = LEP_CHI
-			hidden_effect = {
-				set_potential_national_government = yes
-			}
-		}
-	}
-
-	option = { #Release the Left Kuomintang
-		name = annex.174.f
-		trigger = {
-			is_russian_tag_that_can_integrate = yes
-			has_global_flag = Russia_Supports_LKMT
-			NOT = { country_exists = CHI }
-		}
-		ai_chance = {
-			factor = 10
-		}
-		set_temp_variable = { tag_to_release = CHI }
-		release_chinese_government = yes
-		CHI = {
-			set_politics = {
-				ruling_party = social_democrat
-				elections_allowed = no
-			}
-			set_cosmetic_tag = CHI_ROC
-		}
-	}
-
-	option = { #Release the Right Kuomintang
-		name = annex.174.g
-		trigger = {
-			is_russian_tag_that_can_integrate = yes
-			has_global_flag = Russia_Supports_RKMT
-			NOT = { country_exists = GXC }
-		}
-		ai_chance = {
-			factor = 10
-		}
-		set_temp_variable = { tag_to_release = GXC }
-		release_chinese_government = yes
-		GXC = {
-			set_politics = {
-				ruling_party = authoritarian_democrat
-				elections_allowed = no
-			}
-			set_cosmetic_tag = CHI_ROC
-			load_focus_tree = KR_RKMT
-			hidden_effect = {
-				set_potential_national_government = yes
-			}
-		}
-	}
-
-	option = { #Release the Qing Empire
-		name = annex.174.h
-		trigger = {
-			is_russian_tag_that_can_integrate = yes
-			OR = {
-				has_global_flag = Russia_Supports_QIE
-				has_global_flag = Russia_Supports_ZHI
-				tag = MON
-			}
-			NOT = { country_exists = QIE }
-		}
-		ai_chance = {
-			factor = 10
-		}
-		set_temp_variable = { tag_to_release = QIE }
-		puppet_released_tag = yes
-		QIE = {
-			save_event_target_as = released_china_tag
-		}
-		release_chinese_government = yes 
-	}
-
-	option = { #Release a Federalist China
-		name = annex.174.i
-		trigger = {
-			has_elected_government = yes
-			NOT = {
-				tag = JAP
-				tag = GER
-				tag = RUS
-				tag = LEC
-				tag = TRM
-			}
-			NOT = { country_exists = GXC }
-		}
-		ai_chance = {
-			factor = 10
-		}
-		GXC = {
-			save_event_target_as = released_china_tag
-		}
-		set_temp_variable = { tag_to_release = GXC }
-		release_chinese_government = yes
-		GXC = {
-			if = {
-				limit = {
-					OR = {
-						has_country_flag = big_chen_mingshu
-						has_country_flag = big_chen_lianbo
-					}
-				}
-				set_politics = {
-					ruling_party = social_liberal
-					elections_allowed = no
-				}
-			}
-			else = {
-				set_politics = {
-					ruling_party = social_democrat
-					elections_allowed = no
-				}
-			}
-			set_cosmetic_tag = UPC
-			load_focus_tree = Federalist_China_Tree
-			hidden_effect = {
-				set_potential_national_government = yes
-			}
-		}
-	}
-	option = { #Release a Federalist China
-		name = annex.174.i
-		trigger = {
-			is_russian_tag_that_can_integrate = yes
-			has_global_flag = Russia_Supports_Federalists
-			NOT = { country_exists = GXC }
-		}
-		ai_chance = {
-			factor = 10
-		}
-		set_temp_variable = { tag_to_release = GXC }
-		release_chinese_government = yes
-		GXC = {
-			if = {
-				limit = {
-					OR = {
-						has_country_flag = big_chen_mingshu
-						has_country_flag = big_chen_lianbo
-					}
-				}
-				set_politics = {
-					ruling_party = social_liberal
-					elections_allowed = no
-				}
-			}
-			else = {
-				set_politics = {
-					ruling_party = social_democrat
-					elections_allowed = no
-				}
-			}
-			set_cosmetic_tag = UPC
-			load_focus_tree = Federalist_China_Tree
-			hidden_effect = {
-				set_potential_national_government = yes
-			}
-		}
-	}
-
-	option = { #Release the Beiyang Republic
-		name = annex.174.j
-		trigger = {
-			OR = {
-				AND = {
-					NOT = {
-						tag = JAP
-						tag = GER
-						tag = RUS
-						tag = TRM
-						AND = {
-							has_country_flag = MON_ungern_sternberg_is_in_power
-							MON_sternberg_in_power = yes
-						}
-					}
-					has_authoritarian_government = yes
-				}
-				tag = LEC
-			}
-			NOT = { country_exists = QIE }
-		}
-		ai_chance = {
-			factor = 10
-		}
-		set_temp_variable = { tag_to_release = QIE }
-		release_chinese_government = yes
-		QIE = {
-			set_cosmetic_tag = QIE_ZHL
-			set_politics = {
-				ruling_party = authoritarian_democrat
-				elections_allowed = no
-			}
-			create_country_leader = {
-				name = "Yan Huiqing"
-				picture = "gfx/leaders/QIE/Portrait_QIE_Yan_Huiqing.png"
-				expire = "1965.1.1"
-				ideology = authoritarian_democrat_subtype
-			}
-		}
-	}
-
-	option = { #Release the Fengtian Government
+	option = { #Release FNG, keep the coastline
 		name = annex.174.b
 		trigger = {
 			tag = JAP
-			FNG_JAP_hostile = no
-			NOT = { country_exists = FNG }
-		}
-		ai_chance = {
-			factor = 10
-		}
-		every_owned_state = {
-			limit = {
-				is_controlled_chinese_region = yes
-				is_not_claim_or_core_of_ROOT = yes
-			}
-			FNG = {
-				transfer_state = PREV
-			}
-		}
-		set_temp_variable = { tag_to_release = FNG }
-		puppet_released_tag = yes
-		hidden_effect = {
-			set_autonomy = {
-				target = FNG
-				autonomy_state = kr_special_autonomous_dependency
-			}
-		}
-		FNG = {
-			set_politics = {
-				ruling_party = authoritarian_democrat
-				elections_allowed = no
-			}
-		}
-	}
-	option = { #Release the Fengtian Government
-		name = annex.174.b
-		trigger = {
-			tag = TRM
-			has_global_flag = Russia_Supports_FNG
-		}
-		ai_chance = {
-			factor = 10
-		}
-		set_temp_variable = { tag_to_release = FNG }
-		puppet_released_tag = yes
-		FNG = {
-			set_politics = {
-				ruling_party = authoritarian_democrat
-				elections_allowed = no
-			}
-		}
-	}
-
-	option = { #Take the coast, release FNG
-		name = annex.174.c
-		trigger = {
-			tag = JAP
-			FNG_JAP_hostile = no
-			NOT = { country_exists = FNG }
+			has_event_target = china_release_target
 			any_owned_state = {
 				is_china_claim_of_JAP = yes
 				has_variable = ambition_area_@ROOT
 			}
 		}
 		ai_chance = {
-			factor = 90
+			base = 90
 		}
-		every_owned_state = {
-			limit = {
-				is_controlled_chinese_region = yes
-				is_not_claim_or_core_of_ROOT = yes
-				NOT = { has_variable = ambition_area_@ROOT }
-			}
-			FNG = {
-				transfer_state = PREV
-			}
-		}
-		set_temp_variable = { tag_to_release = FNG }
-		puppet_released_tag = yes
-		hidden_effect = {
-			set_autonomy = {
-				target = FNG
-				autonomy_state = kr_special_autonomous_dependency
-			}
-		}
-		FNG = {
-			set_politics = {
-				ruling_party = authoritarian_democrat
-				elections_allowed = no
-			}
-		}
-	}
-
-	option = { #Release Reorganized Government
-		name = annex.174.k
-		trigger = {
-			tag = JAP
-			FNG_JAP_hostile = yes
-			NOT = { country_exists = FNG }
-		}
-		ai_chance = {
-			factor = 10
-		}
-		every_owned_state = {
-			limit = {
-				is_controlled_chinese_region = yes
-				is_not_claim_or_core_of_ROOT = yes
-			}
-			FNG = {
-				transfer_state = PREV
-			}
-		}
-		set_temp_variable = { tag_to_release = FNG }
-		puppet_released_tag = yes
-		hidden_effect = {
-			set_autonomy = {
-				target = FNG
-				autonomy_state = kr_special_autonomous_dependency
-			}
-		}
-		FNG = {
-			set_cosmetic_tag = FNG_JAP
-			set_global_flag = FNG_projapan
-			create_country_leader = {
-				name = "Tang Shaoyi"
-				desc = "POLITICS_YANG_YUTING_ARMY_DESC"
-				picture = "gfx/leaders/FNG/Portrait_FNG_Tang_Shaoyi.png"
-				expire = "1965.1.1"
-				ideology = market_liberal_subtype
-			}
-			set_politics = {
-				ruling_party = market_liberal
-				elections_allowed = no
-			}
-			add_popularity = {
-				ideology = market_liberal
-				popularity = 0.4
-			}
-		}
-	}
-
-	option = { #Take the coast, release RNGOTROC
-		name = annex.174.l
-		trigger = {
-			tag = JAP
-			FNG_JAP_hostile = yes
-			NOT = { country_exists = FNG }
-			any_owned_state = {
-				is_china_claim_of_JAP = yes
-				has_variable = ambition_area_@ROOT
-			}
-		}
-		ai_chance = {
-			factor = 90
-		}
-		every_owned_state = {
-			limit = {
-				is_controlled_chinese_region = yes
-				is_not_claim_or_core_of_ROOT = yes
-				NOT = { has_variable = ambition_area_@ROOT }
-			}
-			FNG = {
-				transfer_state = PREV
-			}
-		}
-		set_temp_variable = { tag_to_release = FNG }
-		puppet_released_tag = yes
-		hidden_effect = {
-			set_autonomy = {
-				target = FNG
-				autonomy_state = kr_special_autonomous_dependency
-			}
-		}
-		FNG = {
-			set_cosmetic_tag = FNG_JAP
-			set_global_flag = FNG_projapan
-			create_country_leader = {
-				name = "Tang Shaoyi"
-				desc = "POLITICS_YANG_YUTING_ARMY_DESC"
-				picture = "gfx/leaders/FNG/Portrait_FNG_Tang_Shaoyi.png"
-				expire = "1965.1.1"
-				ideology = market_liberal_subtype
-			}
-			set_politics = {
-				ruling_party = market_liberal
-				elections_allowed = no
-			}
-		}
+		set_temp_variable = { japan_keeps_coast = 1 }
+		set_temp_variable = { tag_to_release = event_target:china_release_target }
+		release_chinese_government = yes
+		var:tag_to_release = { china_puppet_setup = yes }
 	}
 
 	option = { #Give to a Chinese ally
-		name = annex.174.m
+		name = annex.174.c
 		trigger = {
 			has_event_target = china_ally_target
 		}
 		ai_chance = {
-			factor = 90
+			base = 90
 		}
 		reverse_add_opinion_modifier = { target = event_target:china_ally_target modifier = KR_returned_land }
 		every_owned_state = {
@@ -23405,20 +24558,9 @@ country_event = { #Fate of China
 					NOT = { has_variable = ambition_area_@ROOT }
 				}
 			}
-			event_target:china_ally_target = { transfer_state = PREV }
+			transfer_state_to = event_target:china_ally_target
 		}
 	}
-
-	option = { #China will prosper under Japanese rule
-		name = annex.174.k
-		trigger = {
-			tag = JAP
-			FNG_JAP_hostile = yes
-		}
-		occupy_medium_country = yes
-		set_country_flag = CHI_CONQ
-	}
-
 	option = { #Full occupation
 		name = annex.occupation
 		trigger = {
@@ -23510,9 +24652,9 @@ country_event = { #Fate of Mongolia
 		}	
 	}
 	option = { #Integrate
-		name = annex.175.e
+		name = eurasian_integration.option
 		trigger = {
-			tag = RUS
+			is_russian_tag_that_can_integrate = yes
 			RUS_can_be_integrated_by_eurasia = yes
 			NOT = { has_country_flag = soviet_russia_restored }
 		}
@@ -23550,8 +24692,52 @@ country_event = { #Fate of Mongolia
 				add_claim_by = ROOT
 			}
 		}
-		add_political_power = -25
+		occupy_small_country = yes
 		add_to_array = { RUS_integration_array = MON }
+		recheck_annexations = yes
+	}
+	option = { #Integrate
+		name = annex.175.e
+		trigger = {
+			is_russian_tag_that_can_integrate = yes
+			RUS_can_be_integrated_by_eurasia = no
+			NOT = { has_country_flag = soviet_russia_restored }
+		}
+		ai_chance = {
+			factor = 100
+		}
+		every_owned_state = {
+			limit = {
+				is_core_of = MON
+				NOT = {
+					is_core_of = ROOT
+					is_claimed_by = ROOT
+				}
+			}
+			hidden_effect = {
+				if = {
+					limit = { has_resistance = yes }
+					set_temp_variable = { original_compliance = THIS.compliance }
+					set_temp_variable = { original_resistance = THIS.resistance }
+					cancel_resistance = yes
+				}
+				start_resistance = MON
+				if = {
+					limit = { has_variable = original_compliance }
+					set_compliance = original_compliance
+				}
+				if = {
+					limit = { has_variable = original_resistance }
+					set_resistance = original_resistance
+				}
+			}
+			if = {
+				limit = { is_claim_or_core_of_ROOT = no }
+				add_claim_by = ROOT
+			}
+		}
+		occupy_medium_country = yes
+		set_country_flag = MON_CONQ
 		recheck_annexations = yes
 	}
 	
@@ -23646,7 +24832,7 @@ country_event = { #Fate of Mongolia
 	}
 
 	option = { #Give it to China
-		name = annex.174.m
+		name = annex.176.d
 		ai_chance = {
 			factor = 95
 		}
@@ -23687,12 +24873,23 @@ country_event = { #Fate of Tibet
 	immediate = {
 		log = "[GetDateText]: [Root.GetName]: event annex.176"
 		determine_chinese_ally = yes
+		every_state = {
+			limit = {
+				OR = {
+					is_core_of = TIB
+					is_claimed_by = TIB
+				}
+				NOT = { region = 146 } #Himalayas
+			}
+			remove_core_of = TIB
+			remove_claim_by = TIB
+		}
 	}
 
 	option = { #Release Tibet
 		name = annex.176.a
 		ai_chance = {
-			factor = 95
+			factor = 60
 			modifier = {
 				factor = 0
 				any_owned_state = {
@@ -23703,27 +24900,25 @@ country_event = { #Fate of Tibet
 				}
 			}
 		}
-		every_owned_state = {
-			limit = {
-				is_not_claim_or_core_of_ROOT = yes
-				region = 146 #Himalayas
-				is_core_of = TIB
-			}
-			TIB = { transfer_state = PREV }
-		}
 		set_temp_variable = { tag_to_release = TIB }
-		puppet_released_tag = yes
+		release_targeted_tag = yes
+		hidden_effect = {
 		setup_puppet_leader_TIB = yes
+			add_state_claim = 858 #Tawang
+			add_state_claim = 601 #Xikang
+			add_state_claim = 604 #Xining
+		}
 	}
 
 	option = { #Release Greater Tibet
 		name = annex.176.b
 		ai_chance = {
-			factor = 95
+			factor = 60
 		}
 		trigger = {
 			is_han_chinese_tag = no
 			any_owned_state = {
+				is_not_claim_or_core_of_ROOT = yes
 				OR = {
 					region = 220 #Xibei
 					state = 601 #Xikang
@@ -23741,18 +24936,35 @@ country_event = { #Fate of Tibet
 				OR = {
 					is_core_of = TIB
 					is_claimed_by = TIB
+					state = 353 #Yushu
+					state = 601 #Xikang
+					state = 858 #Tawang
+					AND = {
+						state = 604 #Xining
+						OR = {
+							353 = { is_owned_by = ROOT }
+							353 = { is_owned_by = TIB }
+						}
+					}
 				}
 			}
-			TIB = { transfer_state = PREV }
+			transfer_state_to = TIB
 		}
 		set_temp_variable = { tag_to_release = TIB }
 		puppet_released_tag = yes
+		hidden_effect = {
+			setup_puppet_leader_TIB = yes
+		}
 	}
 
 	option = { #Split between Tibet and China
 		name = annex.176.c
 		ai_chance = {
-			factor = 95
+			base = 20
+			modifier = {
+				factor = 3
+				is_ally_with = event_target:china_ally_target
+			}
 		}
 		trigger = {
 			is_han_chinese_tag = no
@@ -23774,7 +24986,7 @@ country_event = { #Fate of Tibet
 					state = 693 #Chamdo
 				}
 			}
-			event_target:china_ally_target = { transfer_state = PREV }
+			transfer_state_to = event_target:china_ally_target
 		}
 		every_owned_state = {
 			limit = {
@@ -23784,14 +24996,25 @@ country_event = { #Fate of Tibet
 			}
 			TIB = { transfer_state = PREV }
 		}
+		every_owned_state = {
+			limit = {
+				is_not_claim_or_core_of_ROOT = yes
+				region = 146 #Himalayas
+				is_core_of = TIB
+			}
+			transfer_state_to = TIB
+		}
 		set_temp_variable = { tag_to_release = TIB }
 		puppet_released_tag = yes
+		hidden_effect = {
+			setup_puppet_leader_TIB = yes
+		}
 	}
 
 	option = { #Give it to China
-		name = annex.174.m
+		name = annex.176.d
 		ai_chance = {
-			factor = 95
+			factor = 20
 		}
 		trigger = {
 			is_han_chinese_tag = no
@@ -23807,12 +25030,44 @@ country_event = { #Fate of Tibet
 					is_core_of = TIB
 				}
 			}
-			event_target:china_ally_target = { transfer_state = PREV }
+			transfer_state_to = event_target:china_ally_target
+		}
+	}
+	
+	option = { #annex
+		name = annex.176.e
+		ai_chance = {
+			base = 30
+			modifier = {
+				factor = 2
+				OR = {
+					tag = QIE
+					tag = FNG
+					tag = CHI
+				}
+			}
+			modifier = {
+				factor = 0
+				tag = UPC
+			}
+		}
+		trigger = {
+			has_country_flag = can_assume_national_leadership #Chinese tags
+		}
+		occupy_medium_country = yes
+		TIB = {
+			every_core_state = {
+				limit = { is_claim_or_core_of_ROOT = no }
+				add_claim_by = ROOT
+			}
 		}
 	}
 
 	option = { #occupy
 		name = annex.occupation
+		trigger = {
+			NOT = { has_country_flag = can_assume_national_leadership } #Chinese tags
+		}
 		ai_chance = {
 			factor = 0
 		}
@@ -23914,18 +25169,8 @@ country_event = { #Fate of Manchuria
 
 	immediate = {
 		log = "[GetDateText]: [Root.GetName]: event annex.178"
-		if = {
-			limit = {
-				NOT = {
-					OR = {
-						tag = RUS
-						tag = TRM
-					}
-				}
-			}
 			determine_chinese_ally = yes
 		}
-	}
 
 	option = { #Release Independent Manchuria
 		name = annex.178.a
@@ -23933,18 +25178,26 @@ country_event = { #Fate of Manchuria
 			NOT = { country_exists = MAN }
 		}
 		ai_chance = {
-			factor = 1
+			base = 5
 			modifier = {
-				add = 99
+				add = 85
 				tag = JAP
 			}
 		}
+		set_temp_variable = { tag_to_release = MAN }
 		every_owned_state = {
 			limit = {
 				is_manchuria = yes
 				is_not_claim_or_core_of_ROOT = yes
+				NOT = {
+					state = 885 #
+					state = 883 #Shenyang
+					state = 884
+					state = 714
+					state = 717
+				}
 			}
-			MAN = {
+			var:tag_to_release = {
 				add_state_core = PREV
 				transfer_state = PREV
 			}
@@ -23964,6 +25217,20 @@ country_event = { #Fate of Manchuria
 					ruling_party = market_liberal
 					elections_allowed = no
 				}
+				hidden_effect = {
+					set_popularities = {
+						totalist = 0
+						radical_socialist = 0
+						syndicalist = 0
+						social_democrat = 2
+						social_liberal = 6
+						market_liberal = 47
+						social_conservative = 12
+						authoritarian_democrat = 15
+						paternal_autocrat = 6
+						national_populist = 12
+					}
+				}
 			}
 		}
 		else = {
@@ -23972,321 +25239,45 @@ country_event = { #Fate of Manchuria
 		}
 	}
 
-	option = { #Release the Left Kuomintang
+	option = { #Release China
 		name = annex.174.a
 		trigger = {
-			has_socialist_government = yes
-			NOT = { country_exists = CHI }
+			has_event_target = china_release_target
 		}
 		ai_chance = {
-			factor = 10
+			base = 10
 		}
-		set_temp_variable = { tag_to_release = CHI }
+		set_temp_variable = { tag_to_release = event_target:china_release_target }
 		release_chinese_government_in_manchuria = yes
-		CHI = {
-			set_cosmetic_tag = CHI_ROC
-		}
+		var:tag_to_release = { china_puppet_setup = yes }
 	}
 
-	option = { #Release the League of Eight Provinces
-		name = annex.174.e
-		trigger = {
-			tag = GER
-			NOT = { country_exists = LEP }
-		}
-		ai_chance = {
-			factor = 10
-		}
-		set_temp_variable = { tag_to_release = LEP }
-		release_chinese_government_in_manchuria = yes
-		LEP = {
-			set_politics = {
-				ruling_party = paternal_autocrat
-				elections_allowed = no
-			}
-			set_cosmetic_tag = LEP_CHI
-			hidden_effect = {
-				set_potential_national_government = yes
-			}
-		}
-	}
-
-	option = { #Release the Left Kuomintang
-		name = annex.174.f
-		trigger = {
-			is_russian_tag_that_can_integrate = yes
-			has_global_flag = Russia_Supports_LKMT
-			NOT = { country_exists = CHI }
-		}
-		ai_chance = {
-			factor = 10
-		}
-		set_temp_variable = { tag_to_release = CHI }
-		release_chinese_government_in_manchuria = yes
-		CHI = {
-			set_politics = {
-				ruling_party = social_democrat
-				elections_allowed = no
-			}
-			set_cosmetic_tag = CHI_ROC
-		}
-	}
-
-	option = { #Release the Right Kuomintang
-		name = annex.174.g
-		trigger = {
-			is_russian_tag_that_can_integrate = yes
-			has_global_flag = Russia_Supports_RKMT
-			NOT = { country_exists = GXC }
-		}
-		ai_chance = {
-			factor = 10
-		}
-		set_temp_variable = { tag_to_release = GXC }
-		release_chinese_government_in_manchuria = yes
-		GXC = {
-			set_politics = {
-				ruling_party = authoritarian_democrat
-				elections_allowed = no
-			}
-			set_cosmetic_tag = CHI_ROC
-			load_focus_tree = KR_RKMT
-			hidden_effect = {
-				set_potential_national_government = yes
-			}
-		}
-	}
-
-	option = { #Release the Qing Empire
-		name = annex.174.h
-		trigger = {
-			is_russian_tag_that_can_integrate = yes
-			OR = {
-				has_global_flag = Russia_Supports_QIE
-				has_global_flag = Russia_Supports_ZHI
-			}
-			NOT = { country_exists = QIE }
-		}
-		ai_chance = {
-			factor = 10
-		}
-		set_temp_variable = { tag_to_release = QIE }
-		release_chinese_government_in_manchuria = yes
-	}
-
-	option = { #Release a Federalist China
-		name = annex.174.i
-		trigger = {
-			has_elected_government = yes
-			NOT = {
-				tag = JAP
-				tag = GER
-				tag = RUS
-				tag = TRM
-				tag = LEC
-			}
-			NOT = { country_exists = GXC }
-		}
-		ai_chance = {
-			factor = 10
-		}
-		GXC = {
-			save_event_target_as = released_china_tag
-		}
-		release_chinese_government_in_manchuria = yes
-		GXC = {
-			if = {
-				limit = {
-					OR = {
-						has_country_flag = big_chen_mingshu
-						has_country_flag = big_chen_lianbo
-					}
-				}
-				set_politics = {
-					ruling_party = social_liberal
-					elections_allowed = no
-				}
-			}
-			else = {
-				set_politics = {
-					ruling_party = social_democrat
-					elections_allowed = no
-				}
-			}
-			set_cosmetic_tag = UPC
-			load_focus_tree = Federalist_China_Tree
-			hidden_effect = {
-				set_potential_national_government = yes
-			}
-		}
-	}
-	option = { #Release a Federalist China
-		name = annex.174.i
-		trigger = {
-			is_russian_tag_that_can_integrate = yes
-			has_global_flag = Russia_Supports_Federalists
-			NOT = { country_exists = GXC }
-		}
-		ai_chance = {
-			factor = 10
-		}
-		GXC = {
-			save_event_target_as = released_china_tag
-		}
-		release_chinese_government_in_manchuria = yes
-		GXC = {
-			if = {
-				limit = {
-					OR = {
-						has_country_flag = big_chen_mingshu
-						has_country_flag = big_chen_lianbo
-					}
-				}
-				set_politics = {
-					ruling_party = social_liberal
-					elections_allowed = no
-				}
-			}
-			else = {
-				set_politics = {
-					ruling_party = social_democrat
-					elections_allowed = no
-				}
-			}
-			set_cosmetic_tag = UPC
-			load_focus_tree = Federalist_China_Tree
-			hidden_effect = {
-				set_potential_national_government = yes
-			}
-		}
-	}
-
-	option = { #Release the Beiyang Republic
-		name = annex.174.j
-		trigger = {
-			OR = {
-				AND = {
-					NOT = {
-						tag = JAP
-						tag = GER
-						tag = RUS
-					}
-					has_authoritarian_government = yes
-				}
-				tag = LEC
-			}
-			NOT = { country_exists = QIE }
-		}
-		ai_chance = {
-			factor = 10
-		}
-		set_temp_variable = { tag_to_release = QIE }
-		release_chinese_government_in_manchuria = yes
-		QIE = {
-			set_cosmetic_tag = QIE_ZHL
-			set_politics = {
-				ruling_party = authoritarian_democrat
-				elections_allowed = no
-			}
-			create_country_leader = {
-				name = "Yan Huiqing"
-				desc = "POLITICS_UPC_YAN_HUIQING_DESC"
-				picture = "gfx/leaders/QIE/Portrait_QIE_Yan_Huiqing.png"
-				expire = "1965.1.1"
-				ideology = authoritarian_democrat_subtype
-			}
-		}
-	}
-
-	option = { #Release the Fengtian Government
+	option = { #Release FNG, keep the coastline
 		name = annex.174.b
 		trigger = {
 			tag = JAP
-			FNG_JAP_hostile = no
-			NOT = { country_exists = FNG }
-		}
-		ai_chance = {
-			factor = 10
-		}
-		set_temp_variable = { tag_to_release = FNG }
-		release_chinese_government_in_manchuria = yes
-		hidden_effect = {
-			set_autonomy = {
-				target = FNG
-				autonomy_state = kr_special_autonomous_dependency
-			}
-			FNG = {
-				set_politics = {
-					ruling_party = authoritarian_democrat
-					elections_allowed = no
-				}
-			}
-		}
-	}
-	option = { #Release the Fengtian Government
-		name = annex.174.b
-		trigger = {
-			tag = TRM
-			has_global_flag = Russia_Supports_FNG
-		}
-		ai_chance = {
-			factor = 10
-		}
-		FNG = { save_event_target_as = released_china_tag }
-		release_chinese_government_in_manchuria = yes
-		hidden_effect = {
-			FNG = {
-				set_politics = {
-					ruling_party = authoritarian_democrat
-					elections_allowed = no
-				}
-			}
-		}
-	}
-
-	option = { #Take the coast, release FNG
-		name = annex.174.c
-		trigger = {
-			tag = JAP
-			FNG_JAP_hostile = no
-			NOT = { country_exists = FNG }
+			has_event_target = china_release_target
 			any_owned_state = {
 				is_manchuria = yes
 				has_variable = ambition_area_@ROOT
 			}
 		}
 		ai_chance = {
-			factor = 90
+			base = 90
 		}
-		every_owned_state = {
-			limit = {
-				is_manchuria = yes
-				is_china_claim_of_JAP = no
-				NOT = { has_variable = ambition_area_@JAP }
-			}
-			FNG = {
-				transfer_state = PREV
-			}
-		}
-		set_autonomy = {
-			target = FNG
-			autonomy_state = kr_special_autonomous_dependency
-		}
-		FNG = {
-			set_politics = {
-				ruling_party = authoritarian_democrat
-				elections_allowed = no
-			}
-		}
+		set_temp_variable = { japan_keeps_coast = 1 }
+		set_temp_variable = { tag_to_release = event_target:china_release_target }
+		release_chinese_government_in_manchuria = yes
+		var:tag_to_release = { china_puppet_setup = yes }
 	}
 
 	option = { #Give it to China
-		name = annex.174.m
+		name = annex.174.c
 		ai_chance = {
-			factor = 95
+			base = 100
 		}
 		trigger = {
-			is_han_chinese_tag = no
+			can_become_china = no
 			has_event_target = china_ally_target
 		}
 		reverse_add_opinion_modifier = { target = event_target:china_ally_target modifier = KR_returned_land }
@@ -24298,10 +25289,18 @@ country_event = { #Fate of Manchuria
 					limit = { ROOT = { tag = JAP } }
 					NOT = { has_variable = ambition_area_@ROOT }
 				}
+				NOT = {
+					state = 885 #
+					state = 883 #Shenyang
+					state = 884
+					state = 714
+					state = 717
 			}
-			event_target:china_ally_target = { transfer_state = PREV }
+			}
+			transfer_state_to = event_target:china_ally_target
 		}
 	}
+
 	option = { #Integrate
 		name = eurasian_integration.option
 		trigger = {
@@ -24317,6 +25316,13 @@ country_event = { #Fate of Manchuria
 			limit = {
 				is_manchuria = yes
 				is_not_claim_or_core_of_ROOT = yes
+				NOT = {
+					state = 885 #
+					state = 883 #Shenyang
+					state = 884
+					state = 714
+					state = 717
+				}
 			}
 			MAN = {
 				add_state_core = PREV
@@ -24328,6 +25334,11 @@ country_event = { #Fate of Manchuria
 				NOT = {
 					is_core_of = ROOT
 					is_claimed_by = ROOT
+					state = 885 #
+					state = 883 #Shenyang
+					state = 884
+					state = 714
+					state = 717
 				}
 			}
 			remove_cores_of_dead_tags = yes
@@ -24354,7 +25365,7 @@ country_event = { #Fate of Manchuria
 				add_claim_by = ROOT
 			}
 		}
-		add_political_power = -25
+		occupy_medium_country = yes
 		add_to_array = { RUS_integration_array = MAN }
 		recheck_annexations = yes
 	}
@@ -24378,55 +25389,72 @@ country_event = { #Fate of Xinjiang
 	immediate = {
 		log = "[GetDateText]: [Root.GetName]: event annex.179"
 		determine_chinese_ally = yes
+		hidden_effect = {
+			if = {
+				limit = { has_country_flag = can_assume_national_leadership }
+				SIK = { set_cosmetic_tag = ETS_puppet }
+			}
+			else = {
+				ETS = { set_cosmetic_tag = ETS_puppet }
+			}
+		}
 	}
 
 	option = { #Release an independent Xinjiang
 		name = annex.179.a
 		ai_chance = {
-			factor = 95
-			modifier = {
-				factor = 0
-				any_owned_state = {
-					OR = {
-						region = 220 #Xibei
-						state = 601 #Xikang
-					}
+			base = 50
 				}
+		if = {
+			limit = { has_country_flag = can_assume_national_leadership }
+			set_temp_variable = { tag_to_release = SIK }
 			}
-		}
-		hidden_effect = {
+		else = {
 			set_temp_variable = { tag_to_release = ETS }
+		}
 			every_owned_state = {
 				limit = {
 					is_claim_or_core_of_ROOT = no
 					region = 221 #Xinjiang
 				}
-				ETS = {
+			var:tag_to_release = {
 					add_state_core = PREV
 					transfer_state = PREV
 				}
 			}
 			puppet_released_tag = yes
-			var:tag_to_release = { set_cosmetic_tag = ETS_puppet }
-		}
 	}
-
-	option = { #Give it to China
-		name = annex.174.m
-		ai_chance = {
-			factor = 95
-		}
+	option = { #give to Central Asian ally
+		name = annex.79.d
 		trigger = {
-			is_han_chinese_tag = no
+			has_global_flag = global_turkestan_united
+			has_event_target = turkestan_unifier
+		}
+		ai_chance = { base = 80 }
+		add_to_temp_array = { target_cores_to_release = ETS }
+		set_temp_variable = { ROOT.tag_to_release = event_target:turkestan_unifier }
+		transfer_territory_from_core_regions_and_add_cores = yes
+	}
+	option = { #Give it to China
+		name = annex.176.d
+		trigger = {
+			can_become_china = no
 			has_event_target = china_ally_target
+		}
+		ai_chance = {
+			base = 50
+			modifier = {
+				factor = 2
+				is_ally_with = event_target:china_ally_target
+		}
 		}
 		reverse_add_opinion_modifier = { target = event_target:china_ally_target modifier = KR_returned_land }
 		every_owned_state = {
 			limit = {
-				is_claim_or_core_of_ROOT = no
 				region = 221 #Xinjiang
+				is_claim_or_core_of_ROOT = no
 			}
-			event_target:china_ally_target = { transfer_state = PREV }
+			transfer_state_to = event_target:china_ally_target
 		}
 	}
 	option = { #Integrate
@@ -24471,12 +25499,40 @@ country_event = { #Fate of Xinjiang
 				add_claim_by = ROOT
 			}
 		}
-		add_political_power = -25
+		occupy_medium_country = yes
 		add_to_array = { RUS_integration_array = ETS }
 		recheck_annexations = yes
 	}
+	option = { #Annex
+		name = annex.3012.e
+		ai_chance = {
+			base = 50
+			modifier = {
+				factor = 2
+				OR = {
+					tag = QIE
+					tag = FNG
+					tag = CHI
+				}
+			}
+		}
+		trigger = {
+			has_country_flag = can_assume_national_leadership #Chinese tags
+		}
+		every_state = {
+			limit = {
+				region = 221 #Xinjiang
+				is_claim_or_core_of_ROOT = no
+			}
+			add_claim_by = ROOT
+		}
+		occupy_medium_country = yes
+	}
 	option = { #occupy
 		name = annex.occupation
+		trigger = {
+			NOT = { has_country_flag = can_assume_national_leadership } #Chinese tags
+		}
 		ai_chance = {
 			factor = 0
 		}
@@ -24657,7 +25713,7 @@ country_event = { #Fate of the Legation Cities
 	}
 
 	option = { #Give it to China
-		name = annex.174.m
+		name = annex.176.d
 		ai_chance = {
 			factor = 80
 		}
@@ -25330,7 +26386,260 @@ country_event = { #Hugo arrives!
 		create_irish_monarchy = yes
 	}
 }
+country_event = { #Fate of Altai
+	id = annex.186
+	immediate = { log = "[GetDateText]: [Root.GetName]: event annex.186 FROM = [From.GetName]" }
+	title = annexation_ALTAI_CONQ
+	desc = annexation_ALTAI_CONQ_desc
+	picture = GFX_report_event_generic_conference2
 
+	is_triggered_only = yes
+
+	option = { #Give it to Russia
+		name = annex.186.a
+		trigger = {
+			var:568.owner = {
+				ROOT_can_grant_land = yes
+				is_ally_of_ROOT = yes
+			}
+		}
+		ai_chance = {
+			base = 100
+		}
+		set_temp_variable = { tag_to_release = 568.owner }
+		every_owned_state = {
+			limit = {
+				OR = {
+					state = 654 #Ulala
+					state = 811 #Minusinsk
+					state = 329 #Tuva
+				}
+				is_claim_or_core_of_ROOT = no
+			}
+			transfer_state_and_add_core = yes
+		}
+	}
+	option = { #Give to MON
+		name = annex.186.b
+		trigger = {
+			NOT = {
+				tag = MON
+			}
+			MON = { 
+				exists = yes
+				ROOT_can_grant_land = yes
+				is_ally_of_ROOT = yes
+			}
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				factor = 0.5
+				var:568.owner = {
+					is_ally_with = ROOT
+				}
+			}
+		}
+		set_temp_variable = { tag_to_release = MON }
+		every_owned_state = {
+			limit = {
+				OR = {
+					state = 654 #Ulala
+					state = 811 #Minusinsk
+					state = 329 #Tuva
+				}
+			}
+			transfer_state_and_add_core = yes
+		}
+		recheck_annexations = yes
+	}
+	option = { #Give it to China
+		name = annex.186.c
+		ai_chance = {
+			base = 10
+			modifier = {
+				factor = 0.5
+				var:568.owner = {
+					is_ally_with = ROOT
+				}
+			}
+			modifier = {
+				factor = 0.5
+				MON = {
+					is_ally_with = ROOT
+				}
+			}
+		}
+		trigger = {
+			is_han_chinese_tag = no
+			has_event_target = china_ally_target
+			event_target:china_ally_target = { owns_state = 329 }
+		}
+		reverse_add_opinion_modifier = { target = event_target:china_ally_target modifier = KR_returned_land }
+		every_owned_state = {
+			limit = {
+				is_not_claim_or_core_of_ROOT = yes
+				OR = {
+					state = 654 #Ulala
+					state = 811 #Minusinsk
+					state = 329 #Tuva
+				}
+			}
+			event_target:china_ally_target = { transfer_state = PREV }
+		}
+	}
+	option = { #Integrate
+		name = annex.integration
+		trigger = {
+			OR = {
+				tag = MON
+				is_russian_tag_that_can_integrate = yes
+			}
+			OR = {
+				owns_state = 329
+				owns_state = 568
+			}
+		}
+		ai_chance = {
+			base = 1000
+		}
+		if = {
+			limit = { tag = MON }
+			every_owned_state = {
+				limit = {
+					OR = {
+						state = 654 #Ulala
+						state = 811 #Minusinsk
+						state = 329 #Tuva
+					}
+				}
+				transfer_state_and_add_core = yes
+			}
+		}
+		else = {
+			add_state_core = 654
+			add_state_core = 811
+			add_state_claim = 329
+			add_to_array = { RUS_integration_state_array = 329 }
+		}
+		recheck_annexations = yes
+	}
+
+	option = { #occupy
+		name = annex.occupation
+		trigger = {
+			NOT = {
+				is_russian_tag_that_can_integrate = yes
+				tag = MON
+			}
+		}
+		ai_chance = { base = 0 }
+		occupy_small_country = yes
+		set_country_flag = ALTAI_CONQ
+	}
+}
+country_event = { #Fate of Sakhalin
+	id = annex.187
+	immediate = { log = "[GetDateText]: [Root.GetName]: event annex.187 FROM = [From.GetName]" }
+	title = annexation_SAKHALIN_CONQ
+	desc = annexation_SAKHALIN_CONQ_desc
+	picture = GFX_report_event_generic_conference2
+
+	is_triggered_only = yes
+
+	option = { #Give it to Japan
+		name = annex.187.a
+		trigger = {
+			NOT = {
+				tag = JAP
+				tag = SIB
+			}
+			JAP = { is_ally_of_ROOT = yes }
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				factor = 0
+				RUS = {
+					NOT = { has_completed_focus = RUS_Realpolitik }
+				}
+			}
+		}
+		set_temp_variable = { tag_to_release = JAP }
+		537 = { transfer_state_and_add_core = yes }
+		555 = {
+			if = {
+				limit = { is_valid_annexation_state = yes }
+				transfer_state_and_add_core = yes
+			}
+		}
+	}
+
+	option = { #Give it to the Russians
+		name = annex.187.b
+		trigger = {
+			is_russian_tag_that_can_integrate = no
+			NOT = {
+				tag = JAP
+				tag = SIB
+			}
+			var:560.owner = { #Nikolayevsk
+				is_russian_tag_that_can_integrate = yes
+				is_ally_with = ROOT
+			}
+		}
+		ai_chance = {
+			base = 100
+		}
+		set_temp_variable = { tag_to_release = var:560.owner }
+		537 = { transfer_state_and_add_core = yes }
+		555 = {
+			if = {
+				limit = { is_valid_annexation_state = yes }
+				transfer_state_and_add_core = yes
+			}
+		}
+	}
+
+	option = { #Integrate
+		name = annex.integration
+		trigger = {
+			OR = {
+				tag = JAP
+				tag = SIB
+			}
+		}
+		ai_chance = { base = 100 }
+		add_state_core = 537
+		add_state_core = 555
+	}
+
+	option = { #Integrate
+		name = annex.integration
+		trigger = {
+			is_russian_tag_that_can_integrate = yes
+		}
+		ai_chance = { base = 100 }
+		add_state_claim = 537
+		add_state_claim = 555
+		add_to_array = { RUS_integration_state_array = 537 }
+		add_to_array = { RUS_integration_state_array = 555 }
+	}
+
+	option = { #occupy
+		name = annex.occupation
+		trigger = {
+			NOT = {
+				tag = JAP
+				tag = SIB
+				is_russian_tag_that_can_integrate = yes
+			}
+		}
+		ai_chance = { base = 0 }
+		occupy_small_country = yes
+		set_country_flag = SAKHALIN_CONQ
+	}
+}
 country_event = { #Fate of Canada
 	id = annex.188
 	title = annexation_CAN_CONQ
@@ -27169,7 +28478,14 @@ country_event = { #Fate of Transamur
 			add_to_temp_array = { core_removal_array = TRM }
 			remove_all_cores_and_claims_of_tags = yes
 			every_state = {
-				limit = { is_russian_far_east = yes }
+				limit = { 
+					is_russian_far_east = yes
+					NOT = {
+						state = 564 #Verkhneudinsk
+						state = 563 #Chita
+						state = 565 #Bodaybo
+					}
+				}
 				add_core_of = TRM
 			}
 			TRM = {
@@ -27323,13 +28639,27 @@ country_event = { #Fate of Transamur
 					state = 408
 					state = 409
 					state = 1246
+					state = 564 #Verkhneudinsk
+					state = 563 #Chita
+					state = 565 #Bodaybo
 				}
 				is_claim_or_core_of_ROOT = no
 			}
 			transfer_state_and_add_core = yes
 		}
 		set_temp_variable = { tag_to_release = TRM }
-		release_targeted_tag = yes
+		every_owned_state = {
+			limit = {
+				OR = {
+					state = 408
+					state = 409
+					state = 1246
+				}
+				is_claim_or_core_of_ROOT = no
+			}
+			transfer_state_and_add_core = yes
+		}
+		puppet_released_tag_nocosmetic = yes
 	}
 		
 	option = { #Integrate
@@ -30640,6 +31970,7 @@ country_event = { #The Annexation of Siberia
 
 		every_owned_state = {
 			limit = {
+				is_russian_far_east = no
 				OR = {
 					is_siberia = yes
 					is_core_of = SIB
@@ -30664,6 +31995,19 @@ country_event = { #The Annexation of Siberia
 							state = 637 #Kamchatka
 						}
 					}
+				}
+				NOT = {
+					state = 564 #Verkhneudinsk
+					state = 563 #Chita
+					state = 565 #Bodaybo
+					state = 1208 #Orenburg
+					state = 582 #Orsk
+					state = 583 #Kustanai
+					state = 590 #Akmolinsk
+					state = 588 #Pavlodar
+					state = 654 #Ulala
+					state = 811 #Minusinsk
+					state = 329 #Tuva
 				}
 				is_not_claim_or_core_of_ROOT = yes
 			}
@@ -30701,9 +32045,23 @@ country_event = { #The Annexation of Siberia
 						}
 					}
 				}
+				NOT = {
+					state = 564 #Verkhneudinsk
+					state = 563 #Chita
+					state = 565 #Bodaybo
+					state = 1208 #Orenburg
+					state = 582 #Orsk
+					state = 583 #Kustanai
+					state = 590 #Akmolinsk
+					state = 588 #Pavlodar
+					state = 654 #Ulala
+					state = 811 #Minusinsk
+					state = 329 #Tuva
+				}
 				is_not_claim_or_core_of_ROOT = yes
 			}
 			TRM = {
+				add_state_core = PREV
 				transfer_state = PREV
 			}
 		}
@@ -31558,7 +32916,6 @@ country_event = { #The Fate of Italy
 	immediate = {
 		log = "[GetDateText]: [Root.GetName]: event annex.280"
 		hidden_effect = {
-			set_country_flag = ITA_CONQ
 			if = {
 				limit = { tag = AUS }
 				every_state = {
@@ -37766,7 +39123,7 @@ country_event = { #Fate of Alaska
 					set_cosmetic_tag = ALA_REDMAN
 				create_country_leader = {
 					name = "Chief Flying Eagle"
-					picture = "gfx/leaders/ALA/Portrait_ALA_Flying_Eagle.png"
+					picture = "gfx/leaders/ALA/Portrait_AIF_Flying_Eagle.png"
 					expire = "1965.1.1"
 					ideology = national_populist_subtype
 					traits = {  }
@@ -39354,7 +40711,848 @@ country_event = { #Fate of the Suez Canal
 		set_country_flag = SUEZ_CONQ
 	}
 }
+country_event = { #Fate of Maribor
+	id = annex.369
+	immediate = { log = "[GetDateText]: [Root.GetName]: event annex.369" }
+	title = annexation_MARIBOR_CONQ
+	desc = annexation_MARIBOR_CONQ_desc
 
+	is_triggered_only = yes
+
+	option = {
+		name = annex.369.a #give it to GER
+		trigger = {
+			var:835.owner = {
+				is_germany_or_splinter_tag = yes
+				is_ally_with = ROOT
+			}
+			is_germany_or_splinter_tag = no
+		}
+		ai_chance = {
+			base = 80
+		}
+		set_temp_variable = { tag_to_release = 835.owner }
+		1272 = { transfer_state_and_add_core = yes }
+		recheck_annexations = yes
+	}
+	option = {
+		name = annex.369.a #give it to AUS/GER
+		trigger = {
+			var:835.owner = {
+					tag = AUS
+				is_ally_with = ROOT
+			}
+			NOT = {
+				tag = AUS
+			}
+		}
+		ai_chance = {
+			base = 80
+		}
+		set_temp_variable = { tag_to_release = 835.owner }
+		1272 = { transfer_state_and_add_core = yes }
+		recheck_annexations = yes
+	}
+	option = {
+		name = annex.369.b #give it to SLO
+		trigger = {
+			country_exists = SLO
+			SLO = {
+				is_ally_with = ROOT
+			}
+			NOT = {
+				tag = SLO
+			}
+		}
+		ai_chance = {
+			base = 80
+		}
+		set_temp_variable = { tag_to_release = SLO }
+		1272 = { transfer_state_and_add_core = yes }
+		recheck_annexations = yes
+	}
+	option = {
+		name = annex.369.c #give it to SER
+		trigger = {
+			SER = {
+				NOT = { country_exists = SLO }
+				NOT = { country_exists = CRO }
+				is_ally_with = ROOT
+				owns_state = 102
+			}
+			NOT = {
+				tag = SLO
+				tag = CRO
+				tag = SER
+				tag = AUS
+			}
+		}
+		ai_chance = {
+			base = 80
+		}
+		set_temp_variable = { tag_to_release = SER }
+		1272 = { transfer_state_and_add_claim = yes }
+		recheck_annexations = yes
+	}
+	option = {
+		name = annex.369.d #give it to CRO
+		trigger = {
+			CRO = {
+				NOT = { country_exists = SLO }
+				is_ally_with = ROOT
+				owns_state = 102
+			}
+			NOT = {
+				tag = SLO
+				tag = CRO
+				tag = SER
+			}
+		}
+		ai_chance = {
+			base = 80
+		}
+		set_temp_variable = { tag_to_release = CRO }
+		1272 = { transfer_state_and_add_core = yes }
+		recheck_annexations = yes
+	}
+	option = { #Integrate
+		name = annex.integration
+		trigger = {
+			OR = {
+				tag = AUS
+				tag = SLO
+				AND = {
+					is_germany_or_splinter_tag = yes
+					owns_state = 830
+				}
+				AND = {
+					original_tag = SER
+					owns_state = 102 #Slovenia
+				}
+				AND = {
+					original_tag = CRO
+					owns_state = 102 #Slovenia
+				}
+			}
+		}
+		ai_chance = {
+			base = 1000
+		}
+		if = {
+			limit = {
+				NOT = { original_tag = SER }
+			}
+			add_state_core = 1272
+		}
+		else = {
+			add_state_claim = 1272
+		}
+		recheck_annexations = yes
+	}
+
+	option = { #occupy
+		name = annex.occupation
+		trigger = {
+			NOT = {
+				tag = AUS
+				tag = SLO
+				AND = {
+					is_germany_or_splinter_tag = yes
+					owns_state = 830
+				}
+				AND = {
+					original_tag = SER
+					owns_state = 102 #Slovenia
+				}
+				AND = {
+					original_tag = CRO
+					owns_state = 102 #Slovenia
+				}
+			}
+		}
+		occupy_tiny_country = yes
+		set_country_flag = MARIBOR_CONQ
+	}
+}
+country_event = { #Fate of Fiume
+	id = annex.368
+	immediate = { log = "[GetDateText]: [Root.GetName]: event annex.368" }
+	title = annexation_FIUME_CONQ
+	desc = annexation_FIUME_CONQ_desc
+
+	is_triggered_only = yes
+	
+	immediate = {
+		hidden_effect = {
+			add_to_temp_array = { core_removal_array = FIU }
+			remove_all_cores_and_claims_of_tags = yes
+			FIU = {
+				add_state_core = 1206
+				drop_cosmetic_tag = yes
+			}
+		}
+	}
+
+	option = {
+		name = annex.368.b #give it to AUS/GER
+		trigger = {
+			var:736.owner = {
+				OR = {
+					is_germany_or_splinter_tag = yes
+					tag = AUS
+				}
+				is_ally_with = ROOT
+			}
+			is_germany_or_splinter_tag = no
+			NOT = {
+				tag = AUS
+			}
+		}
+		ai_chance = {
+			base = 10
+		}
+		set_temp_variable = { tag_to_release = 736.owner }
+		1206 = { transfer_state_and_add_claim = yes }
+		recheck_annexations = yes
+	}
+	option = {
+		name = annex.368.c #give it to SER
+		trigger = {
+			SER = {
+				NOT = { country_exists = CRO }
+				is_ally_with = ROOT
+				owns_state = 103 #Lika
+			}
+			NOT = {
+				tag = HUN
+				tag = CRO
+				tag = SER
+				tag = AUS
+			}
+		}
+		ai_chance = {
+			base = 30
+		}
+		set_temp_variable = { tag_to_release = SER }
+		1206 = { transfer_state_and_add_claim = yes }
+		recheck_annexations = yes
+	}
+	option = {
+		name = annex.368.d #give it to CRO
+		trigger = {
+			CRO = {
+				is_ally_with = ROOT
+				owns_state = 103
+			}
+			NOT = {
+				tag = HUN
+				tag = CRO
+				tag = SER
+			}
+		}
+		ai_chance = {
+			base = 50
+		}
+		set_temp_variable = { tag_to_release = CRO }
+		1206 = { transfer_state_and_add_core = yes }
+		recheck_annexations = yes
+	}
+	option = {
+		name = annex.368.e #give it to HUN
+		trigger = {
+			HUN = {
+				is_ally_with = ROOT
+				owns_state = 103
+			}
+			NOT = {
+				tag = CRO
+				tag = SER
+			}
+		}
+		ai_chance = {
+			base = 100 #since this requires HUN to annex CRO
+		}
+		set_temp_variable = { tag_to_release = HUN }
+		1206 = { transfer_state_and_add_claim = yes }
+		recheck_annexations = yes
+	}
+	option = { #Give Italy
+		name = annex.368.f
+		trigger = {
+			var:160.owner = {
+			OR = {
+					tag = ITA
+					tag = SIC
+					tag = SRI
+					tag = SRD
+					tag = VNC
+				}
+				is_ally_of_ROOT = yes
+			}
+			NOT = {
+				tag = AUS
+				tag = SER
+				tag = CRO
+				tag = ITA
+				tag = SIC
+				tag = SRI
+				tag = SRD
+				tag = VNC
+			}
+		}
+		ai_chance = {
+			factor = 50
+		}
+		if = {
+			limit = {
+				OR = {
+					is_in_faction_with = ITA
+					ITA = { is_subject_of = ROOT }
+				}
+			}
+			every_state = {
+				limit = {
+					state = 1206
+				}
+				if = {
+					limit = { is_claimed_by = ITA }
+					remove_claim_by = ITA
+				}
+				if = {
+					limit = { NOT = { is_core_of = ITA } }
+					add_core_of = ITA
+				}
+				ITA = { transfer_state = PREV }
+			}
+			ITA = {
+				country_event = annex.18
+			}
+		}
+		else_if = {
+			limit = {
+				OR = {
+					is_in_faction_with = VNC
+					VNC = { is_subject_of = ROOT }
+				}
+			}
+			every_state = {
+				limit = {
+					state = 1206
+				}
+				if = {
+					limit = { is_claimed_by = VNC }
+					remove_claim_by = VNC
+				}
+				if = {
+					limit = { NOT = { is_core_of = VNC } }
+					add_core_of = VNC
+				}
+				VNC = { transfer_state = PREV }
+			}
+			VNC = {
+				country_event = annex.18
+			}
+		}
+		else_if = {
+			limit = {
+				OR = {
+					is_in_faction_with = SRD
+					SRD = { is_subject_of = ROOT }
+				}
+			}
+			every_state = {
+				limit = {
+					state = 1206
+				}
+				if = {
+					limit = { is_claimed_by = SRD }
+					remove_claim_by = SRD
+				}
+				if = {
+					limit = { NOT = { is_core_of = SRD } }
+					add_core_of = SRD
+				}
+				SRD = { transfer_state = PREV }
+			}
+			SRD = {
+				country_event = annex.18
+			}
+		}
+		else_if = {
+			limit = {
+				OR = {
+					is_in_faction_with = SIC
+					SIC = { is_subject_of = ROOT }
+				}
+			}
+			every_state = {
+				limit = {
+					state = 1206
+				}
+				if = {
+					limit = { is_claimed_by = SIC }
+					remove_claim_by = SIC
+				}
+				if = {
+					limit = { NOT = { is_core_of = SIC } }
+					add_core_of = SIC
+				}
+				SIC = { transfer_state = PREV }
+			}
+			SIC = {
+				country_event = annex.18
+			}
+		}
+		else_if = {
+			limit = {
+				OR = {
+					is_in_faction_with = SRI
+					SRI = { is_subject_of = ROOT }
+				}
+			}
+			every_state = {
+				limit = {
+					state = 1206
+				}
+				if = {
+					limit = { is_claimed_by = SRI }
+					remove_claim_by = SRI
+				}
+				if = {
+					limit = { NOT = { is_core_of = SRI } }
+					add_core_of = SRI
+				}
+				SRI = { transfer_state = PREV }
+			}
+			SRI = {
+				country_event = annex.18
+			}
+		}
+	}
+	option = { #Integrate
+		name = annex.integration
+		trigger = {
+			OR = {
+				tag = AUS
+				tag = CRO
+				tag = HUN
+				tag = VNC
+				AND = {
+					OR = {
+						tag = ITA
+						tag = SIC
+						tag = SRI
+						tag = SRD
+					}
+					owns_state = 736
+				}
+				AND = {
+					is_germany_or_splinter_tag = yes
+					owns_state = 736
+				}
+				AND = {
+					original_tag = SER
+					owns_state = 103 #Lika
+				}
+			}
+		}
+		ai_chance = {
+			base = 1000
+		}
+		if = {
+			limit = {
+				NOT = { original_tag = CRO }
+				NOT = { original_tag = AUS }
+				NOT = { original_tag = VNC }
+				NOT = { original_tag = ITA }
+				NOT = { original_tag = SIC }
+				NOT = { original_tag = SRI }
+				NOT = { original_tag = SRD }
+			}
+			add_state_claim = 1206
+		}
+		else = {
+			add_state_core = 1206
+		}
+		recheck_annexations = yes
+	}
+
+	option = { #occupy
+		name = annex.occupation
+		trigger = {
+			NOT = {
+				tag = AUS
+				tag = CRO
+				tag = HUN
+				tag = VNC
+				AND = {
+					OR = {
+						tag = ITA
+						tag = SIC
+						tag = SRI
+						tag = SRD
+					}
+					owns_state = 736
+				}
+				AND = {
+					is_germany_or_splinter_tag = yes
+					owns_state = 736
+				}
+				AND = {
+					original_tag = SER
+					owns_state = 103 #Lika
+				}
+			}
+		}
+		occupy_tiny_country = yes
+		set_country_flag = FIUME_CONQ
+	}
+}
+country_event = { #Fate of Prijepolje
+	id = annex.370
+	immediate = { log = "[GetDateText]: [Root.GetName]: event annex.370" }
+	title = annexation_PRIJEPOLJE_CONQ
+	desc = annexation_PRIJEPOLJE_CONQ_desc
+
+	is_triggered_only = yes
+	
+	option = {
+		name = annex.370.a #give it to SER
+		trigger = {
+			SER = {
+				is_ally_with = ROOT
+			}
+			NOT = {
+				tag = BOS
+				tag = MNT
+				tag = CRO
+				tag = SER
+				tag = AUS
+			}
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				factor = 0.5
+				MNT = { is_ally_of_ROOT = yes }
+			}
+		}
+		set_temp_variable = { tag_to_release = SER }
+		1269 = { transfer_state_and_add_core = yes }
+		recheck_annexations = yes
+	}
+	option = {
+		name = annex.370.b #give it to MNT
+		trigger = {
+			MNT = {
+				is_ally_with = ROOT
+			}
+			NOT = {
+				tag = BOS
+				tag = MNT
+				tag = CRO
+				tag = SER
+				tag = AUS
+			}
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				factor = 0.5
+				SER = { is_ally_of_ROOT = yes }
+			}
+		}
+		set_temp_variable = { tag_to_release = MNT }
+		1269 = { transfer_state_and_add_core = yes }
+		recheck_annexations = yes
+	}
+	option = {
+		name = annex.370.c #give it to CRO
+		trigger = {
+			NOT = {
+				SER = { owns_state = 1097 }
+			}
+			CRO = {
+				is_ally_with = ROOT
+				NOT = { country_exists = BOS }
+			}
+			NOT = {
+				tag = BOS
+				tag = MNT
+				tag = CRO
+				tag = SER
+			}
+		}
+		ai_chance = {
+			base = 50
+			modifier = {
+				factor = 2
+				tag = AUS
+			}
+		}
+		set_temp_variable = { tag_to_release = CRO }
+		1269 = { transfer_state_and_add_core = yes }
+		recheck_annexations = yes
+	}
+	option = {
+		name = annex.370.d #give it to BOS
+		trigger = {
+			NOT = {
+				SER = { owns_state = 1097 }
+			}
+			BOS = {
+				is_ally_with = ROOT
+			}
+			NOT = {
+				tag = BOS
+				tag = MNT
+				tag = CRO
+				tag = SER
+			}
+		}
+		ai_chance = {
+			base = 50
+			modifier = {
+				factor = 2
+				tag = AUS
+			}
+		}
+		set_temp_variable = { tag_to_release = BOS }
+		1269 = { transfer_state_and_add_core = yes }
+		recheck_annexations = yes
+	}
+	option = {
+		name = annex.370.e #give it to AUS
+		trigger = {
+			NOT = {
+				SER = { owns_state = 1097 }
+			}
+			AUS = {
+				AUS_is_unified = yes
+				is_ally_of_ROOT = yes
+				owns_state = 104 #Bosnia
+			}
+			NOT = {
+				tag = AUS
+				tag = BOS
+				tag = MNT
+				tag = CRO
+				tag = SER
+			}
+		}
+		ai_chance = {
+			base = 50
+		}
+		set_temp_variable = { tag_to_release = AUS }
+		1269 = { transfer_state_and_add_core = yes }
+		recheck_annexations = yes
+	}
+	option = { #Integrate
+		name = annex.integration
+		trigger = {
+			OR = {
+				AND = {
+					tag = AUS
+					AUS_is_unified = yes
+				}
+				AND = {
+					tag = CRO
+					owns_state = 104
+				}
+				tag = SER
+				tag = MNT
+				tag = BOS
+			}
+		}
+		ai_chance = {
+			base = 1000
+		}
+		add_state_core = 1269
+		recheck_annexations = yes
+	}
+
+	option = { #occupy
+		name = annex.occupation
+		trigger = {
+			NOT = {
+				AND = {
+					tag = AUS
+					AUS_is_unified = yes
+				}
+				AND = {
+					tag = CRO
+					owns_state = 104
+				}
+				tag = SER
+				tag = MNT
+				tag = BOS
+			}
+		}
+		occupy_small_country = yes
+		set_country_flag = PRIJEPOLJE_CONQ
+	}
+}
+country_event = { #Fate of Herceg Novi
+	id = annex.371
+	immediate = { log = "[GetDateText]: [Root.GetName]: event annex.371" }
+	title = annexation_HERCEG_NOVI_CONQ
+	desc = annexation_HERCEG_NOVI_CONQ_desc
+
+	is_triggered_only = yes
+	
+	option = {
+		name = annex.370.a #give it to SER
+		trigger = {
+			SER = {
+				is_ally_with = ROOT
+				NOT = { country_exists = MNT }
+				owns_state = 105
+			}
+			NOT = {
+				tag = MNT
+				tag = CRO
+				tag = SER
+				tag = AUS
+			}
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				factor = 0.5
+				MNT = { is_ally_of_ROOT = yes }
+			}
+		}
+		set_temp_variable = { tag_to_release = SER }
+		1270 = { transfer_state_and_add_core = yes }
+		recheck_annexations = yes
+	}
+	option = {
+		name = annex.370.b #give it to MNT
+		trigger = {
+			MNT = {
+				is_ally_with = ROOT
+			}
+			NOT = {
+				tag = MNT
+				tag = CRO
+				tag = AUS
+			}
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				factor = 0.5
+				CRO = { is_ally_of_ROOT = yes }
+			}
+		}
+		set_temp_variable = { tag_to_release = MNT }
+		1270 = { transfer_state_and_add_core = yes }
+		recheck_annexations = yes
+	}
+	option = {
+		name = annex.370.c #give it to CRO
+		trigger = {
+			CRO = {
+				is_ally_with = ROOT
+				owns_state = 1098
+			}
+			NOT = {
+				tag = MNT
+				tag = CRO
+				tag = SER
+			}
+		}
+		ai_chance = {
+			base = 50
+			modifier = {
+				factor = 2
+				tag = AUS
+			}
+		}
+		set_temp_variable = { tag_to_release = CRO }
+		1270 = { transfer_state_and_add_core = yes }
+		recheck_annexations = yes
+	}
+	option = {
+		name = annex.370.e #give it to AUS
+		trigger = {
+			AUS = {
+				AUS_is_unified = yes
+				is_ally_of_ROOT = yes
+				OR = {
+					owns_state = 163
+					owns_state = 1098
+				}
+			}
+			NOT = {
+				tag = AUS
+				tag = MNT
+				tag = CRO
+				tag = SER
+			}
+		}
+		ai_chance = {
+			base = 50
+		}
+		set_temp_variable = { tag_to_release = AUS }
+		1270 = { transfer_state_and_add_core = yes }
+		recheck_annexations = yes
+	}
+	option = { #Integrate
+		name = annex.integration
+		trigger = {
+			OR = {
+				AND = {
+					tag = AUS
+					AUS_is_unified = yes
+				}
+				AND = {
+					tag = CRO
+					OR = {
+						owns_state = 163
+						owns_state = 1098
+					}
+				}
+				AND = {
+					tag = SER
+					owns_state = 105
+				}
+				tag = MNT
+			}
+		}
+		ai_chance = {
+			base = 1000
+		}
+		add_state_core = 1270
+		recheck_annexations = yes
+	}
+
+	option = { #occupy
+		name = annex.occupation
+		trigger = {
+			NOT = {
+				AND = {
+					tag = AUS
+					AUS_is_unified = yes
+				}
+				AND = {
+					tag = CRO
+					OR = {
+						owns_state = 163
+						owns_state = 1098
+					}
+				}
+				AND = {
+					tag = SER
+					owns_state = 105
+				}
+				tag = MNT
+			}
+		}
+		occupy_tiny_country = yes
+		set_country_flag = HERCEG_NOVI_CONQ
+	}
+}
 
 country_event = { #Fate of Asir
 	id = annex.374
@@ -40206,18 +42404,18 @@ country_event = { #Fate of Southern Belarus
 		name = annex.378.b
 		trigger = {
 			NOT = {
-				country_exists = WHR
-				country_exists = UKR
 				tag = WHR
 				tag = UKR
 				AND = {
 					tag = LIT
 					206 = { is_claim_or_core_of_ROOT = yes } #Minsk
 				}
+				is_russian_tag_that_can_integrate = yes
 			}
 			var:219.owner = {
 				is_russian_tag_that_can_integrate = yes
 				ROOT_can_grant_land = yes
+				owns_state = 206
 			}
 		}
 		ai_chance = {
@@ -40244,6 +42442,7 @@ country_event = { #Fate of Southern Belarus
 				}
 			}
 			transfer_state_and_add_claim = yes
+			hidden_effect = { add_core_of = WHR }
 		}
 	}
 
@@ -40255,7 +42454,7 @@ country_event = { #Fate of Southern Belarus
 				tag = LIT
 			}
 			LIT = {
-				owns_state = 204 #Minsk
+				owns_state = 206 #Minsk
 				ROOT_can_grant_land = yes
 			}
 		}
@@ -40354,6 +42553,8 @@ country_event = { #Fate of Southern Belarus
 			var:219.owner = {
 				is_russian_tag_that_can_integrate = yes
 				ROOT_can_grant_land = yes
+				owns_state = 1230
+				owns_state = 243
 			}
 		}
 		ai_chance = {
@@ -40485,6 +42686,224 @@ country_event = { #Fate of Southern Belarus
 		recheck_annexations = yes
 	}
 	
+	option = { #Take Pinsk, leave the rest
+		name = annex.379.d
+		trigger = {
+			OR = {
+				tag = POL
+				tag = LIT
+			}
+			owns_state = 204 #Bobruisk
+			owns_state = 95 #Pinsk
+			OR = {
+				owns_state = 194 #Mozyr
+				owns_state = 241 #Gomel
+			}
+			var:206.owner = {
+				ROOT_can_grant_land = yes
+				is_ally_of_ROOT = yes
+			}
+		}
+		ai_chance = {
+			base = 80			
+		}
+		every_owned_state = {
+			limit = { state = 95 }
+			add_claim_of_ROOT = yes
+		}
+		set_temp_variable = { tag_to_release = var:206.owner }
+		every_owned_state = {
+			limit = {
+				OR = {
+					state = 241 #Gomel
+					state = 194 #Mozyr
+				}
+			}
+			if = {
+				limit = {
+					var:206.owner = { tag = WHR }
+				}
+				transfer_state_and_add_core = yes
+			}
+			else = {
+				transfer_state_and_add_claim = yes
+			}
+		}
+		recheck_annexations = yes
+	}
+	
+	option = { #Take Pinsk, leave the rest
+		name = annex.379.e
+		trigger = {
+			OR = {
+				tag = POL
+				tag = LIT
+			}
+			owns_state = 204 #Bobruisk
+			owns_state = 95 #Pinsk
+			owns_state = 194 #Mozyr
+			owns_state = 241 #Gomel
+			var:206.owner = {
+				ROOT_can_grant_land = yes
+				is_ally_of_ROOT = yes
+			}
+			UKR = {
+				ROOT_can_grant_land = yes
+				is_ally_of_ROOT = yes
+			}
+		}
+		ai_chance = {
+			base = 80			
+		}
+		every_owned_state = {
+			limit = { state = 95 }
+			add_claim_of_ROOT = yes
+		}
+		set_temp_variable = { tag_to_release = var:206.owner }
+		every_owned_state = {
+			limit = {
+				state = 194 #Mozyr
+			}
+			if = {
+				limit = {
+					var:206.owner = { tag = WHR }
+				}
+				transfer_state_and_add_core = yes
+			}
+			else = {
+				transfer_state_and_add_claim = yes
+			}
+		}
+		set_temp_variable = { tag_to_release = UKR }
+		every_owned_state = {
+			limit = {
+				state = 241 #Gomel
+			}
+			transfer_state_and_add_core = yes
+		}
+		recheck_annexations = yes
+	}
+	
+	option = { #Give Pinsk to POL/LIT, leave the rest
+		name = annex.379.f
+		trigger = {
+			owns_state = 95 #Pinsk
+			OR = {
+				owns_state = 194 #Mozyr
+				owns_state = 241 #Gomel
+			}
+			var:204.owner = {
+				OR = {
+					tag = POL
+					tag = LIT
+				}
+				ROOT_can_grant_land = yes
+				is_ally_of_ROOT = yes
+			}
+			var:206.owner = {
+				ROOT_can_grant_land = yes
+				is_ally_of_ROOT = yes
+			}
+			NOT = {
+				is_russian_tag_that_can_integrate = yes
+				is_germany_or_splinter_tag = yes
+				tag = UKR
+				tag = POL
+				tag = LIT
+			}
+		}
+		ai_chance = {
+			base = 80			
+		}
+		set_temp_variable = { tag_to_release = var:204.owner }
+		every_owned_state = {
+			limit = { state = 95 }
+			transfer_state_and_add_claim = yes
+		}
+		set_temp_variable = { tag_to_release = var:206.owner }
+		every_owned_state = {
+			limit = {
+				OR = {
+					state = 241 #Gomel
+					state = 194 #Mozyr
+				}
+			}
+			if = {
+				limit = {
+					var:206.owner = { tag = WHR }
+				}
+				transfer_state_and_add_core = yes
+			}
+			else = {
+				transfer_state_and_add_claim = yes
+			}
+		}
+		recheck_annexations = yes
+	}
+	
+	option = { #Give Pinsk to POL/LIT, leave the rest
+		name = annex.379.g
+		trigger = {
+			owns_state = 95 #Pinsk
+			owns_state = 194 #Mozyr
+			owns_state = 241 #Gomel
+			var:204.owner = {
+				OR = {
+					tag = POL
+					tag = LIT
+				}
+				ROOT_can_grant_land = yes
+				is_ally_of_ROOT = yes
+			}
+			var:206.owner = {
+				ROOT_can_grant_land = yes
+				is_ally_of_ROOT = yes
+			}
+			UKR = {
+				ROOT_can_grant_land = yes
+				is_ally_of_ROOT = yes
+			}
+			NOT = {
+				is_russian_tag_that_can_integrate = yes
+				is_germany_or_splinter_tag = yes
+				tag = UKR
+				tag = POL
+				tag = LIT
+			}
+		}
+		ai_chance = {
+			base = 80			
+		}
+		set_temp_variable = { tag_to_release = var:204.owner }
+		every_owned_state = {
+			limit = { state = 95 }
+			transfer_state_and_add_claim = yes
+		}
+		set_temp_variable = { tag_to_release = var:206.owner }
+		every_owned_state = {
+			limit = {
+				state = 194 #Mozyr
+			}
+			if = {
+				limit = {
+					var:206.owner = { tag = WHR }
+				}
+				transfer_state_and_add_core = yes
+			}
+			else = {
+				transfer_state_and_add_claim = yes
+			}
+		}
+		set_temp_variable = { tag_to_release = UKR }
+		every_owned_state = {
+			limit = {
+				state = 241 #Gomel
+			}
+			transfer_state_and_add_core = yes
+		}
+		recheck_annexations = yes
+	}
+	
 	option = { #Integrate
 		name = annex.integration
 		trigger = {
@@ -40493,10 +42912,7 @@ country_event = { #Fate of Southern Belarus
 				tag = UKR
 				AND = {
 					is_russian_tag_that_can_integrate = yes
-					OR = {
-						NOT = { country_exists = WHR }
-						NOT = { country_exists = UKR }
-					}
+					owns_state = 206
 				}
 				AND = {
 					tag = LIT
@@ -40523,6 +42939,13 @@ country_event = { #Fate of Southern Belarus
 			add_state_core = 194 
 			add_state_core = 241 
 		}
+		hidden_effect = {
+			WHR = {
+				add_state_core = 95
+				add_state_core = 194
+				add_state_core = 241
+			}
+		}
 		recheck_annexations = yes
 	}
 
@@ -40530,6 +42953,7 @@ country_event = { #Fate of Southern Belarus
 		name = annex.occupation
 		trigger = {
 			NOT = {
+				is_russian_tag_that_can_integrate = yes
 				tag = WHR
 				tag = UKR
 				AND = {
@@ -40929,13 +43353,16 @@ country_event = { #Fate of Astrakhan
 			}
 			1191 = { transfer_state_and_add_claim = yes }
 			add_to_array = { RUS_integration_state_array = 1191 }
+			hidden_effect = { 
+				1191 = { add_core_of = KLY }
+			}
 		}
 		else = { 
 			1191 = { transfer_state_and_add_core = yes }
 		}			
 	}
 	option = { #Give it to whoever it is
-		name = annex.383.b
+		name = annex.383.c
 		trigger = {
 			var:218.owner = {
 				ROOT_can_grant_land = yes
@@ -40961,6 +43388,9 @@ country_event = { #Fate of Astrakhan
 			}
 			1191 = { transfer_state_and_add_claim = yes }
 			add_to_array = { RUS_integration_state_array = 1191 }
+			hidden_effect = { 
+				1191 = { add_core_of = KLY }
+			}
 		}
 		else = { 
 			1191 = { transfer_state_and_add_core = yes }
@@ -40987,6 +43417,9 @@ country_event = { #Fate of Astrakhan
 			limit = { is_russian_tag_that_can_integrate = yes }
 			add_state_claim = 1191
 			add_to_array = { RUS_integration_state_array = 1191 }
+			hidden_effect = { 
+				1191 = { add_core_of = KLY }
+			}
 		}
 		else = {
 			add_state_core = 1191
@@ -41300,7 +43733,7 @@ country_event = { #Fate of Belgorod
 }
 country_event = { #Fate of Chelm
 	id = annex.386
-	immediate = { log = "[GetDateText]: [Root.GetName]: event annex.385 FROM = [From.GetName]" }
+	immediate = { log = "[GetDateText]: [Root.GetName]: event annex.386 FROM = [From.GetName]" }
 	title = annexation_CHELM_CONQ
 	desc = annexation_CHELM_CONQ_desc
 	picture = GFX_report_event_generic_conference2
@@ -41509,6 +43942,472 @@ country_event = { #Fate of Chelm
 		set_country_flag = CHELM_CONQ
 	}
 }
+country_event = { #Fate of Transbaikalia
+	id = annex.387
+	immediate = { log = "[GetDateText]: [Root.GetName]: event annex.387 FROM = [From.GetName]" }
+	title = annexation_BRY_CONQ
+	desc = annexation_BRY_CONQ_desc
+	picture = GFX_report_event_generic_conference2
+
+	is_triggered_only = yes
+	
+	immediate = {
+		hidden_effect = {
+			BRY = { drop_cosmetic_tag = yes }
+		}
+	}			
+
+	option = { #Release BRY
+		name = annex.387.a
+		ai_chance = {
+			base = 50
+			modifier = {
+				factor = 0
+				OR = {
+					is_ally_with = RUS
+					is_ally_with = TRM
+					is_ally_with = SIB
+					is_ally_with = MON
+				}
+			}
+		}
+		set_temp_variable = { tag_to_release = BRY }
+		every_owned_state = {
+			limit = {
+				is_claim_or_core_of_ROOT = no
+				OR = {
+					state = 563
+					state = 564
+					state = 565
+				}
+			}
+			transfer_state_and_add_core = yes
+		}
+		puppet_released_tag = yes
+		if = {
+			limit = { has_government = syndicalist }
+			var:tag_to_release = {
+				set_politics = {
+					ruling_party = radical_socialist
+					elections_allowed = no
+				}
+				set_political_party = {
+					ideology = radical_socialist
+					popularity = 60
+				}
+			}
+		}
+			
+	}
+	option = { #Release BRY, give the rest to SIB
+		name = annex.387.a2
+		trigger = {
+			owns_state = 563
+			owns_state = 565
+			SIB = {
+				is_ally_of_ROOT = yes
+				ROOT_can_grant_land = yes
+				OR = {
+					owns_state = 566
+					owns_state = 561
+				}
+			}
+		}
+		ai_chance = {
+			base = 50
+			modifier = {
+				factor = 0
+				OR = {
+					is_ally_with = RUS
+					is_ally_with = TRM
+				}
+			}
+			modifier = {
+				factor = 2
+				tag = JAP
+			}
+		}
+		set_temp_variable = { tag_to_release = BRY }
+		every_owned_state = {
+			limit = {
+				state = 564
+			}
+			transfer_state_and_add_core = yes
+		}
+		puppet_released_tag = yes
+		set_temp_variable = { tag_to_release = SIB }
+		every_owned_state = {
+			limit = {
+				OR = {
+					state = 563
+					state = 565
+				}
+			}
+			transfer_state_and_add_core = yes
+		}
+	}
+	option = { #Release BRY, give the rest to TRM
+		name = annex.387.a3
+		trigger = {
+			owns_state = 563
+			owns_state = 565
+			TRM = {
+				is_ally_of_ROOT = yes
+				ROOT_can_grant_land = yes
+				OR = {
+					owns_state = 566
+					owns_state = 561
+				}
+			}
+		}
+		ai_chance = {
+			base = 50
+			modifier = {
+				factor = 0
+				OR = {
+					is_ally_with = RUS
+					is_ally_with = SIB
+				}
+			}
+		}
+		set_temp_variable = { tag_to_release = BRY }
+		every_owned_state = {
+			limit = {
+				state = 564
+			}
+			transfer_state_and_add_core = yes
+		}
+		puppet_released_tag = yes
+		set_temp_variable = { tag_to_release = TRM }
+		every_owned_state = {
+			limit = {
+				OR = {
+					state = 563
+					state = 565
+				}
+			}
+			transfer_state_and_add_core = yes
+		}
+	}
+	option = { #Release BRY, give the rest to RUS
+		name = annex.387.a4
+		trigger = {
+			owns_state = 563
+			owns_state = 565
+			var:219.owner = {
+				is_russian_tag_that_can_integrate = yes
+				is_ally_with = ROOT
+				OR = {
+					owns_state = 566
+					owns_state = 561
+				}
+			}
+			NOT = { country_exists = SIB }
+			NOT = { country_exists = TRM }
+		}
+		ai_chance = {
+			base = 50
+			modifier = {
+				factor = 0
+				OR = {
+					is_ally_with = TRM
+					is_ally_with = SIB
+				}
+			}
+		}
+		set_temp_variable = { tag_to_release = BRY }
+		every_owned_state = {
+			limit = {
+				state = 564
+			}
+			transfer_state_and_add_core = yes
+		}
+		puppet_released_tag = yes
+		set_temp_variable = { tag_to_release = var:219.owner }
+		every_owned_state = {
+			limit = {
+				OR = {
+					state = 563
+					state = 565
+				}
+			}
+			transfer_state_and_add_core = yes
+		}
+	}
+	option = {
+		name = annex.387.b #Give it to MON
+		trigger = {
+			MON = {
+				ROOT_can_grant_land = yes
+				is_ally_of_ROOT = yes
+			}
+			NOT = {
+				tag = MON
+				is_russian_tag_that_can_integrate = yes
+			}
+		}
+		ai_chance = {
+			base = 10
+		}
+		set_temp_variable = { tag_to_release = MON }
+		every_owned_state = {
+			limit = {
+				OR = {
+					state = 563
+					state = 564
+					state = 565
+				}
+			}
+			transfer_state_and_add_claim_or_core = yes
+		}
+	}
+	option = {
+		name = annex.387.c #Give it to SIB
+		trigger = {
+			SIB = {
+				ROOT_can_grant_land = yes
+				is_ally_of_ROOT = yes
+				OR = {
+					owns_state = 566
+					owns_state = 561
+				}
+			}
+			NOT = {
+				tag = SIB
+				is_russian_tag_that_can_integrate = yes
+			}
+		}
+		ai_chance = {
+			base = 100
+		}
+		set_temp_variable = { tag_to_release = SIB }
+		every_owned_state = {
+			limit = {
+				OR = {
+					state = 563
+					state = 564
+					state = 565
+				}
+			}
+			transfer_state_and_add_core = yes
+		}
+	}
+	option = {
+		name = annex.387.d #Give it to TRM
+		trigger = {
+			TRM = {
+				ROOT_can_grant_land = yes
+				is_ally_of_ROOT = yes
+				OR = {
+					owns_state = 566
+					owns_state = 561
+				}
+				NOT = { owns_state = 219 }
+			}
+			NOT = {
+				tag = TRM
+				is_russian_tag_that_can_integrate = yes
+			}
+		}
+		ai_chance = {
+			base = 100
+		}
+		set_temp_variable = { tag_to_release = TRM }
+		every_owned_state = {
+			limit = {
+				OR = {
+					state = 563
+					state = 564
+					state = 565
+				}
+			}
+			transfer_state_and_add_core = yes
+		}
+	}
+	option = {
+		name = annex.387.e #Give it to RUS
+		trigger = {
+			var:219.owner = {
+				is_russian_tag_that_can_integrate = yes
+				ROOT_can_grant_land = yes
+				is_ally_of_ROOT = yes
+				OR = {
+					owns_state = 566
+					owns_state = 561
+				}
+			}
+			NOT = {
+				tag = TRM
+				is_russian_tag_that_can_integrate = yes
+			}
+		}
+		ai_chance = {
+			base = 100
+		}
+		set_temp_variable = { tag_to_release = var:219.owner }
+		every_owned_state = {
+			limit = {
+				OR = {
+					state = 563
+					state = 564
+					state = 565
+				}
+				is_claim_or_core_of_ROOT = no
+			}
+			transfer_state_and_add_claim = yes
+		}
+		add_to_array = { RUS_integration_array = BRY }
+		recheck_annexations = yes
+	}
+	option = { #Integrate
+		name = annex.integration
+		trigger = {
+			is_russian_tag_that_can_integrate = yes
+		}
+		ai_chance = {
+			base = 1000
+		}
+		if = {
+			limit = { tag = TRM }
+			every_owned_state = {
+				limit = {
+					OR = {
+						state = 563
+						state = 564
+						state = 565
+					}
+				}
+				transfer_state_and_add_core = yes
+			}
+		}
+		else = {
+			every_owned_state = {
+				limit = {
+					OR = {
+						state = 563
+						state = 564
+						state = 565
+					}
+					is_claim_or_core_of_ROOT = no
+				}
+				transfer_state_and_add_claim = yes
+			}
+		}
+		recheck_annexations = yes
+	}
+
+	option = { #occupy
+		name = annex.occupation
+		trigger = {
+			NOT = {
+				is_russian_tag_that_can_integrate = yes
+				tag = MON
+				tag = SIB
+			}
+		}
+		ai_chance = { base = 0 }
+		occupy_medium_country = yes
+		set_country_flag = BRY_CONQ
+	}
+}
+country_event = { #Fate of Don
+	id = annex.399
+	immediate = { 
+		log = "[GetDateText]: [Root.GetName]: event annex.399"
+		hidden_effect = {
+			add_to_temp_array = { core_removal_array = DKB }
+			remove_all_cores_and_claims_of_tags = yes
+			DKB = {
+				add_state_core = 245
+				add_state_core = 218
+				add_state_core = 238
+				add_state_core = 1226
+				add_state_core = 1265
+				add_state_core = 1264
+				add_state_core = 1263
+				drop_cosmetic_tag = yes
+			}			
+		}
+	}
+	title = annexation_DKB_CONQ
+	desc = annexation_DKB_CONQ_desc
+
+	is_triggered_only = yes
+
+	option = { #puppet
+		name = annex.399.a
+		ai_chance = {
+			base = 20
+			modifier = {
+				factor = 0
+				is_russian_tag_that_can_integrate = yes
+			}
+		}
+		set_temp_variable = { tag_to_release = DKB }
+		every_owned_state = {
+			limit = {
+				is_core_of = DKB
+				is_claim_or_core_of_ROOT = no
+			}
+			transfer_state_to = var:tag_to_release
+		}
+		release_targeted_tag = yes	
+		setup_puppet_DKB = yes
+		
+	}
+	option = { #Integrate
+		name = annex.399.b
+		trigger = {
+			is_russian_tag_that_can_integrate = yes
+		}
+		ai_chance = {
+			base = 100
+		}
+		every_state = {
+			limit = {
+				OR = {
+					is_core_of = DKB
+				}
+				is_claim_or_core_of_ROOT = no
+			}
+			add_claim_by = ROOT
+		}
+		occupy_tiny_country = yes
+		add_to_array = { RUS_integration_array = DKB }
+		recheck_annexations = yes
+	}
+
+	option = {
+		name = annex.399.c #Give to Russia
+		ai_chance = {
+			base = 80
+		}
+		trigger = {
+			is_russian_tag_that_can_integrate = no
+			var:219.owner = {
+				is_russian_tag_that_can_integrate = yes
+				is_ally_with = ROOT
+			}
+		}
+		add_to_temp_array = { target_cores_to_release = DKB }
+		add_to_array = { target_cores_to_release = DKB }
+		set_temp_variable = { ROOT.tag_to_release = var:219.owner }
+		transfer_territory_from_core_regions = yes
+		recheck_annexations = yes
+	}
+
+	option = { #occupy
+		name = annex.occupation
+		trigger = {
+			is_russian_tag_that_can_integrate = no
+		}
+		ai_chance = {
+			base = 0
+		}
+		occupy_medium_country = yes
+		set_country_flag = DKB_CONQ
+	}
+}
 	
 country_event = { #Fate of KUBAN
 	id = annex.400
@@ -41626,7 +44525,7 @@ country_event = { #Fate of KUBAN
 		}
 	}
 	option = { #Form Don-Kuban Union not Kuban
-		name = annex.168.e
+		name = annex.401.e
 		trigger = {
 			country_exists = DKB
 			DKB = { 
@@ -41695,13 +44594,13 @@ country_event = { #Fate of KUBAN
 				add_claim_by = ROOT
 			}
 		}
-		add_political_power = -20
+		occupy_tiny_country = yes
 		add_to_array = { RUS_integration_array = KUB }
 		recheck_annexations = yes
 	}
 
 	option = {
-		name = annex.168.c #Give to Russia
+		name = annex.399.c #Give to Russia
 		ai_chance = {
 			base = 80
 		}
@@ -41871,13 +44770,13 @@ country_event = { #Fate of Kalmykia
 				add_claim_by = ROOT
 			}
 		}
-		add_political_power = -20
+		occupy_small_country = yes
 		add_to_array = { RUS_integration_array = KLY }
 		recheck_annexations = yes
 	}
 
 	option = {
-		name = annex.168.c #Give to Russia
+		name = annex.399.c #Give to Russia
 		ai_chance = {
 			base = 80
 		}
@@ -41993,7 +44892,7 @@ country_event = { #Fate of Mountain Republic
 				add_claim_by = ROOT
 			}
 		}
-		add_political_power = -50
+		occupy_small_country = yes
 		add_to_array = { RUS_integration_array = MTR }
 		recheck_annexations = yes
 	}
@@ -42042,7 +44941,7 @@ country_event = { #Fate of Mountain Republic
 		recheck_annexations = yes
 	}
 	option = {
-		name = annex.168.c #Give to Russia
+		name = annex.399.c #Give to Russia
 		ai_chance = {
 			base = 10
 		}
@@ -42127,7 +45026,6 @@ country_event = { #Fate of the Crimea
 		name = annex.403.a
 		trigger = {
 			NOT = { tag = UKR }
-			NOT = { tag = GER }
 		}
 		ai_chance = {
 			base = 20
@@ -42324,7 +45222,7 @@ country_event = { #Fate of the Crimea
 				add_claim_by = ROOT
 			}
 		}
-		add_political_power = -50
+		occupy_small_country = yes
 		add_to_array = { RUS_integration_array = CRM }
 		recheck_annexations = yes
 	}
@@ -42643,7 +45541,7 @@ country_event = { #Fate of the East Galicia
 				add_claim_by = ROOT
 			}
 		}
-		add_political_power = -25
+		occupy_medium_country = yes
 		add_to_array = { RUS_integration_array = WSU }
 		recheck_annexations = yes
 	}
@@ -42676,30 +45574,24 @@ country_event = { #Fate of Northern Manchuria
 
 	is_triggered_only = yes
 
-	option = { #Integrate
-		name = annex.integration
+	immediate = {
+		log = "[GetDateText]: [Root.GetName]: event annex.405"
+		determine_chinese_ally = yes
+	}
+
+	option = { #Release Independent Manchuria
+		name = annex.178.a
 		trigger = {
-			OR = {
-				is_russian_tag_that_can_integrate = yes
-				AND = {
-					tag = JAP
-					NOT = { country_exists = FNG }
-				}
-			}
+			NOT = { country_exists = MAN }
 		}
 		ai_chance = {
-			base = 100
+			base = 5
 			modifier = {
-				factor = 0
-				var:716.owner = {
-					is_ally_with = ROOT
+				add = 85
+				tag = JAP
 				}
 			}
-		}
-		if = {
-			limit = {
-				is_russian_tag_that_can_integrate = yes
-			}
+		set_temp_variable = { tag_to_release = MAN }
 			every_owned_state = {
 				limit = {
 					OR = {
@@ -42709,52 +45601,94 @@ country_event = { #Fate of Northern Manchuria
 						state = 714
 						state = 717
 					}
+				is_not_claim_or_core_of_ROOT = yes
+			}
+			var:tag_to_release = {
+				add_state_core = PREV
+				transfer_state = PREV
 				}
+		}
+		if = {
+			limit = { tag = JAP }
 				hidden_effect = {
-					if = {
-						limit = { has_resistance = yes }
-						set_temp_variable = { original_compliance = THIS.compliance }
-						set_temp_variable = { original_resistance = THIS.resistance }
-						cancel_resistance = yes
+				set_temp_variable = { tag_to_release = MAN }
+				puppet_released_tag = yes
+			}
+			set_autonomy = {
+				target = MAN
+				autonomy_state = kr_special_autonomous_dependency
 					}
-					start_resistance = MAN
-					if = {
-						limit = { has_variable = original_compliance }
-						set_compliance = original_compliance
+			MAN = {
+				set_politics = {
+					ruling_party = market_liberal
+					elections_allowed = no
 					}
-					if = {
-						limit = { has_variable = original_resistance }
-						set_resistance = original_resistance
+				hidden_effect = {
+					set_popularities = {
+						totalist = 0
+						radical_socialist = 0
+						syndicalist = 0
+						social_democrat = 2
+						social_liberal = 6
+						market_liberal = 47
+						social_conservative = 12
+						authoritarian_democrat = 15
+						paternal_autocrat = 6
+						national_populist = 12
 					}
 				}
-				if = {
-					limit = { is_claim_or_core_of_ROOT = no }
-					add_claim_by = ROOT
 				}
 			}
+		else = {
+			set_temp_variable = { tag_to_release = MAN }
+			puppet_released_tag = yes
 		}
-		add_political_power = -35
-		add_to_array = { RUS_integration_array = MAN }
 	}
 	
-	option = { #Give it to owners
-		name = annex.405.a
+	option = { #Release China
+		name = annex.174.a
 		trigger = {
-			OR = {
-				tag = JAP
-				AND = {
-					tag = RUS
-					has_completed_focus = RUS_Realpolitik
-				}
-			}
-			var:716.owner = {
-				ROOT_can_grant_land = yes
-			}
+			has_event_target = china_release_target
 		}
 		ai_chance = {
-			base = 100
+			base = 10
 		}
-		set_temp_variable = { tag_to_release = 716.owner }
+		set_temp_variable = { tag_to_release = event_target:china_release_target }
+		every_owned_state = {
+			limit = {
+			OR = {
+					state = 883 #Shenyang
+					state = 884
+					state = 885
+					state = 714
+					state = 717
+				}
+				is_claim_or_core_of_ROOT = no
+			}
+			add_claim_by = var:tag_to_release
+			transfer_state_to = var:tag_to_release
+		}
+		puppet_released_tag = yes
+		if = {
+			limit = { var:tag_to_release = { tag = FNG } }
+			set_autonomy = {
+				target = var:tag_to_release
+				autonomy_state = kr_special_autonomous_dependency
+				end_wars = no
+				}
+			}
+		var:tag_to_release = { china_puppet_setup = yes }
+			}
+	
+	option = { #Give to a Chinese ally
+		name = annex.174.c
+		trigger = {
+			has_event_target = china_ally_target
+		}
+		ai_chance = {
+			base = 90
+		}
+		reverse_add_opinion_modifier = { target = event_target:china_ally_target modifier = KR_returned_land }
 		every_owned_state = {
 			limit = {
 				OR = {
@@ -42764,22 +45698,49 @@ country_event = { #Fate of Northern Manchuria
 					state = 714
 					state = 717
 				}
+				is_not_claim_or_core_of_ROOT = yes
+				if = {
+					limit = { ROOT = { tag = JAP } }
+					NOT = { has_variable = ambition_area_@ROOT }
+				}
 			}
-			if = {
-				limit = {
-					716 = { 
-						OR = {
-							is_owned_by = MAN
-							is_owned_by = FNG
+			transfer_state_to = event_target:china_ally_target
+		}
+			}
+	
+	option = { #Integrate
+		name = annex.integration
+		trigger = {
+			is_russian_tag_that_can_integrate = yes
+		}
+		ai_chance = {
+			base = 100
+			modifier = {
+				factor = 0
+				var:716.owner = {
+					is_ally_with = ROOT
 						}
 					}
 				}
-				transfer_state_and_add_core = yes
+		every_owned_state = {
+			limit = {
+				OR = {
+					state = 883 #Shenyang
+					state = 884
+					state = 885
+					state = 714
+					state = 717
 			}
-			else = {
-				transfer_state_and_add_claim = yes
 			}
+			add_claim_of_ROOT = yes
+			add_core_of = MAN
 		}
+		add_to_array = { RUS_integration_state_array = 883 }
+		add_to_array = { RUS_integration_state_array = 884 }
+		add_to_array = { RUS_integration_state_array = 885 }
+		add_to_array = { RUS_integration_state_array = 714 }
+		add_to_array = { RUS_integration_state_array = 717 }
+		add_political_power = -50
 	}
 	option = { #occupy
 		name = annex.occupation
