@@ -287,11 +287,17 @@ on_actions = {
                         add_to_temp_array = { guarantors_to_remove = v }
                     }
                 }
-                for_each_loop = {
-                    array = guarantors_to_remove
-                    remove_from_array = { guarantor_array = v }
-                }
-            }
+				if = {
+					limit = { check_variable = { guarantors_to_remove^num = guarantor_array^num } }
+					clear_array = guarantor_array
+				}
+				else = {
+                	for_each_loop = {
+                	    array = guarantors_to_remove
+                	    remove_from_array = { guarantor_array = v }
+               		}
+            	}
+			}
 		}
 	}
 
@@ -352,6 +358,9 @@ on_actions = {
 				#}
 			}
 
+			#Ambition Areas
+			#every_state = { create_ambition_areas = yes }
+			
 			#Core Removal
 			random_country = {
 				limit = { is_ai = yes }
@@ -373,6 +382,15 @@ on_actions = {
 	on_state_control_changed = {
 		effect = {
 			log = "[GetDateText] [Root.GetName] on_state_control_changed OLD CONTROLLER: [From.GetName] STATE: [From.From.GetName]"
+			### Annexation Check
+			if = {
+				limit = {
+					owns_state = FROM.FROM
+					FROM.FROM = { has_state_flag = annexation_trigger_state }
+				}
+				recheck_annexations = yes
+			}
+
 			### Operative Nationality Check
 			if = {
 				limit = {
@@ -392,16 +410,28 @@ on_actions = {
 							OR = {
 								is_in_faction_with = ROOT
 								is_subject_of = ROOT
-								ROOT = { is_subject_of = PREV }
+								has_subject = ROOT
 							}
 						}
 					}
 				}
-				FROM.FROM = {
-					owner = {
-						set_state_controller = PREV
-					}
+				FROM.FROM = { set_state_controller_to = owner }
+			}
+
+			#Important countries for logalyzer
+			if = {
+				limit = {
+					ROOT = { tag = CAN }
+					FROM = { tag = ENG }
 				}
+				log = "KR_Event_Logging;CANADA LANDS IN BRITAIN;[GetDateText];[ROOT.GetName];[FROM.GetName]"
+			}
+			else_if = {
+				limit = {
+					ROOT = { tag = NFA }
+					FROM = { tag = FRA }
+				}
+				log = "KR_Event_Logging;FRANCE LANDS IN FRANCE;[GetDateText];[ROOT.GetName];[FROM.GetName]"
 			}
 		}
 	}
@@ -428,7 +458,15 @@ on_actions = {
 				#clr_country_flag = KR_can_lower_autonomy_level
 				#clr_country_flag = KR_can_be_annexed
 				clr_country_flag = KR_can_become_free
+				if = {
+					limit = { is_dynamic_country = yes }
+					every_state = {
+						limit = { is_claimed_by = PREV }
+						remove_claim_by = PREV
+					}
+				}
 			}
+			recheck_annexations = yes
 		}
 	}
 
@@ -488,6 +526,10 @@ on_actions = {
 	on_government_change = {
 		effect = {
 			log = "[GetDateText] [Root.GetName] on_government_change"
+			if = {
+				limit = { has_elections = yes }
+				set_country_flag = had_elections
+			}
 			mark_focus_tree_layout_dirty = yes
 			end_coalition = yes
 			country_event = kr.political.41 #opinion modifiers
@@ -560,7 +602,7 @@ on_actions = {
 								NOT = { has_war_with = ROOT }
 							}
 						}
-						owner = { set_state_controller = PREV }
+						set_state_controller_to = owner
 					}
 				}
 			}
@@ -639,6 +681,15 @@ on_actions = {
 	on_call_allies = {
 		effect = {
 			log = "[GetDateText] [Root.GetName] has called its ally [From.GetName] into its war"
+
+			#Important countries for logalyzer
+			if = {
+				limit = {
+					ROOT = { tag = EGY }
+					FROM = { tag = LBA }
+				}
+				log = "KR_Event_Logging;CYRENAICA REVOLTS AGAINST OTT;[GetDateText];[ROOT.GetName];[FROM.GetName]"
+			}
 		}
 	}
 
@@ -687,7 +738,7 @@ on_actions = {
 	# FROM = country requesting them, ROOT = requesting country
 	on_request_expeditionary_forces = {
 		effect = {
-			log = "[GetDateText] [From.GetName] has requested expeditionary forces from [Root.GetName]"
+			log = "[GetDateText] [Root.GetName] has requested expeditionary forces from [From.GetName]"
 		}
 	}
 
@@ -790,6 +841,14 @@ on_actions = {
 		}
 	}
 
+	#used when liberating in a peace conference
+	#ROOT = nation being liberated, FROM = overlord
+	on_liberate = {
+		effect = {
+			log = "[GetDateText] [Root.GetName] liberating FROM = [From.GetName]"
+		}
+	}
+
 	#used when puppeting through the occupied territories menu during peace time (or when releasing from non-core but owned territory, f.e. Britain releasing Egypt)
 	#ROOT = nation being released, FROM = overlord
 	on_release_as_puppet = {
@@ -830,6 +889,20 @@ on_actions = {
 	on_join_faction = {
 		effect = {
 			log = "[GetDateText] [Root.GetName] on_join_faction FROM = [From.GetName]"
+		}
+	}
+
+	#FROM is the one that joins the faction
+	on_create_faction = {
+		effect = {
+			log = "[GetDateText] [Root.GetName] on_create_faction"
+		}
+	}
+
+	# ROOT is the new faction leader FROM is the old faction leader
+	on_assume_faction_leadership = {
+		effect = {
+			log = "[GetDateText] [Root.GetName] on_assume_faction_leadership"
 		}
 	}
 
@@ -874,7 +947,7 @@ on_actions = {
 
 	on_army_leader_promoted = {
 		effect = {
-			log = "[GetDateText] [Root.GetName] on_army_leader_promoted [From.GetName]"
+			log = "[GetDateText] [Root.GetName] on_army_leader_promoted FROM = [From.GetName]"
 			add_timed_unit_leader_trait = {
 				trait = recently_promoted
 				days = 100
@@ -886,22 +959,30 @@ on_actions = {
 	# Scope is the country owner of the PotF, FROM is the country of the killer
 	on_pride_of_the_fleet_sunk = {
 		effect = {
-			log = "[GetDateText] [Root.GetName] on_pride_of_the_fleet_sunk [From.GetName]"
-
+			log = "[GetDateText] [Root.GetName] on_pride_of_the_fleet_sunk FROM = [From.GetName]"
 		}
 	}
 
 	#ROOT is winner #FROM gets annexed - This fires just before FROM gets annexed, meaning the country and everything it owns still exists. It will also fire on_annex and on_civil_war_end
 	on_civil_war_end_before_annexation = {
 		effect = {
-			log = "[GetDateText] [Root.GetName] on_civil_war_end_before_annexation [From.GetName]"
-
+			log = "[GetDateText] [Root.GetName] on_civil_war_end_before_annexation FROM = [From.GetName]"
 		}
 	}
 	on_civil_war_end = {
 		effect = {
-			log = "[GetDateText] [Root.GetName] on_civil_war_end [From.GetName]"
-
+			log = "[GetDateText] [Root.GetName] on_civil_war_end FROM = [From.GetName]"
+			if = {
+				limit = {
+					has_country_flag = had_elections
+					has_elections = no
+				}
+				clr_country_flag = had_elections
+				set_politics = {
+					ruling_party = var:ROOT.current_party_ideology_group
+					elections_allowed = yes
+				}
+			}
 		}
 	}
 	on_unit_leader_created = {
@@ -911,7 +992,7 @@ on_actions = {
 				limit = { is_exiled_leader = yes }
 				From.From = { save_event_target_as = exile_nation }
 				add_unit_leader_trait = exiled_leader
-				unit_leader_event = { id = mtg_exile_leader_added.1 }
+				unit_leader_event = mtg_exile_leader_added.1
 			}
 		}
 	}
@@ -988,7 +1069,7 @@ on_actions = {
 
 	on_peace = {
 		effect = {
-			log = "[GetDateText]: [From.GetName]: on_peace"
+			log = "[GetDateText]: [Root.GetName]: on_peace"
 			#Demobilization check for the AI
 			if = {
 				limit = {
