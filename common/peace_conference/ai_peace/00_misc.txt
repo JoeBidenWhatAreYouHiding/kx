@@ -38,497 +38,128 @@ peace_ai_desires = {
 		ai_desire = -1000
 	}
 	
-    take_our_cores = {
-        peace_action_type = { take_states }
-        enable = {
-            ROOT = { tag = ROOT.FROM } #We are negotiating for ourselves
-            ROOT.FROM.FROM.FROM = { is_core_of = ROOT.FROM } #It is ours
-        }
-        ai_desire = 200
-    }
+    take_cores = {
+		peace_action_type = { take_states }
+		enable = {
+			tag = FROM #take for self
+			FROM.FROM.FROM = { is_core_of = ROOT }
+		}
+		ai_desire = 100
+	}
+	take_claims = {
+		peace_action_type = { take_states }
+		enable = {
+			tag = FROM #take for self
+			FROM.FROM.FROM = { is_claimed_by = ROOT }
+		}
+		ai_desire = 50
+	}
+	take_ambitions = {
+		peace_action_type = { take_states }
+		enable = {
+			tag = FROM #take for self
+			FROM.FROM.FROM = { is_ambition_area_of_ROOT = yes }
+		}
+		ai_desire = 25
+	}
 	
-    take_our_claims = {
-        peace_action_type = { take_states }
-        enable = {
-            ROOT = { tag = ROOT.FROM } #We are negotiating for ourselves
-            ROOT.FROM.FROM.FROM = { NOT = { is_core_of = ROOT.FROM } }#It is ours
-            ROOT.FROM.FROM.FROM = { is_claimed_by = ROOT.FROM } #It is ours
-        }
-        ai_desire = 100
-    }
-	
-    take_our_ambition_areas = {
-        peace_action_type = { take_states }
-        enable = {
-            ROOT = { tag = ROOT.FROM } #We are negotiating for ourselves
-            ROOT.FROM.FROM.FROM = { is_claim_or_core_of_ROOT_FROM = no } #It is ours
-            ROOT.FROM.FROM.FROM = { is_ambition_area_of_ROOT = yes } #It is ours
-        }
-        ai_desire = 2
-    }
-	
-    take_important_state = {
-        peace_action_type = { take_states }
-        enable = {
-            ROOT = { tag = ROOT.FROM } #We are negotiating for ourselves
-            ROOT.FROM.FROM.FROM = { is_important_state = yes } #It is ours
-        }
-        ai_desire = 10
-    }
-	
-    prioritize_neighboring_states = {
-        peace_action_type = { take_states }
-        enable = {
-            ROOT = { tag = ROOT.FROM } #We are negotiating for ourselves
-            ROOT.FROM.FROM.FROM = { num_owned_neighbour_states = { count > 0 owner = ROOT.FROM } }
-        }
-        ai_desire = 10
-    }
-	
-    prioritize_pc_neighboring_states = {
-        peace_action_type = { take_states }
-        enable = {
-            ROOT = { tag = ROOT.FROM } #We are negotiating for ourselves
-            ROOT.FROM.FROM.FROM = { num_owned_neighbour_states = { count > 0 owner = ROOT.FROM } }
-            ROOT.FROM.FROM.FROM = { 
-				num_owned_neighbour_states = { 
-					pc_is_state_claimed_by = ROOT.FROM
-					count > 0 owner = FROM.FROM
-				} 
+    restriction_puppet_overlord = {
+		peace_action_type = { take_states }
+		enable = {
+			is_subject = yes
+			overlord = {
+				pc_is_on_winning_side = yes
+				NOT = { tag = FROM }
 			}
-        }
-        ai_desire = 8
-    }
-	
-    prioritize_two_not_more_neighboring_states = {
-        peace_action_type = { take_states }
-        enable = {
-            ROOT = { tag = ROOT.FROM } #We are negotiating for ourselves
-            ROOT.FROM.FROM.FROM = {
-				# has two neighboring states
+			ROOT.FROM.FROM.FROM = { is_claim_or_core_of_ROOT = no }
+		}
+		ai_desire = -125
+	}
+
+	restriction_not_faction_leader = {
+		peace_action_type = { take_states }
+		enable = {
+			is_in_faction = yes
+			is_faction_leader = no
+			faction_leader = {
+				pc_is_on_winning_side = yes
+				NOT = { tag = FROM }
+			}
+			ROOT.FROM.FROM.FROM = { is_claim_or_core_of_ROOT = no }
+		}
+		ai_desire = -125
+	}
+
+	restriction_minor_country = {
+		peace_action_type = { take_states }
+		enable = {
+			is_major = no
+			ROOT.FROM.FROM.FROM = { is_claim_or_core_of_ROOT = no }
+			any_other_country = {
+				pc_is_on_winning_side = yes
+				is_major = yes
+				NOT = { tag = FROM }
+				NOT = { has_war_with = ROOT }
+			}
+		}
+		ai_desire = -125
+	}
+
+	restriction_stronger_minor_in_pc = {
+		peace_action_type = { take_states }
+		enable = {
+			is_major = no
+			ROOT.FROM.FROM.FROM = { is_claim_or_core_of_ROOT = no }
+			any_other_country = {
+				pc_is_on_winning_side = yes
+				NOT = { tag = FROM }
+				is_major = no
+				is_subject = no
+				NOT = { has_war_with = ROOT }
 				OR = {
-					num_owned_neighbour_states = { count > 1 owner = ROOT.FROM }
-					num_owned_neighbour_states = { 
-						pc_is_state_claimed_by = ROOT.FROM
-						count > 1 owner = FROM.FROM
-					}
-					AND = {
-						num_owned_neighbour_states = { count > 0 owner = ROOT.FROM }
-						num_owned_neighbour_states = { 
-							pc_is_state_claimed_by = ROOT.FROM
-							count > 0 owner = FROM.FROM
-						}
-					}
+					strength_ratio = { tag = ROOT ratio > 1.5 }
+					ic_ratio = { tag = ROOT ratio > 1.5 }
 				}
-				# but not more
+			}
+		}
+		ai_desire = -125
+	}
+
+	lower_desire_for_non_connected = {
+		peace_action_type = take_states
+		enable = {
+			ROOT.FROM.FROM.FROM = {
+				is_coastal = no
 				NOT = {
-					num_owned_neighbour_states = { count > 2 owner = ROOT.FROM }
-					num_owned_neighbour_states = { 
+					any_neighbor_state = {
+						OR = {
+							is_owned_by = ROOT.FROM
 							pc_is_state_claimed_by = ROOT.FROM
-							count > 2 owner = FROM.FROM
-						}
-					AND = {
-						num_owned_neighbour_states = { count > 1 owner = ROOT.FROM }
-						num_owned_neighbour_states = { 
-							pc_is_state_claimed_by = ROOT.FROM
-							count > 0 owner = FROM.FROM
-						}
-					}
-					AND = {
-						num_owned_neighbour_states = { count > 0 owner = ROOT.FROM }
-						num_owned_neighbour_states = { 
-							pc_is_state_claimed_by = ROOT.FROM
-							count > 1 owner = FROM.FROM
 						}
 					}
 				}
 			}
-        }
-        ai_desire = 3
-    }
-	
-    prioritize_three_not_more_neighboring_states = {
-        peace_action_type = { take_states }
-        enable = {
-            ROOT = { tag = ROOT.FROM } #We are negotiating for ourselves
-            ROOT.FROM.FROM.FROM = {
-				# has three neighboring states
+		}
+		ai_desire = -40
+	}
+
+	higher_desire_for_connected = {
+		peace_action_type = take_states
+		enable = {
+			ROOT.FROM.FROM.FROM = {
 				OR = {
-					num_owned_neighbour_states = { count > 2 owner = ROOT.FROM }
-					num_owned_neighbour_states = { 
+					is_coastal = yes
+					any_neighbor_state = {
+						OR = {
+							is_owned_by = ROOT.FROM
 							pc_is_state_claimed_by = ROOT.FROM
-							count > 2 owner = FROM.FROM
-						}
-					AND = {
-						num_owned_neighbour_states = { count > 1 owner = ROOT.FROM }
-						num_owned_neighbour_states = { 
-							pc_is_state_claimed_by = ROOT.FROM
-							count > 0 owner = FROM.FROM
-						}
-					}
-					AND = {
-						num_owned_neighbour_states = { count > 0 owner = ROOT.FROM }
-						num_owned_neighbour_states = { 
-							pc_is_state_claimed_by = ROOT.FROM
-							count > 1 owner = FROM.FROM
-						}
-					}
-				}
-				# but not more
-				NOT = {
-					num_owned_neighbour_states = { count > 3 owner = ROOT.FROM }
-					num_owned_neighbour_states = { 
-							pc_is_state_claimed_by = ROOT.FROM
-							count > 3 owner = FROM.FROM
-						}
-					AND = {
-						num_owned_neighbour_states = { count > 1 owner = ROOT.FROM }
-						num_owned_neighbour_states = { 
-							pc_is_state_claimed_by = ROOT.FROM
-							count > 1 owner = FROM.FROM
-						}
-					}
-					AND = {
-						num_owned_neighbour_states = { count > 2 owner = ROOT.FROM }
-						num_owned_neighbour_states = { 
-							pc_is_state_claimed_by = ROOT.FROM
-							count > 0 owner = FROM.FROM
-						}
-					}
-					AND = {
-						num_owned_neighbour_states = { count > 0 owner = ROOT.FROM }
-						num_owned_neighbour_states = { 
-							pc_is_state_claimed_by = ROOT.FROM
-							count > 2 owner = FROM.FROM
 						}
 					}
 				}
 			}
-        }
-        ai_desire = 5
-    }
-	
-    prioritize_four_not_more_neighboring_states = {
-        peace_action_type = { take_states }
-        enable = {
-            ROOT = { tag = ROOT.FROM } #We are negotiating for ourselves
-            ROOT.FROM.FROM.FROM = {
-				# has four neighboring states
-				OR = {
-					num_owned_neighbour_states = { count > 3 owner = ROOT.FROM }
-					num_owned_neighbour_states = { 
-						pc_is_state_claimed_by = ROOT.FROM
-						count > 3 owner = FROM.FROM
-					}
-					AND = {
-						num_owned_neighbour_states = { count > 1 owner = ROOT.FROM }
-						num_owned_neighbour_states = { 
-							pc_is_state_claimed_by = ROOT.FROM
-							count > 1 owner = FROM.FROM
-						}
-					}
-					AND = {
-						num_owned_neighbour_states = { count > 2 owner = ROOT.FROM }
-						num_owned_neighbour_states = { 
-							pc_is_state_claimed_by = ROOT.FROM
-							count > 0 owner = FROM.FROM
-						}
-					}
-					AND = {
-						num_owned_neighbour_states = { count > 0 owner = ROOT.FROM }
-						num_owned_neighbour_states = { 
-							pc_is_state_claimed_by = ROOT.FROM
-							count > 2 owner = FROM.FROM
-						}
-					}
-				}
-				# but not more
-				NOT = {
-					num_owned_neighbour_states = { count > 4 owner = ROOT.FROM }
-					num_owned_neighbour_states = { 
-						pc_is_state_claimed_by = ROOT.FROM
-						count > 4 owner = FROM.FROM
-					}
-					AND = {
-						num_owned_neighbour_states = { count > 2 owner = ROOT.FROM }
-						num_owned_neighbour_states = { 
-							pc_is_state_claimed_by = ROOT.FROM
-							count > 1 owner = FROM.FROM
-						}
-					}
-					AND = {
-						num_owned_neighbour_states = { count > 1 owner = ROOT.FROM }
-						num_owned_neighbour_states = { 
-							pc_is_state_claimed_by = ROOT.FROM
-							count > 2 owner = FROM.FROM
-						}
-					}
-					AND = {
-						num_owned_neighbour_states = { count > 0 owner = ROOT.FROM }
-						num_owned_neighbour_states = { 
-							pc_is_state_claimed_by = ROOT.FROM
-							count > 3 owner = FROM.FROM
-						}
-					}
-					AND = {
-						num_owned_neighbour_states = { count > 3 owner = ROOT.FROM }
-						num_owned_neighbour_states = { 
-							pc_is_state_claimed_by = ROOT.FROM
-							count > 0 owner = FROM.FROM
-						}
-					}
-				}
-			}
-        }
-        ai_desire = 7
-    }
-	
-    prioritize_five_not_more_neighboring_states = {
-        peace_action_type = { take_states }
-        enable = {
-            ROOT = { tag = ROOT.FROM } #We are negotiating for ourselves
-            ROOT.FROM.FROM.FROM = {
-				# has five or more neighboring states
-				OR = {
-					num_owned_neighbour_states = { count > 4 owner = ROOT.FROM }
-					num_owned_neighbour_states = { 
-						pc_is_state_claimed_by = ROOT.FROM
-						count > 4 owner = FROM.FROM
-					}
-					AND = {
-						num_owned_neighbour_states = { count > 2 owner = ROOT.FROM }
-						num_owned_neighbour_states = { 
-							pc_is_state_claimed_by = ROOT.FROM
-							count > 1 owner = FROM.FROM
-						}
-					}
-					AND = {
-						num_owned_neighbour_states = { count > 1 owner = ROOT.FROM }
-						num_owned_neighbour_states = { 
-							pc_is_state_claimed_by = ROOT.FROM
-							count > 2 owner = FROM.FROM
-						}
-					}
-					AND = {
-						num_owned_neighbour_states = { count > 0 owner = ROOT.FROM }
-						num_owned_neighbour_states = { 
-							pc_is_state_claimed_by = ROOT.FROM
-							count > 3 owner = FROM.FROM
-						}
-					}
-					AND = {
-						num_owned_neighbour_states = { count > 3 owner = ROOT.FROM }
-						num_owned_neighbour_states = { 
-							pc_is_state_claimed_by = ROOT.FROM
-							count > 0 owner = FROM.FROM
-						}
-					}
-				}
-			}
-        }
-        ai_desire = 9
-    }
-	
-    prioritize_states_next_to_pc_claimed = {
-        peace_action_type = { take_states }
-        enable = {
-            ROOT = { tag = ROOT.FROM } #We are negotiating for ourselves
-            ROOT.FROM.FROM.FROM = {
-				num_owned_neighbour_states = { 
-					pc_is_state_claimed_by = ROOT.FROM
-					count > 0 owner = FROM.FROM
-				}
-			}
-        }
-        ai_desire = 1
-    }
-	
-    prioritize_more_important_states_10 = {
-        peace_action_type = { take_states }
-        enable = {
-            ROOT = { tag = ROOT.FROM } #We are negotiating for ourselves
-            ROOT.FROM.FROM.FROM = {
-				state_and_terrain_strategic_value < 11
-			}
-        }
-        ai_desire = -15
-    }
-	
-    prioritize_more_important_states_20 = {
-        peace_action_type = { take_states }
-        enable = {
-            ROOT = { tag = ROOT.FROM } #We are negotiating for ourselves
-            ROOT.FROM.FROM.FROM = {
-				state_and_terrain_strategic_value > 10
-			}
-        }
-        ai_desire = 1
-    }
-	
-    prioritize_more_important_states_30 = {
-        peace_action_type = { take_states }
-        enable = {
-            ROOT = { tag = ROOT.FROM } #We are negotiating for ourselves
-            ROOT.FROM.FROM.FROM = {
-				state_and_terrain_strategic_value > 20
-			}
-        }
-        ai_desire = 2
-    }
-	
-    prioritize_more_important_states_40 = {
-        peace_action_type = { take_states }
-        enable = {
-            ROOT = { tag = ROOT.FROM } #We are negotiating for ourselves
-            ROOT.FROM.FROM.FROM = {
-				state_and_terrain_strategic_value > 30
-			}
-        }
-        ai_desire = 3
-    }
-	
-    prioritize_more_important_states_50 = {
-        peace_action_type = { take_states }
-        enable = {
-            ROOT = { tag = ROOT.FROM } #We are negotiating for ourselves
-            ROOT.FROM.FROM.FROM = {
-				state_and_terrain_strategic_value > 40
-			}
-        }
-        ai_desire = 4
-    }
-	
-    prioritize_more_important_states_60 = {
-        peace_action_type = { take_states }
-        enable = {
-            ROOT = { tag = ROOT.FROM } #We are negotiating for ourselves
-            ROOT.FROM.FROM.FROM = {
-				state_and_terrain_strategic_value > 50
-			}
-        }
-        ai_desire = 5
-    }
-	
-    prioritize_more_important_states_70 = {
-        peace_action_type = { take_states }
-        enable = {
-            ROOT = { tag = ROOT.FROM } #We are negotiating for ourselves
-            ROOT.FROM.FROM.FROM = {
-				state_and_terrain_strategic_value > 60
-			}
-        }
-        ai_desire = 6
-    }
-	
-    prioritize_more_important_states_80 = {
-        peace_action_type = { take_states }
-        enable = {
-            ROOT = { tag = ROOT.FROM } #We are negotiating for ourselves
-            ROOT.FROM.FROM.FROM = {
-				state_and_terrain_strategic_value > 70
-			}
-        }
-        ai_desire = 7
-    }
-	
-    prioritize_more_important_states_90 = {
-        peace_action_type = { take_states }
-        enable = {
-            ROOT = { tag = ROOT.FROM } #We are negotiating for ourselves
-            ROOT.FROM.FROM.FROM = {
-				state_and_terrain_strategic_value > 80
-			}
-        }
-        ai_desire = 8
-    }
-	
-    prioritize_more_important_states_100 = {
-        peace_action_type = { take_states }
-        enable = {
-            ROOT = { tag = ROOT.FROM } #We are negotiating for ourselves
-            ROOT.FROM.FROM.FROM = {
-				state_and_terrain_strategic_value > 90
-			}
-        }
-        ai_desire = 9
-    }
-	
-    prioritize_more_important_states_110 = {
-        peace_action_type = { take_states }
-        enable = {
-            ROOT = { tag = ROOT.FROM } #We are negotiating for ourselves
-            ROOT.FROM.FROM.FROM = {
-				state_and_terrain_strategic_value > 100
-			}
-        }
-        ai_desire = 10
-    }
-	
-    prioritize_more_important_states_120 = {
-        peace_action_type = { take_states }
-        enable = {
-            ROOT = { tag = ROOT.FROM } #We are negotiating for ourselves
-            ROOT.FROM.FROM.FROM = {
-				state_and_terrain_strategic_value > 110
-			}
-        }
-        ai_desire = 11
-    }
-	
-    prioritize_more_important_states_130 = {
-        peace_action_type = { take_states }
-        enable = {
-            ROOT = { tag = ROOT.FROM } #We are negotiating for ourselves
-            ROOT.FROM.FROM.FROM = {
-				state_and_terrain_strategic_value > 120
-			}
-        }
-        ai_desire = 12
-    }
-	
-    prioritize_more_important_states_140 = {
-        peace_action_type = { take_states }
-        enable = {
-            ROOT = { tag = ROOT.FROM } #We are negotiating for ourselves
-            ROOT.FROM.FROM.FROM = {
-				state_and_terrain_strategic_value > 130
-			}
-        }
-        ai_desire = 13
-    }
-	
-    prioritize_more_important_states_150 = {
-        peace_action_type = { take_states }
-        enable = {
-            ROOT = { tag = ROOT.FROM } #We are negotiating for ourselves
-            ROOT.FROM.FROM.FROM = {
-				state_and_terrain_strategic_value > 140
-			}
-        }
-        ai_desire = 14
-    }
-	
-    prioritize_more_important_states_160 = {
-        peace_action_type = { take_states }
-        enable = {
-            ROOT = { tag = ROOT.FROM } #We are negotiating for ourselves
-            ROOT.FROM.FROM.FROM = {
-				state_and_terrain_strategic_value > 150
-			}
-        }
-        ai_desire = 15
-    }
-	
-    prioritize_controlled_states = {
-        peace_action_type = { take_states }
-        enable = {
-            ROOT = { tag = ROOT.FROM } #We are negotiating for ourselves
-            ROOT.FROM.FROM.FROM = {
-				is_controlled_by = ROOT.FROM
-			}
-        }
-        ai_desire = 20
-    }
+		}
+		ai_desire = 40
+	}
 	### Special Countries ###
 	
 	GER_prioritize_taking_france = {
