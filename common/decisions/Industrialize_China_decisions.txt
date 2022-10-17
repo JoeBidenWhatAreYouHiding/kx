@@ -5,16 +5,16 @@
 ###############################
 
 #########################################################
-##### KR CHINA STATE INTEGRATION MECHANICS OVERVIEW #####
+##### KR CHINA STATE INDUSTRIALIZATION MECHANICS OVERVIEW #####
 #########################################################
 
 ##### OVERVIEW
 
-# This is a general overview of how the mechanics for the state integration decisions work.
+# This is a general overview of how the mechanics for the state INDUSTRIALIZATION decisions work.
 # Essentially, the decisions are static in terms of the decision ID and the states they integrate. (Not spawned from target triggers like other big decision lists)
 # That means there's a lot of them. Sorry! Otherwise this coring needs to be done by events, and this actually turns it into a game mechanic rather than a DH-style RNG fest.
 # To gain access to the set of decisions, a given tag has to fulfill the criteria in the "allowed" condition for the decision category.
-# This decision category is "kr_china_province_integration_category," located in common\decisions\categories.
+# This decision category is "kr_china_province_INDUSTRIALIZATION_category," located in common\decisions\categories.
 # This unlocks the entire group of decisions to integrate provinces and foreign concessions as core states for that tag.
 # These decisions are meant for tags that have aspirations to become the sole government of China, which includes the Qing/North Zhili, the Fengtian Government, and the KMT by default.
 # Other tags could also be added too! You can make additional tags require specific focuses, ideas, governments, or country flags to be included on the whitelist. Shandong/Shangqing Tianguo is one notable example.
@@ -22,27 +22,27 @@
 # While the conditions, effects and visibility triggers are all constant, the PP cost and the time taken to "integrate" the province varies based on 1) tag and 2) previous effects caused by events, decisions, or national focuses
 # How is this done? VARIABLES
 
-##### HOW THE STATE INTEGRATION VARIABLES WORK
+##### HOW THE STATE INDUSTRIALIZATION VARIABLES WORK
 
-# Default variables for all integration costs and durations is included in each decision
+# Default variables for all INDUSTRIALIZATION costs and durations is included in each decision
 # This is given in case a tag doesn't define it
 # I grouped them into three PP cost "tiers" roughly dependent on size, with a special discounted set for the concessions.
-# If you're going to have mechanics in the forms of events or  that fiddle around with integration costs and times for a given tag (like, say, my work for CHI), then they should have a defined set of variables in their history file (see CHI - China.txt in history/countries for reference)
+# If you're going to have mechanics in the forms of events or  that fiddle around with INDUSTRIALIZATION costs and times for a given tag (like, say, my work for CHI), then they should have a defined set of variables in their history file (see CHI - China.txt in history/countries for reference)
 
 ##### EXAMPLE LIST OF VARIABLE COSTS FOR TIER
 
 # Set for normal provinces
-#cost = kr_china_provinceintegration_cost_small?50
-#cost = kr_china_provinceintegration_cost_medium?75
-#cost = kr_china_provinceintegration_cost_large?100
+#cost = 50
+#cost = 75
+#cost = 100
 #drop/bonus	-10 PP/tier via effects
-#duration		cost = kr_china_provinceintegration_speed?90
+#duration		cost = 120
 #drop/bonus	-20 days/tier via effects
 
 # Set for concession states
-#cost			cost = kr_china_concessionintegration_cost?15
+#cost			cost = 30
 #drop/bonus			-5 PP/tier via effects
-#duration		cost = kr_china_concessionintegration_speed?60
+#duration		cost = 90
 #drop/bonus			-15 days/tier via effects
 
 ##### LIST OF STATES IN EACH CHINA PROPER PROVINCE (EXCEPTING CONCESSIONS)
@@ -220,22 +220,65 @@
 # 996 Weihaiwei
 
 ##### DEFAULT VARIABLES (listed independently for each decision. Set tag-specific variables in history file.)
-# cost = kr_china_provinceintegration_cost_small?50
-# cost = kr_china_provinceintegration_cost_medium?75
-# cost = kr_china_provinceintegration_cost_large?100
-# cost = kr_china_provinceintegration_speed?90
-# cost = kr_china_concessionintegration_cost?15
-# cost = kr_china_concessionintegration_speed?60
+# cost = 50
+# cost = 75
+# cost = 100
+# cost = 120
+# cost = 30
+# cost = 90
+
+political_actions = {
+	CHN_enable_industrialization_program = {
+		icon = generic_construction
+		allowed = { is_chinese_tag = yes }
+		available = {
+			JAP = {
+				NOT = {
+					not = { has_war_with = ROOT }
+					has_capitulated = yes
+					is_subject = yes
+				}
+			}
+			NOT = {
+				any_other_country = {
+					is_han_chinese_tag = yes
+					exists = yes
+				}
+			}
+		}
+		visible = { has_country_flag = has_united_china }
+		fire_only_once = yes
+		ai_will_do = { factor = 425 }
+		cost = 150
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CHN_enable_industrialization_program"
+			unlock_decision_category_tooltip = CHN_industrialize_china_decisions
+			set_country_flag = CHN_enable_industrialization_decisions
+			random_owned_state = {
+				limit = {
+					free_building_slots = {
+						building = industrial_complex
+						size > 1
+						include_locked = yes
+					}
+					is_core_of = ROOT
+				}
+				add_extra_state_shared_building_slots = 2
+				add_building_construction = {
+					type = industrial_complex
+					level = 2
+					instant_build = yes
+				}
+			}
+		}
+	}
+}
 
 CHN_industrialize_china_decisions = {
-
 	CHN_industrialize_guangdong_province = {
-		icon = infiltrate_state
+		icon = generic_construction
 		highlight_states = { highlight_state_targets = { state = 593 } }
-		allowed = {
-			is_chinese_tag = yes
-			NOT = { tag = GXC }
-		}
+		allowed = { is_chinese_tag = yes }
 		visible = {
 			OR = {
 				591 = { is_core_of = ROOT }
@@ -284,15 +327,12 @@ CHN_industrialize_china_decisions = {
 	}
 
 	CHN_industrialize_guangxi_province = {
-		icon = infiltrate_state
+		icon = generic_construction
 		highlight_states = { highlight_state_targets = { state = 594 } }
-		allowed = {
-			is_han_chinese_tag = yes
-			NOT = { tag = GXC }
-		}
+		allowed = { is_chinese_tag = yes }
 		visible = {
 			OR = {
-				can_integration_chinese_provinces = yes
+				can_INDUSTRIALIZATION_chinese_provinces = yes
 				tag = YUN
 				tag = LEP
 				tag = SQI
@@ -314,12 +354,12 @@ CHN_industrialize_china_decisions = {
 			has_full_control_of_state = 1055
 			has_full_control_of_state = 1056
 		}
-		cost = kr_china_provinceintegration_cost_medium?75
+		cost = 75
 		fire_only_once = yes
 		modifier = {
-			political_power_gain = -0.20
+			industrial_capacity_factory = -0.08
 		}
-		days_remove = kr_china_provinceintegration_speed?90
+		days_remove = 120
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CHN_industrialize_guangxi_province"
 			594 = { # 4-5
@@ -366,15 +406,12 @@ CHN_industrialize_china_decisions = {
 	}
 
 	CHN_industrialize_zhili_province = {
-		icon = infiltrate_state
+		icon = generic_construction
 		highlight_states = { highlight_state_targets = { state = 608 } }
-		allowed = {
-			is_han_chinese_tag = yes
-			NOT = { tag = QIE }
-		}
+		allowed = { is_chinese_tag = yes }
 		visible = {
 			OR = {
-				can_integration_chinese_provinces = yes
+				can_INDUSTRIALIZATION_chinese_provinces = yes
 				AND = {
 					tag = SHX
 					has_government = authoritarian_democrat
@@ -397,12 +434,12 @@ CHN_industrialize_china_decisions = {
 			has_full_control_of_state = 1062
 			has_full_control_of_state = 1063
 		}
-		cost = kr_china_provinceintegration_cost_large?100
+		cost = 100
 		fire_only_once = yes
 		modifier = {
-			political_power_gain = -0.20
+			industrial_capacity_factory = -0.08
 		}
-		days_remove = kr_china_provinceintegration_speed?90
+		days_remove = 120
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CHN_industrialize_zhili_province"
 			608 = { # 8-9
@@ -444,15 +481,12 @@ CHN_industrialize_china_decisions = {
 	}
 
 	CHN_industrialize_henan_province = {
-		icon = infiltrate_state
+		icon = generic_construction
 		highlight_states = { highlight_state_targets = { state = 1059 } }
-		allowed = {
-			is_han_chinese_tag = yes
-			NOT = { tag = QIE }
-		}
+		allowed = { is_chinese_tag = yes }
 		visible = {
 			OR = {
-				can_integration_chinese_provinces = yes
+				can_INDUSTRIALIZATION_chinese_provinces = yes
 				AND = {
 					tag = SHX
 					has_government = authoritarian_democrat
@@ -471,12 +505,10 @@ CHN_industrialize_china_decisions = {
 			has_full_control_of_state = 1059
 			has_full_control_of_state = 1060
 		}
-		cost = kr_china_provinceintegration_cost_large?100
+		cost = 100
 		fire_only_once = yes
-		modifier = {
-			political_power_gain = -0.20
-		}
-		days_remove = kr_china_provinceintegration_speed?90
+		modifier = { industrial_capacity_factory = -0.08 }
+		days_remove = 120
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CHN_industrialize_henan_province"
 			607 = { # 4-5
@@ -514,14 +546,12 @@ CHN_industrialize_china_decisions = {
 	}
 
 	CHN_industrialize_hubei_province = {
-		icon = infiltrate_state
+		icon = generic_construction
 		highlight_states = { highlight_state_targets = { state = 1048 } }
-		allowed = {
-			is_han_chinese_tag = yes
-		}
+		allowed = { is_chinese_tag = yes }
 		visible = {
 			OR = {
-				can_integration_chinese_provinces = yes
+				can_INDUSTRIALIZATION_chinese_provinces = yes
 				AND = {
 					tag = SHX
 					has_government = authoritarian_democrat
@@ -538,12 +568,12 @@ CHN_industrialize_china_decisions = {
 			has_full_control_of_state = 1048
 			has_full_control_of_state = 1049
 		}
-		cost = kr_china_provinceintegration_cost_large?100
+		cost = 100
 		fire_only_once = yes
 		modifier = {
-			political_power_gain = -0.20
+			industrial_capacity_factory = -0.08
 		}
-		days_remove = kr_china_provinceintegration_speed?90
+		days_remove = 120
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CHN_industrialize_hubei_province"
 			620 = { # 4-5
@@ -573,15 +603,12 @@ CHN_industrialize_china_decisions = {
 	}
 
 	CHN_industrialize_hunan_province = {
-		icon = infiltrate_state
+		icon = generic_construction
 		highlight_states = { highlight_state_targets = { state = 602 } }
-		allowed = {
-			is_han_chinese_tag = yes
-			NOT = { tag = HNN }
-		}
+		allowed = { is_chinese_tag = yes }
 		visible = {
 			OR = {
-				can_integration_chinese_provinces = yes
+				can_INDUSTRIALIZATION_chinese_provinces = yes
 				tag = YUN
 				tag = LEP
 				tag = SQI
@@ -595,12 +622,12 @@ CHN_industrialize_china_decisions = {
 			has_full_control_of_state = 602
 			has_full_control_of_state = 1013
 		}
-		cost = kr_china_provinceintegration_cost_medium?75
+		cost = 75
 		fire_only_once = yes
 		modifier = {
-			political_power_gain = -0.20
+			industrial_capacity_factory = -0.08
 		}
-		days_remove = kr_china_provinceintegration_speed?90
+		days_remove = 120
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CHN_industrialize_hunan_province"
 			602 = { # 4-5
@@ -626,15 +653,12 @@ CHN_industrialize_china_decisions = {
 	}
 
 	CHN_industrialize_jiangsu_province = {
-		icon = infiltrate_state
+		icon = generic_construction
 		highlight_states = { highlight_state_targets = { state = 613 } }
-		allowed = {
-			is_han_chinese_tag = yes
-			NOT = { tag = LEP }
-		}
+		allowed = { is_chinese_tag = yes }
 		visible = {
 			OR = {
-				can_integration_chinese_provinces = yes
+				can_INDUSTRIALIZATION_chinese_provinces = yes
 				tag = SQI
 			}
 			OR = {
@@ -655,12 +679,12 @@ CHN_industrialize_china_decisions = {
 				}
 			}
 		}
-		cost = kr_china_provinceintegration_cost_large?100
+		cost = 100
 		fire_only_once = yes
 		modifier = {
-			political_power_gain = -0.20
+			industrial_capacity_factory = -0.08
 		}
-		days_remove = kr_china_provinceintegration_speed?90
+		days_remove = 120
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CHN_industrialize_jiangsu_province"
 			598 = { # 8-9
@@ -690,15 +714,12 @@ CHN_industrialize_china_decisions = {
 	}
 
 	CHN_industrialize_jiangxi_province = {
-		icon = infiltrate_state
+		icon = generic_construction
 		highlight_states = { highlight_state_targets = { state = 1044 } }
-		allowed = {
-			is_han_chinese_tag = yes
-			NOT = { tag = LEP }
-		}
+		allowed = { is_chinese_tag = yes }
 		visible = {
 			OR = {
-				can_integration_chinese_provinces = yes
+				can_INDUSTRIALIZATION_chinese_provinces = yes
 				tag = SQI
 			}
 			OR = {
@@ -719,12 +740,12 @@ CHN_industrialize_china_decisions = {
 				}
 			}
 		}
-		cost = kr_china_provinceintegration_cost_small?50
+		cost = 50
 		fire_only_once = yes
 		modifier = {
-			political_power_gain = -0.20
+			industrial_capacity_factory = -0.08
 		}
-		days_remove = kr_china_provinceintegration_speed?90
+		days_remove = 120
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CHN_industrialize_jiangxi_province"
 			600 = { # 2-3
@@ -751,14 +772,12 @@ CHN_industrialize_china_decisions = {
 	}
 
 	CHN_industrialize_shaanxi_province = {
-		icon = infiltrate_state
+		icon = generic_construction
 		highlight_states = { highlight_state_targets = { state = 622 } }
-		allowed = {
-			is_han_chinese_tag = yes
-		}
+		allowed = { is_chinese_tag = yes }
 		visible = {
 			OR = {
-				can_integration_chinese_provinces = yes
+				can_INDUSTRIALIZATION_chinese_provinces = yes
 				tag = SHX
 			}
 			OR = {
@@ -770,12 +789,12 @@ CHN_industrialize_china_decisions = {
 			has_full_control_of_state = 622
 			has_full_control_of_state = 799
 		}
-		cost = kr_china_provinceintegration_cost_small?50
+		cost = 50
 		fire_only_once = yes
 		modifier = {
-			political_power_gain = -0.20
+			industrial_capacity_factory = -0.06
 		}
-		days_remove = kr_china_provinceintegration_speed?90
+		days_remove = 120
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CHN_industrialize_shaanxi_province"
 			622 = { # 2-3
@@ -797,14 +816,11 @@ CHN_industrialize_china_decisions = {
 	}
 
 	CHN_industrialize_shanxi_province = {
-		icon = infiltrate_state
+		icon = generic_construction
 		highlight_states = { highlight_state_targets = { state = 1072 } }
-		allowed = {
-			is_han_chinese_tag = yes
-			NOT = { tag = SHX }
-		}
+		allowed = { is_chinese_tag = yes }
 		visible = {
-			can_integration_chinese_provinces = yes
+			can_INDUSTRIALIZATION_chinese_provinces = yes
 			OR = {
 				615 = { is_core_of = ROOT }
 				1015 = { is_core_of = ROOT }
@@ -816,12 +832,12 @@ CHN_industrialize_china_decisions = {
 			has_full_control_of_state = 1015
 			has_full_control_of_state = 1072
 		}
-		cost = kr_china_provinceintegration_cost_small?50
+		cost = 50
 		fire_only_once = yes
 		modifier = {
-			political_power_gain = -0.20
+			industrial_capacity_factory = -0.08
 		}
-		days_remove = kr_china_provinceintegration_speed?90
+		days_remove = 120
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CHN_industrialize_shanxi_province"
 			615 = { # 2-3
@@ -852,15 +868,12 @@ CHN_industrialize_china_decisions = {
 	}
 
 	CHN_industrialize_shandong_province = {
-		icon = infiltrate_state
+		icon = generic_construction
 		highlight_states = { highlight_state_targets = { state = 597 } }
-		allowed = {
-			is_han_chinese_tag = yes
-			NOT = { tag = SQI }
-		}
+		allowed = { is_chinese_tag = yes }
 		visible = {
 			OR = {
-				can_integration_chinese_provinces = yes
+				can_INDUSTRIALIZATION_chinese_provinces = yes
 				AND = {
 					tag = LEP
 					has_global_flag = LEP_victory
@@ -877,12 +890,12 @@ CHN_industrialize_china_decisions = {
 			has_full_control_of_state = 1064
 			has_full_control_of_state = 1065
 		}
-		cost = kr_china_provinceintegration_cost_medium?75
+		cost = 75
 		fire_only_once = yes
 		modifier = {
-			political_power_gain = -0.20
+			industrial_capacity_factory = -0.08
 		}
-		days_remove = kr_china_provinceintegration_speed?90
+		days_remove = 120
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CHN_industrialize_shandong_province"
 			597 = { # 4-5
@@ -908,15 +921,12 @@ CHN_industrialize_china_decisions = {
 	}
 
 	CHN_industrialize_anhui_province = {
-		icon = infiltrate_state
+		icon = generic_construction
 		highlight_states = { highlight_state_targets = { state = 606 } }
-		allowed = {
-			is_han_chinese_tag = yes
-			NOT = { tag = ANQ }
-		}
+		allowed = { is_chinese_tag = yes }
 		visible = {
 			OR = {
-				can_integration_chinese_provinces = yes
+				can_INDUSTRIALIZATION_chinese_provinces = yes
 				tag = SQI
 				tag = LEP
 			}
@@ -931,12 +941,12 @@ CHN_industrialize_china_decisions = {
 			has_full_control_of_state = 1014
 			has_full_control_of_state = 1050
 		}
-		cost = kr_china_provinceintegration_cost_medium?75
+		cost = 75
 		fire_only_once = yes
 		modifier = {
-			political_power_gain = -0.20
+			industrial_capacity_factory = -0.08
 		}
-		days_remove = kr_china_provinceintegration_speed?90
+		days_remove = 120
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CHN_industrialize_anhui_province"
 			606 = { # 4-5
@@ -962,15 +972,12 @@ CHN_industrialize_china_decisions = {
 	}
 
 	CHN_industrialize_zhejiang_province = {
-		icon = infiltrate_state
+		icon = generic_construction
 		highlight_states = { highlight_state_targets = { state = 596 } }
-		allowed = {
-			is_han_chinese_tag = yes
-			NOT = { tag = LEP }
-		}
+		allowed = { is_chinese_tag = yes }
 		visible = {
 			OR = {
-				can_integration_chinese_provinces = yes
+				can_INDUSTRIALIZATION_chinese_provinces = yes
 				tag = SQI
 				tag = LEP
 			}
@@ -987,12 +994,12 @@ CHN_industrialize_china_decisions = {
 			has_full_control_of_state = 1068
 			has_full_control_of_state = 1069
 		}
-		cost = kr_china_provinceintegration_cost_medium?75
+		cost = 75
 		fire_only_once = yes
 		modifier = {
-			political_power_gain = -0.20
+			industrial_capacity_factory = -0.08
 		}
-		days_remove = kr_china_provinceintegration_speed?90
+		days_remove = 120
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CHN_industrialize_zhejiang_province"
 			596 = { # 4-5
@@ -1027,14 +1034,12 @@ CHN_industrialize_china_decisions = {
 	}
 
 	CHN_industrialize_fujian_province = {
-		icon = infiltrate_state
+		icon = generic_construction
 		highlight_states = { highlight_state_targets = { state = 1066 } }
-		allowed = {
-			is_han_chinese_tag = yes
-		}
+		allowed = { is_chinese_tag = yes }
 		visible = {
 			OR = {
-				can_integration_chinese_provinces = yes
+				can_INDUSTRIALIZATION_chinese_provinces = yes
 				tag = SQI
 				tag = LEP
 			}
@@ -1049,12 +1054,12 @@ CHN_industrialize_china_decisions = {
 			has_full_control_of_state = 1046
 			has_full_control_of_state = 1066
 		}
-		cost = kr_china_provinceintegration_cost_small?50
+		cost = 50
 		fire_only_once = yes
 		modifier = {
-			political_power_gain = -0.20
+			industrial_capacity_factory = -0.08
 		}
-		days_remove = kr_china_provinceintegration_speed?90
+		days_remove = 120
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CHN_industrialize_fujian_province"
 			595 = { # 2-3
@@ -1084,15 +1089,12 @@ CHN_industrialize_china_decisions = {
 	}
 
 	CHN_industrialize_sichuan_province = {
-		icon = infiltrate_state
+		icon = generic_construction
 		highlight_states = { highlight_state_targets = { state = 650 } }
-		allowed = {
-			is_han_chinese_tag = yes
-			NOT = { tag = SZC }
-		}
+		allowed = { is_chinese_tag = yes }
 		visible = {
 			OR = {
-				can_integration_chinese_provinces = yes
+				can_INDUSTRIALIZATION_chinese_provinces = yes
 				tag = YUN
 			}
 			OR = {
@@ -1110,12 +1112,12 @@ CHN_industrialize_china_decisions = {
 			has_full_control_of_state = 661
 			has_full_control_of_state = 788
 		}
-		cost = kr_china_provinceintegration_cost_large?100
+		cost = 100
 		fire_only_once = yes
 		modifier = {
-			political_power_gain = -0.20
+			industrial_capacity_factory = -0.08
 		}
-		days_remove = kr_china_provinceintegration_speed?90
+		days_remove = 120
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CHN_industrialize_sichuan_province"
 			601 = { # 1-2
@@ -1149,14 +1151,12 @@ CHN_industrialize_china_decisions = {
 	}
 
 	CHN_industrialize_guizhou_province = {
-		icon = infiltrate_state
+		icon = generic_construction
 		highlight_states = { highlight_state_targets = { state = 603 } }
-		allowed = {
-			is_han_chinese_tag = yes
-		}
+		allowed = { is_chinese_tag = yes }
 		visible = {
 			OR = {
-				can_integration_chinese_provinces = yes
+				can_INDUSTRIALIZATION_chinese_provinces = yes
 				tag = YUN
 			}
 			OR = {
@@ -1170,12 +1170,12 @@ CHN_industrialize_china_decisions = {
 			has_full_control_of_state = 1051
 			has_full_control_of_state = 1052
 		}
-		cost = kr_china_provinceintegration_cost_small?50
+		cost = 50
 		fire_only_once = yes
 		modifier = {
-			political_power_gain = -0.20
+			industrial_capacity_factory = -0.08
 		}
-		days_remove = kr_china_provinceintegration_speed?90
+		days_remove = 120
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CHN_industrialize_guizhou_province"
 			603 = { # 4-5
@@ -1205,14 +1205,11 @@ CHN_industrialize_china_decisions = {
 	}
 
 	CHN_industrialize_yunnan_province = {
-		icon = infiltrate_state
+		icon = generic_construction
 		highlight_states = { highlight_state_targets = { state = 325 } }
-		allowed = {
-			is_han_chinese_tag = yes
-			NOT = { tag = YUN }
-		}
+		allowed = { is_chinese_tag = yes }
 		visible = {
-			can_integration_chinese_provinces = yes
+			can_INDUSTRIALIZATION_chinese_provinces = yes
 			OR = {
 				325 = { is_core_of = ROOT }
 				816 = { is_core_of = ROOT }
@@ -1222,12 +1219,12 @@ CHN_industrialize_china_decisions = {
 			has_full_control_of_state = 325
 			has_full_control_of_state = 816
 		}
-		cost = kr_china_provinceintegration_cost_medium?75
+		cost = 75
 		fire_only_once = yes
 		modifier = {
-			political_power_gain = -0.20
+			industrial_capacity_factory = -0.06
 		}
-		days_remove = kr_china_provinceintegration_speed?90
+		days_remove = 120
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CHN_industrialize_yunnan_province"
 			325 = { # 4-5
@@ -1253,19 +1250,12 @@ CHN_industrialize_china_decisions = {
 	}
 
 	CHN_industrialize_qinghai_province = {
-		icon = infiltrate_state
+		icon = generic_construction
 		highlight_states = { highlight_state_targets = { state = 604 } }
-		allowed = {
-			OR = {
-				is_han_chinese_tag = yes
-				tag = TIB
-				tag = TAN
-			}
-			NOT = { tag = XSM }
-		}
+		allowed = { is_chinese_tag = yes }
 		visible = {
 			OR = {
-				can_integration_chinese_provinces = yes
+				can_INDUSTRIALIZATION_chinese_provinces = yes
 				tag = TIB
 				tag = TAN
 			}
@@ -1278,12 +1268,12 @@ CHN_industrialize_china_decisions = {
 			has_full_control_of_state = 353
 			has_full_control_of_state = 604
 		}
-		cost = kr_china_provinceintegration_cost_small?50
+		cost = 50
 		fire_only_once = yes
 		modifier = {
-			political_power_gain = -0.20
+			industrial_capacity_factory = -0.06
 		}
-		days_remove = kr_china_provinceintegration_speed?90
+		days_remove = 120
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CHN_industrialize_qinghai_province"
 			353 = { # 1-2
@@ -1313,18 +1303,12 @@ CHN_industrialize_china_decisions = {
 	}
 
 	CHN_industrialize_gansu_province = {
-		icon = infiltrate_state
+		icon = generic_construction
 		highlight_states = { highlight_state_targets = { state = 283 } }
-		allowed = {
-			OR = {
-				is_han_chinese_tag = yes
-				tag = TAN
-			}
-			NOT = { tag = XSM }
-		}
+		allowed = { is_chinese_tag = yes }
 		visible = {
 			OR = {
-				can_integration_chinese_provinces = yes
+				can_INDUSTRIALIZATION_chinese_provinces = yes
 				tag = TAN
 			}
 			OR = {
@@ -1336,12 +1320,12 @@ CHN_industrialize_china_decisions = {
 			has_full_control_of_state = 283
 			has_full_control_of_state = 774
 		}
-		cost = kr_china_provinceintegration_cost_medium?75
+		cost = 75
 		fire_only_once = yes
 		modifier = {
-			political_power_gain = -0.20
+			industrial_capacity_factory = -0.06
 		}
-		days_remove = kr_china_provinceintegration_speed?90
+		days_remove = 120
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CHN_industrialize_gansu_province"
 			283 = { # 4-5
@@ -1363,19 +1347,12 @@ CHN_industrialize_china_decisions = {
 	}
 
 	CHN_industrialize_ningxia_province = {
-		icon = infiltrate_state
+		icon = generic_construction
 		highlight_states = { highlight_state_targets = { state = 348 } }
-		allowed = {
-			OR = {
-				is_han_chinese_tag = yes
-				tag = MON
-				tag = TAN
-			}
-			NOT = { tag = XSM }
-		}
+		allowed = { is_chinese_tag = yes }
 		visible = {
 			OR = {
-				can_integration_chinese_provinces = yes
+				can_INDUSTRIALIZATION_chinese_provinces = yes
 				tag = MON
 				tag = TAN
 			}
@@ -1388,12 +1365,12 @@ CHN_industrialize_china_decisions = {
 			has_full_control_of_state = 348
 			has_full_control_of_state = 616
 		}
-		cost = kr_china_provinceintegration_cost_small?50
+		cost = 50
 		fire_only_once = yes
 		modifier = {
-			political_power_gain = -0.20
+			industrial_capacity_factory = -0.06
 		}
-		days_remove = kr_china_provinceintegration_speed?90
+		days_remove = 120
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CHN_industrialize_ningxia_province"
 			348 = { # 2-3
@@ -1413,18 +1390,62 @@ CHN_industrialize_china_decisions = {
 			factor = 1
 		}
 	}
+	
+	CHN_industrialize_xikang_province = {
+		icon = generic_construction
+		highlight_states = { highlight_state_targets = { state = 714 } }
+		allowed = { is_chinese_tag = yes }
+		visible = {
+			can_INDUSTRIALIZATION_chinese_provinces = yes
+			OR = {
+				748 = { is_core_of = yes }
+				693 = { is_core_of = yes }
+			}
+		}
+		available = {
+			has_full_control_of_state = 748
+			has_full_control_of_state = 693
+		}
+		cost = 50
+		fire_only_once = yes
+		modifier = {
+			industrial_capacity_factory = -0.04
+		}
+		days_remove = 120
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CHN_industrialize_xikang_province"
+			748 = { # 1-2
+				add_resource = {
+					type = tungsten
+					amount = 6
+				}
+				add_resource = {
+					type = oil
+					amount = 2
+				}
+				increase_state_category_by_one_level = yes
+				add_dynamic_modifier = { modifier = CHN_rural_reconstruction_modifier }
+			}
+			693 = { # 1-2
+				add_resource = {
+					type = oil
+					amount = 8
+				}
+				increase_state_category_by_one_level = yes
+				add_dynamic_modifier = { modifier = CHN_rural_reconstruction_modifier }
+			}
+		}
+		ai_will_do = { factor = 1 }
+	}
 
-	##### MANCHURIA INTEGRATION (ROUGH BORDERS OF THREE TRADITIONAL PROVINCES) #####
+	##### MANCHURIA INDUSTRIALIZATION (ROUGH BORDERS OF THREE TRADITIONAL PROVINCES) #####
 
 	CHN_industrialize_fengtian_province = {
-		icon = infiltrate_state
+		icon = generic_construction
 		highlight_states = { highlight_state_targets = { state = 716 } }
-		allowed = {
-			is_han_chinese_tag = yes
-			NOT = { tag = FNG }
-		}
+		allowed = { is_chinese_tag = yes }
 		visible = {
-			can_integration_chinese_provinces = yes
+			can_INDUSTRIALIZATION_chinese_provinces = yes
 			OR = {
 				610 = { is_core_of = ROOT }
 				715 = { is_core_of = ROOT }
@@ -1436,18 +1457,34 @@ CHN_industrialize_china_decisions = {
 			has_full_control_of_state = 715
 			has_full_control_of_state = 716
 		}
-		cost = kr_china_provinceintegration_cost_medium?75
+		cost = 75
 		fire_only_once = yes
 		modifier = {
-			political_power_gain = -0.20
+			industrial_capacity_factory = -0.08
 		}
-		days_remove = kr_china_provinceintegration_speed?90
+		days_remove = 120
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CHN_industrialize_fengtian_province"
-			610 = { remove_claim_by_ROOT_and_add_core_of_ROOT = yes }
-			715 = { remove_claim_by_ROOT_and_add_core_of_ROOT = yes }
-			716 = { remove_claim_by_ROOT_and_add_core_of_ROOT = yes }
-			
+			610 = { # 2-3
+				add_resource = {
+					type = steel
+					amount = 10
+				}
+				increase_state_category_by_one_level = yes
+				add_dynamic_modifier = { modifier = CHN_rural_reconstruction_modifier }
+			}
+			715 = { # 4-5
+				increase_state_category_by_one_level = yes
+				add_dynamic_modifier = { modifier = CHN_industrialization_modifier }
+			}
+			716 = { # 8-9
+				add_resource = {
+					type = aluminium
+					amount = 10
+				}
+				increase_state_category_by_one_level = yes
+				add_dynamic_modifier = { modifier = CHN_industrialization_modifier }
+			}
 		}
 		ai_will_do = {
 			factor = 1
@@ -1455,14 +1492,11 @@ CHN_industrialize_china_decisions = {
 	}
 
 	CHN_industrialize_jilin_province = {
-		icon = infiltrate_state
+		icon = generic_construction
 		highlight_states = { highlight_state_targets = { state = 886 } }
-		allowed = {
-			is_han_chinese_tag = yes
-			NOT = { tag = FNG }
-		}
+		allowed = { is_chinese_tag = yes }
 		visible = {
-			can_integration_chinese_provinces = yes
+			can_INDUSTRIALIZATION_chinese_provinces = yes
 			OR = {
 				328 = { is_core_of = ROOT }
 				885 = { is_core_of = ROOT }
@@ -1474,18 +1508,34 @@ CHN_industrialize_china_decisions = {
 			has_full_control_of_state = 885
 			has_full_control_of_state = 886
 		}
-		cost = kr_china_provinceintegration_cost_small?50
+		cost = 50
 		fire_only_once = yes
 		modifier = {
-			political_power_gain = -0.20
+			industrial_capacity_factory = -0.08
 		}
-		days_remove = kr_china_provinceintegration_speed?90
+		days_remove = 120
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CHN_industrialize_jilin_province"
-			328 = { remove_claim_by_ROOT_and_add_core_of_ROOT = yes }
-			885 = { remove_claim_by_ROOT_and_add_core_of_ROOT = yes }
-			886 = { remove_claim_by_ROOT_and_add_core_of_ROOT = yes }
-			
+			328 = { # 2-3
+				add_resource = {
+					type = tungsten
+					amount = 10
+				}
+				increase_state_category_by_one_level = yes
+				add_dynamic_modifier = { modifier = CHN_rural_reconstruction_modifier }
+			}
+			885 = { # 4-5
+				increase_state_category_by_one_level = yes
+				add_dynamic_modifier = { modifier = CHN_industrialization_modifier }
+			}
+			886 = { # 4-5
+				add_resource = {
+					type = steel
+					amount = 10
+				}
+				increase_state_category_by_one_level = yes
+				add_dynamic_modifier = { modifier = CHN_industrialization_modifier }
+			}
 		}
 		ai_will_do = {
 			factor = 1
@@ -1493,14 +1543,11 @@ CHN_industrialize_china_decisions = {
 	}
 
 	CHN_industrialize_heilongjiang_province = {
-		icon = infiltrate_state
+		icon = generic_construction
 		highlight_states = { highlight_state_targets = { state = 714 } }
-		allowed = {
-			is_han_chinese_tag = yes
-			NOT = { tag = FNG }
-		}
+		allowed = { is_chinese_tag = yes }
 		visible = {
-			can_integration_chinese_provinces = yes
+			can_INDUSTRIALIZATION_chinese_provinces = yes
 			OR = {
 				714 = { is_core_of = ROOT }
 				717 = { is_core_of = ROOT }
@@ -1514,18 +1561,46 @@ CHN_industrialize_china_decisions = {
 			has_full_control_of_state = 883
 			has_full_control_of_state = 884
 		}
-		cost = kr_china_provinceintegration_cost_small?50
+		cost = 50
 		fire_only_once = yes
 		modifier = {
-			political_power_gain = -0.20
+			industrial_capacity_factory = -0.08
 		}
-		days_remove = kr_china_provinceintegration_speed?90
+		days_remove = 120
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CHN_industrialize_heilongjiang_province"
-			714 = { remove_claim_by_ROOT_and_add_core_of_ROOT = yes }
-			717 = { remove_claim_by_ROOT_and_add_core_of_ROOT = yes }
-			883 = { remove_claim_by_ROOT_and_add_core_of_ROOT = yes }
-			884 = { remove_claim_by_ROOT_and_add_core_of_ROOT = yes }
+			714 = { # 2-3
+				add_resource = {
+					type = aluminium
+					amount = 12
+				}
+				increase_state_category_by_one_level = yes
+				add_dynamic_modifier = { modifier = CHN_rural_reconstruction_modifier }
+			}
+			717 = { # 1-2
+				add_resource = {
+					type = chromium
+					amount = 6
+				}
+				increase_state_category_by_one_level = yes
+				add_dynamic_modifier = { modifier = CHN_rural_reconstruction_modifier }
+			}
+			883 = { # 1-2
+				add_resource = {
+					type = steel
+					amount = 8
+				}
+				increase_state_category_by_one_level = yes
+				add_dynamic_modifier = { modifier = CHN_rural_reconstruction_modifier }
+			}
+			884 = { # 1-2
+				add_resource = {
+					type = chromium
+					amount = 10
+				}
+				increase_state_category_by_one_level = yes
+				add_dynamic_modifier = { modifier = CHN_rural_reconstruction_modifier }
+			}
 			
 		}
 		ai_will_do = {
@@ -1533,12 +1608,12 @@ CHN_industrialize_china_decisions = {
 		}
 	}
 
-	##### NON-HAN INTEGRATION #####
+	##### NON-HAN INDUSTRIALIZATION #####
 
 	CHN_industrialize_outer_mongolia_province = {
-		icon = infiltrate_state
+		icon = generic_construction
 		highlight_states = { highlight_state_targets = { state = 330 } }
-		allowed = { tag = MON }
+		allowed = { is_chinese_tag = yes }
 		visible = {
 			OR = {
 				612 = { is_core_of = ROOT }
@@ -1546,46 +1621,44 @@ CHN_industrialize_china_decisions = {
 			}
 		}
 		available = {
-			has_full_control_of_state = 329
-			has_full_control_of_state = 330
 			has_full_control_of_state = 612
 			has_full_control_of_state = 621
-			has_full_control_of_state = 1084
 		}
-		cost = kr_china_provinceintegration_cost_large?100
+		cost = 50
 		fire_only_once = yes
 		modifier = {
-			political_power_gain = -0.20
+			industrial_capacity_factory = -0.05
 		}
-		days_remove = kr_china_provinceintegration_speed?90
+		days_remove = 120
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CHN_industrialize_outer_mongolia_province"
-			612 = { remove_claim_by_ROOT_and_add_core_of_ROOT = yes }
-			621 = { remove_claim_by_ROOT_and_add_core_of_ROOT = yes }
-			
+			612 = { # 1-2
+				add_resource = {
+					type = steel
+					amount = 6
+				}
+				increase_state_category_by_one_level = yes
+				add_dynamic_modifier = { modifier = CHN_rural_reconstruction_modifier }
+			}
+			621 = { # 2-3
+				increase_state_category_by_one_level = yes
+				add_dynamic_modifier = { modifier = CHN_rural_reconstruction_modifier }
+			}
 		}
-		ai_will_do = {
-			factor = 1
-		}
+		ai_will_do = { factor = 1 }
 	}
 
 	CHN_industrialize_xinjiang_province = {
-		icon = infiltrate_state
+		icon = generic_construction
 		highlight_states = { highlight_state_targets = { state = 617 } }
-		allowed = {
-			OR = {
-				tag = SIK
-				tag = ETS
-				tag = TAN
-				tag = XSM
-			}
-		}
+		allowed = { is_chinese_tag = yes }
 		visible = {
 			OR = {
 				287 = { is_core_of = ROOT }
 				617 = { is_core_of = ROOT }
 				618 = { is_core_of = ROOT }
 				619 = { is_core_of = ROOT }
+				897 = { is_core_of = ROOT }
 				1083 = { is_core_of = ROOT }
 				1085 = { is_core_of = ROOT }
 			}
@@ -1596,23 +1669,64 @@ CHN_industrialize_china_decisions = {
 			has_full_control_of_state = 618
 			has_full_control_of_state = 619
 			has_full_control_of_state = 1083
-			has_full_control_of_state = 1085
 		}
-		cost = kr_china_provinceintegration_cost_large?100
+		cost = 120
 		fire_only_once = yes
-		modifier = {
-			political_power_gain = -0.20
-		}
-		days_remove = kr_china_provinceintegration_speed?90
+		modifier = { industrial_capacity_factory = -0.10 }
+		days_remove = 120
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CHN_industrialize_xinjiang_province"
-			287 = { remove_claim_by_ROOT_and_add_core_of_ROOT = yes }
-			617 = { remove_claim_by_ROOT_and_add_core_of_ROOT = yes }
-			618 = { remove_claim_by_ROOT_and_add_core_of_ROOT = yes }
-			619 = { remove_claim_by_ROOT_and_add_core_of_ROOT = yes }
-			1083 = { remove_claim_by_ROOT_and_add_core_of_ROOT = yes }
-			1085 = { remove_claim_by_ROOT_and_add_core_of_ROOT = yes }
-			
+			287 = { # 1-2
+				add_resource = {
+					type = oil
+					amount = 10
+				}
+				increase_state_category_by_one_level = yes
+				add_dynamic_modifier = { modifier = CHN_rural_reconstruction_modifier }
+			}
+			617 = { # 4-5
+				add_resource = {
+					type = oil
+					amount = 6
+				}
+				add_resource = {
+					type = aluminium
+					amount = 6
+				}
+				increase_state_category_by_one_level = yes
+				add_dynamic_modifier = { modifier = CHN_industrialization_modifier }
+			}
+			618 = { # 1-2
+				increase_state_category_by_one_level = yes
+				add_dynamic_modifier = { modifier = CHN_rural_reconstruction_modifier }
+			}
+			619 = { # 1-2
+				add_resource = {
+					type = chromium
+					amount = 6
+				}
+				increase_state_category_by_one_level = yes
+				add_dynamic_modifier = { modifier = CHN_rural_reconstruction_modifier }
+			}
+			1083 = {
+				add_resource = {
+					type = oil
+					amount = 4
+				}
+				add_resource = {
+					type = steel
+					amount = 4
+				}
+				if = {
+					limit = { tag = TAN }
+					set_state_category = five
+					add_dynamic_modifier = { modifier = CHN_industrialization_modifier }
+				}
+				else = { # 1-2
+					increase_state_category_by_one_level = yes
+					add_dynamic_modifier = { modifier = CHN_rural_reconstruction_modifier }
+				}
+			}
 		}
 		ai_will_do = {
 			factor = 1
@@ -1620,818 +1734,354 @@ CHN_industrialize_china_decisions = {
 	}
 
 	################################################
-	##### KR CHINA STATE INTEGRATION DECISIONS #####
+	##### KR CHINA STATE INDUSTRIALIZATION DECISIONS #####
 	################################################
 
 	CHN_industrialize_tianjin_concession = {
-		icon = infiltrate_state
+		icon = generic_construction
 		highlight_states = { highlight_state_targets = { state = 609 } }
-		allowed = {
-			is_han_chinese_tag = yes
-		}
-		visible = {
-			can_integration_chinese_provinces = yes
-			609 = { is_core_of = ROOT }
-		}
+		allowed = { NOT = { tag = LEC } }
+		visible = { 609 = { is_core_of = ROOT } }
 		available = {
 			has_full_control_of_state = 609
+			608 = { has_dynamic_modifier = { modifier = CHN_industrialization_modifier } }
 		}
-		cost = kr_china_concessionintegration_cost?15
+		cost = 25
 		fire_only_once = yes
-		modifier = {
-			political_power_gain = -0.10
-		}
-		days_remove = kr_china_concessionintegration_speed?60
+		modifier = { political_power_cost = 0.04 }
+		days_remove = 90
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CHN_industrialize_tianjin_concession"
-			609 = { remove_claim_by_ROOT_and_add_core_of_ROOT = yes }
-			
+			609 = { add_dynamic_modifier = { modifier = CHN_industrialization_modifier } }
 		}
-		ai_will_do = {
-			factor = 1
-		}
+		ai_will_do = { factor = 1 }
 	}
 
 	CHN_industrialize_shanghai_concession = {
-		icon = infiltrate_state
+		icon = generic_construction
 		highlight_states = { highlight_state_targets = { state = 743 } }
-		allowed = {
-			is_han_chinese_tag = yes
-		}
-		visible = {
-			OR = {
-				can_integration_chinese_provinces = yes
-				tag = LEP
-				tag = SQI
-				AND = {
-					tag = ANQ
-					has_completed_focus = ANQ_invite_back_governors
-				}
-			}
-			743 = { is_core_of = ROOT }
-		}
+		allowed = { NOT = { tag = LEC } }
+		visible = { 743 = { is_core_of = ROOT } }
 		available = {
 			has_full_control_of_state = 743
+			613 = { has_dynamic_modifier = { modifier = CHN_industrialization_modifier } }
 		}
-		cost = kr_china_concessionintegration_cost?15
+		cost = 25
 		fire_only_once = yes
-		modifier = {
-			political_power_gain = -0.10
-		}
-		days_remove = kr_china_concessionintegration_speed?60
+		modifier = { political_power_cost = 0.04 }
+		days_remove = 90
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CHN_industrialize_shanghai_concession"
-			743 = { remove_claim_by_ROOT_and_add_core_of_ROOT = yes }
-			
+			743 = { add_dynamic_modifier = { modifier = CHN_industrialization_modifier } }
 		}
-		ai_will_do = {
-			factor = 1
-		}
+		ai_will_do = { factor = 1 }
 	}
 
 	CHN_industrialize_ningbo_concession = {
-		icon = infiltrate_state
+		icon = generic_construction
 		highlight_states = { highlight_state_targets = { state = 746 } }
-		allowed = {
-			is_han_chinese_tag = yes
-		}
-		visible = {
-			OR = {
-				can_integration_chinese_provinces = yes
-				tag = SQI
-				AND = {
-					tag = ANQ
-					has_completed_focus = ANQ_invite_back_governors
-				}
-			}
-			746 = { is_core_of = ROOT }
-		}
+		allowed = { NOT = { tag = LEC } }
+		visible = { 746 = { is_core_of = ROOT } }
 		available = {
 			has_full_control_of_state = 746
+			1068 = { has_dynamic_modifier = { modifier = CHN_industrialization_modifier } }
 		}
-		cost = kr_china_concessionintegration_cost?15
+		cost = 50
 		fire_only_once = yes
-		modifier = {
-			political_power_gain = -0.10
-		}
-		days_remove = kr_china_concessionintegration_speed?60
+		modifier = { political_power_cost = 0.04 }
+		days_remove = 120
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CHN_industrialize_ningbo_concession"
-			746 = { remove_claim_by_ROOT_and_add_core_of_ROOT = yes }
-			
+			746 = {
+				add_dynamic_modifier = { modifier = CHN_industrialization_modifier }
+				set_state_category = six
+			}
 		}
-		ai_will_do = {
-			factor = 1
-		}
+		ai_will_do = { factor = 1 }
 	}
 
 	CHN_industrialize_fuzhou_concession = {
-		icon = infiltrate_state
+		icon = generic_construction
 		highlight_states = { highlight_state_targets = { state = 747 } }
-		allowed = {
-			is_han_chinese_tag = yes
-		}
-		visible = {
-			OR = {
-				can_integration_chinese_provinces = yes
-				tag = SQI
-				AND = {
-					tag = ANQ
-					has_completed_focus = ANQ_invite_back_governors
-				}
-			}
-			747 = { is_core_of = ROOT }
-		}
+		allowed = { NOT = { tag = LEC } }
+		visible = { 747 = { is_core_of = ROOT } }
 		available = {
 			has_full_control_of_state = 747
+			1066 = { has_dynamic_modifier = { modifier = CHN_industrialization_modifier } }
 		}
-		cost = kr_china_concessionintegration_cost?15
+		cost = 50
 		fire_only_once = yes
-		modifier = {
-			political_power_gain = -0.10
-		}
-		days_remove = kr_china_concessionintegration_speed?60
+		modifier = { political_power_cost = 0.05 }
+		days_remove = 120
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CHN_industrialize_fuzhou_concession"
-			747 = { remove_claim_by_ROOT_and_add_core_of_ROOT = yes }
-			
+			747 = {
+				add_dynamic_modifier = { modifier = CHN_industrialization_modifier }
+				set_state_category = six
+			}
 		}
-		ai_will_do = {
-			factor = 1
-		}
+		ai_will_do = { factor = 1 }
 	}
 
 	CHN_industrialize_shantou_concession = {
-		icon = infiltrate_state
+		icon = generic_construction
 		highlight_states = { highlight_state_targets = { state = 801 } }
-		allowed = {
-			is_han_chinese_tag = yes
-		}
-		visible = {
-			OR = {
-				can_integration_chinese_provinces = yes
-				tag = GXC
-				tag = SQI
-				AND = {
-					tag = ANQ
-					has_completed_focus = ANQ_invite_back_governors
-				}
-			}
-			801 = { is_core_of = ROOT }
-		}
+		allowed = { NOT = { tag = LEC } }
+		visible = { 801 = { is_core_of = ROOT } }
 		available = {
 			has_full_control_of_state = 801
+			1012 = { has_dynamic_modifier = { modifier = CHN_industrialization_modifier } }
 		}
-		cost = kr_china_concessionintegration_cost?15
+		cost = 50
 		fire_only_once = yes
-		modifier = {
-			political_power_gain = -0.10
-		}
-		days_remove = kr_china_concessionintegration_speed?60
+		modifier = { political_power_cost = 0.05 }
+		days_remove = 120
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CHN_industrialize_shantou_concession"
-			801 = { remove_claim_by_ROOT_and_add_core_of_ROOT = yes }
-			
+			801 = {
+				add_dynamic_modifier = { modifier = CHN_industrialization_modifier }
+				set_state_category = six
+			}
 		}
-		ai_will_do = {
-			factor = 1
-		}
+		ai_will_do = { factor = 1 }
 	}
 
 	CHN_industrialize_hong_kong_concession = {
-		icon = infiltrate_state
+		icon = generic_construction
 		highlight_states = { highlight_state_targets = { state = 326 } }
-		allowed = {
-			is_han_chinese_tag = yes
-		}
-		visible = {
-			OR = {
-				can_integration_chinese_provinces = yes
-				tag = GXC
-				tag = SQI
-				AND = {
-					tag = ANQ
-					has_completed_focus = ANQ_invite_back_governors
-				}
-			}
-			326 = { is_core_of = ROOT }
-		}
+		allowed = { NOT = { tag = LEC } }
+		visible = { 326 = { is_core_of = ROOT } }
 		available = {
 			has_full_control_of_state = 326
+			593 = { has_dynamic_modifier = { modifier = CHN_industrialization_modifier } }
 		}
-		cost = kr_china_concessionintegration_cost?15
+		cost = 50
 		fire_only_once = yes
-		modifier = {
-			political_power_gain = -0.10
-		}
-		days_remove = kr_china_concessionintegration_speed?60
+		modifier = { political_power_cost = 0.04 }
+		days_remove = 120
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CHN_industrialize_hong_kong_concession"
 			326 = {
-				remove_claim_by_ROOT_and_add_core_of_ROOT = yes
-				if = {
-					limit = { is_core_of = CAN }
-					remove_core_of = CAN
-				}
-				if = {
-					limit = { is_core_of = GBR }
-					remove_core_of = GBR
-				}
-				if = {
-					limit = { is_core_of = ENG }
-					remove_core_of = ENG
-				}
-				if = {
-					limit = { is_claimed_by = CAN }
-					remove_claim_by = CAN
-				}
-				if = {
-					limit = { is_claimed_by = GBR }
-					remove_claim_by = GBR
-				}
-				if = {
-					limit = { is_claimed_by = ENG }
-					remove_claim_by = ENG
-				}
+				add_dynamic_modifier = { modifier = CHN_industrialization_modifier }
+				set_state_category = six
 			}
-			
 		}
-		ai_will_do = {
-			factor = 1
-		}
+		ai_will_do = { factor = 1 }
 	}
 
 	CHN_industrialize_macau_concession = {
-		icon = infiltrate_state
+		icon = generic_construction
 		highlight_states = { highlight_state_targets = { state = 729 } }
-		allowed = {
-			OR = {
-				is_han_chinese_tag = yes
-				tag = LEC
-			}
-		}
-		visible = {
-			OR = {
-				can_integration_chinese_provinces = yes
-				tag = GXC
-				tag = LEC
-				tag = SQI
-				AND = {
-					tag = ANQ
-					has_completed_focus = ANQ_invite_back_governors
-				}
-			}
-			729 = { is_core_of = ROOT }
-		}
+		allowed = { is_chinese_tag = yes }
+		visible = { 729 = { is_core_of = ROOT } }
 		available = {
 			has_full_control_of_state = 729
+			593 = { has_dynamic_modifier = { modifier = CHN_industrialization_modifier } }
 		}
-		cost = kr_china_concessionintegration_cost?15
+		cost = 50
 		fire_only_once = yes
-		modifier = {
-			political_power_gain = -0.10
-		}
-		days_remove = kr_china_concessionintegration_speed?60
+		modifier = { political_power_cost = 0.06 }
+		days_remove = 120
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CHN_industrialize_macau_concession"
 			729 = {
-				remove_claim_by_ROOT_and_add_core_of_ROOT = yes
-				if = {
-					limit = { is_core_of = POR }
-					remove_core_of = POR
-				}
-				if = {
-					limit = { is_claimed_by = POR }
-					remove_claim_by = POR
-				}
+				add_dynamic_modifier = { modifier = CHN_industrialization_modifier }
+				set_state_category = five
 			}
-			
 		}
-		ai_will_do = {
-			factor = 1
-		}
+		ai_will_do = { factor = 1 }
 	}
 
 	CHN_industrialize_dairen_concession = {
-		icon = infiltrate_state
+		icon = generic_construction
 		highlight_states = { highlight_state_targets = { state = 745 } }
-		allowed = {
-			OR = {
-				is_han_chinese_tag = yes
-				tag = LEC
-			}
-		}
-		visible = {
-			OR = {
-				can_integration_chinese_provinces = yes
-				tag = LEC
-			}
-			745 = { is_core_of = ROOT }
-		}
+		allowed = { is_chinese_tag = yes }
+		visible = { 745 = { is_core_of = ROOT } }
 		available = {
 			has_full_control_of_state = 745
+			716 = { has_dynamic_modifier = { modifier = CHN_industrialization_modifier } }
 		}
-		cost = kr_china_concessionintegration_cost?15
+		cost = 25
 		fire_only_once = yes
-		modifier = {
-			political_power_gain = -0.10
-		}
-		days_remove = kr_china_concessionintegration_speed?60
+		modifier = { political_power_cost = 0.03 }
+		days_remove = 90
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CHN_industrialize_dairen_concession"
 			745 = {
-				remove_claim_by_ROOT_and_add_core_of_ROOT = yes
-				if = {
-					limit = { is_core_of = JAP }
-					remove_core_of = JAP
-				}
-				if = {
-					limit = { is_claimed_by = JAP }
-					remove_claim_by = JAP
-				}
+				add_dynamic_modifier = { modifier = CHN_industrialization_modifier }
+				increase_state_category_by_one_level = yes
 			}
-			
 		}
-		ai_will_do = {
-			factor = 1
-		}
+		ai_will_do = { factor = 1 }
 	}
 
 	CHN_industrialize_qingdao_concession = {
-		icon = infiltrate_state
+		icon = generic_construction
 		highlight_states = { highlight_state_targets = { state = 744 } }
-		allowed = {
-			OR = {
-				is_han_chinese_tag = yes
-				tag = LEC
-			}
-		}
-		visible = {
-			OR = {
-				can_integration_chinese_provinces = yes
-				tag = LEC
-				tag = SQI
-				AND = {
-					tag = ANQ
-					has_completed_focus = ANQ_invite_back_governors
-				}
-			}
-			744 = { is_core_of = ROOT }
-		}
+		allowed = { is_chinese_tag = yes }
+		visible = { 744 = { is_core_of = ROOT } }
 		available = {
 			has_full_control_of_state = 744
+			1065 = { has_dynamic_modifier = { modifier = CHN_rural_reconstruction_modifier } }
 		}
-		cost = kr_china_concessionintegration_cost?15
+		cost = 50
 		fire_only_once = yes
-		modifier = {
-			political_power_gain = -0.10
-		}
-		days_remove = kr_china_concessionintegration_speed?60
+		modifier = { political_power_cost = 0.04 }
+		days_remove = 120
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CHN_industrialize_qingdao_concession"
 			744 = {
-				remove_claim_by_ROOT_and_add_core_of_ROOT = yes
-				if = {
-					limit = { is_core_of = GER }
-					remove_core_of = GER
-				}
-				if = {
-					limit = { is_core_of = GEX }
-					remove_core_of = GEX
-				}
-				if = {
-					limit = { is_core_of = GEA }
-					remove_core_of = GEA
-				}
-				if = {
-					limit = { is_claimed_by = GER }
-					remove_claim_by = GER
-				}
-				if = {
-					limit = { is_claimed_by = GEX }
-					remove_claim_by = GEX
-				}
-				if = {
-					limit = { is_claimed_by = GEA }
-					remove_claim_by = GEA
-				}
+				add_dynamic_modifier = { modifier = CHN_industrialization_modifier }
+				set_state_category = six
 			}
-			
 		}
-		ai_will_do = {
-			factor = 1
-		}
+		ai_will_do = { factor = 1 }
 	}
 
 	CHN_industrialize_wehaiwei_concession = {
-		icon = infiltrate_state
+		icon = generic_construction
 		highlight_states = { highlight_state_targets = { state = 996 } }
-		allowed = {
-			OR = {
-				is_han_chinese_tag = yes
-				tag = LEC
-			}
-		}
-		visible = {
-			OR = {
-				can_integration_chinese_provinces = yes
-				tag = LEC
-				tag = SQI
-				AND = {
-					tag = ANQ
-					has_completed_focus = ANQ_invite_back_governors
-				}
-			}
-			996 = { is_core_of = ROOT }
-		}
+		allowed = { is_chinese_tag = yes }
+		visible = { 996 = { is_core_of = ROOT } }
 		available = {
 			has_full_control_of_state = 996
+			1065 = { has_dynamic_modifier = { modifier = CHN_rural_reconstruction_modifier } }
 		}
-		cost = kr_china_concessionintegration_cost?15
+		cost = 50
 		fire_only_once = yes
-		modifier = {
-			political_power_gain = -0.10
-		}
-		days_remove = kr_china_concessionintegration_speed?60
+		modifier = { political_power_cost = 0.06 }
+		days_remove = 120
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CHN_industrialize_wehaiwei_concession"
 			996 = {
-				remove_claim_by_ROOT_and_add_core_of_ROOT = yes
-				if = {
-					limit = { is_core_of = GER }
-					remove_core_of = GER
-				}
-				if = {
-					limit = { is_core_of = GEX }
-					remove_core_of = GEX
-				}
-				if = {
-					limit = { is_core_of = GEA }
-					remove_core_of = GEA
-				}
-				if = {
-					limit = { is_claimed_by = GER }
-					remove_claim_by = GER
-				}
-				if = {
-					limit = { is_claimed_by = GEX }
-					remove_claim_by = GEX
-				}
-				if = {
-					limit = { is_claimed_by = GEA }
-					remove_claim_by = GEA
-				}
+				add_dynamic_modifier = { modifier = CHN_industrialization_modifier }
+				set_state_category = six
 			}
-			
 		}
-		ai_will_do = {
-			factor = 1
-		}
+		ai_will_do = { factor = 1 }
 	}
 
 	CHN_industrialize_zhanjiang_concession = {
-		icon = infiltrate_state
+		icon = generic_construction
 		highlight_states = { highlight_state_targets = { state = 728 } }
-		allowed = {
-			OR = {
-				is_han_chinese_tag = yes
-				tag = LEC
-			}
-		}
-		visible = {
-			OR = {
-				can_integration_chinese_provinces = yes
-				tag = LEC
-				tag = GXC
-				tag = SQI
-				AND = {
-					tag = ANQ
-					has_completed_focus = ANQ_invite_back_governors
-				}
-			}
-			728 = { is_core_of = ROOT }
-		}
+		allowed = { is_chinese_tag = yes }
+		visible = { 728 = { is_core_of = ROOT } }
 		available = {
 			has_full_control_of_state = 728
+			593 = { has_dynamic_modifier = { modifier = CHN_industrialization_modifier } }
 		}
-		cost = kr_china_concessionintegration_cost?15
+		cost = 50
 		fire_only_once = yes
-		modifier = {
-			political_power_gain = -0.10
-		}
-		days_remove = kr_china_concessionintegration_speed?60
+		modifier = { political_power_cost = 0.06 }
+		days_remove = 120
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CHN_industrialize_zhanjiang_concession"
 			728 = {
-				remove_claim_by_ROOT_and_add_core_of_ROOT = yes
-				if = {
-					limit = { is_core_of = GER }
-					remove_core_of = GER
-				}
-				if = {
-					limit = { is_core_of = GEX }
-					remove_core_of = GEX
-				}
-				if = {
-					limit = { is_core_of = GEA }
-					remove_core_of = GEA
-				}
-				if = {
-					limit = { is_claimed_by = GER }
-					remove_claim_by = GER
-				}
-				if = {
-					limit = { is_claimed_by = GEX }
-					remove_claim_by = GEX
-				}
-				if = {
-					limit = { is_claimed_by = GEA }
-					remove_claim_by = GEA
-				}
+				add_dynamic_modifier = { modifier = CHN_industrialization_modifier }
+				set_state_category = five
 			}
-			
 		}
-		ai_will_do = {
-			factor = 1
-		}
+		ai_will_do = { factor = 1 }
 	}
 
 	CHN_industrialize_guangzhou_concession = {
-		icon = infiltrate_state
+		icon = generic_construction
 		highlight_states = { highlight_state_targets = { state = 592 } }
-		allowed = {
-			OR = {
-				is_han_chinese_tag = yes
-				tag = LEC
-			}
-		}
-		visible = {
-			OR = {
-				can_integration_chinese_provinces = yes
-				tag = LEC
-				tag = GXC
-				tag = SQI
-				AND = {
-					tag = ANQ
-					has_completed_focus = ANQ_invite_back_governors
-				}
-			}
-			592 = { is_core_of = ROOT }
-		}
+		allowed = { is_chinese_tag = yes }
+		visible = { 592 = { is_core_of = ROOT } }
 		available = {
 			has_full_control_of_state = 592
+			593 = { has_dynamic_modifier = { modifier = CHN_industrialization_modifier } }
 		}
-		cost = kr_china_concessionintegration_cost?15
+		cost = 50
 		fire_only_once = yes
-		modifier = {
-			political_power_gain = -0.10
-		}
-		days_remove = kr_china_concessionintegration_speed?60
+		modifier = { political_power_cost = 0.05 }
+		days_remove = 120
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CHN_industrialize_zhanjiang_concession"
 			592 = {
-				remove_claim_by_ROOT_and_add_core_of_ROOT = yes
-				if = {
-					limit = { is_core_of = GER }
-					remove_core_of = GER
-				}
-				if = {
-					limit = { is_core_of = GEX }
-					remove_core_of = GEX
-				}
-				if = {
-					limit = { is_core_of = GEA }
-					remove_core_of = GEA
-				}
-				if = {
-					limit = { is_claimed_by = GER }
-					remove_claim_by = GER
-				}
-				if = {
-					limit = { is_claimed_by = GEX }
-					remove_claim_by = GEX
-				}
-				if = {
-					limit = { is_claimed_by = GEA }
-					remove_claim_by = GEA
-				}
+				add_dynamic_modifier = { modifier = CHN_industrialization_modifier }
+				set_state_category = eight
 			}
-			
 		}
-		ai_will_do = {
-			factor = 1
-		}
+		ai_will_do = { factor = 1 }
 	}
 
 	CHN_industrialize_xiamen_concession = {
-		icon = infiltrate_state
+		icon = generic_construction
 		highlight_states = { highlight_state_targets = { state = 802 } }
-		allowed = {
-			OR = {
-				is_han_chinese_tag = yes
-				tag = LEC
-			}
-		}
-		visible = {
-			OR = {
-				can_integration_chinese_provinces = yes
-				tag = LEC
-				tag = GXC
-				tag = SQI
-				AND = {
-					tag = ANQ
-					has_completed_focus = ANQ_invite_back_governors
-				}
-			}
-			802 = { is_core_of = ROOT }
-		}
+		allowed = { is_chinese_tag = yes }
+		visible = { 802 = { is_core_of = ROOT } }
 		available = {
 			has_full_control_of_state = 802
+			1066 = { has_dynamic_modifier = { modifier = CHN_industrialization_modifier } }
 		}
-		cost = kr_china_concessionintegration_cost?15
+		cost = 50
 		fire_only_once = yes
-		modifier = {
-			political_power_gain = -0.10
-		}
-		days_remove = kr_china_concessionintegration_speed?60
+		modifier = { political_power_cost = 0.05 }
+		days_remove = 120
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CHN_industrialize_zhanjiang_concession"
 			802 = {
-				remove_claim_by_ROOT_and_add_core_of_ROOT = yes
-				if = {
-					limit = { is_core_of = GER }
-					remove_core_of = GER
-				}
-				if = {
-					limit = { is_core_of = GEX }
-					remove_core_of = GEX
-				}
-				if = {
-					limit = { is_core_of = GEA }
-					remove_core_of = GEA
-				}
-				if = {
-					limit = { is_claimed_by = GER }
-					remove_claim_by = GER
-				}
-				if = {
-					limit = { is_claimed_by = GEX }
-					remove_claim_by = GEX
-				}
-				if = {
-					limit = { is_claimed_by = GEA }
-					remove_claim_by = GEA
-				}
+				add_dynamic_modifier = { modifier = CHN_industrialization_modifier }
+				set_state_category = six
 			}
-			
 		}
-		ai_will_do = {
-			factor = 1
-		}
+		ai_will_do = { factor = 1 }
 	}
-	
+
 	CHN_industrialize_wenzhou_concession = {
-		icon = infiltrate_state
+		icon = generic_construction
 		highlight_states = { highlight_state_targets = { state = 803 } }
-		allowed = {
-			OR = {
-				is_han_chinese_tag = yes
-				tag = LEC
-			}
-		}
-		visible = {
-			OR = {
-				can_integration_chinese_provinces = yes
-				tag = LEC
-				tag = GXC
-				tag = SQI
-				AND = {
-					tag = ANQ
-					has_completed_focus = ANQ_invite_back_governors
-				}
-			}
-			803 = { is_core_of = ROOT }
-		}
+		allowed = { is_chinese_tag = yes }
+		visible = { 803 = { is_core_of = ROOT } }
 		available = {
 			has_full_control_of_state = 803
+			1067 = { has_dynamic_modifier = { modifier = CHN_rural_reconstruction_modifier } }
 		}
-		cost = kr_china_concessionintegration_cost?15
+		cost = 50
 		fire_only_once = yes
-		modifier = {
-			political_power_gain = -0.10
-		}
-		days_remove = kr_china_concessionintegration_speed?60
+		modifier = { political_power_cost = 0.05 }
+		days_remove = 120
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CHN_industrialize_zhanjiang_concession"
 			803 = {
-				remove_claim_by_ROOT_and_add_core_of_ROOT = yes
-				if = {
-					limit = { is_core_of = GER }
-					remove_core_of = GER
-				}
-				if = {
-					limit = { is_core_of = GEX }
-					remove_core_of = GEX
-				}
-				if = {
-					limit = { is_core_of = GEA }
-					remove_core_of = GEA
-				}
-				if = {
-					limit = { is_claimed_by = GER }
-					remove_claim_by = GER
-				}
-				if = {
-					limit = { is_claimed_by = GEX }
-					remove_claim_by = GEX
-				}
-				if = {
-					limit = { is_claimed_by = GEA }
-					remove_claim_by = GEA
-				}
+				add_dynamic_modifier = { modifier = CHN_industrialization_modifier }
+				set_state_category = six
 			}
-			
 		}
-		ai_will_do = {
-			factor = 1
-		}
+		ai_will_do = { factor = 1 }
 	}
-	
+
 	CHN_industrialize_nantong_concession = {
-		icon = infiltrate_state
+		icon = generic_construction
 		highlight_states = { highlight_state_targets = { state = 1075 } }
-		allowed = {
-			OR = {
-				is_han_chinese_tag = yes
-				tag = LEC
-			}
-		}
-		visible = {
-			OR = {
-				can_integration_chinese_provinces = yes
-				tag = LEC
-				tag = GXC
-				tag = SQI
-				AND = {
-					tag = ANQ
-					has_completed_focus = ANQ_invite_back_governors
-				}
-			}
-			1075 = { is_core_of = ROOT }
-		}
+		allowed = { is_chinese_tag = yes }
+		visible = { 1075 = { is_core_of = ROOT } }
 		available = {
 			has_full_control_of_state = 1075
+			598 = { has_dynamic_modifier = { modifier = CHN_industrialization_modifier } }
 		}
-		cost = kr_china_concessionintegration_cost?15
+		cost = 50
 		fire_only_once = yes
-		modifier = {
-			political_power_gain = -0.10
-		}
-		days_remove = kr_china_concessionintegration_speed?60
+		modifier = { political_power_cost = 0.05 }
+		days_remove = 120
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CHN_industrialize_zhanjiang_concession"
 			1075 = {
-				remove_claim_by_ROOT_and_add_core_of_ROOT = yes
-				if = {
-					limit = { is_core_of = GER }
-					remove_core_of = GER
-				}
-				if = {
-					limit = { is_core_of = GEX }
-					remove_core_of = GEX
-				}
-				if = {
-					limit = { is_core_of = GEA }
-					remove_core_of = GEA
-				}
-				if = {
-					limit = { is_claimed_by = GER }
-					remove_claim_by = GER
-				}
-				if = {
-					limit = { is_claimed_by = GEX }
-					remove_claim_by = GEX
-				}
-				if = {
-					limit = { is_claimed_by = GEA }
-					remove_claim_by = GEA
-				}
+				add_dynamic_modifier = { modifier = CHN_industrialization_modifier }
+				set_state_category = six
 			}
-			
 		}
-		ai_will_do = {
-			factor = 1
-		}
+		ai_will_do = { factor = 1 }
 	}
-	
+
 	CHN_renovate_the_capital_decision = {
-		icon = infiltrate_state
-		allowed = {
-			is_chinese_tag = yes
-		}
+		icon = generic_construction
+		allowed = { is_chinese_tag = yes }
 		visible = { capital_scope = { is_core_of = ROOT } }
 		available = { capital_scope = { has_full_control_of_state = PREV } }
-		cost = 240
+		cost = 150
 		fire_only_once = yes
 		days_remove = 365
 		remove_effect = {
