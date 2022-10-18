@@ -369,6 +369,12 @@ is_claim_or_core_of_ROOT = {
 		is_core_of = ROOT
 	}
 }
+is_claim_or_core_of_ROOT_FROM = {
+	OR = {
+		is_claimed_by = ROOT.FROM
+		is_core_of = ROOT.FROM
+	}
+}
 
 is_claim_or_core_of_FROM = {
 	OR = {
@@ -423,21 +429,21 @@ is_claim_or_core_or_ambition_of_PREV = {
 
 is_owned_or_claimed_by_ROOT = {
 	OR = {
-		has_claimed_state_in_peace_conference = ROOT
+		pc_is_state_claimed_by = ROOT
 		is_owned_by = ROOT
 	}
 }
 
 is_owned_or_claimed_by_PREV = {
 	OR = {
-		has_claimed_state_in_peace_conference = PREV
+		pc_is_state_claimed_by = PREV
 		is_owned_by = PREV
 	}
 }
 
 is_owned_or_claimed_by_PREVPREV = {
 	OR = {
-		has_claimed_state_in_peace_conference = PREV.PREV
+		pc_is_state_claimed_by = PREV.PREV
 		is_owned_by = PREV.PREV
 	}
 }
@@ -445,7 +451,10 @@ is_owned_or_claimed_by_PREVPREV = {
 is_adjacent_to_ROOT_or_coastal = {
 	OR = {
 		num_owned_neighbour_states = { count > 0 owner = ROOT }
-		num_claimed_peace_conference_neighbour_states = { count > 0 owner = ROOT }
+		num_owned_neighbour_states = { 
+			pc_is_state_claimed_by = ROOT
+			count > 0 owner = FROM
+		}
 		AND = {
 			is_coastal = yes
 			ROOT = {
@@ -458,7 +467,10 @@ is_adjacent_to_ROOT_or_coastal = {
 is_adjacent_to_PREV_or_coastal = {
 	OR = {
 		num_owned_neighbour_states = { count > 0 owner = PREV }
-		num_claimed_peace_conference_neighbour_states = { count > 0 owner = PREV }
+		num_owned_neighbour_states = { 
+			pc_is_state_claimed_by = ROOT
+			count > 0 owner = PREV
+		}
 		AND = {
 			is_coastal = yes
 			PREV = {
@@ -1529,7 +1541,7 @@ can_reach_state = {
 						NOT = {
 							any_of_scopes = {
 								array = global.conference
-								PREV = { has_claimed_state_in_peace_conference = PREV }
+								PREV = { pc_is_state_claimed_by = PREV }
 							}
 						}
 						#any states which are claimed/cores/ambitions (meaning they will be taken)
@@ -1563,7 +1575,7 @@ can_reach_state = {
 								OR = {
 									is_in_array = { global.canreach = THIS }
 									is_owned_by = var:global.taker
-									has_claimed_state_in_peace_conference = var:global.taker
+									pc_is_state_claimed_by = var:global.taker
 								}
 							}
 						}
@@ -1587,7 +1599,7 @@ can_reach_state = {
 						NOT = {
 							any_of_scopes = {
 								array = global.conference
-								PREV = { has_claimed_state_in_peace_conference = PREV }
+								PREV = { pc_is_state_claimed_by = PREV }
 							}
 						}
 						#any states which are claimed/cores/ambitions (meaning they will be taken)
@@ -1621,7 +1633,7 @@ can_reach_state = {
 								OR = {
 									is_in_array = { global.canreach = THIS }
 									is_owned_by = var:global.taker
-									has_claimed_state_in_peace_conference = var:global.taker
+									pc_is_state_claimed_by = var:global.taker
 								}
 							}
 						}
@@ -1654,7 +1666,7 @@ can_reach_state_direct = {
 						NOT = {
 							any_of_scopes = {
 								array = global.conference
-								PREV = { has_claimed_state_in_peace_conference = PREV }
+								PREV = { pc_is_state_claimed_by = PREV }
 							}
 						}
 						#any states which are claimed/cores/ambitions (meaning they will be taken)
@@ -1680,7 +1692,7 @@ can_reach_state_direct = {
 							OR = {
 								is_in_array = { global.canreach = THIS }
 								is_owned_by = var:global.taker
-								has_claimed_state_in_peace_conference = var:global.taker
+								pc_is_state_claimed_by = var:global.taker
 							}
 						}
 					}
@@ -1703,7 +1715,7 @@ can_reach_state_direct = {
 						NOT = {
 							any_of_scopes = {
 								array = global.conference
-								PREV = { has_claimed_state_in_peace_conference = PREV }
+								PREV = { pc_is_state_claimed_by = PREV }
 							}
 						}
 						#any states which are claimed/cores/ambitions (meaning they will be taken)
@@ -1729,7 +1741,7 @@ can_reach_state_direct = {
 							OR = {
 								is_in_array = { global.canreach = THIS }
 								is_owned_by = var:global.taker
-								has_claimed_state_in_peace_conference = var:global.taker
+								pc_is_state_claimed_by = var:global.taker
 							}
 						}
 					}
@@ -1878,13 +1890,19 @@ rule_take_bordering_first = {
 		is_important_state = no
 		NOT = {
 			num_owned_neighbour_states = { count > 0 owner = ROOT }
-			num_claimed_peace_conference_neighbour_states = { count > 0 owner = ROOT }
+			num_owned_neighbour_states = { 
+				pc_is_state_claimed_by = PREV
+				count > 0 owner = ROOT
+			}
 		}
 		owner = {
 			any_owned_state = {
 				OR = {
 					num_owned_neighbour_states = { count > 0 owner = ROOT }
-					num_claimed_peace_conference_neighbour_states = { count > 0 owner = ROOT }
+					num_owned_neighbour_states = { 
+						pc_is_state_claimed_by = PREV.PREV
+						count > 0 owner = PREV
+					}
 				}
 				set_temp_variable = { global.eval_state = THIS.id }
 				NOT = {
@@ -1892,7 +1910,7 @@ rule_take_bordering_first = {
 						any_enemy_country = {
 							var:global.eval_state = {
 								OR = {
-								has_claimed_state_in_peace_conference = PREV
+								pc_is_state_claimed_by = PREV
 									is_controlled_by = PREV
 								}
 							}
@@ -2286,7 +2304,10 @@ rule_look_for_direct_connection_ROOT = {
 	var:global.eval_state = {
 		NOT = {
 			num_owned_neighbour_states = { count > 0 owner = ROOT }
-			num_claimed_peace_conference_neighbour_states = { count > 0 owner = ROOT }
+			num_owned_neighbour_states = { 
+				pc_is_state_claimed_by = ROOT
+				count > 0 owner = PREV
+			}
 			# unless it's an important state, an island, or a coastal state in an island region (like Britain)
 			is_important_state = yes
 			AND = {
@@ -2837,7 +2858,7 @@ rule_GER_split_up_france_PREV = {
 				GER = { is_ally_with = PREV.controller }
 				any_neighbor_state = {
 					OR = {
-						has_claimed_state_in_peace_conference = GER
+						pc_is_state_claimed_by = GER
 						is_owned_by = GER
 					}
 				}
@@ -2847,7 +2868,7 @@ rule_GER_split_up_france_PREV = {
 				NOT = { controller = { is_in_faction_with = NFA } }
 				any_neighbor_state = {
 					OR = {
-						has_claimed_state_in_peace_conference = GER
+						pc_is_state_claimed_by = GER
 						is_owned_by = GER
 					}
 				}
@@ -2913,7 +2934,7 @@ rule_NFA_split_up_france_PREV = {
 				OR = {
 					any_neighbor_state = {
 						OR = {
-							has_claimed_state_in_peace_conference = NFA
+							pc_is_state_claimed_by = NFA
 							is_owned_by = NFA
 						}
 					}
@@ -2925,7 +2946,7 @@ rule_NFA_split_up_france_PREV = {
 				NOT = { controller = { is_in_faction_with = GER } }
 				any_neighbor_state = {
 					OR = {
-						has_claimed_state_in_peace_conference = NFA
+						pc_is_state_claimed_by = NFA
 						is_owned_by = NFA
 					}
 				}
@@ -3682,7 +3703,10 @@ rule_BHC_stay_out_of_siam_ROOT = {
 		is_core_of = SIA
 		NOT = {
 			num_owned_neighbour_states = { count > 0 owner = ROOT }
-			num_claimed_peace_conference_neighbour_states = { count > 0 owner = ROOT }
+			num_owned_neighbour_states = { 
+				pc_is_state_claimed_by = BHC
+				count > 0 owner = SIA
+			}
 		}
 	}
 }
@@ -3698,7 +3722,10 @@ rule_BHC_stay_out_of_siam_PREV = {
 		is_core_of = SIA
 		NOT = {
 			num_owned_neighbour_states = { count > 0 owner = PREV }
-			num_claimed_peace_conference_neighbour_states = { count > 0 owner = PREV }
+			num_owned_neighbour_states = { 
+				pc_is_state_claimed_by = BHC
+				count > 0 owner = BRM
+			}
 		}
 	}
 }
@@ -4181,7 +4208,7 @@ rule_RUS_stay_out_of_west_europe_ROOT = {
 		781 = {
 			OR = {
 				is_owned_by_ROOT_or_ally = yes
-				has_claimed_state_in_peace_conference = ROOT
+				pc_is_state_claimed_by = ROOT
 			}
 		}
 	}
@@ -4215,7 +4242,7 @@ rule_RUS_stay_out_of_west_europe_PREV = {
 			OR = {
 				is_owned_by = PREV
 				owner = { is_ally_with = PREV.PREV }
-				has_claimed_state_in_peace_conference = PREV
+				pc_is_state_claimed_by = PREV
 			}
 		}
 	}
@@ -4248,7 +4275,7 @@ rule_RUS_stay_out_of_spain_ROOT = {
 		16 = {
 			OR = {
 				is_owned_by_ROOT_or_ally = yes
-				has_claimed_state_in_peace_conference = ROOT
+				pc_is_state_claimed_by = ROOT
 			}
 		}
 	}
@@ -4282,7 +4309,7 @@ rule_RUS_stay_out_of_spain_PREV = {
 			OR = {
 				is_owned_by = PREV
 				owner = { is_ally_with = PREV.PREV }
-				has_claimed_state_in_peace_conference = PREV
+				pc_is_state_claimed_by = PREV
 			}
 		}
 	}
@@ -4315,13 +4342,13 @@ rule_RUS_stay_out_of_italy_ROOT = {
 		4 = {
 			OR = {
 				is_owned_by_ROOT_or_ally = yes
-				has_claimed_state_in_peace_conference = ROOT
+				pc_is_state_claimed_by = ROOT
 			}
 		}
 		109 = {
 			OR = {
 				is_owned_by_ROOT_or_ally = yes
-				has_claimed_state_in_peace_conference = ROOT
+				pc_is_state_claimed_by = ROOT
 			}
 		}
 	}
@@ -4355,14 +4382,14 @@ rule_RUS_stay_out_of_italy_PREV = {
 			OR = {
 				is_owned_by = PREV
 				owner = { is_ally_with = PREV.PREV }
-				has_claimed_state_in_peace_conference = PREV
+				pc_is_state_claimed_by = PREV
 			}
 		}
 		109 = {
 			OR = {
 				is_owned_by = PREV
 				owner = { is_ally_with = PREV.PREV }
-				has_claimed_state_in_peace_conference = PREV
+				pc_is_state_claimed_by = PREV
 			}
 		}
 	}
@@ -4390,13 +4417,13 @@ rule_RUS_stay_out_of_ireland_ROOT = {
 		126 = {
 			OR = {
 				is_owned_by_ROOT_or_ally = yes
-				has_claimed_state_in_peace_conference = ROOT
+				pc_is_state_claimed_by = ROOT
 			}
 		}
 		121 = {
 			OR = {
 				is_owned_by_ROOT_or_ally = yes
-				has_claimed_state_in_peace_conference = ROOT
+				pc_is_state_claimed_by = ROOT
 			}
 		}
 	}
@@ -4425,14 +4452,14 @@ rule_RUS_stay_out_of_ireland_PREV = {
 			OR = {
 				is_owned_by = PREV
 				owner = { is_ally_with = PREV.PREV }
-				has_claimed_state_in_peace_conference = PREV
+				pc_is_state_claimed_by = PREV
 			}
 		}
 		121 = {
 			OR = {
 				is_owned_by = PREV
 				owner = { is_ally_with = PREV.PREV }
-				has_claimed_state_in_peace_conference = PREV
+				pc_is_state_claimed_by = PREV
 			}
 		}
 	}
