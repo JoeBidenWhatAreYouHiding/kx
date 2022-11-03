@@ -85,178 +85,141 @@ decrease_mobilisation = {
 	}
 }
 
-disband_twenty_percent_units = {
-	save_event_target_as = disband_country
-	XXB = {
-		set_temp_variable = {
-			old_manpower = manpower_k
-		}
-	}
+disband_units_setup = {
+	set_temp_variable = { disband_country = THIS }
 	random_state = {
 		limit = {
 			impassable = yes
 			is_fully_controlled_by = owner
 		}
-		owner = { save_event_target_as = disband_state_owner }
-		save_event_target_as = disband_state
-		XXB = { set_state_owner = PREV }
-	}
-	transfer_units_fraction = {
-		target = XXB
-		size = 0
-		army_ratio = 0.2
-		keep_unit_leaders_trigger = {
-			always = yes
+		set_temp_variable = { disband_state = THIS }
+		set_temp_variable = { disband_state_owner = THIS.owner }
+		if = {
+			limit = { NOT = { country_exists = XXA } }
+			XXA = {
+				transfer_state = PREV
+				set_temp_variable = { debug_tag_instance = THIS }
+				set_temp_variable = { old_manpower = manpower_k }
+			}
+		}
+		else = {
+			create_dynamic_country = {
+				original_tag = XXA
+
+				transfer_state = PREV
+				set_temp_variable = { debug_tag_instance = THIS }
+				set_temp_variable = { old_manpower = manpower_k }
+			}
 		}
 	}
-	XXB = {
-		delete_unit = {
-			disband = yes
-		}
-		set_temp_variable = {
-			manpower_diff = manpower_k
-		}
-		subtract_from_temp_variable = {
-			manpower_diff = old_manpower
-		}
-		while_loop_effect = { #avoid overflows
-			limit = { check_variable = { manpower_diff > 1 } }
-			subtract_from_temp_variable = { manpower_diff = 1 }
-			event_target:disband_country = { add_manpower = 1000 }
-			add_manpower = -1000
-		}
-		multiply_temp_variable = {
-			manpower_diff = 1000
-		}
-		event_target:disband_country = { add_manpower = PREV.manpower_diff }
-		multiply_temp_variable = {
-			manpower_diff = -1
-		}
-		add_manpower = manpower_diff
-		send_equipment_fraction = { target = event_target:disband_country value = 1 }
+}
+
+disband_units_transfer_manpower = {
+	delete_unit = { disband = yes }
+
+	set_temp_variable = { manpower_diff = manpower_k }
+	subtract_from_temp_variable = { manpower_diff = old_manpower }
+
+	while_loop_effect = { #avoid overflows
+		limit = { check_variable = { manpower_diff > 100 } }
+		subtract_from_temp_variable = { manpower_diff = 100 }
+		var:disband_country = { add_manpower = 100000 }
+		add_manpower = -100000
 	}
-	event_target:disband_state = {
-		event_target:disband_state_owner = { set_state_owner = PREV }
+
+	multiply_temp_variable = { manpower_diff = 1000 }
+	var:disband_country = { add_manpower = PREV.manpower_diff }
+
+	multiply_temp_variable = { manpower_diff = -1 }
+	add_manpower = manpower_diff
+}
+
+disband_units_finalise = {
+	var:disband_state = { transfer_state_to = var:disband_state_owner }
+}
+
+
+disband_ten_percent_units = {
+	custom_effect_tooltip = disband_ten_percent_units
+	hidden_effect = {
+		disband_units_setup = yes
+		transfer_units_fraction = {
+			target = var:debug_tag_instance
+			size = 0
+			army_ratio = 0.1
+			keep_unit_leaders_trigger = {
+				always = yes
+			}
+		}
+		var:debug_tag_instance = {
+			disband_units_transfer_manpower = yes
+			send_equipment_fraction = { target = var:disband_country value = 1 }
+		}
+		disband_units_finalise = yes
 	}
-	annex_country = {
-		target = XXB
-		transfer_troops = no
+}
+
+
+disband_twenty_percent_units = {
+	custom_effect_tooltip = disband_twenty_percent_units
+	hidden_effect = {
+		disband_units_setup = yes
+		transfer_units_fraction = {
+			target = var:debug_tag_instance
+			size = 0
+			army_ratio = 0.2
+			keep_unit_leaders_trigger = {
+				always = yes
+			}
+		}
+		var:debug_tag_instance = {
+			disband_units_transfer_manpower = yes
+			send_equipment_fraction = { target = var:disband_country value = 1 }
+		}
+		disband_units_finalise = yes
 	}
 }
 
 disband_twenty_percent_units_delete_equipment = { #used for disarming countries in peace events
-	save_event_target_as = disband_country
-	XXA = {
-		set_temp_variable = {
-			old_manpower = manpower_k
+	custom_effect_tooltip = disband_twenty_percent_units_delete_equipment
+	hidden_effect = {
+		disband_units_setup = yes
+		transfer_units_fraction = {
+			target = var:debug_tag_instance
+			size = 0
+			army_ratio = 0.2
+			keep_unit_leaders_trigger = {
+				always = yes
+			}
 		}
-	}
-	random_state = {
-		limit = {
-			impassable = yes
-			is_fully_controlled_by = owner
+		var:debug_tag_instance = {
+			disband_units_transfer_manpower = yes
+			set_equipment_fraction = 0
 		}
-		owner = { save_event_target_as = disband_state_owner }
-		save_event_target_as = disband_state
-		set_state_owner_to = XXA
-	}
-	transfer_units_fraction = {
-		target = XXA
-		size = 0
-		army_ratio = 0.2
-		keep_unit_leaders_trigger = {
-			always = yes
-		}
-	}
-	XXA = {
-		delete_unit = {
-			disband = yes
-		}
-		set_temp_variable = {
-			manpower_diff = manpower_k
-		}
-		subtract_from_temp_variable = {
-			manpower_diff = old_manpower
-		}
-		while_loop_effect = { #avoid overflows
-			limit = { check_variable = { manpower_diff > 1 } }
-			subtract_from_temp_variable = { manpower_diff = 1 }
-			event_target:disband_country = { add_manpower = 1000 }
-			add_manpower = -1000
-		}
-		multiply_temp_variable = {
-			manpower_diff = 1000
-		}
-		event_target:disband_country = { add_manpower = PREV.manpower_diff }
-		multiply_temp_variable = {
-			manpower_diff = -1
-		}
-		add_manpower = manpower_diff
-		set_equipment_fraction = 0
-	}
-	event_target:disband_state = { set_state_owner_to = event_target:disband_state_owner }
-	annex_country = {
-		target = XXA
-		transfer_troops = no
+		disband_units_finalise = yes
 	}
 }
 
 disband_fifty_percent_units = {
-	save_event_target_as = disband_country
-	XXA = {
-		set_temp_variable = {
-			old_manpower = manpower_k
+	custom_effect_tooltip = disband_fifty_percent_units
+	hidden_effect = {
+		disband_units_setup = yes
+		transfer_units_fraction = {
+			target = var:debug_tag_instance
+			size = 0
+			army_ratio = 0.5
+			keep_unit_leaders_trigger = {
+				always = yes
+			}
 		}
-	}
-	random_state = {
-		limit = {
-			impassable = yes
-			is_fully_controlled_by = owner
+		var:debug_tag_instance = {
+			disband_units_transfer_manpower = yes
+			send_equipment_fraction = { target = var:disband_country value = 1 }
 		}
-		owner = { save_event_target_as = disband_state_owner }
-		save_event_target_as = disband_state
-		set_state_owner_to = XXA
-	}
-	transfer_units_fraction = {
-		target = XXA
-		size = 0
-		army_ratio = 0.5
-		keep_unit_leaders_trigger = {
-			always = yes
-		}
-	}
-	XXA = {
-		delete_unit = {
-			disband = yes
-		}
-		set_temp_variable = {
-			manpower_diff = manpower_k
-		}
-		subtract_from_temp_variable = {
-			manpower_diff = old_manpower
-		}
-		while_loop_effect = { #avoid overflows
-			limit = { check_variable = { manpower_diff > 1 } }
-			subtract_from_temp_variable = { manpower_diff = 1 }
-			event_target:disband_country = { add_manpower = 1000 }
-			add_manpower = -1000
-		}
-		multiply_temp_variable = {
-			manpower_diff = 1000
-		}
-		event_target:disband_country = { add_manpower = PREV.manpower_diff }
-		multiply_temp_variable = {
-			manpower_diff = -1
-		}
-		add_manpower = manpower_diff
-		send_equipment_fraction = { target = event_target:disband_country value = 1 }
-	}
-	event_target:disband_state = { set_state_owner_to = event_target:disband_state_owner }
-	annex_country = {
-		target = XXA
-		transfer_troops = no
+		disband_units_finalise = yes
 	}
 }
+
 
 calculate_maximum_divisions = {
 	# base upper division limit = number of factories
