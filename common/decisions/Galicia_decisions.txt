@@ -1,0 +1,924 @@
+GAL_Unrest_In_Galicia = {
+	GAL_WSU_guerilla_activity = {
+		icon = generic_civil_support
+		priority = 10
+
+		allowed = { always = no } #manually activated
+
+		available = {
+			OR = {
+				has_country_flag = GAL_finished_centralisation
+				country_exists = WSU
+				NOT = { owns_state = 91 }
+			}
+		}
+
+		cancel_trigger = {
+			OR = {
+				has_capitulated = yes
+				country_exists = WSU
+			}
+		}
+
+		cost = 40
+		is_good = no
+		fixed_random_seed = no
+		selectable_mission = yes
+		days_mission_timeout = GAL_WSU_guerilla_activity_timeout?75
+
+		ai_will_do = {
+			base = 10			
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision GAL_WSU_guerilla_activity"
+			add_stability = 0.15
+			if = {
+				limit = { NOT = { country_exists = WSU } }
+				country_event = gal.34
+			}
+		}
+
+		timeout_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision timeout GAL_WSU_guerilla_activity"
+			hidden_effect = { activate_mission = GAL_WSU_guerilla_activity }
+			random_list = {
+				10 = {
+					modifier = {
+						set_temp_variable = { GAL_major_attack_factor = UKR_ukrainian_resistance }
+						divide_temp_variable = { GAL_major_attack_factor = 20 }
+						clamp_temp_variable = { var = GAL_major_attack_factor min = 1 }
+						factor = GAL_major_attack_factor #10% at 100% threat
+					}
+					country_event = gal.23 #major attack
+				}
+				10 = {
+					modifier = {
+						set_temp_variable = { GAL_minor_attack_factor = UKR_ukrainian_resistance }
+						divide_temp_variable = { GAL_minor_attack_factor = 20 }
+						clamp_temp_variable = { var = GAL_minor_attack_factor min = 1 }
+						factor = GAL_minor_attack_factor #15% at 100% threat
+					}
+					country_event = gal.29 #minor attack
+				}
+				10 = {
+					modifier = {
+						set_temp_variable = { GAL_military_sabotage_factor = UKR_ukrainian_resistance }
+						divide_temp_variable = { GAL_military_sabotage_factor = 25 }
+						clamp_temp_variable = { var = GAL_military_sabotage_factor min = 1 }
+						factor = GAL_military_sabotage_factor #20% at 100% threat
+					}
+					country_event = gal.25 #LAF - Attack - MIL
+				}
+				10 = {
+					modifier = {
+						set_temp_variable = { GAL_civilian_sabotage_factor = UKR_ukrainian_resistance }
+						divide_temp_variable = { GAL_civilian_sabotage_factor = 50 }
+						clamp_temp_variable = { var = GAL_civilian_sabotage_factor min = 1 }
+						factor = GAL_civilian_sabotage_factor #20% at 100% threat
+					}
+					country_event = gal.24 #LAF - Attack - CIV
+				}
+				10 = {
+					modifier = {
+						set_temp_variable = { GAL_infrastructure_sabotage_factor = UKR_ukrainian_resistance }
+						divide_temp_variable = { GAL_infrastructure_sabotage_factor = 50 }
+						clamp_temp_variable = { var = GAL_infrastructure_sabotage_factor min = 1 }
+						factor = GAL_infrastructure_sabotage_factor #20% at 100% threat
+					}
+					country_event = gal.28 #LAF - Attack - INF
+				}
+				25 = {
+					modifier = {
+						set_temp_variable = { GAL_no_attack_factor = 1 }
+						set_temp_variable = { GAL_no_attack_chance = UKR_ukrainian_resistance }
+						divide_temp_variable = { GAL_no_attack_chance = 100 }
+						subtract_from_temp_variable = { GAL_no_attack_factor = GAL_no_attack_chance }
+						factor = GAL_no_attack_factor #0% at 100% threat
+					}
+					country_event = gal.26 #Quiet
+				}
+				25 = {
+					modifier = {
+						set_temp_variable = { GAL_attack_fail_chance = UKR_ukrainian_resistance }
+						divide_temp_variable = { GAL_attack_fail_chance = 400 }
+						set_temp_variable = { GAL_attack_fail_factor = 1 }
+						subtract_from_temp_variable = { GAL_attack_fail_factor = GAL_attack_fail_chance }
+						factor = GAL_attack_fail_factor #15% at 100% threat
+					}
+					country_event = gal.27 #LAF repulsed
+				}
+			}
+		}
+	}
+	GAL_Shut_Down_Prosvita = {
+		icon = GFX_decision_generic_police_action
+
+		visible = {
+			NOT = {	has_country_flag = GAL_finished_centralisation }
+			NOT = {	country_exists = WSU }
+			NOT = { owns_state = 91 }
+			has_socialist_government = no
+			has_left_democratic_government = no
+		}
+
+		cancel_trigger = {
+			NOT = { has_active_mission = GAL_WSU_guerilla_activity }
+		}
+
+		cost = 40
+		days_remove = 30
+		fire_only_once = yes
+
+		ai_will_do = {
+			base = 2
+			modifier = {
+				factor = GAL_centralisation_change
+			}
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancelled GAL_Shut_Down_Prosvita"
+			add_political_power = 40
+		}
+		
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove GAL_Shut_Down_Prosvita"
+			set_country_flag = GAL_prosvita_banned
+			country_event = gal.35
+			add_popularity = {
+				ideology = paternal_autocrat
+				popularity = 0.05
+			}
+			set_temp_variable = { WSU_threat_change = 10 }
+			GAL_change_WSU_threat = yes
+			set_temp_variable = { GAL_centralisation_change = 20 }
+			GAL_change_centralisation = yes
+		}
+	}
+	GAL_Ukrainian_Schools_In_State = {
+		icon = GFX_decision_peace_dove
+		allowed = { always = no } #activated by effect
+		visible = {
+			NOT = {	has_country_flag = GAL_finished_centralisation }
+			NOT = {	has_country_flag = GAL_prosvita_banned }
+			NOT = {	country_exists = WSU }
+		}
+
+		cancel_trigger = {
+			NOT = { has_active_mission = GAL_WSU_guerilla_activity }
+		}
+		highlight_states = { 
+			highlight_state_targets = {
+				state = FROM
+			} 
+		}
+		cost = 15
+		days_remove = 35
+		fire_only_once = yes
+		cancel_if_not_visible = yes
+		
+		state_target = yes
+		modifier = {
+			political_power_factor = -0.05
+		}
+		
+		ai_will_do = {
+			base = 15
+			modifier = {
+				factor = 0.25
+				has_socialist_government = no
+				has_left_democratic_government = no
+			}
+			modifier = {
+				factor = 0
+				check_variable = { UKR_ukrainian_resistance > 25 }
+			}			
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancelled GAL_Ukrainian_Schools_In_State"
+			add_political_power = 15
+		}
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision GAL_Ukrainian_Schools_In_State"
+			FROM = { set_state_flag = GAL_state_opened_school }
+			add_stability = 0.02
+			set_temp_variable = { ideology_change_var = 2 }
+			change_ruling_party_popularity = yes
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove GAL_Ukrainian_Schools_In_State"
+			set_temp_variable = { WSU_threat_change = -4 }
+			GAL_change_WSU_threat = yes
+			set_temp_variable = { GAL_centralisation_change = -2 }
+			GAL_change_centralisation = yes
+		}
+	}
+	GAL_Ban_Ukrainian_Schools_In_State = {
+		icon = GFX_decision_generic_police_action
+		allowed = { always = no } #activated by effect
+		visible = {
+			NOT = {	has_country_flag = GAL_finished_centralisation }
+			NOT = {	country_exists = WSU }
+		}
+
+		cancel_trigger = {
+			NOT = { has_active_mission = GAL_WSU_guerilla_activity }
+		}
+		highlight_states = { 
+			highlight_state_targets = {
+				state = FROM
+			} 
+		}
+		cost = 25
+		days_remove = 40
+		fire_only_once = yes
+		cancel_if_not_visible = yes
+		
+		state_target = yes
+		modifier = {
+			political_power_factor = -0.15
+		}
+
+		ai_will_do = {
+			base = 2
+			modifier = {
+				factor = UKR_ukrainian_resistance
+				check_variable = { UKR_ukrainian_resistance > 25 }
+			}			
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancelled GAL_Ban_Ukrainian_Schools_In_State"
+			add_political_power = 25
+		}
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision GAL_Ban_Ukrainian_Schools_In_State"
+			FROM = { set_state_flag = GAL_state_banned_school }
+			add_stability = -0.02
+			set_temp_variable = { ideology_change_var = -2 }
+			change_ruling_party_popularity = yes
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove GAL_Ban_Ukrainian_Schools_In_State"
+			set_temp_variable = { WSU_threat_change = 4 }
+			GAL_change_WSU_threat = yes
+			set_temp_variable = { GAL_centralisation_change = 2 }
+			GAL_change_centralisation = yes
+		}
+	}
+	GAL_Destroy_UWO_In_State = {
+		icon = GFX_decision_generic_police_action
+		allowed = { always = no } #activated by effect
+		visible = {
+			NOT = {	has_country_flag = GAL_finished_centralisation }
+			NOT = {	country_exists = WSU }
+		}
+
+		cancel_trigger = {
+			NOT = { has_active_mission = GAL_WSU_guerilla_activity }
+		}
+		highlight_states = { 
+			highlight_state_targets = {
+				state = FROM
+			} 
+		}
+		custom_cost_text = 200_infantry_equipment_1
+		custom_cost_trigger = {
+			has_equipment = { infantry_equipment > 199 }
+		}
+		days_remove = 15
+		
+		fire_only_once = yes
+		cancel_if_not_visible = yes
+		
+		state_target = yes
+		modifier = {
+			weekly_manpower = -15
+		}
+
+		ai_will_do = {
+			base = 100
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancelled GAL_Destroy_UWO_In_State"
+			custom_effect_tooltip = 200_infantry_equipment_1
+			hidden_effect = {
+				add_equipment_to_stockpile = {
+					type = infantry_equipment
+					amount = 200
+				}
+			}
+		}
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision GAL_Destroy_UWO_In_State"
+			hidden_effect = {
+				add_equipment_to_stockpile = {
+					type = infantry_equipment
+					amount = -200
+				}
+			}
+			add_stability = 0.02
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove GAL_Destroy_UWO_In_State"
+			set_temp_variable = { WSU_threat_change = -8 }
+			GAL_change_WSU_threat = yes
+			FROM = {
+				set_demilitarized_zone = no
+				remove_claim_by = ROOT
+				add_core_of = ROOT
+				remove_core_of = WSU
+				cancel_resistance = yes
+				force_disable_resistance = { clear = yes }
+			}
+		}
+	}
+	GAL_UGA_Joint_Exercises = {
+		icon = GFX_decision_generic_civil_support
+
+		available = {
+			GAL_WSU_resistance_less_15_percent = yes
+		}
+		cancel_trigger = {
+			NOT = { has_active_mission = GAL_WSU_guerilla_activity }
+		}
+		cost = 100
+
+		days_remove = 120
+		fire_only_once = yes
+
+		modifier = {
+			political_power_factor = -0.05
+		}
+
+		ai_will_do = {
+			base = 2
+			modifier = {
+				factor = UKR_ukrainian_resistance
+			}
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancelled GAL_UGA_Joint_Exercises"
+			add_political_power = 100
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision GAL_UGA_Joint_Exercises"
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove GAL_UGA_Joint_Exercises"
+			set_temp_variable = { WSU_threat_change = -10 }
+			GAL_change_WSU_threat = yes
+			set_temp_variable = { GAL_centralisation_change = -5 }
+			GAL_change_centralisation = yes
+		}
+	}
+	GAL_Dissolve_UGA = {
+		icon = GFX_decision_generic_civil_support
+
+		available = {
+			GAL_centralisation_above_40_percent = yes
+		}
+		cancel_trigger = {
+			OR = {
+				NOT = { has_active_mission = GAL_WSU_guerilla_activity }
+				has_country_flag = AUS_forbid_dissolving_uga
+			}
+		}
+		cost = 100
+
+		days_remove = 120
+		fire_only_once = yes
+
+		modifier = {
+			political_power_factor = -0.05
+		}
+
+		ai_will_do = {
+			base = 2
+			modifier = {
+				factor = GAL_centralisation
+			}
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancelled GAL_Dissolve_UGA"
+			add_political_power = 100
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision GAL_Dissolve_UGA"
+			AUS = { country_event = gal.39 }
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove GAL_Dissolve_UGA"
+			set_temp_variable = { WSU_threat_change = -10 }
+			GAL_change_WSU_threat = yes
+			set_temp_variable = { GAL_centralisation_change = 15 }
+			GAL_change_centralisation = yes
+			effect_tooltip = {
+				every_unit_leader = {
+					limit = { has_trait = UKR_uga_officer }
+					retire = yes
+				}
+			}
+			hidden_effect = {
+				every_unit_leader = {
+					limit = { has_trait = UKR_uga_officer }
+					set_nationality = WSU
+				}
+			}
+		}
+	}
+	GAL_Infiltrate_UVO = {
+		icon = GFX_decision_generic_assassination
+
+		cancel_trigger = {
+			NOT = { has_active_mission = GAL_WSU_guerilla_activity }
+		}
+
+		cost = 50
+
+		days_remove = 60
+		days_re_enable = 30
+		fixed_random_seed = no
+
+		modifier = {
+			political_power_factor = -0.05
+		}
+
+		ai_will_do = {
+			base = UKR_ukrainian_resistance
+			modifier = {
+				factor = 0
+				check_variable = { UKR_ukrainian_resistance > 25 } #save for the other decisions
+			}
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancelled GAL_Infiltrate_UVO"
+			add_political_power = 50
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision GAL_Infiltrate_UVO"
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove GAL_Infiltrate_UVO"
+			random_list = {
+				50 = { country_event = gal.30 } #Successful Raid
+				15 = { country_event = gal.31 } #Civilians harmed
+				20 = { country_event = gal.32 } #UVO strongpoint destroyed
+				15 = { country_event = gal.33 } #All quiet on the Galician front
+			}
+		}
+	}
+	GAL_Balance_Polish_Ukrainian_Sejm = {
+		icon = GFX_decision_eng_trade_unions_support
+
+		visible = {
+			has_right_democratic_government = no
+			has_authoritarian_government = no
+			NOT = { has_country_flag = GAL_Polonize_The_Sejm_completed }
+			has_completed_focus = GAL_special_elections
+		}
+
+		cancel_trigger = {
+			NOT = { has_active_mission = GAL_WSU_guerilla_activity }
+		}
+		cancel_if_not_visible = yes
+		cost = 50
+		days_remove = 30
+		fire_only_once = yes
+		cancel_if_not_visible = yes		
+		ai_will_do = {
+			base = 50
+		}
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancelled GAL_Balance_Polish_Ukrainian_Sejm"
+			add_political_power = 50
+			clr_country_flag = GAL_Balance_Polish_Ukrainian_Sejm_completed
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision GAL_Balance_Polish_Ukrainian_Sejm"
+			set_country_flag = GAL_Balance_Polish_Ukrainian_Sejm_completed
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove GAL_Balance_Polish_Ukrainian_Sejm"
+			add_stability = 0.03
+			set_temp_variable = { ideology_change_var = 4 }
+			change_ruling_party_popularity = yes
+			set_temp_variable = { WSU_threat_change = -30 }
+			GAL_change_WSU_threat = yes
+			add_popularity = {
+				ideology = paternal_autocrat
+				popularity = -0.1
+			}
+			set_temp_variable = { GAL_centralisation_change = -15 }
+			GAL_change_centralisation = yes
+		}
+	}
+	GAL_Polonize_The_Sejm = {
+		icon = GFX_decision_generic_police_action
+
+		visible = {
+			has_left_democratic_government = no
+			has_socialist_government = no
+			NOT = { has_country_flag = GAL_Balance_Polish_Ukrainian_Sejm_completed }
+			has_completed_focus = GAL_special_elections
+		}
+		cancel_trigger = {
+			NOT = { has_active_mission = GAL_WSU_guerilla_activity }
+		}
+		cost = 50
+		days_remove = 30
+		fire_only_once = yes
+		cancel_if_not_visible = yes
+		ai_will_do = {
+			base = 50
+		}
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancelled GAL_Polonize_The_Sejm"
+			add_political_power = 50
+			clr_country_flag = GAL_Polonize_The_Sejm_completed
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision GAL_Polonize_The_Sejm"
+			set_country_flag = GAL_Polonize_The_Sejm_completed
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove GAL_Polonize_The_Sejm"
+			add_stability = 0.03
+			set_temp_variable = { ideology_change_var = -4 }
+			change_ruling_party_popularity = yes
+			set_temp_variable = { WSU_threat_change = 15 }
+			GAL_change_WSU_threat = yes
+			set_temp_variable = { GAL_centralisation_change = 25 }
+			GAL_change_centralisation = yes
+		}
+	}
+	GAL_Curtail_Plast = {
+		icon = GFX_decision_generic_police_action
+
+		cancel_trigger = {
+			NOT = { has_active_mission = GAL_WSU_guerilla_activity }
+		}
+
+		cost = 40
+		days_remove = 15
+		fire_only_once = yes
+
+		ai_will_do = {
+			base = UKR_ukrainian_resistance
+		}
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancelled GAL_Curtail_Plast"
+			add_political_power = 40
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision GAL_Curtail_Plast"
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove GAL_Curtail_Plast"
+			add_stability = -0.02
+			add_war_support = -0.02
+			set_temp_variable = { WSU_threat_change = 3 }
+			GAL_change_WSU_threat = yes
+			set_temp_variable = { GAL_centralisation_change = 5 }
+			GAL_change_centralisation = yes
+		}
+	}
+	GAL_Nationalize_Dnister = {
+		icon = GFX_decision_generic_arrest
+
+		visible = {
+			NOT = { has_country_flag = GAL_Encourage_Ukrainian_Cooperation_completed }
+			NOT = { has_country_flag = GAL_Nationalize_Dnister_completed }
+			has_completed_focus = GAL_special_elections
+		}
+		available = {
+			GAL_centralisation_above_40_percent = yes
+			NOT = { has_government = market_liberal }
+		}
+		cancel_trigger = {
+			NOT = { has_active_mission = GAL_WSU_guerilla_activity }
+		}
+		cost = 60
+		days_remove = 15
+		fire_only_once = yes
+
+		ai_will_do = {
+			base = UKR_ukrainian_resistance
+		}
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancelled GAL_Nationalize_Dnister"
+			add_political_power = 60
+			clr_country_flag = GAL_Nationalize_Dnister_completed
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision GAL_Nationalize_Dnister"
+			set_country_flag = GAL_Nationalize_Dnister_completed
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove GAL_Nationalize_Dnister"
+			add_stability = -0.08
+			add_popularity = {
+				ideology = market_liberal
+				popularity = -0.08
+			}
+			set_temp_variable = { WSU_threat_change = 11 }
+			GAL_change_WSU_threat = yes
+			country_event = gal.36
+			set_temp_variable = { GAL_centralisation_change = 8 }
+			GAL_change_centralisation = yes
+		}
+	}
+	GAL_Encourage_Ukrainian_Cooperation = {
+		icon = GFX_decision_give_cash
+
+		visible = {
+			NOT = { has_country_flag = GAL_Encourage_Ukrainian_Cooperation_completed }
+			NOT = { has_country_flag = GAL_Nationalize_Dnister_completed }
+			has_completed_focus = GAL_special_elections
+		}
+		available = {
+			GAL_WSU_resistance_less_15_percent = yes
+			GAL_centralisation_above_40_percent = no
+			NOT = { has_government = market_liberal }
+		}
+		cancel_trigger = {
+			NOT = { has_active_mission = GAL_WSU_guerilla_activity }
+		}
+		cost = 30
+		days_remove = 15
+		fire_only_once = yes
+
+		ai_will_do = {
+			base = UKR_ukrainian_resistance
+		}
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancelled GAL_Nationalize_Dnister"
+			add_political_power = 30
+			clr_country_flag = GAL_Encourage_Ukrainian_Cooperation_completed
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision GAL_Nationalize_Dnister"
+			set_country_flag = GAL_Encourage_Ukrainian_Cooperation_completed
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove GAL_Nationalize_Dnister"
+			add_stability = 0.05
+			add_popularity = {
+				ideology = market_liberal
+				popularity = -0.05
+			}
+			set_temp_variable = { WSU_threat_change = -10 }
+			GAL_change_WSU_threat = yes
+		}
+	}
+	GAL_Threaten_Catholic_Church = {
+		icon = GFX_decision_oppression
+
+		visible = {
+			NOT = { has_government = radical_socialist }
+			has_completed_focus = GAL_special_elections
+			has_country_flag = GAL_Nationalize_Dnister_completed
+		}
+		available = {
+			GAL_centralisation_above_60_percent = yes
+		}
+		cancel_trigger = {
+			NOT = { has_active_mission = GAL_WSU_guerilla_activity }
+		}
+		cost = 40
+		days_remove = 15
+		fire_only_once = yes
+
+		ai_will_do = {
+			base = UKR_ukrainian_resistance
+		}
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancelled GAL_Threaten_Catholic_Church"
+			add_political_power = 40
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision GAL_Threaten_Catholic_Church"
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove GAL_Threaten_Catholic_Church"
+			add_stability = -0.05
+			add_popularity = {
+				ideology = radical_socialist
+				popularity = -0.05
+			}
+			set_temp_variable = { WSU_threat_change = 15 }
+			GAL_change_WSU_threat = yes
+			set_temp_variable = { GAL_centralisation_change = 15 }
+			GAL_change_centralisation = yes
+		}
+	}
+	GAL_Arrest_Petrushevych = {
+		icon = GFX_decision_generic_arrest
+
+		visible = {
+			has_completed_focus = GAL_special_elections
+		}
+		available = {
+			GAL_centralisation_above_90_percent = yes
+		}
+		cancel_trigger = {
+			NOT = { has_active_mission = GAL_WSU_guerilla_activity }
+		}
+		cost = 50
+		days_remove = 15
+		fire_only_once = yes
+
+		ai_will_do = {
+			base = UKR_ukrainian_resistance
+		}
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancelled GAL_Arrest_Petrushevych"
+			add_political_power = 50
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision GAL_Arrest_Petrushevych"
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove GAL_Arrest_Petrushevych"
+			add_stability = -0.05
+			set_temp_variable = { WSU_threat_change = -30 }
+			GAL_change_WSU_threat = yes
+			country_event = gal.37
+		}
+	}
+	GAL_Secure_Lvov = {
+		icon = GFX_decision_generic_prepare_civil_war
+
+		cancel_trigger = {
+			NOT = { has_active_mission = GAL_WSU_guerilla_activity }
+		}
+		visible = {
+			has_completed_focus = GAL_special_elections
+			has_country_flag = GAL_arm_polish_completed
+		}
+		available = {
+			91 = { has_active_resistance = no }
+			GAL_centralisation_above_25_percent = yes
+		}
+		highlight_states = { 
+			highlight_state_targets = {
+				state = 91
+			} 
+		}
+		cost = 35
+		days_remove = 15
+		fire_only_once = yes
+
+		ai_will_do = {
+			base = UKR_ukrainian_resistance
+		}
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancelled GAL_Secure_Lvov"
+			add_political_power = 35
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision GAL_Secure_Lvov"
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove GAL_Secure_Lvov"
+			91 = {
+				set_state_flag = GAL_lvov_secured
+			}
+			add_stability = -0.05
+			set_temp_variable = { WSU_threat_change = -10 }
+			GAL_change_WSU_threat = yes
+			set_temp_variable = { GAL_centralisation_change = 12 }
+			GAL_change_centralisation = yes
+		}
+	}
+	GAL_Secure_Premysl = {
+		icon = GFX_decision_generic_prepare_civil_war
+
+		cancel_trigger = {
+			NOT = { has_active_mission = GAL_WSU_guerilla_activity }
+		}
+		visible = {
+			has_completed_focus = GAL_special_elections
+			has_country_flag = GAL_arm_polish_completed
+		}
+		available = {
+			1126 = { has_active_resistance = no }
+			GAL_centralisation_above_25_percent = yes
+		}
+		highlight_states = { 
+			highlight_state_targets = {
+				state = 1126
+			} 
+		}
+		cost = 35
+		days_remove = 15
+		fire_only_once = yes
+
+		ai_will_do = {
+			base = UKR_ukrainian_resistance
+		}
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancelled GAL_Secure_Premysl"
+			add_political_power = 35
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision GAL_Secure_Premysl"
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove GAL_Secure_Premysl"
+			1126 = {
+				set_state_flag = GAL_premysl_secured
+			}
+			add_stability = -0.05
+			set_temp_variable = { WSU_threat_change = -6 }
+			GAL_change_WSU_threat = yes
+			set_temp_variable = { GAL_centralisation_change = 7 }
+			GAL_change_centralisation = yes
+		}
+	}
+	GAL_arm_polish = {
+		icon = GFX_decision_generic_prepare_civil_war
+
+		cancel_trigger = {
+			NOT = { has_active_mission = GAL_WSU_guerilla_activity }
+		}
+		available = {
+			GAL_centralisation_above_25_percent = yes
+		}
+		custom_cost_text = 200_infantry_equipment_1
+		custom_cost_trigger = {
+			has_equipment = { infantry_equipment > 199 }
+		}
+		days_remove = 30
+		fire_only_once = yes
+
+		ai_will_do = {
+			base = 10
+		}
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancelled GAL_arm_polish"
+			custom_effect_tooltip = 200_infantry_equipment_1
+			hidden_effect = {
+				add_equipment_to_stockpile = {
+					type = infantry_equipment
+					amount = 200
+				}
+			}
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision GAL_arm_polish"
+			hidden_effect = {
+				add_equipment_to_stockpile = {
+					type = infantry_equipment
+					amount = -200
+				}
+			}
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove GAL_arm_polish"
+			add_stability = -0.05
+			set_country_flag = GAL_arm_polish_completed
+			unlock_decision_tooltip = GAL_Secure_Lvov
+			unlock_decision_tooltip = GAL_Secure_Premysl
+			set_temp_variable = { WSU_threat_change = -20 }
+			GAL_change_WSU_threat = yes
+			set_temp_variable = { GAL_centralisation_change = 15 }
+			GAL_change_centralisation = yes
+		}
+	}
+}
