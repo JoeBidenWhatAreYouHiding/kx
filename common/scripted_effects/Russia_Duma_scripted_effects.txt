@@ -4620,6 +4620,7 @@ RUS_clear_all_preelection_candidates = {
 	clr_country_flag = PLSR_candidate_exists
 }
 RUS_run_presidential_elections = {
+	RUS_clear_president_election_variables = yes
 	set_country_flag = RUS_presidential_general_elections
 	set_variable = { RUS_rkp_president_votes = 0 }
 	set_variable = { RUS_plsr_president_votes = 0 }
@@ -4638,31 +4639,6 @@ RUS_run_presidential_elections = {
 	set_variable = { RUS_total_president_votes = 0 }
 	
 	every_owned_state = {
-		if = {
-			limit = {
-				RUS = {
-					OR = {
-						rsdrp_in_power = yes
-						has_country_flag = RUS_1941_RSDRP_CAMPAIGN
-					}
-				}
-			}
-			set_variable = { RUS_state_rsdrp_temp_pop = 0.25 }
-			set_variable = { RUS_state_psr_temp_pop = -0.25 }
-		}
-		else_if = {
-			limit = {
-				RUS = {
-					OR = {
-						psr_in_power = yes
-						has_country_flag = RUS_1941_PSR_CAMPAIGN
-					}
-				}
-			}
-			set_variable = { RUS_state_psr_temp_pop = 0.25 }
-			set_variable = { RUS_state_rsdrp_temp_pop = -0.25 }
-		}
-		
 		RUS_get_final_popularities = yes
 
 		set_variable = { RUS_vote_count_state = state_population_k }
@@ -4819,9 +4795,8 @@ RUS_run_presidential_elections = {
 		set_variable = { RUS_state_nsnp_temp_pop = 0 }
 		set_variable = { RUS_state_independent_temp_pop = 0 }
 
-		#log = "[THIS.GetName]: PLSR ([?RUS_plsr_state_votes]) - NSP ([?RUS_nsp_state_votes]) - PSR ([?RUS_psr_state_votes]) - RSDRP ([?RUS_rsdrp_state_votes]) - LKDP ([?RUS_lkdp_state_votes])"
-		#log = "[THIS.GetName]: RKDP ([?RUS_rkdp_state_votes]) - VNS ([?RUS_vns_state_votes]) - EP ([?RUS_ep_state_votes]) - NRPR ([?RUS_nrpr_state_votes]) - NSNP ([?RUS_nsnp_state_votes])"
-		#log = "[THIS.GetName]: IND ([?RUS_independent_state_votes]) - TOTAL VOTES ([?RUS_total_state_votes])"
+		log = "[THIS.GetName]: PLSR ([?RUS_plsr_state_president_votes]) - NSP ([?RUS_nsp_state_president_votes]) - PSR ([?RUS_psr_state_president_votes]) - RSDRP ([?RUS_rsdrp_state_president_votes]) - LKDP ([?RUS_lkdp_state_president_votes]) - RKDP ([?RUS_rkdp_state_president_votes]) - VNS ([?RUS_vns_state_president_votes])"
+		log = "[THIS.GetName]: EP ([?RUS_ep_state_president_votes]) - NRPR ([?RUS_nrpr_state_president_votes]) - IND ([?RUS_independent_state_president_votes]) - TOTAL VOTES ([?RUS_total_state_president_votes])"
 	}
 	round_variable = RUS_plsr_president_votes
 	round_variable = RUS_nsp_president_votes
@@ -4834,6 +4809,69 @@ RUS_run_presidential_elections = {
 	round_variable = RUS_nrpr_president_votes
 	round_variable = RUS_nsnp_president_votes
 	round_variable = RUS_independent_president_votes
+	
+	#Adjust for banned parties
+	if = {
+		limit = {
+			RUS = { has_country_flag = nrpr_banned }
+		}
+		set_variable = { RUS_nrpr_president_votes = 0 }
+	}
+	if = {
+		limit = {
+			RUS = { has_country_flag = psr_banned }
+		}
+		set_variable = { RUS_psr_president_votes = 0 }
+	}	
+	if = {
+		limit = {
+			RUS = { has_country_flag = bolsheviks_banned }
+		}
+		set_variable = { RUS_plsr_president_votes = 0 }
+		set_variable = { RUS_nsp_president_votes = 0 }
+	}	
+	if = {
+		limit = {
+			RUS = { has_country_flag = rsdrp_banned }
+		}
+		set_variable = { RUS_rsdrp_president_votes = 0 }
+	}
+	if = {
+		limit = {
+			RUS = { has_country_flag = plsr_banned }
+		}
+		set_variable = { RUS_plsr_president_votes = 0 }
+	}
+	if = {
+		limit = {
+			RUS = { has_country_flag = lkdp_banned }
+		}
+		set_variable = { RUS_lkdp_president_votes = 0 }
+	}
+	if = {
+		limit = {
+			RUS = { has_country_flag = rkdp_banned }
+		}
+		set_variable = { RUS_rkdp_president_votes = 0 }
+	}
+	if = {
+		limit = {
+			RUS = { has_country_flag = vns_banned }
+		}
+		set_variable = { RUS_vns_president_votes = 0 }
+	}
+	if = {
+		limit = {
+			RUS = { has_country_flag = ep_banned }
+		}
+		set_variable = { RUS_ep_president_votes = 0 }
+	}
+	if = {
+		limit = {
+			RUS = { has_country_flag = nsnp_banned }
+		}
+		set_variable = { RUS_nsnp_president_votes = 0 }
+	}
 	
 	add_to_variable = { RUS_total_president_votes = RUS_plsr_president_votes }
 	add_to_variable = { RUS_total_president_votes = RUS_nsp_president_votes }
@@ -4850,272 +4888,269 @@ RUS_run_presidential_elections = {
 	set_temp_variable = { RUS_temp_parliament_barrier = RUS_total_president_votes }
 	multiply_temp_variable = { RUS_temp_parliament_barrier = RUS_parliament_barrier }
 	
-	if = {
-		limit = {
-			has_completed_focus = RUS_Republican_Party_Of_Russia
-		}
-		set_variable = { rpr_mp = RUS_psr_president_votes }
-		add_to_variable = { RUS_rpr_president_votes = RUS_nrpr_president_votes }
-	}
-	
-	# If below 5% fuck off 
-	if = {
-		limit = {
-			check_variable = { RUS_plsr_president_votes < RUS_temp_parliament_barrier }
-		}
-		subtract_from_variable = { RUS_total_president_votes = RUS_plsr_president_votes }
-		set_variable = { RUS_plsr_president_votes = 0 }
-	}
-	if = {
-		limit = {
-			check_variable = { RUS_nsp_president_votes < RUS_temp_parliament_barrier }
-		}
-		subtract_from_variable = { RUS_total_president_votes = RUS_nsp_president_votes }
-		set_variable = { RUS_nsp_president_votes = 0 }
-	}
-	if = {
-		limit = {
-			check_variable = { RUS_psr_president_votes < RUS_temp_parliament_barrier }
-			NOT = { has_completed_focus = RUS_Unite_The_Parties }
-			NOT = { has_completed_focus = RUS_Republican_Party_Of_Russia }
-		}
-		subtract_from_variable = { RUS_total_president_votes = RUS_psr_president_votes }
-		set_variable = { RUS_psr_president_votes = 0 }
-	}
-	if = {
-		limit = {
-			check_variable = { RUS_rsdrp_president_votes < RUS_temp_parliament_barrier }
-		}
-		subtract_from_variable = { RUS_total_president_votes = RUS_rsdrp_president_votes }
-		set_variable = { RUS_rsdrp_president_votes = 0 }
-	}
-	if = {
-		limit = {
-			check_variable = { RUS_lkdp_president_votes < RUS_temp_parliament_barrier }
-			NOT = { has_completed_focus = RUS_Unite_The_Parties }
-		}
-		subtract_from_variable = { RUS_total_president_votes = RUS_lkdp_president_votes }
-		set_variable = { RUS_lkdp_president_votes = 0 }
-	}
-	if = {
-		limit = {
-			check_variable = { RUS_rkdp_president_votes < RUS_temp_parliament_barrier }
-		}
-		subtract_from_variable = { RUS_total_president_votes = RUS_rkdp_president_votes }
-		set_variable = { RUS_rkdp_president_votes = 0 }
-	}
-	if = {
-		limit = {
-			check_variable = { RUS_vns_president_votes < RUS_temp_parliament_barrier }
-		}
-		subtract_from_variable = { RUS_total_president_votes = RUS_vns_president_votes }
-		set_variable = { RUS_vns_president_votes = 0 }
-	}
-	if = {
-		limit = {
-			check_variable = { RUS_ep_president_votes < RUS_temp_parliament_barrier }
-		}
-		subtract_from_variable = { RUS_total_president_votes = RUS_ep_president_votes }
-		set_variable = { RUS_ep_president_votes = 0 }
-	}
-	if = {
-		limit = {
-			check_variable = { RUS_nrpr_president_votes < RUS_temp_parliament_barrier }
-			NOT = { has_completed_focus = RUS_Republican_Party_Of_Russia }
-		}
-		subtract_from_variable = { RUS_total_president_votes = RUS_nrpr_president_votes }
-		set_variable = { RUS_nrpr_president_votes = 0 }
-	}
-	if = {
-		limit = {
-			check_variable = { RUS_nsnp_president_votes < RUS_temp_parliament_barrier }
-		}
-		subtract_from_variable = { RUS_total_president_votes = RUS_nsnp_president_votes }
+	set_variable = { RUS_kdp_president_votes = RUS_lkdp_president_votes }
+	add_to_variable = { RUS_kdp_president_votes = RUS_rkdp_president_votes }
 		
-		set_variable = { RUS_nsnp_president_votes = 0 }
-	}
+	# If below 5% fuck off  
+	# Does not matter for President XD
+	
+	
+	set_variable = { RUS_plsr_percentage_president_vote = RUS_plsr_president_votes }
+	set_variable = { RUS_nsp_percentage_president_vote = RUS_nsp_president_votes }
+	set_variable = { RUS_psr_percentage_president_vote = RUS_psr_president_votes }
+	set_variable = { RUS_rsdrp_percentage_president_vote = RUS_rsdrp_president_votes }
+	set_variable = { RUS_lkdp_percentage_president_vote = RUS_lkdp_president_votes }
+	set_variable = { RUS_rkdp_percentage_president_vote = RUS_rkdp_president_votes }
+	set_variable = { RUS_vns_percentage_president_vote = RUS_vns_president_votes }
+	set_variable = { RUS_ep_percentage_president_vote = RUS_ep_president_votes }
+	set_variable = { RUS_nrpr_percentage_president_vote = RUS_nrpr_president_votes }
+	set_variable = { RUS_nsnp_percentage_president_vote = RUS_nsnp_president_votes }
+	set_variable = { RUS_independent_percentage_president_vote = RUS_independent_president_votes }
+	
+	divide_variable = { RUS_plsr_percentage_president_vote = RUS_total_president_votes }
+	divide_variable = { RUS_nsp_percentage_president_vote = RUS_total_president_votes }
+	divide_variable = { RUS_psr_percentage_president_vote = RUS_total_president_votes }
+	divide_variable = { RUS_rsdrp_percentage_president_vote = RUS_total_president_votes }
+	divide_variable = { RUS_lkdp_percentage_president_vote = RUS_total_president_votes }
+	divide_variable = { RUS_rkdp_percentage_president_vote = RUS_total_president_votes }
+	divide_variable = { RUS_vns_percentage_president_vote = RUS_total_president_votes }
+	divide_variable = { RUS_ep_percentage_president_vote = RUS_total_president_votes }
+	divide_variable = { RUS_nrpr_percentage_president_vote = RUS_total_president_votes }
+	divide_variable = { RUS_nsnp_percentage_president_vote = RUS_total_president_votes }
+	divide_variable = { RUS_independent_percentage_president_vote = RUS_total_president_votes }
+	
+	
+		if = {
+			limit = {
+				has_completed_focus = RUS_Unite_The_Parties
+			}
+			set_variable = { RUS_rrdo_percentage_president_vote = RUS_psr_percentage_president_vote }
+			add_to_variable = { RUS_rrdo_percentage_president_vote = RUS_lkdp_percentage_president_vote }
+			set_variable = { RUS_kdp_percentage_president_vote = RUS_rkdp_percentage_president_vote }
+		}
+		else = {
+			set_variable = { RUS_kdp_percentage_president_vote = RUS_lkdp_percentage_president_vote }
+			add_to_variable = { RUS_kdp_percentage_president_vote = RUS_rkdp_percentage_president_vote }
+		}
+		if = {
+			limit = {
+				has_completed_focus = RUS_Republican_Party_Of_Russia
+			}
+			set_variable = { RUS_rpr_percentage_president_vote = RUS_psr_percentage_president_vote }
+			add_to_variable = { RUS_rpr_percentage_president_vote = RUS_nrpr_percentage_president_vote }
+		}
+	
 	if = {
 		limit = {
-			check_variable = { RUS_plsr_president_votes > RUS_rpr_president_votes }
-			check_variable = { RUS_plsr_president_votes > RUS_nsp_president_votes }
-			check_variable = { RUS_plsr_president_votes > RUS_rrdo_president_votes }
-			check_variable = { RUS_plsr_president_votes > RUS_rsdrp_president_votes }
-			check_variable = { RUS_plsr_president_votes > RUS_psr_president_votes }
-			check_variable = { RUS_plsr_president_votes > RUS_lkdp_president_votes }
-			check_variable = { RUS_plsr_president_votes > RUS_rkdp_president_votes }
-			check_variable = { RUS_plsr_president_votes > RUS_vns_president_votes }
-			check_variable = { RUS_plsr_president_votes > RUS_ep_president_votes }
-			check_variable = { RUS_plsr_president_votes > RUS_nrpr_president_votes }
-			check_variable = { RUS_plsr_president_votes > RUS_nsnp_president_votes }
+			check_variable = { RUS_plsr_percentage_president_vote > RUS_rpr_percentage_president_vote }
+			check_variable = { RUS_plsr_percentage_president_vote > RUS_nsp_percentage_president_vote }
+			check_variable = { RUS_plsr_percentage_president_vote > RUS_rrdo_percentage_president_vote }
+			check_variable = { RUS_plsr_percentage_president_vote > RUS_rsdrp_percentage_president_vote }
+			check_variable = { RUS_plsr_percentage_president_vote > RUS_psr_percentage_president_vote }
+			check_variable = { RUS_plsr_percentage_president_vote > RUS_lkdp_percentage_president_vote }
+			check_variable = { RUS_plsr_percentage_president_vote > RUS_rkdp_percentage_president_vote }
+			check_variable = { RUS_plsr_percentage_president_vote > RUS_kdp_percentage_president_vote }
+			check_variable = { RUS_plsr_percentage_president_vote > RUS_vns_percentage_president_vote }
+			check_variable = { RUS_plsr_percentage_president_vote > RUS_ep_percentage_president_vote }
+			check_variable = { RUS_plsr_percentage_president_vote > RUS_nrpr_percentage_president_vote }
+			check_variable = { RUS_plsr_percentage_president_vote > RUS_nsnp_percentage_president_vote }
 		}
 		set_country_flag = RUS_ELECTION_plsr_president_victory
 	}
 	if = {
 		limit = {
-			check_variable = { RUS_nsp_president_president_votes > RUS_rpr_president_president_votes }
-			check_variable = { RUS_nsp_president_president_votes > RUS_plsr_president_president_votes }
-			check_variable = { RUS_nsp_president_president_votes > RUS_rrdo_president_president_votes }
-			check_variable = { RUS_nsp_president_president_votes > RUS_rsdrp_president_president_votes }
-			check_variable = { RUS_nsp_president_president_votes > RUS_psr_president_president_votes }
-			check_variable = { RUS_nsp_president_president_votes > RUS_lkdp_president_president_votes }
-			check_variable = { RUS_nsp_president_president_votes > RUS_rkdp_president_president_votes }
-			check_variable = { RUS_nsp_president_president_votes > RUS_vns_president_president_votes }
-			check_variable = { RUS_nsp_president_president_votes > RUS_ep_president_president_votes }
-			check_variable = { RUS_nsp_president_president_votes > RUS_nrpr_president_votes }
-			check_variable = { RUS_nsp_president_votes > RUS_nsnp_president_votes }
+			check_variable = { RUS_nsp_percentage_president_vote > RUS_rpr_percentage_president_vote }
+			check_variable = { RUS_nsp_percentage_president_vote > RUS_plsr_percentage_president_vote }
+			check_variable = { RUS_nsp_percentage_president_vote > RUS_rrdo_percentage_president_vote }
+			check_variable = { RUS_nsp_percentage_president_vote > RUS_rsdrp_percentage_president_vote }
+			check_variable = { RUS_nsp_percentage_president_vote > RUS_psr_percentage_president_vote }
+			check_variable = { RUS_nsp_percentage_president_vote > RUS_lkdp_percentage_president_vote }
+			check_variable = { RUS_nsp_percentage_president_vote > RUS_rkdp_percentage_president_vote }
+			check_variable = { RUS_nsp_percentage_president_vote > RUS_kdp_percentage_president_vote }
+			check_variable = { RUS_nsp_percentage_president_vote > RUS_vns_percentage_president_vote }
+			check_variable = { RUS_nsp_percentage_president_vote > RUS_ep_percentage_president_vote }
+			check_variable = { RUS_nsp_percentage_president_vote > RUS_nrpr_percentage_president_vote }
+			check_variable = { RUS_nsp_percentage_president_vote > RUS_nsnp_percentage_president_vote }
 		}
 		set_country_flag = RUS_ELECTION_nsp_president_victory
 	}
 	if = {
 		limit = {
-			check_variable = { RUS_psr_president_votes > RUS_plsr_president_votes }
-			check_variable = { RUS_psr_president_votes > RUS_nsp_president_votes }
-			check_variable = { RUS_psr_president_votes > RUS_rsdrp_president_votes }
-			check_variable = { RUS_psr_president_votes > RUS_socialists_president_votes }
-			check_variable = { RUS_psr_president_votes > RUS_lkdp_president_votes }
-			check_variable = { RUS_psr_president_votes > RUS_rkdp_president_votes }
-			check_variable = { RUS_psr_president_votes > RUS_vns_president_votes }
-			check_variable = { RUS_psr_president_votes > RUS_ep_president_votes }
-			check_variable = { RUS_psr_president_votes > RUS_nrpr_president_votes }
-			check_variable = { RUS_psr_president_votes > RUS_nsnp_president_votes }
+			check_variable = { RUS_psr_percentage_president_vote > RUS_plsr_percentage_president_vote }
+			check_variable = { RUS_psr_percentage_president_vote > RUS_nsp_percentage_president_vote }
+			check_variable = { RUS_psr_percentage_president_vote > RUS_rsdrp_percentage_president_vote }
+			check_variable = { RUS_psr_percentage_president_vote > RUS_kdp_percentage_president_vote }
+			check_variable = { RUS_psr_percentage_president_vote > RUS_vns_percentage_president_vote }
+			check_variable = { RUS_psr_percentage_president_vote > RUS_ep_percentage_president_vote }
+			check_variable = { RUS_psr_percentage_president_vote > RUS_nrpr_percentage_president_vote }
+			check_variable = { RUS_psr_percentage_president_vote > RUS_nsnp_percentage_president_vote }
 		}
 		set_country_flag = RUS_ELECTION_psr_president_victory
 	}
 	if = {
 		limit = {
-			check_variable = { RUS_rpr_president_votes > RUS_plsr_president_votes }
-			check_variable = { RUS_rpr_president_votes > RUS_nsp_president_votes }
-			check_variable = { RUS_rpr_president_votes > RUS_rsdrp_president_votes }
-			check_variable = { RUS_rpr_president_votes > RUS_socialists_president_votes }
-			check_variable = { RUS_rpr_president_votes > RUS_lkdp_president_votes }
-			check_variable = { RUS_rpr_president_votes > RUS_rkdp_president_votes }
-			check_variable = { RUS_rpr_president_votes > RUS_vns_president_votes }
-			check_variable = { RUS_rpr_president_votes > RUS_ep_president_votes }
-			check_variable = { RUS_rpr_president_votes > RUS_nsnp_president_votes }
-		}
-		set_country_flag = RUS_ELECTION_psr_president_victory
-	}
-	if = {
-		limit = {
-			check_variable = { RUS_rsdrp_president_votes > RUS_rpr_president_votes }
-			check_variable = { RUS_rsdrp_president_votes > RUS_plsr_president_votes }
-			check_variable = { RUS_rsdrp_president_votes > RUS_rrdo_president_votes }
-			check_variable = { RUS_rsdrp_president_votes > RUS_socialists_president_votes }
-			check_variable = { RUS_rsdrp_president_votes > RUS_nsp_president_votes }
-			check_variable = { RUS_rsdrp_president_votes > RUS_psr_president_votes }
-			check_variable = { RUS_rsdrp_president_votes > RUS_lkdp_president_votes }
-			check_variable = { RUS_rsdrp_president_votes > RUS_rkdp_president_votes }
-			check_variable = { RUS_rsdrp_president_votes > RUS_vns_president_votes }
-			check_variable = { RUS_rsdrp_president_votes > RUS_ep_president_votes }
-			check_variable = { RUS_rsdrp_president_votes > RUS_nrpr_president_votes }
-			check_variable = { RUS_rsdrp_president_votes > RUS_nsnp_president_votes }
+			check_variable = { RUS_rsdrp_percentage_president_vote > RUS_plsr_percentage_president_vote }
+			check_variable = { RUS_rsdrp_percentage_president_vote > RUS_nsp_percentage_president_vote }
+			check_variable = { RUS_rsdrp_percentage_president_vote > RUS_psr_percentage_president_vote }
+			check_variable = { RUS_rsdrp_percentage_president_vote > RUS_rrdo_percentage_president_vote }
+			check_variable = { RUS_rsdrp_percentage_president_vote > RUS_rpr_percentage_president_vote }
+			check_variable = { RUS_rsdrp_percentage_president_vote > RUS_kdp_percentage_president_vote }
+			check_variable = { RUS_rsdrp_percentage_president_vote > RUS_vns_percentage_president_vote }
+			check_variable = { RUS_rsdrp_percentage_president_vote > RUS_ep_percentage_president_vote }
+			check_variable = { RUS_rsdrp_percentage_president_vote > RUS_nrpr_percentage_president_vote }
+			check_variable = { RUS_rsdrp_percentage_president_vote > RUS_nsnp_percentage_president_vote }
 		}
 		set_country_flag = RUS_ELECTION_rsdrp_president_victory
 	}
 	if = {
 		limit = {
-			check_variable = { RUS_lkdp_president_votes > RUS_rpr_president_votes }
-			check_variable = { RUS_lkdp_president_votes > RUS_plsr_president_votes }
-			check_variable = { RUS_lkdp_president_votes > RUS_nsp_president_votes }
-			check_variable = { RUS_lkdp_president_votes > RUS_socialists_president_votes }
-			check_variable = { RUS_lkdp_president_votes > RUS_psr_president_votes }
-			check_variable = { RUS_lkdp_president_votes > RUS_rsdrp_president_votes }
-			check_variable = { RUS_lkdp_president_votes > RUS_rkdp_president_votes }
-			check_variable = { RUS_lkdp_president_votes > RUS_vns_president_votes }
-			check_variable = { RUS_lkdp_president_votes > RUS_ep_president_votes }
-			check_variable = { RUS_lkdp_president_votes > RUS_nrpr_president_votes }
-			check_variable = { RUS_lkdp_president_votes > RUS_nsnp_president_votes }
+			check_variable = { RUS_rrdo_percentage_president_vote > RUS_plsr_percentage_president_vote }
+			check_variable = { RUS_rrdo_percentage_president_vote > RUS_nsp_percentage_president_vote }
+			check_variable = { RUS_rrdo_percentage_president_vote > RUS_rsdrp_percentage_president_vote }
+			check_variable = { RUS_rrdo_percentage_president_vote > RUS_rkdp_percentage_president_vote }
+			check_variable = { RUS_rrdo_percentage_president_vote > RUS_vns_percentage_president_vote }
+			check_variable = { RUS_rrdo_percentage_president_vote > RUS_ep_percentage_president_vote }
+			check_variable = { RUS_rrdo_percentage_president_vote > RUS_nrpr_percentage_president_vote }
+			check_variable = { RUS_rrdo_percentage_president_vote > RUS_nsnp_percentage_president_vote }
+		}
+		set_country_flag = RUS_ELECTION_rrdo_president_victory
+	}
+	if = {
+		limit = {
+			check_variable = { RUS_rpr_percentage_president_vote > RUS_plsr_percentage_president_vote }
+			check_variable = { RUS_rpr_percentage_president_vote > RUS_nsp_percentage_president_vote }
+			check_variable = { RUS_rpr_percentage_president_vote > RUS_rsdrp_percentage_president_vote }
+			check_variable = { RUS_rpr_percentage_president_vote > RUS_lkdp_percentage_president_vote }
+			check_variable = { RUS_rpr_percentage_president_vote > RUS_rkdp_percentage_president_vote }
+			check_variable = { RUS_rpr_percentage_president_vote > RUS_vns_percentage_president_vote }
+			check_variable = { RUS_rpr_percentage_president_vote > RUS_ep_percentage_president_vote }
+			check_variable = { RUS_rpr_percentage_president_vote > RUS_nsnp_percentage_president_vote }
+		}
+		set_country_flag = RUS_ELECTION_rpr_president_victory
+	}
+	if = {
+		limit = {
+			check_variable = { RUS_kdp_percentage_president_vote > RUS_plsr_percentage_president_vote }
+			check_variable = { RUS_kdp_percentage_president_vote > RUS_nsp_percentage_president_vote }
+			check_variable = { RUS_kdp_percentage_president_vote > RUS_psr_percentage_president_vote }
+			check_variable = { RUS_kdp_percentage_president_vote > RUS_rpr_percentage_president_vote }
+			check_variable = { RUS_kdp_percentage_president_vote > RUS_rsdrp_percentage_president_vote }
+			check_variable = { RUS_kdp_percentage_president_vote > RUS_psr_rsdrp_percentage_president_vote }
+			check_variable = { RUS_kdp_percentage_president_vote > RUS_vns_percentage_president_vote }
+			check_variable = { RUS_kdp_percentage_president_vote > RUS_ep_percentage_president_vote }
+			check_variable = { RUS_kdp_percentage_president_vote > RUS_nrpr_percentage_president_vote }
+			check_variable = { RUS_kdp_percentage_president_vote > RUS_nsnp_percentage_president_vote }
+		}
+		set_country_flag = RUS_ELECTION_kdp_president_victory
+	}
+	if = {
+		limit = {
+			check_variable = { RUS_lkdp_percentage_president_vote > RUS_plsr_percentage_president_vote }
+			check_variable = { RUS_lkdp_percentage_president_vote > RUS_nsp_percentage_president_vote }
+			check_variable = { RUS_lkdp_percentage_president_vote > RUS_psr_percentage_president_vote }
+			check_variable = { RUS_lkdp_percentage_president_vote > RUS_rpr_percentage_president_vote }
+			check_variable = { RUS_lkdp_percentage_president_vote > RUS_rsdrp_percentage_president_vote }
+			check_variable = { RUS_lkdp_percentage_president_vote > RUS_rkdp_percentage_president_vote }
+			check_variable = { RUS_lkdp_percentage_president_vote > RUS_vns_percentage_president_vote }
+			check_variable = { RUS_lkdp_percentage_president_vote > RUS_ep_percentage_president_vote }
+			check_variable = { RUS_lkdp_percentage_president_vote > RUS_nrpr_percentage_president_vote }
+			check_variable = { RUS_lkdp_percentage_president_vote > RUS_nsnp_percentage_president_vote }
+			NOT = { has_completed_focus = RUS_Unite_The_Parties }
 		}
 		set_country_flag = RUS_ELECTION_lkdp_president_victory
 	}
 	if = {
 		limit = {
-			check_variable = { RUS_rkdp_president_votes > RUS_rpr_president_votes }
-			check_variable = { RUS_rkdp_president_votes > RUS_plsr_president_votes }
-			check_variable = { RUS_rkdp_president_votes > RUS_rrdo_president_votes }
-			check_variable = { RUS_rkdp_president_votes > RUS_nsp_president_votes }
-			check_variable = { RUS_rkdp_president_votes > RUS_socialists_president_votes }
-			check_variable = { RUS_rkdp_president_votes > RUS_psr_president_votes }
-			check_variable = { RUS_rkdp_president_votes > RUS_rsdrp_president_votes }
-			check_variable = { RUS_rkdp_president_votes > RUS_lkdp_president_votes }
-			check_variable = { RUS_rkdp_president_votes > RUS_vns_president_votes }
-			check_variable = { RUS_rkdp_president_votes > RUS_ep_president_votes }
-			check_variable = { RUS_rkdp_president_votes > RUS_nrpr_president_votes }
-			check_variable = { RUS_rkdp_president_votes > RUS_nsnp_president_votes }
+			check_variable = { RUS_rkdp_percentage_president_vote > RUS_plsr_percentage_president_vote }
+			check_variable = { RUS_rkdp_percentage_president_vote > RUS_nsp_percentage_president_vote }
+			check_variable = { RUS_rkdp_percentage_president_vote > RUS_psr_percentage_president_vote }
+			check_variable = { RUS_rkdp_percentage_president_vote > RUS_rpr_percentage_president_vote }
+			check_variable = { RUS_rkdp_percentage_president_vote > RUS_rrdo_percentage_president_vote }
+			check_variable = { RUS_rkdp_percentage_president_vote > RUS_rsdrp_percentage_president_vote }
+			check_variable = { RUS_rkdp_percentage_president_vote > RUS_lkdp_percentage_president_vote }
+			check_variable = { RUS_rkdp_percentage_president_vote > RUS_vns_percentage_president_vote }
+			check_variable = { RUS_rkdp_percentage_president_vote > RUS_ep_percentage_president_vote }
+			check_variable = { RUS_rkdp_percentage_president_vote > RUS_nrpr_percentage_president_vote }
+			check_variable = { RUS_rkdp_percentage_president_vote > RUS_nsnp_percentage_president_vote }
 		}
 		set_country_flag = RUS_ELECTION_rkdp_president_victory
 	}
 	if = {
 		limit = {
-			check_variable = { RUS_vns_president_votes > RUS_rpr_president_votes }
-			check_variable = { RUS_vns_president_votes > RUS_plsr_president_votes }
-			check_variable = { RUS_vns_president_votes > RUS_rrdo_president_votes }
-			check_variable = { RUS_vns_president_votes > RUS_nsp_president_votes }
-			check_variable = { RUS_vns_president_votes > RUS_socialists_president_votes }
-			check_variable = { RUS_vns_president_votes > RUS_psr_president_votes }
-			check_variable = { RUS_vns_president_votes > RUS_rsdrp_president_votes }
-			check_variable = { RUS_vns_president_votes > RUS_lkdp_president_votes }
-			check_variable = { RUS_vns_president_votes > RUS_rkdp_president_votes }
-			check_variable = { RUS_vns_president_votes > RUS_ep_president_votes }
-			check_variable = { RUS_vns_president_votes > RUS_nrpr_president_votes }
-			check_variable = { RUS_vns_president_votes > RUS_nsnp_president_votes }
+			check_variable = { RUS_vns_percentage_president_vote > RUS_plsr_percentage_president_vote }
+			check_variable = { RUS_vns_percentage_president_vote > RUS_nsp_percentage_president_vote }
+			check_variable = { RUS_vns_percentage_president_vote > RUS_psr_percentage_president_vote }
+			check_variable = { RUS_vns_percentage_president_vote > RUS_rsdrp_percentage_president_vote }
+			check_variable = { RUS_vns_percentage_president_vote > RUS_kdp_percentage_president_vote }
+			check_variable = { RUS_vns_percentage_president_vote > RUS_rrdo_percentage_president_vote }
+			check_variable = { RUS_vns_percentage_president_vote > RUS_rpr_percentage_president_vote }
+			check_variable = { RUS_vns_percentage_president_vote > RUS_ep_percentage_president_vote }
+			check_variable = { RUS_vns_percentage_president_vote > RUS_nrpr_percentage_president_vote }
+			check_variable = { RUS_vns_percentage_president_vote > RUS_nsnp_percentage_president_vote }
 		}
 		set_country_flag = RUS_ELECTION_vns_president_victory
 	}
 	if = {
 		limit = {
-			check_variable = { RUS_ep_president_votes > RUS_rpr_president_votes }
-			check_variable = { RUS_ep_president_votes > RUS_plsr_president_votes }
-			check_variable = { RUS_ep_president_votes > RUS_rrdo_president_votes }
-			check_variable = { RUS_ep_president_votes > RUS_nsp_president_votes }
-			check_variable = { RUS_ep_president_votes > RUS_socialists_president_votes }
-			check_variable = { RUS_ep_president_votes > RUS_psr_president_votes }
-			check_variable = { RUS_ep_president_votes > RUS_rsdrp_president_votes }
-			check_variable = { RUS_ep_president_votes > RUS_lkdp_president_votes }
-			check_variable = { RUS_ep_president_votes > RUS_rkdp_president_votes }
-			check_variable = { RUS_ep_president_votes > RUS_vns_president_votes }
-			check_variable = { RUS_ep_president_votes > RUS_nrpr_president_votes }
-			check_variable = { RUS_ep_president_votes > RUS_nsnp_president_votes }
+			check_variable = { RUS_ep_percentage_president_vote > RUS_plsr_percentage_president_vote }
+			check_variable = { RUS_ep_percentage_president_vote > RUS_nsp_percentage_president_vote }
+			check_variable = { RUS_ep_percentage_president_vote > RUS_psr_percentage_president_vote }
+			check_variable = { RUS_ep_percentage_president_vote > RUS_rsdrp_percentage_president_vote }
+			check_variable = { RUS_ep_percentage_president_vote > RUS_kdp_percentage_president_vote }
+			check_variable = { RUS_ep_percentage_president_vote > RUS_rrdo_percentage_president_vote }
+			check_variable = { RUS_ep_percentage_president_vote > RUS_rpr_percentage_president_vote }
+			check_variable = { RUS_ep_percentage_president_vote > RUS_vns_percentage_president_vote }
+			check_variable = { RUS_ep_percentage_president_vote > RUS_nrpr_percentage_president_vote }
+			check_variable = { RUS_ep_percentage_president_vote > RUS_nsnp_percentage_president_vote }
 		}
 		set_country_flag = RUS_ELECTION_ep_president_victory
 	}
 	if = {
 		limit = {
-			check_variable = { RUS_nrpr_president_votes > RUS_plsr_president_votes }
-			check_variable = { RUS_nrpr_president_votes > RUS_rrdo_president_votes }
-			check_variable = { RUS_nrpr_president_votes > RUS_nsp_president_votes }
-			check_variable = { RUS_nrpr_president_votes > RUS_socialists_president_votes }
-			check_variable = { RUS_nrpr_president_votes > RUS_psr_president_votes }
-			check_variable = { RUS_nrpr_president_votes > RUS_rsdrp_president_votes }
-			check_variable = { RUS_nrpr_president_votes > RUS_lkdp_president_votes }
-			check_variable = { RUS_nrpr_president_votes > RUS_rkdp_president_votes }
-			check_variable = { RUS_nrpr_president_votes > RUS_vns_president_votes }
-			check_variable = { RUS_nrpr_president_votes > RUS_ep_president_votes }
-			check_variable = { RUS_nrpr_president_votes > RUS_nsnp_president_votes }
+			check_variable = { RUS_nrpr_percentage_president_vote > RUS_plsr_percentage_president_vote }
+			check_variable = { RUS_nrpr_percentage_president_vote > RUS_nsp_percentage_president_vote }
+			check_variable = { RUS_nrpr_percentage_president_vote > RUS_psr_percentage_president_vote }
+			check_variable = { RUS_nrpr_percentage_president_vote > RUS_rsdrp_percentage_president_vote }
+			check_variable = { RUS_nrpr_percentage_president_vote > RUS_kdp_percentage_president_vote }
+			check_variable = { RUS_nrpr_percentage_president_vote > RUS_psr_kdp_percentage_president_vote }
+			check_variable = { RUS_nrpr_percentage_president_vote > RUS_rrdo_percentage_president_vote }
+			check_variable = { RUS_nrpr_percentage_president_vote > RUS_vns_percentage_president_vote }
+			check_variable = { RUS_nrpr_percentage_president_vote > RUS_ep_percentage_president_vote }
+			check_variable = { RUS_nrpr_percentage_president_vote > RUS_nsnp_percentage_president_vote }
 		}
 		set_country_flag = RUS_ELECTION_nrpr_president_victory
 	}
 	if = {
 		limit = {
-			check_variable = { RUS_nsnp_president_votes > RUS_plsr_president_votes }
-			check_variable = { RUS_nsnp_president_votes > RUS_nsp_president_votes }
-			check_variable = { RUS_nsnp_president_votes > RUS_socialists_president_votes }
-			check_variable = { RUS_nsnp_president_votes > RUS_psr_president_votes }
-			check_variable = { RUS_nsnp_president_votes > RUS_rsdrp_president_votes }
-			check_variable = { RUS_nsnp_president_votes > RUS_rpr_president_votes }
-			check_variable = { RUS_nsnp_president_votes > RUS_lkdp_president_votes }
-			check_variable = { RUS_nsnp_president_votes > RUS_rkdp_president_votes }
-			check_variable = { RUS_nsnp_president_votes > RUS_rrdo_president_votes }
-			check_variable = { RUS_nsnp_president_votes > RUS_vns_president_votes }
-			check_variable = { RUS_nsnp_president_votes > RUS_ep_president_votes }
-			check_variable = { RUS_nsnp_president_votes > RUS_nrpr_president_votes }
+			check_variable = { RUS_nsnp_percentage_president_vote > RUS_plsr_percentage_president_vote }
+			check_variable = { RUS_nsnp_percentage_president_vote > RUS_nsp_percentage_president_vote }
+			check_variable = { RUS_nsnp_percentage_president_vote > RUS_psr_percentage_president_vote }
+			check_variable = { RUS_nsnp_percentage_president_vote > RUS_rsdrp_percentage_president_vote }
+			check_variable = { RUS_nsnp_percentage_president_vote > RUS_kdp_percentage_president_vote }
+			check_variable = { RUS_nsnp_percentage_president_vote > RUS_rrdo_percentage_president_vote }
+			check_variable = { RUS_nsnp_percentage_president_vote > RUS_vns_percentage_president_vote }
+			check_variable = { RUS_nsnp_percentage_president_vote > RUS_ep_percentage_president_vote }
+			check_variable = { RUS_nsnp_percentage_president_vote > RUS_nrpr_percentage_president_vote }
 		}
 		set_country_flag = RUS_ELECTION_nsnp_president_victory
-	}
-	round_variable = RUS_total_president_votes
-	#log = "[THIS.GetName]: PLSR([?RUS_plsr_votes]) - NSP([?RUS_nsp_votes]) - RSDRP([?RUS_rsdrp_votes]) - PSR([?RUS_psr_votes]) - KDP([?kdp_mp])"
-	#log = "[THIS.GetName]: VNS([?RUS_vns_votes]) - EP([?RUS_ep_votes]) - NRPR([?RUS_nrpr_votes]) - NSNP ([?RUS_nsnp_votes]) - IND([?RUS_independent_votes]) - TOTAL([?RUS_total_votes])"
+	}		
+	clr_country_flag = RUS_1941_PLSR_CAMPAIGN
+	clr_country_flag = RUS_1941_NSP_CAMPAIGN
+	clr_country_flag = RUS_1941_RSDRP_CAMPAIGN
+	clr_country_flag = RUS_1941_PSR_CAMPAIGN
+	clr_country_flag = RUS_1941_LKDP_CAMPAIGN
+	clr_country_flag = RUS_1941_RKDP_CAMPAIGN
+	clr_country_flag = RUS_1941_VNS_CAMPAIGN
+	clr_country_flag = RUS_1941_EP_CAMPAIGN
+	clr_country_flag = RUS_1941_NRPR_CAMPAIGN
+	clr_country_flag = RUS_1941_NSNP_CAMPAIGN
+	round_variable = RUS_total_votes
+	log = "[THIS.GetName]: PLSR([?plsr_total_percentage_vote]) - NSP([?nsp_total_percentage_vote]) - RSDRP([?rsdrp_total_percentage_vote]) - PSR([?psr_total_percentage_vote]) - KDP([?kdp_percentage_vote])"
+	log = "VNS([?vns_total_percentage_vote]) - EP([?ep_total_percentage_vote]) - NRPR([?nrpr_total_percentage_vote]) - NSNP([?nsnp_total_percentage_vote]) - IND([?independent_total_percentage_vote])"
+	mp_support_calc = yes
+	RUS_Get_Lower_House_Array = yes
 }
+
 
 mp_support_calc = {
 	set_temp_variable = { temp1 = 0 }
@@ -5624,6 +5659,48 @@ RUS_clear_senate_election_variables = {
 		clear_variable = RUS_vote_count_state
 	}
 }
+RUS_clear_president_election_variables = {
+	clear_variable = RUS_plsr_percentage_president_vote
+	clear_variable = RUS_nsp_percentage_president_vote
+	clear_variable = RUS_psr_percentage_president_vote
+	clear_variable = RUS_rsdrp_percentage_president_vote
+	clear_variable = RUS_kdp_percentage_president_vote
+	clear_variable = RUS_vns_percentage_president_vote
+	clear_variable = RUS_ep_percentage_president_vote
+	clear_variable = RUS_nrpr_percentage_president_vote
+	clear_variable = RUS_nsnp_percentage_president_vote
+	clear_variable = RUS_independent_percentage_president_vote
+		
+	clr_country_flag = RUS_ELECTION_plsr_president_victory
+	clr_country_flag = RUS_ELECTION_nsp_president_victory
+	clr_country_flag = RUS_ELECTION_rsdrp_president_victory
+	clr_country_flag = RUS_ELECTION_psr_president_victory
+	clr_country_flag = RUS_ELECTION_rpr_president_victory
+	clr_country_flag = RUS_ELECTION_rrdo_president_victory
+	clr_country_flag = RUS_ELECTION_lkdp_president_victory
+	clr_country_flag = RUS_ELECTION_rkdp_president_victory
+	clr_country_flag = RUS_ELECTION_kdp_president_victory
+	clr_country_flag = RUS_ELECTION_vns_president_victory
+	clr_country_flag = RUS_ELECTION_ep_president_victory
+	clr_country_flag = RUS_ELECTION_nrpr_president_victory
+	clr_country_flag = RUS_ELECTION_nsnp_president_victory
+		
+	every_owned_state = {
+		round_variable = RUS_plsr_state_president_votes
+		round_variable = RUS_nsp_state_president_votes
+		round_variable = RUS_psr_state_president_votes
+		round_variable = RUS_rsdrp_state_president_votes
+		round_variable = RUS_lkdp_state_president_votes
+		round_variable = RUS_rkdp_state_president_votes
+		round_variable = RUS_vns_state_president_votes
+		round_variable = RUS_ep_state_president_votes
+		round_variable = RUS_nrpr_state_president_votes
+		round_variable = RUS_nsnp_state_president_votes
+		round_variable = RUS_independent_state_president_votes
+		clear_variable = RUS_total_state_president_votes
+		clear_variable = RUS_vote_state_president_votes
+	}
+}
 
 
 RUS_increase_plsr_pop = {
@@ -5718,7 +5795,7 @@ RUS_increase_lkdp_pop = {
 	custom_effect_tooltip = RUS_increase_lkdp_pop_tt
 	hidden_effect = {
 		every_owned_state = {
-			add_to_variable = { RUS_state_lkdp_temp_pop = 0.1 }
+			add_to_variable = { RUS_state_lkdp_temp_pop = 0.05 }
 			add_to_variable = { RUS_state_plsr_temp_pop = -0.01 }
 			add_to_variable = { RUS_state_rsdrp_temp_pop = -0.01 }
 			add_to_variable = { RUS_state_nsp_temp_pop = -0.01 }
@@ -5733,14 +5810,14 @@ RUS_increase_lkdp_pop = {
 	}
 	add_popularity = {
 		ideology = social_liberal
-		popularity = 0.07
+		popularity = 0.035
 	}
 }
 RUS_increase_rkdp_pop = {
 	custom_effect_tooltip = RUS_increase_rkdp_pop_tt
 	hidden_effect = {
 		every_owned_state = {
-			add_to_variable = { RUS_state_rkdp_temp_pop = 0.1 }
+			add_to_variable = { RUS_state_rkdp_temp_pop = 0.05 }
 			add_to_variable = { RUS_state_plsr_temp_pop = -0.01 }
 			add_to_variable = { RUS_state_rsdrp_temp_pop = -0.01 }
 			add_to_variable = { RUS_state_nsp_temp_pop = -0.01 }
@@ -5755,7 +5832,7 @@ RUS_increase_rkdp_pop = {
 	}
 	add_popularity = {
 		ideology = market_liberal
-		popularity = 0.07
+		popularity = 0.035
 	}
 }
 RUS_increase_vns_pop = {
@@ -7475,436 +7552,6 @@ RUS_Get_Senate_Elections_Array = {
 	set_variable = { three_fifth_of_senate = 90 }
 }
 
-RUS_count_senate_elects_president = {
-	if = {
-		limit = {
-			has_country_flag = PLSR_candidate_exists
-		}
-		set_variable = { votes_for_plsr_candidate = plsr_final_senators }
-	}
-	if = {
-		limit = {
-			has_country_flag = NSP_candidate_exists
-		}
-		set_variable = { votes_for_nsp_candidate = nsp_final_senators }
-	}
-	if = {
-		limit = {
-			has_country_flag = RSDRP_candidate_exists
-		}
-		set_variable = { votes_for_rsdrp_candidate = rsdrp_final_senators }
-	}
-	if = {
-		limit = {
-			has_country_flag = PSR_candidate_exists
-		}
-		set_variable = { votes_for_psr_candidate = psr_final_senators }
-	}
-	if = {
-		limit = {
-			has_country_flag = LKDP_candidate_exists
-		}
-		set_variable = { votes_for_lkdp_candidate = lkdp_final_senators }
-	}
-	if = {
-		limit = {
-			has_country_flag = RKDP_candidate_exists
-		}
-		set_variable = { votes_for_rkdp_candidate = rkdp_final_senators }
-	}
-	if = {
-		limit = {
-			has_country_flag = VNS_candidate_exists
-		}
-		set_variable = { votes_for_vns_candidate = vns_final_senators }
-	}
-	if = {
-		limit = {
-			has_country_flag = EP_candidate_exists
-		}
-		set_variable = { votes_for_ep_candidate = ep_final_senators }
-	}
-	if = {
-		limit = {
-			has_country_flag = NRPR_candidate_exists
-		}
-		set_variable = { votes_for_nrpr_candidate = nrpr_final_senators }
-	}
-	if = {
-		limit = {
-			has_country_flag = NSNP_candidate_exists
-		}
-		set_variable = { votes_for_nsnp_candidate = nsnp_final_senators }
-	}
-	
-	### Independent Candidates Vote For Ruling###
-	if = {
-		limit = {
-			plsr_in_power = yes
-		}
-		add_to_variable = { votes_for_plsr_candidate = independent_final_senators }
-	}
-	if = {
-		limit = {
-			nsp_in_power = yes
-		}
-		add_to_variable = { votes_for_nsp_candidate = independent_final_senators }
-	}
-	if = {
-		limit = {
-			rsdrp_in_power = yes
-		}
-		add_to_variable = { votes_for_rsdrp_candidate = independent_final_senators }
-	}
-	if = {
-		limit = {
-			psr_in_power = yes
-		}
-		add_to_variable = { votes_for_psr_candidate = independent_final_senators }
-	}
-	if = {
-		limit = {
-			lkdp_in_power = yes
-		}
-		add_to_variable = { votes_for_lkdp_candidate = independent_final_senators }
-	}
-	if = {
-		limit = {
-			rkdp_in_power = yes
-		}
-		add_to_variable = { votes_for_rkdp_candidate = independent_final_senators }
-	}
-	if = {
-		limit = {
-			has_government = social_conservative
-		}
-		add_to_variable = { votes_for_vns_candidate = independent_final_senators }
-	}
-	if = {
-		limit = {
-			has_government = authoritarian_democrat
-		}
-		add_to_variable = { votes_for_ep_candidate = independent_final_senators }
-	}
-	if = {
-		limit = {
-			has_idea = RUS_Boris_V_Savinkov_hog_npo
-		}
-		add_to_variable = { votes_for_nrpr_candidate = independent_final_senators }
-	}
-	if = {
-		limit = {
-			has_idea = RUS_Viktor_M_Baydalakov_hog_npo
-		}
-		add_to_variable = { votes_for_nsnp_candidate = independent_final_senators }
-	}
-	### Socialists Unite ###
-	if = {
-		limit = {
-			check_variable = { votes_for_plsr_candidate > votes_for_nsp_candidate }
-			check_variable = { votes_for_plsr_candidate > votes_for_rsdrp_candidate }
-		}
-		add_to_variable = { votes_for_plsr_candidate = votes_for_nsp_candidate }
-		add_to_variable = { votes_for_plsr_candidate = votes_for_rsdrp_candidate }
-	}
-	if = {
-		limit = {
-			check_variable = { votes_for_nsp_candidate > votes_for_plsr_candidate }
-			check_variable = { votes_for_nsp_candidate > votes_for_rsdrp_candidate }
-		}
-		add_to_variable = { votes_for_nsp_candidate = votes_for_plsr_candidate }
-		add_to_variable = { votes_for_nsp_candidate = votes_for_rsdrp_candidate }
-	}
-	if = {
-		limit = {
-			check_variable = { votes_for_rsdrp_candidate > votes_for_plsr_candidate }
-			check_variable = { votes_for_rsdrp_candidate > votes_for_nsp_candidate }
-		}
-		add_to_variable = { votes_for_rsdrp_candidate = votes_for_plsr_candidate }
-		add_to_variable = { votes_for_rsdrp_candidate = votes_for_nsp_candidate }
-	}
-	### Rightists Vote for liberals ###
-	if = {
-		limit = {
-			check_variable = { votes_for_lkdp_candidate > votes_for_vns_candidate }
-		}
-		add_to_variable = { votes_for_lkdp_candidate = votes_for_vns_candidate }
-	}
-	if = {
-		limit = {
-			check_variable = { votes_for_rkdp_candidate > votes_for_vns_candidate }
-		}
-		add_to_variable = { votes_for_rkdp_candidate = votes_for_vns_candidate }
-	}
-	if = {
-		limit = {
-			check_variable = { votes_for_lkdp_candidate > votes_for_ep_candidate }
-		}
-		add_to_variable = { votes_for_lkdp_candidate = votes_for_ep_candidate }
-	}
-	if = {
-		limit = {
-			check_variable = { votes_for_rkdp_candidate > votes_for_ep_candidate }
-		}
-		add_to_variable = { votes_for_rkdp_candidate = votes_for_ep_candidate }
-	}
-	### Conservatives unite ###
-	if = {
-		limit = {
-			check_variable = { votes_for_vns_candidate > votes_for_ep_candidate }
-		}
-		add_to_variable = { votes_for_vns_candidate = votes_for_ep_candidate }
-	}
-	if = {
-		limit = {
-			check_variable = { votes_for_ep_candidate > votes_for_vns_candidate }
-		}
-		add_to_variable = { votes_for_ep_candidate = votes_for_vns_candidate }
-	}
-	if = {
-		limit = {
-			check_variable = { votes_for_vns_candidate > votes_for_nsnp_candidate }
-		}
-		add_to_variable = { votes_for_vns_candidate = votes_for_nsnp_candidate }
-	}
-	if = {
-		limit = {
-			check_variable = { votes_for_ep_candidate > votes_for_nsnp_candidate }
-		}
-		add_to_variable = { votes_for_ep_candidate = votes_for_nsnp_candidate }
-	}
-	if = {
-		limit = {
-			check_variable = { votes_for_nsnp_candidate > votes_for_vns_candidate }
-		}
-		add_to_variable = { votes_for_nsnp_candidate = votes_for_vns_candidate }
-	}
-	if = {
-		limit = {
-			check_variable = { votes_for_nsnp_candidate > votes_for_ep_candidate }
-		}
-		add_to_variable = { votes_for_nsnp_candidate = votes_for_ep_candidate }
-	}
-	### PSR chooses their side ###
-	if = {
-		limit = {
-			NOT = { has_completed_focus = RUS_Get_Along_With_NRPR }
-			NOT = { has_completed_focus = RUS_Denounce_Savinkovism }
-		}
-		if = {
-			limit = {
-				check_variable = { votes_for_plsr_candidate > votes_for_nsp_candidate }
-				check_variable = { votes_for_plsr_candidate > votes_for_rsdrp_candidate }
-			}
-			add_to_variable = { votes_for_plsr_candidate = votes_for_psr_candidate }
-		}
-		if = {
-			limit = {
-				check_variable = { votes_for_nsp_candidate > votes_for_plsr_candidate }
-				check_variable = { votes_for_nsp_candidate > votes_for_rsdrp_candidate }
-			}
-			add_to_variable = { votes_for_nsp_candidate = votes_for_psr_candidate }
-		}
-		if = {
-			limit = {
-				check_variable = { votes_for_rsdrp_candidate > votes_for_plsr_candidate }
-				check_variable = { votes_for_rsdrp_candidate > votes_for_nsp_candidate }
-			}
-			add_to_variable = { votes_for_rsdrp_candidate = votes_for_psr_candidate }
-		}
-	}
-	else_if = {
-		limit = {
-			has_completed_focus = RUS_Get_Along_With_NRPR
-		}
-		if = {
-			limit = {
-				check_variable = { votes_for_psr_candidate > votes_for_nrpr_candidate }
-			}
-			add_to_variable = { votes_for_psr_candidate = votes_for_nrpr_candidate }
-		}
-		else_if = {
-			limit = {
-				check_variable = { votes_for_nrpr_candidate > votes_for_psr_candidate }
-			}
-			add_to_variable = { votes_for_nrpr_candidate = votes_for_psr_candidate }
-		}
-	}
-	else_if = {
-		limit = {
-			has_completed_focus = RUS_Denounce_Savinkovism
-		}
-		if = {
-			limit = {
-				check_variable = { votes_for_psr_candidate > votes_for_lkdp_candidate }
-				has_country_flag = LKDP_candidate_exists
-			}
-			add_to_variable = { votes_for_psr_candidate = votes_for_lkdp_candidate }
-		}
-		else_if = {
-			limit = {
-				check_variable = { votes_for_lkdp_candidate > votes_for_psr_candidate }
-				has_country_flag = LKDP_candidate_exists
-			}
-			add_to_variable = { votes_for_lkdp_candidate = votes_for_psr_candidate }
-		}
-		else_if = {
-			limit = {
-				check_variable = { votes_for_rkdp_candidate > votes_for_psr_candidate }
-				has_country_flag = RKDP_candidate_exists
-			}
-			add_to_variable = { votes_for_rkdp_candidate = votes_for_psr_candidate }
-		}
-		else_if = {
-			limit = {
-				check_variable = { votes_for_psr_candidate > votes_for_rkdp_candidate }
-				has_country_flag = RKDP_candidate_exists
-			}
-			add_to_variable = { votes_for_psr_candidate = votes_for_rkdp_candidate }
-		}
-	}
-	### Who wins?
-	if = {
-		limit = {
-			check_variable = { votes_for_plsr_candidate > votes_for_nsp_candidate }
-			check_variable = { votes_for_plsr_candidate > votes_for_psr_candidate }
-			check_variable = { votes_for_plsr_candidate > votes_for_rsdrp_candidate }
-			check_variable = { votes_for_plsr_candidate > votes_for_lkdp_candidate }
-			check_variable = { votes_for_plsr_candidate > votes_for_rkdp_candidate }
-			check_variable = { votes_for_plsr_candidate > votes_for_vns_candidate }
-			check_variable = { votes_for_plsr_candidate > votes_for_nrpr_candidate }
-			check_variable = { votes_for_plsr_candidate > votes_for_nsnp_candidate }
-			check_variable = { votes_for_plsr_candidate > votes_for_ep_candidate }
-		}
-		set_country_flag = plsr_wins_president
-	}
-	if = {
-		limit = {
-			check_variable = { votes_for_nsp_candidate > votes_for_plsr_candidate }
-			check_variable = { votes_for_nsp_candidate > votes_for_psr_candidate }
-			check_variable = { votes_for_nsp_candidate > votes_for_rsdrp_candidate }
-			check_variable = { votes_for_nsp_candidate > votes_for_lkdp_candidate }
-			check_variable = { votes_for_nsp_candidate > votes_for_rkdp_candidate }
-			check_variable = { votes_for_nsp_candidate > votes_for_vns_candidate }
-			check_variable = { votes_for_nsp_candidate > votes_for_nrpr_candidate }
-			check_variable = { votes_for_nsp_candidate > votes_for_nsnp_candidate }
-			check_variable = { votes_for_nsp_candidate > votes_for_ep_candidate }
-		}
-		set_country_flag = nsp_wins_president
-	}
-	if = {
-		limit = {
-			check_variable = { votes_for_psr_candidate > votes_for_plsr_candidate }
-			check_variable = { votes_for_psr_candidate > votes_for_nsp_candidate }
-			check_variable = { votes_for_psr_candidate > votes_for_rsdrp_candidate }
-			check_variable = { votes_for_psr_candidate > votes_for_lkdp_candidate }
-			check_variable = { votes_for_psr_candidate > votes_for_rkdp_candidate }
-			check_variable = { votes_for_psr_candidate > votes_for_vns_candidate }
-			check_variable = { votes_for_psr_candidate > votes_for_nrpr_candidate }
-			check_variable = { votes_for_psr_candidate > votes_for_nsnp_candidate }
-			check_variable = { votes_for_psr_candidate > votes_for_ep_candidate }
-		}
-		set_country_flag = psr_wins_president
-	}
-	if = {
-		limit = {
-			check_variable = { votes_for_rsdrp_candidate > votes_for_plsr_candidate }
-			check_variable = { votes_for_rsdrp_candidate > votes_for_nsp_candidate }
-			check_variable = { votes_for_rsdrp_candidate > votes_for_psr_candidate }
-			check_variable = { votes_for_rsdrp_candidate > votes_for_lkdp_candidate }
-			check_variable = { votes_for_rsdrp_candidate > votes_for_rkdp_candidate }
-			check_variable = { votes_for_rsdrp_candidate > votes_for_vns_candidate }
-			check_variable = { votes_for_rsdrp_candidate > votes_for_nrpr_candidate }
-			check_variable = { votes_for_rsdrp_candidate > votes_for_nsnp_candidate }
-			check_variable = { votes_for_rsdrp_candidate > votes_for_ep_candidate }
-		}
-		set_country_flag = rsdrp_wins_president 
-	}
-	if = {
-		limit = {
-			check_variable = { votes_for_lkdp_candidate > votes_for_plsr_candidate }
-			check_variable = { votes_for_lkdp_candidate > votes_for_nsp_candidate }
-			check_variable = { votes_for_lkdp_candidate > votes_for_psr_candidate }
-			check_variable = { votes_for_lkdp_candidate > votes_for_rsdrp_candidate }
-			check_variable = { votes_for_lkdp_candidate > votes_for_rkdp_candidate }
-			check_variable = { votes_for_lkdp_candidate > votes_for_vns_candidate }
-			check_variable = { votes_for_lkdp_candidate > votes_for_nrpr_candidate }
-			check_variable = { votes_for_lkdp_candidate > votes_for_nsnp_candidate }
-			check_variable = { votes_for_lkdp_candidate > votes_for_ep_candidate }
-		}
-		set_country_flag = lkdp_wins_president 
-	}
-	if = {
-		limit = {
-			check_variable = { votes_for_rkdp_candidate > votes_for_plsr_candidate }
-			check_variable = { votes_for_rkdp_candidate > votes_for_nsp_candidate }
-			check_variable = { votes_for_rkdp_candidate > votes_for_psr_candidate }
-			check_variable = { votes_for_rkdp_candidate > votes_for_rsdrp_candidate }
-			check_variable = { votes_for_rkdp_candidate > votes_for_lkdp_candidate }
-			check_variable = { votes_for_rkdp_candidate > votes_for_vns_candidate }
-			check_variable = { votes_for_rkdp_candidate > votes_for_nrpr_candidate }
-			check_variable = { votes_for_rkdp_candidate > votes_for_nsnp_candidate }
-			check_variable = { votes_for_rkdp_candidate > votes_for_ep_candidate }
-		}
-		set_country_flag = rkdp_wins_president 
-	}
-	if = {
-		limit = {
-			check_variable = { votes_for_vns_candidate > votes_for_plsr_candidate }
-			check_variable = { votes_for_vns_candidate > votes_for_nsp_candidate }
-			check_variable = { votes_for_vns_candidate > votes_for_psr_candidate }
-			check_variable = { votes_for_vns_candidate > votes_for_rsdrp_candidate }
-			check_variable = { votes_for_vns_candidate > votes_for_lkdp_candidate }
-			check_variable = { votes_for_vns_candidate > votes_for_rkdp_candidate }
-			check_variable = { votes_for_vns_candidate > votes_for_nrpr_candidate }
-			check_variable = { votes_for_vns_candidate > votes_for_nsnp_candidate }
-			check_variable = { votes_for_vns_candidate > votes_for_ep_candidate }
-		}
-		set_country_flag = vns_wins_president 
-	}
-	if = {
-		limit = {
-			check_variable = { votes_for_nrpr_candidate > votes_for_plsr_candidate }
-			check_variable = { votes_for_nrpr_candidate > votes_for_nsp_candidate }
-			check_variable = { votes_for_nrpr_candidate > votes_for_psr_candidate }
-			check_variable = { votes_for_nrpr_candidate > votes_for_rsdrp_candidate }
-			check_variable = { votes_for_nrpr_candidate > votes_for_lkdp_candidate }
-			check_variable = { votes_for_nrpr_candidate > votes_for_rkdp_candidate }
-			check_variable = { votes_for_nrpr_candidate > votes_for_vns_candidate }
-			check_variable = { votes_for_nrpr_candidate > votes_for_nsnp_candidate }
-			check_variable = { votes_for_nrpr_candidate > votes_for_ep_candidate }
-		}
-		set_country_flag = nrpr_wins_president 
-	}
-	if = {
-		limit = {
-			check_variable = { votes_for_nsnp_candidate > votes_for_plsr_candidate }
-			check_variable = { votes_for_nsnp_candidate > votes_for_nsp_candidate }
-			check_variable = { votes_for_nsnp_candidate > votes_for_psr_candidate }
-			check_variable = { votes_for_nsnp_candidate > votes_for_rsdrp_candidate }
-			check_variable = { votes_for_nsnp_candidate > votes_for_lkdp_candidate }
-			check_variable = { votes_for_nsnp_candidate > votes_for_rkdp_candidate }
-			check_variable = { votes_for_nsnp_candidate > votes_for_vns_candidate }
-			check_variable = { votes_for_nsnp_candidate > votes_for_nrpr_candidate }
-			check_variable = { votes_for_nsnp_candidate > votes_for_ep_candidate }
-		}
-		set_country_flag = nsnp_wins_president 
-	}
-	if = {
-		limit = {
-			check_variable = { votes_for_ep_candidate > votes_for_plsr_candidate }
-			check_variable = { votes_for_ep_candidate > votes_for_nsp_candidate }
-			check_variable = { votes_for_ep_candidate > votes_for_psr_candidate }
-			check_variable = { votes_for_ep_candidate > votes_for_rsdrp_candidate }
-			check_variable = { votes_for_ep_candidate > votes_for_lkdp_candidate }
-			check_variable = { votes_for_ep_candidate > votes_for_rkdp_candidate }
-			check_variable = { votes_for_ep_candidate > votes_for_vns_candidate }
-			check_variable = { votes_for_ep_candidate > votes_for_nrpr_candidate }
-			check_variable = { votes_for_ep_candidate > votes_for_nsnp_candidate }
-		}
-		set_country_flag = ep_wins_president 
-	}	
-}
 predetermine_all_presidential_candidates = {
 	if = {
 		limit = {
@@ -11313,6 +10960,14 @@ setup_presidential_government_senate = {
 				ruling_only = yes
 			}
 		}
+		if = {
+			limit = {
+				NOT = { has_country_flag = make_russia_liberal_conservative_democratic_tree_visible }
+			}
+			load_base_russian_tree = yes
+			set_country_flag = make_russia_liberal_conservative_democratic_tree_visible
+			mark_focus_tree_layout_dirty = yes
+		}
 		remove_all_ministers = yes
 		add_ideas = {
 			RUS_Felix_F_Yusupov_hog_ade
@@ -11331,6 +10986,14 @@ setup_presidential_government_senate = {
 				name = "Felix Yusupov"
 				ruling_only = yes
 			}
+		}
+		if = {
+			limit = {
+				NOT = { has_country_flag = make_russia_liberal_conservative_democratic_tree_visible }
+			}
+			load_base_russian_tree = yes
+			set_country_flag = make_russia_liberal_conservative_democratic_tree_visible
+			mark_focus_tree_layout_dirty = yes
 		}
 		remove_all_ministers = yes
 		add_ideas = {
@@ -11357,6 +11020,14 @@ setup_presidential_government_senate = {
 				}
 			}	
 		}
+		if = {
+			limit = {
+				NOT = { has_country_flag = make_russia_liberal_conservative_democratic_tree_visible }
+			}
+			load_base_russian_tree = yes
+			set_country_flag = make_russia_liberal_conservative_democratic_tree_visible
+			mark_focus_tree_layout_dirty = yes
+		}
 		remove_all_ministers = yes
 		add_ideas = {
 			RUS_Nikolay_S_Trubetskoy_hog_sco
@@ -11375,6 +11046,14 @@ setup_presidential_government_senate = {
 				name = "Nikolay Teslenko"
 				ruling_only = yes
 			}
+		}
+		if = {
+			limit = {
+				NOT = { has_country_flag = make_russia_liberal_conservative_democratic_tree_visible }
+			}
+			load_base_russian_tree = yes
+			set_country_flag = make_russia_liberal_conservative_democratic_tree_visible
+			mark_focus_tree_layout_dirty = yes
 		}
 		remove_all_ministers = yes
 		add_ideas = {
@@ -11395,6 +11074,14 @@ setup_presidential_government_senate = {
 				ruling_only = yes
 			}
 		}
+		if = {
+			limit = {
+				NOT = { has_country_flag = make_russia_liberal_conservative_democratic_tree_visible }
+			}
+			load_base_russian_tree = yes
+			set_country_flag = make_russia_liberal_conservative_democratic_tree_visible
+			mark_focus_tree_layout_dirty = yes
+		}
 		remove_all_ministers = yes
 		add_ideas = RUS_Nikolay_V_Nekrasov_hog_sli
 		add_ideas = {
@@ -11413,6 +11100,14 @@ setup_presidential_government_senate = {
 				name = "Vasiliy Maklakov"
 				ruling_only = yes
 			}
+		}
+		if = {
+			limit = {
+				NOT = { has_country_flag = make_russia_liberal_conservative_democratic_tree_visible }
+			}
+			load_base_russian_tree = yes
+			set_country_flag = make_russia_liberal_conservative_democratic_tree_visible
+			mark_focus_tree_layout_dirty = yes
 		}
 		remove_all_ministers = yes
 		add_ideas = {
