@@ -15,7 +15,7 @@ focus_tree = {
 	}
 
 	default = no
-	continuous_focus_position = { x = 1800 y = 750 }
+	continuous_focus_position = { x = 1680 y = 750 }
 
 	################
 	### Politics ###
@@ -1769,7 +1769,7 @@ focus_tree = {
 	focus = {
 		id = SER_claim_slovenia
 		icon = GFX_goal_generic_major_war
-		x = 3
+		x = 5
 		y = 5
 		relative_position_id = SER_congress_of_belgrade
 
@@ -1788,6 +1788,7 @@ focus_tree = {
 				owns_state = 1101
 				owns_state = 1103
 				owns_state = 1104
+				owns_state = 1272
 				AND = {
 					can_declare_war_on = 102.owner
 					102 = {
@@ -1906,6 +1907,164 @@ focus_tree = {
 			add_state_core = 736
 			add_state_core = 1144
 			add_state_core = 1100
+			add_state_core = 1272
+			if = {
+				limit = {
+					can_declare_war_on = 102.owner
+				}
+				declare_war_on = {
+					target = 102.owner
+					type = take_state_focus
+					generator = { 102 736 }
+				}
+			}
+		}
+		search_filters = { FOCUS_FILTER_ANNEXATION }
+	}
+
+	focus = {
+		id = SER_claim_hungarian_yugoslavia
+		icon = GFX_goal_FIU_no_magyars
+		x = 3
+		y = 5
+		relative_position_id = SER_congress_of_belgrade
+
+		cost = 5
+
+		prerequisite = { focus = SER_form_yugoslavia }
+
+		available = {
+			is_subject = no
+			OR = {
+				is_in_faction = no
+				is_faction_leader = yes
+			}
+			OR = {
+				owns_state = 1105
+				owns_state = 1206
+				owns_state = 1111
+				OR = {
+					AND = {
+						can_declare_war_on = 1105.owner
+						1105 = {
+							any_neighbor_state = { is_owned_by = ROOT }
+						}
+					}
+					AND = {
+						can_declare_war_on = 1111.owner
+						1111 = {
+							any_neighbor_state = { is_owned_by = ROOT }
+						}
+					}
+				}
+			}
+		}
+
+		will_lead_to_war_with = HUN
+
+		available_if_capitulated = yes
+
+		bypass = { 1206 = { is_core_of = ROOT } 1105 = { is_core_of = ROOT } } # Fiume
+
+		ai_will_do = {
+			factor = 10
+			modifier = {
+				factor = 0
+				has_war = yes
+			}
+			# don't attack Austria unless it's vulnerable or other countries are waiting to help
+			modifier = {
+				factor = 0
+				1206 = { owned_by_austria_or_puppet = yes }
+				AUS = {
+					is_subject = no
+					is_faction_leader = yes
+					surrender_progress < 0.10
+					NOT = {
+						has_war_with = GER
+						has_war_with = RUS
+						has_war_with = HUN
+						has_war_with = POL
+						has_war_with = ITA
+					}
+				}
+				NOT = {
+					POL = { has_country_flag = waiting_to_attack_austria }
+					ITA = { has_country_flag = waiting_to_attack_austria }
+				}
+			}
+			modifier = {
+				factor = 5
+				1206 = { owned_by_austria_or_puppet = yes }
+				OR = {
+					AUS = { has_war_with = HUN }
+					POL = { has_country_flag = waiting_to_attack_austria }
+					ITA = { has_country_flag = waiting_to_attack_austria }
+				}
+			}
+			modifier = {
+				factor = 10
+				has_country_flag = waiting_to_attack_austria
+			}
+			# don't attack if it's owned by someone other than Austria, who is not a puppet/faction member and is stronger
+			modifier = {
+				factor = 0
+				NOT = { owns_state = 1206 }
+				1206 = {
+					NOT = {
+						owned_by_austria_or_puppet = yes
+					}
+					owner = {
+						NOT = { is_subject_of = AUS }
+						NOT = { is_in_faction_with = AUS }
+						surrender_progress < 0.10
+						strength_ratio = { tag = SER ratio > 1.0 }
+					}
+				}
+			}
+			# don't attack if it's owned by someone other than Austria, who is a puppet of a stronger overlord
+			modifier = {
+				factor = 0
+				NOT = { owns_state = 1206 }
+				1206 = {
+					NOT = {
+						owned_by_austria_or_puppet = yes
+					}
+					owner = {
+						is_subject = yes
+						overlord = {
+							NOT = { tag = AUS }
+							surrender_progress < 0.10
+							strength_ratio = { tag = SER ratio > 1.0 }
+						}
+					}
+				}
+			}
+			# don't attack if it's owned by someone other than Austria, who is in a faction with a stronger leader
+			modifier = {
+				factor = 0
+				NOT = { owns_state = 1206 }
+				1206 = {
+					NOT = { owned_by_austria_or_puppet = yes }
+					owner = {
+						is_in_faction = yes
+						is_faction_leader = no
+						any_allied_country = {
+							NOT = { tag = AUS }
+							is_faction_leader = yes
+							surrender_progress < 0.10
+							strength_ratio = { tag = ROM ratio > 1.0 }
+						}
+					}
+				}
+			}
+		}
+
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus SER_claim_slovenia"
+			add_state_core = 1206
+			add_state_core = 1111
+			add_state_core = 11105
 			if = {
 				limit = {
 					can_declare_war_on = 102.owner
@@ -1961,15 +2120,23 @@ focus_tree = {
 	focus = {
 		id = SER_extra_research_slot_ii
 		icon = GFX_goal_military_research
-		x = 0
-		y = 5
+		x = -5
+		y = 4
 		relative_position_id = SER_congress_of_belgrade
 
 		cost = 6.8
+		
+		available = {
+			has_global_flag = balkan_war_ended
+		}
 
 		prerequisite = {
-			focus = SER_a_serbian_nation
-			focus = SER_form_yugoslavia
+			focus = SER_ultimatum_to_bulgaria
+		}
+
+		prerequisite = {
+			focus = focus = SER_slavic_federation
+			focus = focus = SER_ultimatum_to_bulgaria
 		}
 
 		ai_will_do = { factor = 20 }
@@ -1977,6 +2144,41 @@ focus_tree = {
 		completion_reward = {
 			log = "[GetDateText]: [Root.GetName]: Focus SER_extra_research_slot_ii"
 			add_research_slot = 1
+		}
+		search_filters = { FOCUS_FILTER_RESEARCH }
+	}
+        
+	focus = {
+		id = SER_serbia_strong
+		icon = GFX_goal_MNT_loyalists
+		x = -5
+		y = 5
+		relative_position_id = SER_congress_of_belgrade
+
+		cost = 6.8
+		
+		available = {
+			has_global_flag = balkan_war_ended
+		}
+
+		prerequisite = {
+			focus = SER_extra_research_slot_ii
+		}
+
+		ai_will_do = { factor = 20 }
+
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus SER_extra_research_slot_ii"
+			add_war_support = 0.1
+			army_experience = 20
+			random_owned_controlled_state = {
+				add_extra_state_shared_building_slots = 2
+				add_building_construction = {
+					type = arms_factory
+					level = 1
+					instant_build = yes
+				}
+			}
 		}
 		search_filters = { FOCUS_FILTER_RESEARCH }
 	}
@@ -2106,6 +2308,73 @@ focus_tree = {
 				add_ideas = SER_farming_subsidies_2
 			}
 			custom_effect_tooltip = SER_Rural_Credit_Grants_tooltip
+		}
+	}
+
+	focus = {
+		id = SER_redirect_war_funds
+		icon = GFX_HUN_revive_military_funding
+		available = {
+			has_global_flag = balkan_war_ended
+		}
+		prerequisite = {
+			focus = SER_Rural_Credit_Banks
+		}
+		relative_position_id = SER_Farming_Subsidies
+		x = 0
+		y = 3
+		cost = 7
+		ai_will_do = {
+			factor = 16
+		}
+		search_filters = { FOCUS_FILTER_INDUSTRY }
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus SER_redirect_war_funds"
+			random_owned_controlled_state = {
+				add_extra_state_shared_building_slots = 3
+				add_building_construction = {
+					type = industrial_complex
+					level = 1
+					instant_build = yes
+				}
+				add_building_construction = {
+					type = arms_factory
+					level = 1
+					instant_build = yes
+				}
+			}
+		}
+	}
+
+	focus = {
+		id = SER_by_jingo
+		icon = GFX_goal_AUS_reconstructive_mobilization
+		available = {
+			has_global_flag = balkan_war_ended
+		}
+		prerequisite = {
+			focus = SER_Found_FOMU
+		}
+		prerequisite = {
+			focus = SER_redirect_war_funds
+		}
+		relative_position_id = SER_Farming_Subsidies
+		x = 1
+		y = 4
+		cost = 7
+		ai_will_do = {
+			factor = 16
+		}
+		search_filters = { FOCUS_FILTER_INDUSTRY }
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus SER_by_jingo"
+			add_research_slot = 1
+			add_ideas = SER_military_industry
+			add_tech_bonus = {
+				bonus = 1
+				uses = 1
+				category = infantry_weapons
+			}
 		}
 	}
 
@@ -2623,7 +2892,7 @@ focus_tree = {
 			focus = SER_Begin_Mechanisation
 		}
 		relative_position_id = SER_Training_The_New_Guard
-		x = 3
+		x = 4
 		y = 2
 		cost = 6
 		ai_will_do = {
@@ -2632,6 +2901,9 @@ focus_tree = {
 				factor = 2
 				has_war = yes
 			}
+		}
+		mutually_exclusive = {
+			focus = SER_Import_Russian_Armour_Designs
 		}
 		search_filters = { FOCUS_FILTER_ARMY_BONUS }
 		completion_reward = {
@@ -2669,6 +2941,65 @@ focus_tree = {
 	}
 
 	focus = {
+		id = SER_Import_Russian_Armour_Designs
+		icon = GFX_goal_TEX_maneuver_excersices
+		available = {
+			country_exists = ENT
+			NOT = { has_war_with = ENT }
+		}
+		prerequisite = {
+			focus = SER_Begin_Mechanisation
+		}
+		relative_position_id = SER_Training_The_New_Guard
+		x = 2
+		y = 2
+		cost = 6
+		ai_will_do = {
+			factor = 4
+			modifier = {
+				factor = 2
+				has_war = yes
+			}
+		}
+		mutually_exclusive = {
+			focus = SER_Import_Entente_Armour_Designs
+		}
+		search_filters = { FOCUS_FILTER_ARMY_BONUS }
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus SER_Import_Entente_Armour_Designs"
+			custom_effect_tooltip = available_designer
+			show_ideas_tooltip = industrija_masina_komponenata
+			custom_effect_tooltip = tooltip_white_line
+			add_tech_bonus = {
+				name = SER_Import_Entente_Armour_Designs
+				bonus = 1
+				uses = 1
+				category = armor
+			}
+			if = {
+				limit = {
+					NOT = { has_dlc = "No Step Back" }
+				}
+				add_equipment_to_stockpile = {
+				type = light_tank_equipment_1
+				amount = 150
+				producer = RUS
+			}
+			}
+			if = {
+				limit = {
+					has_dlc = "No Step Back"
+				}
+				add_equipment_to_stockpile = {
+				type = light_tank_chassis
+				amount = 150
+				producer = RUS
+			}
+			}
+		}
+	}
+
+	focus = {
 		id = SER_Lessons_Of_The_War
 		icon = GFX_focus_generic_military_academy
 		available = {
@@ -2691,7 +3022,7 @@ focus_tree = {
 			add_doctrine_cost_reduction = {
 				name = land_doc_bonus
 				cost_reduction = 0.5
-				uses = 1
+				uses = 2
 				category = land_doctrine
 			}
 		}
@@ -2899,7 +3230,18 @@ focus_tree = {
 		search_filters = { FOCUS_FILTER_ARMY_BONUS }
 		completion_reward = {
 			log = "[GetDateText]: [Root.GetName]: Focus SER_Local_Munition_Efforts"
-			add_political_power = -75
+			random_owned_state = {
+				add_resource = {
+					type = aluminium
+					amount = 8
+				}
+			}
+			random_owned_state = {
+				add_resource = {
+					type = steel
+					amount = 8
+				}
+			}
 			random_owned_controlled_state = {
 				prioritize = { 108 }
 				limit = {
@@ -2937,8 +3279,8 @@ focus_tree = {
 			log = "[GetDateText]: [Root.GetName]: Focus SER_Doctrinal_Studies"
 			add_doctrine_cost_reduction = {
 				name = air_doc_bonus
-				cost_reduction = 0.5
-				uses = 1
+				cost_reduction = 0.6
+				uses = 2
 				category = air_doctrine
 			}
 		}
@@ -3067,6 +3409,12 @@ focus_tree = {
 					level = 4
 					instant_build = yes
 				}
+			}
+			add_doctrine_cost_reduction = {
+				name = air_doc_bonus
+				cost_reduction = 0.5
+				uses = 1
+				category = air_doctrine
 			}
 		}
 	}
@@ -3251,6 +3599,14 @@ focus_tree = {
 		completion_reward = {
 			log = "[GetDateText]: [Root.GetName]: Focus SER_Brotherly_Union"
 			add_political_power = 150
+			random_owned_controlled_state = {
+				add_extra_state_shared_building_slots = 1
+					add_building_construction = {
+					type = arms_factory
+					level = 1
+					instant_build = yes
+				}
+			}
 		}
 	}
 
