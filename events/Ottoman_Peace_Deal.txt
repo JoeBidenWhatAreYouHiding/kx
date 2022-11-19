@@ -26,8 +26,8 @@ country_event = { #War in the Desert setup event
 		country_event = { id = cp.9 days = 1 random_days = 2 }
 		country_event = { id = ottlib.21 days = 55 }
 		country_event = { id = cp.12 days = 10 }
-		country_event = { id = cp.13 days = 30 random = 15 }
-		country_event = { id = ottgui.4 days = 10 random = 72 }
+		country_event = { id = cp.13 days = 30 random_days = 15 }
+		country_event = { id = ottgui.4 days = 10 random_days = 3 }
 		if = {
 			limit = {
 				LBA = { has_war_with = TUR }
@@ -58,6 +58,21 @@ country_event = { #War in the Desert setup event
 				increase_conscription = yes
 				increase_mobilisation = yes
 				load_oob = EGY_war_cheat
+				if = {
+					limit = { has_dlc = "By Blood Alone" }
+					add_equipment_to_stockpile = {
+						type = small_plane_airframe_0
+						amount = 25
+						producer = ENG
+					}
+				}
+				else = {
+					add_equipment_to_stockpile = {
+						type = fighter_equipment_0
+						amount = 25
+						producer = ENG
+					}
+				}
 			}
 			PER = {
 				increase_conscription = yes
@@ -103,6 +118,7 @@ country_event = { #War in the Desert setup event
 			FRA = { send_volunteers_to_TARGET = yes }
 			SRI = { send_volunteers_to_TARGET = yes }
 			CNT = { send_volunteers_to_TARGET = yes }
+			BHC = { send_volunteers_to_TARGET = yes }
 		}
 		
 		#Romanian flavor event
@@ -172,6 +188,7 @@ country_event = {	#End of an Era
 	option = {
 		name = cp.1.a
 		remove_ideas = OTT_Ottoman_Stand	
+		OTT_remove_ottoman_ambitions_claims = yes
 		EGY = { country_event = cp.2 }
 		hidden_effect = {
 			country_event = { id = tur.0 days = 20 }
@@ -264,11 +281,13 @@ country_event = { #Victory in the Mashriq
 							tag = GEO
 							tag = CYP
 							tag = KUR
+							tag = KDR
 							tag = LBA
 							tag = TRP
 							tag = JBS
 							tag = SAU
 							tag = YEM
+							original_tag = IKH
 						}
 					}
 					set_country_flag = was_at_war_with_OTT
@@ -606,6 +625,7 @@ country_event = { #Victory in the Mashriq
 						OR = {
 							AND = {
 								state = 1213 #Batumi
+								1213 = { is_claimed_by = ARM }
 								NOT = { GEO = { has_country_flag = was_at_war_with_OTT } }
 							}
 							state = 998 #Highland Karabagh
@@ -843,11 +863,17 @@ country_event = { #Victory in the Mashriq
 							tag = CYP
 							tag = UKR
 							tag = KUR
+							tag = KDR
 							tag = LBA
 							tag = TRP
 							tag = JBS
 							tag = SAU
 							tag = YEM
+							original_tag = IKH
+							AND = {
+								tag = GRE
+								has_country_flag = CYP_war_for_enosis
+							}
 						}
 					}
 					white_peace_with_TARGET = yes
@@ -856,91 +882,35 @@ country_event = { #Victory in the Mashriq
 				if = {
 					limit = { is_faction_leader = yes }
 					every_other_country = {
-						limit = { is_in_faction_with = ROOT }
-						add_to_temp_array = { ROOT.former_ottoman_allies = THIS }
-					}
-					dismantle_faction = yes
-				}
-				for_each_scope_loop = {
-					array = ROOT.former_ottoman_allies
-					every_enemy_country = {
 						limit = {
-							is_valid_peace_target = yes
-							NOT = {
-								is_owner_neighbor_of = PREV
-								PREV = {
-									any_controlled_state = { is_owned_by = var:v }
-								}
-							}
-						}
-						white_peace_with_ROOT = yes
+							is_in_faction_with = PREV
+							is_subject = no
 					}
+						add_to_temp_array = { ROOT.former_ottoman_allies = THIS }
 				}
+					dismantle_faction = yes
 			}
-
-			### Free all Ottoman puppets
-			every_country = {
-				limit = { is_subject_of = TUR }
-				TUR = {
+				every_subject_country = {
+					overlord = {
 					set_autonomy = {
 						target = PREV
 						autonomy_state = autonomy_free
 					}
 				}
-			}
-
-			### Clear Ottoman state effects
-			every_state = {
-				limit = { NOT = { is_owned_by = TUR } }
-				if = {
-					limit = {
-						has_dynamic_modifier = { modifier = autonomous_region }
+					add_to_temp_array = { ROOT.former_ottoman_allies = THIS }
 					}
-					remove_dynamic_modifier = { modifier = autonomous_region }
 				}
-				if = {
+			for_each_scope_loop = {
+				array = ROOT.former_ottoman_allies
+				every_enemy_country = {
 					limit = {
-						has_dynamic_modifier = { modifier = vilayet }
-					}
-					remove_dynamic_modifier = { modifier = vilayet }
-				}
-				if = {
-					limit = {
-						has_dynamic_modifier = { modifier = high_revolt_risk }
-					}
-					remove_dynamic_modifier = { modifier = high_revolt_risk }
-				}
-				if = {
-					limit = {
-						has_dynamic_modifier = { modifier = very_high_revolt_risk }
-					}
-					remove_dynamic_modifier = { modifier = very_high_revolt_risk }
-				}
-				if = {
-					limit = {
-						check_variable = { corruption = 2 }
-						has_state_flag = OTT_corruption_applied
-					}
-					clr_state_flag = OTT_corruption_applied
-					add_state_modifier = {
-						modifier = {
-							local_building_slots_factor = 0.20
-							local_manpower = 0.50
+						is_valid_peace_target = yes
+						NOT = {
+							is_owner_neighbor_of = PREV
+							any_allied_country = { is_owner_neighbor_of = PREV.PREV }
 						}
 					}
-				}
-				else_if = {
-					limit = {
-						check_variable = { corruption = 1 }
-						has_state_flag = OTT_corruption_applied
-					}
-					clr_state_flag = OTT_corruption_applied
-					add_state_modifier = {
-						modifier = {
-							local_building_slots_factor = 0.10
-							local_manpower = 0.25
-						}
-					}
+					white_peace_with_ROOT = yes
 				}
 			}
 		}
@@ -1324,11 +1294,8 @@ country_event = { #Future of Syria
 					national_populist = 8
 				}
 			}
-			country_event = {
-				id = syrrep.1
-				days = 1
-			}	
-			change_tag_from = EGY
+			country_event = { id = syrrep.1 days = 1 }
+			change_tag_from = ROOT
 		}
 	}
 }
@@ -1489,7 +1456,7 @@ country_event = { #Ottoman Victory in Egypt
 					state = 753 #Suez Canal
 				}
 			}
-			var:tag_to_release = { transfer_state = PREV }
+			transfer_state_to = var:tag_to_release
 		}
 		puppet_released_tag = yes
 		var:tag_to_release = {
@@ -1584,7 +1551,7 @@ country_event = {
 	title = cp.9.t
 	desc = cp.9.d
 
-	fire_only_once = yes
+	is_triggered_only = yes
 
 	trigger = {
 		NOT = { has_completed_focus = OTT_Union_Party_State }
@@ -1842,11 +1809,20 @@ country_event = { #The Cypriot Issue
 		add_ideas = OTT_Long_live_the_turkish_republic_of_northern_cyprus
 		if = {
 			limit = {
-				NOT = { has_tech = transport }
+				NOT = {
+					has_tech = transport
+					has_tech = mtg_transport
 			}
+			}
+			if = {
+				limit = { has_dlc = "Man the Guns" }
+				set_technology = { mtg_transport = 1 }
+			}
+			else = {
 			set_technology = { transport = 1 }
 		}
 	}
+}
 }
 
 country_event = { #Leaving the Cairo Pact? (TRP)
