@@ -717,10 +717,59 @@ on_actions = {
 		}
 	}
 
+	#ROOT is winner, FROM is loser (called for all winners against all losers)
+	on_peaceconference_started = {
+		effect = {
+			log = "[GetDateText] on_peaceconference_started ROOT = [Root.GetName] FROM = [From.GetName]"
+
+			#set up PC country arrays
+			if = {
+				limit = { NOT = { has_global_flag = KR_set_up_pc_arrays } }
+				set_global_flag = KR_set_up_pc_arrays
+				every_country = {
+					limit = { pc_is_winner = yes }
+					add_to_array = { global.pc_winners_array = THIS }
+					if = {
+						limit = { is_major = yes }
+						set_global_flag = pc_has_major_winner
+					}
+					if = {
+						limit = { is_subject = no }
+						set_global_flag = pc_has_non_subject_winner
+					}
+				}
+				every_country = {
+					limit = { pc_is_loser = yes }
+					add_to_array = { global.pc_losers_array = THIS }
+				}
+			}
+		}
+	}
+
 	#ROOT is winner #FROM is loser
 	on_peaceconference_ended = {
 		effect = {
 			log = "[GetDateText] [Root.GetName] (ROOT) on_peaceconference_ended FROM = [From.GetName]"
+			
+			#post-PC data cleanup
+			if = {
+				limit = {
+					set_temp_variable = { last_winner_index = global.pc_winners_array^num }
+					subtract_from_temp_variable = { last_winner_index = 1 }
+					check_variable = { global.pc_winners_array^last_winner_index = ROOT }
+
+					set_temp_variable = { last_loser_index = global.pc_losers_array^num }
+					subtract_from_temp_variable = { last_loser_index = 1 }
+					check_variable = { global.pc_losers_array^last_loser_index = FROM }
+				}
+				clr_global_flag = KR_set_up_pc_arrays
+				clr_global_flag = pc_has_major_winner
+				clr_global_flag = pc_has_non_subject_winner
+				clear_array = global.pc_winners_array
+				clear_array = global.pc_losers_array
+				every_country = { recheck_annexations = yes }
+			}
+
 			recheck_annexations = yes
 			FROM = {
 				recheck_annexations = yes
