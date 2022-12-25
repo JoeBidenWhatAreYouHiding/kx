@@ -1,0 +1,131 @@
+# Scripted AI desire for peace actions.
+# See documentation.info file for more detailed scripting information.
+
+peace_ai_desires = {
+	take_our_cores = {
+		peace_action_type = { take_states }
+		enable = {
+			ROOT = { tag = ROOT.FROM }
+			ROOT.FROM.FROM.FROM = { is_core_of = ROOT.FROM }
+		}
+		ai_desire = 100
+	}
+
+	generic_influence_cutoff = { #Don't do ANYTHING outside influence range
+		peace_action_type = { take_states puppet force_government liberate }
+		enable = {
+			check_variable = { global.pc_winners_array^num > 1 }
+			ROOT.FROM.FROM.FROM = {
+				pc_is_state_outside_influence_for = ROOT
+				NOT = { is_core_of = ROOT.FROM }
+				NOT = { is_claimed_by = ROOT.FROM }
+				NOT = { any_neighbor_state = { pc_is_state_claimed_by = ROOT.FROM } }
+			}
+			any_of_scopes = {
+				array = global.pc_winners_array
+				NOT = { ROOT.FROM.FROM.FROM = { pc_is_state_outside_influence_for = PREV } }
+				if = {
+					limit = { has_global_flag = pc_has_major_winner }
+					is_major = no
+					is_subject = no
+				}
+				else_if = {
+					limit = { has_global_flag = pc_has_non_subject_winner }
+					is_subject = no
+				}
+			}
+		}
+		ai_desire = -1000
+	}
+
+	doesnt_control_no_claim = {
+		peace_action_type = { take_states }
+		enable = {
+			ROOT = { tag = ROOT.FROM }
+			ROOT.FROM.FROM.FROM = {
+				NOT = { is_core_of = ROOT.FROM }
+				NOT = { is_claimed_by = ROOT.FROM }
+				NOT = { is_controlled_by = ROOT.FROM }
+			}
+		}
+		ai_desire = -20
+	}
+
+	dont_grab_exclaves = {
+		peace_action_type = take_states
+		enable = {
+			ROOT.FROM.FROM.FROM = {
+				NOT = {
+					OR = {
+						is_claimed_by = ROOT.FROM
+						any_neighbor_state = {
+							OR = {
+								is_owned_by = ROOT.FROM
+								pc_is_state_claimed_by = ROOT.FROM
+							}
+						}
+					}
+				}
+			}
+		}
+		ai_desire = -40
+	}
+
+	do_grab_stuff_near_us = {
+		peace_action_type = take_states
+		enable = {
+			ROOT = { tag = ROOT.FROM }
+			ROOT.FROM.FROM.FROM = {
+				OR = {
+					is_claimed_by = ROOT.FROM
+					any_neighbor_state = { is_owned_by = ROOT.FROM }
+				}
+			}
+		}
+		ai_desire = 10
+	}
+
+	generic_occupies_state = {
+		peace_action_type = { take_states puppet liberate force_government }
+		enable = {
+			ROOT.FROM.FROM.FROM = { NOT = { is_controlled_by = ROOT } }
+		}
+		ai_desire = -10
+	}
+
+	generic_occupies_player_state = {
+		peace_action_type = { take_states puppet liberate force_government }
+		enable = {
+			ROOT.FROM.FROM.FROM = {
+				NOT = { is_controlled_by = ROOT }
+				controller = {
+					pc_is_loser = no
+					is_ai = no
+				}
+			}
+		}
+		ai_desire = -20
+	}
+
+	it_is_a_non_coastal_adjacency = {
+		peace_action_type = take_states
+		enable = {
+			ROOT.FROM = { tag = ROOT }
+			ROOT.FROM.FROM.FROM = {
+				is_coastal = no
+				any_neighbor_state = {
+					is_owned_by = ROOT
+				}
+			}
+		}
+		ai_desire = 10
+	}
+
+	leave_player_controlled_land_until_later_in_the_process = {
+		peace_action_type = { take_states puppet force_government liberate }
+		enable = {
+			ROOT.FROM.FROM.FROM = { controller = { is_ai = no } }
+		}
+		ai_desire = -10
+	}
+}
