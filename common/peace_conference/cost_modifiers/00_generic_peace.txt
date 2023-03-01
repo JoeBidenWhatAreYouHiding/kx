@@ -3,6 +3,33 @@
 
 peace_action_modifiers = {
 
+	non_occupied_core_claim_third_party_state = {
+		peace_action_type = { take_states liberate puppet force_government }
+		enable = {
+			NOT = { has_war_with = ROOT.FROM.FROM }
+			NOT = {
+				ROOT.FROM.FROM = {
+					all_owned_state = {
+						NOT = { is_controlled_by = PREV }
+						controller = { is_ally_with = ROOT.FROM } #ROOT and allies have fully occupied the loser
+					}
+				}
+			}
+			if = {
+				limit = { ROOT.FROM.FROM = { has_capitulated = yes } }
+				ROOT.FROM.FROM.FROM = {
+					NOT = { is_core_of = ROOT.FROM }
+					NOT = { is_claimed_by = ROOT.FROM }
+					NOT = { controller = { is_ally_with = ROOT.FROM } }
+				}
+			}
+			else = {
+				NOT = { ROOT.FROM.FROM.FROM = { controller = { is_ally_with = ROOT.FROM } } }
+			}
+		}
+		cost_multiplier = 999
+	}
+
 	### Take States
 
 	# Is Core of Taker, and taker is not Puppet of someone
@@ -30,7 +57,7 @@ peace_action_modifiers = {
 			ROOT.FROM = { pc_is_puppeted = yes } # Taker is puppet or will be
 		}
 
-		cost_multiplier = 0.95
+		cost_multiplier = 0.5
 	}
 
 	# State isn't Core of losing country - cheaper to take colonies
@@ -68,9 +95,12 @@ peace_action_modifiers = {
 		peace_action_type = { take_states puppet liberate force_government }
 
 		enable = {
-			FROM.FROM.FROM = { is_controlled_by = ROOT }
+			FROM.FROM.FROM = {
+				is_controlled_by = ROOT
+				compliance > 0 #To prevent capitulation-occupation kicking in
 		}
-		cost_multiplier = 0.95
+		}
+		cost_multiplier = 0.8
 	}
 
 	### Ideology
@@ -96,56 +126,7 @@ peace_action_modifiers = {
 		cost_multiplier = 3.0
 	}
 
-	# Test to see if we can apply Defensive War modifiers where appropriate without adding a separate wargoal 
-	defensive_war_liberate = {
-		category = defensive_war # Should possibly be a "wargoal" category. Esp if we move other wrgoals to here
-		peace_action_type = { liberate force_government }
-		enable = {
-			OR = {
-				ROOT = { has_defensive_war_with = ROOT.FROM.FROM } # Attacked by country directly
-				AND = { # Loser probably got pulled in by another attacker
-					has_offensive_war = no
-					has_defensive_war = yes
-				}
-			}
-		}
-		cost_multiplier = 0.95
-	}
-
-	defensive_war_take_state = {
-		category = defensive_war
-		peace_action_type = take_state
-		enable = {
-			OR = {
-				ROOT = { has_defensive_war_with = ROOT.FROM.FROM } # Attacked by country directly
-				AND = { # Loser probably got pulled in by another attacker
-					has_offensive_war = no
-					has_defensive_war = yes
-				}
-			}
-		}
-		cost_multiplier = 1.1
-	}
-
 	### Other
-	belonged_to_someone_else = {
-		category = belonged_to_someone_else
-		peace_action_type = { take_states puppet force_government }
-
-		enable = {
-			any_country = {
-				NOT = { tag = ROOT.FROM }
-				ROOT.FROM.FROM.FROM = {
-					is_core_of = PREV
-					NOT = {
-						is_owned_by = PREV
-					}
-				}
-			}
-		}
-
-		cost_multiplier = 1.05
-	}
 
 	war_of_independence = {
 		category = other
@@ -172,7 +153,6 @@ peace_action_modifiers = {
 				target = ROOT
 				type = independence_wargoal
 				}
-
 			}
 		}
 		cost_multiplier = 0.5
