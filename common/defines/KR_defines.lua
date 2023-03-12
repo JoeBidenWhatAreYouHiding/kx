@@ -91,7 +91,7 @@ NDefines.NDiplomacy.VOLUNTEERS_DIVISIONS_REQUIRED = 0						-- Vanilla is 30
 NDefines.NDiplomacy.VOLUNTEERS_PER_TARGET_PROVINCE = 0.025					-- Vanilla is 0.05
 NDefines.NDiplomacy.VOLUNTEERS_PER_COUNTRY_ARMY = 0.025	
 
-NDefines.NGraphics.POLITICAL_GRID_SMALL_BOX_LIMIT = 12						-- Vanilla is 6
+NDefines.NGraphics.POLITICAL_GRID_SMALL_BOX_LIMIT = 18						-- Vanilla is 6
 NDefines.NGraphics.COUNTRY_FLAG_SMALL_TEX_WIDTH = 11						-- Vanilla is 10
 NDefines.NGraphics.COUNTRY_FLAG_TEX_MAX_SIZE = 512							-- Vanilla is 256
 NDefines.NGraphics.COUNTRY_FLAG_SMALL_TEX_MAX_SIZE = 256					-- Vanilla is 256
