@@ -162,6 +162,7 @@ UKR_land_reform_initiate_borotbyst_riot = {
 		}
 	}
 	random_owned_controlled_state = {
+		prioritize = { 221 225 1232 1233 226 197 196 1234 200 1286 228 1283 227 1284 1282 1285 259 }
 		limit = {
 			OR = {
 				has_state_category = four
@@ -177,9 +178,14 @@ UKR_land_reform_initiate_borotbyst_riot = {
 				}
 			}
 		}
-		set_demilitarized_zone = yes
+		set_border_war = yes
 		add_dynamic_modifier = {
 			modifier = UKR_borotbyst_uprising_state
+		}
+		hidden_effect = {
+			ROOT = { 
+				activate_targeted_decision = { target = PREV decision = UKR_deal_with_borotbyst_riot } 
+			}
 		}
 	}
 	decrease_ruling_party_popularity_by_3 = yes
@@ -2554,6 +2560,7 @@ UKR_setup_dyrektoria_divisions = {
 			support = {
 				engineer = { x = 0 y = 0 }
 			}
+			template_counter = 68
 		}
 		division_template = {
 			name = "Kinnohirskyi Dyvizion"
@@ -2928,6 +2935,7 @@ UKR_setup_dyrektoria_government = {
 			extensive_conscription
 			UKR_UNR_army_1
 		}
+		retire_ideology_leader = social_liberal
 	}
 }
 
@@ -4535,6 +4543,248 @@ UKR_increase_esef = {
 		add_to_variable = { UKR_esef_authority = 1 }
 	}
 }
+
+UKR_upgrade_template_and_divisions = {
+	if = {
+		limit = {
+			has_variable = UKR_militia_template_level
+			check_variable =  { UKR_militia_template_level < 2 }
+		}
+		add_units_to_division_template = {
+			template_name = "Zemske Opolchennia"
+			regiments = {
+				militia = 0
+				militia = 0 
+			}
+		}
+	}
+	else_if = {
+		limit = {
+			has_variable = UKR_militia_template_level
+			check_variable =  { UKR_militia_template_level < 4 }
+		}
+		add_units_to_division_template = {
+			template_name = "Zemske Opolchennia"
+			regiments = {
+				militia = 1
+				militia = 1 
+			}
+		}
+	}
+	else_if = {
+		limit = {
+			has_variable = UKR_militia_template_level
+			check_variable =  { UKR_militia_template_level < 6 }
+
+		}
+		add_units_to_division_template = {
+			template_name = "Zemske Opolchennia"
+			regiments = {
+				militia = 2
+				militia = 2 
+			}
+		}
+	}
+	else_if = {
+		limit = {
+			has_variable = UKR_militia_template_level
+			check_variable =  { UKR_militia_template_level < 8 }
+
+		}
+		add_units_to_division_template = {
+			template_name = "Zemske Opolchennia"
+			regiments = {
+				militia = 3
+				militia = 3 
+			}
+		}
+	}
+	else_if = {
+		limit = {
+			has_variable = UKR_militia_template_level
+			check_variable =  { UKR_militia_template_level < 10 }
+		}
+		add_units_to_division_template = {
+			template_name = "Zemske Opolchennia"
+			regiments = {
+				militia = 4
+				militia = 4 
+			}
+		}
+	}
+	if = { #Increasing the Militia Level variable 
+		limit = {
+			has_variable = UKR_militia_template_level
+			check_variable = { UKR_militia_template_level < 10 }
+		}
+		add_to_variable = { UKR_militia_template_level = 1 }
+	}
+	else_if = {
+		limit = {
+			NOT = { has_variable = UKR_militia_template_level }  
+		}
+		division_template = {
+			name = "Zemske Opolchennia"
+			is_locked = yes
+			force_allow_recruiting = yes
+			priority = 1
+			template_counter = 70
+			regiments = {
+				militia = { x = 0 y = 0 }
+				militia = { x = 0 y = 1 }
+			}
+			support = {
+
+			}
+			division_cap = 15 
+		}
+		set_variable = { UKR_militia_template_level = 1 }
+	}
+}
+
+UKR_increase_militia_cap = { 
+	effect_tooltip = {
+		set_temp_variable = { UKR_new_militia_cap_for_tooltip = UKR_militia_division_cap }
+		add_to_temp_variable = { UKR_new_militia_cap_for_tooltip = UKR_militia_cap_increase }
+		set_division_template_cap = { 
+			division_template = "Zemske Opolchennia" 
+			division_cap = UKR_new_militia_cap_for_tooltip   
+		}
+	}
+	hidden_effect = {
+		add_to_variable = { UKR_militia_division_cap = UKR_militia_cap_increase }
+		clamp_variable = {
+			var = UKR_militia_division_cap
+			min = 0 
+			max = UKR_max_militia_division_cap
+		}  
+		set_division_template_cap = { 
+			division_template = "Zemske Opolchennia" 
+			division_cap = UKR_militia_division_cap
+		}
+	}
+}
+# requires a temp variable UKR_federal_unity_change
+UKR_change_federal_unity = {
+	# convert percent to absolute
+	if = {
+		limit = {
+			check_variable = { UKR_federal_unity_change > -1 }
+			check_variable = { UKR_federal_unity_change < 1 }
+		}
+		multiply_temp_variable = { UKR_federal_unity_change = 100 }
+	}
+
+	# tooltip
+	effect_tooltip = {
+		add_to_variable = {
+			ukr_federal_unity = UKR_federal_unity_change
+			tooltip = UKR_federal_unity_tooltip
+		}
+	}
+
+	# lower limit = legitimacy * -1
+	set_temp_variable = { UKR_lower_limit = ukr_federal_unity }
+	multiply_temp_variable = { UKR_lower_limit = -1 }
+
+	# upper limit = 100 - legitimacy
+	set_temp_variable = { UKR_upper_limit = 100 }
+	subtract_from_temp_variable = { UKR_upper_limit = ukr_federal_unity }
+
+	# avoid values outside the allowed range
+	clamp_temp_variable = {
+		var = UKR_federal_unity_change
+		min = UKR_lower_limit
+		max = UKR_upper_limit
+	}
+
+	# add the variable
+	add_to_variable = { ukr_federal_unity = UKR_federal_unity_change }
+}
+# requires a temp variable UKR_cohesion_change
+UKR_change_cohesion = {
+	# convert percent to absolute
+	if = {
+		limit = {
+			check_variable = { UKR_cohesion_change > -1 }
+			check_variable = { UKR_cohesion_change < 1 }
+		}
+		multiply_temp_variable = { UKR_cohesion_change = 100 }
+	}
+
+	# tooltip
+	effect_tooltip = {
+		add_to_variable = {
+			ukr_federal_cohesion = UKR_cohesion_change
+			tooltip = UKR_cohesion_tooltip
+		}
+	}
+
+	# lower limit = legitimacy * -1
+	set_temp_variable = { UKR_lower_limit = ukr_federal_cohesion }
+	multiply_temp_variable = { UKR_lower_limit = -1 }
+
+	# upper limit = 100 - legitimacy
+	set_temp_variable = { UKR_upper_limit = 100 }
+	subtract_from_temp_variable = { UKR_upper_limit = ukr_federal_cohesion }
+
+	# avoid values outside the allowed range
+	clamp_temp_variable = {
+		var = UKR_cohesion_change
+		min = UKR_lower_limit
+		max = UKR_upper_limit
+	}
+
+	# add the variable
+	add_to_variable = { ukr_federal_cohesion = UKR_cohesion_change }
+}
+
+UKR_add_to_mizhmoria = {
+	if = {
+		limit = { NOT = { has_country_flag = mizhmoria_member } }
+		set_country_flag = mizhmoria_member
+		add_to_array = { global.mizhmoria_tags_array = THIS }
+		#event
+		if = {
+			limit = { has_global_flag = UKR_mizhmoria_federal_parties_formed }
+			UKR_global_recalculate_mizhmoria_federal_parties = yes
+		}
+	}
+}
+
+UKR_global_recalculate_mizhmoria_federal_parties = {
+	set_variable = { global.num_of_mizhmoria_tags = 0 }
+	every_country = {
+		limit = {
+			OR = {
+				has_country_flag = mizhmoria_member
+				has_country_flag = mizhmoria_leader
+			}
+		}
+		add_to_temp_variable = { global.num_of_mizhmoria_tags = 1 }
+		# SPM
+		set_variable = { global.mizhmoria_spm_pop = ROOT.party_popularity@totalist }
+		add_to_variable = { global.mizhmoria_spm_pop = ROOT.party_popularity@syndicalist }
+		add_to_variable = { global.mizhmoria_spm_pop = ROOT.party_popularity@radical_socialist }
+		# SDPM
+		set_variable = { global.mizhmoria_sdpm_pop = ROOT.party_popularity@social_democrat }
+		# LDPM
+		set_variable = { global.mizhmoria_ldpm_pop = ROOT.party_popularity@social_liberal }
+		add_to_variable = { global.mizhmoria_ldpm_pop = ROOT.party_popularity@market_liberal }
+		# KSM
+		set_variable = { global.mizhmoria_ksm_pop = ROOT.party_popularity@social_conservative }
+		add_to_variable = { global.mizhmoria_ksm_pop = ROOT.party_popularity@authoritarian_democrat }
+		add_to_variable = { global.mizhmoria_ksm_pop = ROOT.party_popularity@paternal_autocrat }
+		add_to_variable = { global.mizhmoria_ksm_pop = ROOT.party_popularity@national_populist }
+	}
+	divide_variable = { global.mizhmoria_spm_pop = global.num_of_mizhmoria_tags }
+	divide_variable = { global.mizhmoria_sdpm_pop = global.num_of_mizhmoria_tags }
+	divide_variable = { global.mizhmoria_ldpm_pop = global.num_of_mizhmoria_tags }
+	divide_variable = { global.mizhmoria_ksm_pop = global.num_of_mizhmoria_tags }
+}
+
+
+
 UKR_remove_unr_army = {
 	if = {
 		limit = { has_idea = UKR_UNR_army_1 }
@@ -8031,6 +8281,7 @@ UKR_setup_zhytomyr = {
 				support = {
 					engineer = { x = 0 y = 0 }
 				}
+				template_counter = 68
 			}
 		}
 	} 
@@ -8217,6 +8468,7 @@ UKR_setup_chernihiv = {
 				support = {
 					engineer = { x = 0 y = 0 }
 				}
+				template_counter = 68
 			}
 		}
 	}
