@@ -9590,4 +9590,370 @@ country_event = {
 	}
 }
 
+### Imperial Federation Stuff ###
+
+add_namespace = imp_fed
+
+# Invitation to the Federation
+
+country_event = {
+	id = imp_fed.1
+	immediate = { log = "[GetDateText]: [Root.GetName]: event imp_fed.1" }
+	title = imp_fed.1.t
+	desc = imp_fed.1.d
+	picture = GFX_report_event_CAN_commission
+
+	is_triggered_only = yes
+
+	option = { #yes
+		name = imp_fed.1.a
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = -30
+				has_country_flag = CAN_more_likely_to_imperial_federation
+			}
+		}
+		ENT = {
+			country_event = { #Accepted
+				id = imp_fed.2
+				days = 1
+			}
+			change_tag_from = ROOT
+		}
+	}
+	
+	option = { #no
+		name = imp_fed.1.b
+		ai_chance = {
+			factor = 50
+		}
+		trigger = {
+			NOT = {
+				is_subject_of = ENT
+			}
+		}
+		ENT = { #Denied
+			country_event = {
+				id = imp_fed.3
+				days = 1
+			}
+		}
+		if = {
+			limit = {
+				tag = DEH
+			}
+			set_country_flag = DEH_refused_entente
+		}
+		if = {
+			limit = {
+				tag = SAF
+			}
+			set_country_flag = SAF_refused_entente
+		}
+		if = {
+			limit = {
+				tag = SFR
+			}
+			set_country_flag = SAF_refused_entente
+		}
+		if = {
+			limit = {
+				tag = AST
+			}
+			set_country_flag = AST_refused_entente
+		}
+		if = {
+			limit = {
+				tag = NZL
+			}
+			set_country_flag = NZL_refused_entente
+		}
+		if = {
+			limit = {
+				tag = NZL
+			}
+			set_country_flag = SAF_refused_entente
+		}
+	}
+}
+
+# Invitation Accepted
+
+country_event = {
+	id = imp_fed.2
+	immediate = { log = "[GetDateText]: [Root.GetName]: event imp_fed.2" }
+	title = imp_fed.2.t
+	desc = imp_fed.2.d
+	picture = GFX_report_event_CAN_commission
+
+	is_triggered_only = yes
+
+	option = { #Wonderful!
+		name = imp_fed.2.a
+		every_state = {
+			limit = {
+				is_core_of = FROM
+			}
+			ENT = {
+				add_state_core = PREV
+			}
+		}
+		annex_country = {
+			target = FROM
+			transfer_troops = yes
+		}
+		FROM = {
+			every_unit_leader = {
+				set_nationality = ROOT
+			}
+		}
+	}
+}
+
+# Invitation Denied
+
+country_event = {
+	id = imp_fed.3
+	immediate = { log = "[GetDateText]: [Root.GetName]: event imp_fed.3" }
+	title = imp_fed.3.t
+	desc = imp_fed.3.d
+	picture = GFX_report_event_CAN_commission
+
+	is_triggered_only = yes
+
+	option = { #Death to Them
+		name = imp_fed.3.a
+		effect_tooltip = {
+			create_wargoal = {
+				type = annex_everything
+				target = FROM
+			}
+		}
+		FROM = {
+			country_event = {
+				id = imp_fed.4
+				days = 4
+			}
+		}
+	}
+	
+	option = { #It was fun while it lasted
+		name = imp_fed.3.b
+		add_stability = -0.02
+		add_political_power = -20
+	}
+}
+
+# Canada is coming to kill us
+
+country_event = {
+	id = imp_fed.4
+	immediate = { log = "[GetDateText]: [Root.GetName]: event imp_fed.4" }
+	title = imp_fed.4.t
+	desc = imp_fed.4.d
+	picture = GFX_report_event_CAN_commission
+
+	is_triggered_only = yes
+
+	option = { #Throw off the Entente's Chains!
+		name = imp_fed.4.a
+		ai_chance = {
+			factor = 50
+		}
+		leave_faction = yes
+		seperate_peace_all_wars = yes
+		ENT = {
+			create_wargoal = {
+				type = annex_everything
+				target = ROOT
+			}
+		}
+		if = {
+			limit = {
+				has_country_flag = AST_refused_entente
+			}
+			AST_become_republic = yes
+		}
+		if = {
+			limit = {
+				has_country_flag = NZL_refused_entente
+			}
+			NZL_become_republic = yes
+		}
+		if = {
+			limit = {
+				has_country_flag = SAF_refused_entente
+			}
+			if = {
+				limit = {
+					has_idea = SAF_idea_great_trek_reenactment_positive
+				}
+				remove_ideas = SAF_idea_great_trek_reenactment_positive
+			}
+			else = {
+				remove_ideas = SAF_idea_great_trek_reenactment_negative
+			}
+			add_war_support = 0.1
+			custom_effect_tooltip = SAF_tt_Malan_becomes_president
+			hidden_effect = {
+				set_cosmetic_tag = SAF_republic
+			}
+			leave_faction = yes
+			set_global_flag = saf_boer_war
+			
+			if = {
+				limit = {
+					has_war = yes
+				}
+
+				# first peace out with faction leaders
+				every_country = {
+					limit = {
+						is_faction_leader = yes
+						has_war_with = SAF
+						has_war_with = ENT
+					}
+					SAF = { white_peace = PREV }
+				}
+
+				# then all non-puppets who aren't in factions
+				every_country = {
+					limit = {
+						is_in_faction = no
+						is_subject = no
+						has_war_with = SAF
+						has_war_with = ENT
+					}
+					SAF = { white_peace = PREV }
+				}
+			}
+
+			if = {
+				limit = {
+					has_idea = SAF_wavering_dominion
+				}
+				remove_ideas = SAF_wavering_dominion
+			}
+			else_if = {
+				limit = {
+					has_idea = SAF_neutral_dominion
+				}
+				remove_ideas = SAF_neutral_dominion
+			}
+			
+			hidden_effect = {
+				create_country_leader = {
+					name = "Daniel François Malan"
+					desc = "POLITICS_DANIEL_MALAN_DESC"
+					picture = "gfx/leaders/SAF/SAF_Daniel_Francois_Malan.png"
+					expire = "1965.1.1"
+					ideology = pataut_boer_nationalism_subtype
+				}
+			}
+			if = {
+				limit = {
+					is_in_tech_sharing_group = entente_research
+				}
+				remove_from_tech_sharing_group = entente_research
+			}
+			if = {
+				limit = {
+					has_country_flag = saf_national_turned_pataut
+				}
+				add_popularity = { ideology = paternal_autocrat popularity = 0.1 }
+			}
+			else_if = {
+				limit = {
+					has_completed_focus = SAF_reorganise_the_national_party
+				}
+				add_popularity = { ideology = national_populist popularity = 0.1 }
+			}
+			else = {
+				add_popularity = { ideology = authoritarian_democrat popularity = 0.1 }
+			}
+			set_politics = {
+				ruling_party = paternal_autocrat
+				elections_allowed = no
+			}
+		}
+		if = {
+			limit = {
+				has_country_flag = DEH_refused_entente
+			}
+			set_country_flag = DEH_abandon_dominion
+			if = {
+				limit = {
+					NOT = {
+						has_cosmetic_tag = DEH_IND
+					}
+				}
+				set_cosmetic_tag = DEH_IND
+			}
+			if = {
+				limit = {
+					has_government = market_liberal
+				}
+				DEH_election_liberal = yes
+			}
+			if = {
+				limit = {
+					has_government = social_liberal
+				}
+				DEH_election_swaraj = yes
+			}
+			if = {
+				limit = {
+					has_government = social_democrat
+				}
+				DEH_election_jinnah = yes
+			}
+			if = {
+				limit = {
+					has_government = social_conservative
+				}
+				DEH_election_unionist = yes
+			}
+		}
+		FROM = {
+			country_event = {
+				id = imp_fed.5
+				days = 4
+			}
+		}
+	}
+	
+	option = { #We have Reconsidered
+		name = imp_fed.4.b
+		ai_chance = {
+			factor = 50
+		}
+		ENT = {
+			country_event = { #Accepted
+				id = imp_fed.2
+				days = 1
+			}
+			change_tag_from = ROOT
+		}
+	}
+}
+
+
+# Nope to the Nope
+
+country_event = {
+	id = imp_fed.5
+	immediate = { log = "[GetDateText]: [Root.GetName]: event imp_fed.5" }
+	title = imp_fed.5.t
+	desc = imp_fed.5.d
+	picture = GFX_report_event_CAN_commission
+
+	is_triggered_only = yes
+
+	option = { #Well Fuck them
+		name = imp_fed.5.a
+		
+	}
+}
+
 
