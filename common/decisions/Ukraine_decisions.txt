@@ -318,7 +318,7 @@ UKR_dyrektoria_uprising = {
 			OR = {
 				custom_trigger_tooltip = {
 					tooltip = UKR_rivne_uprising_trigger
-					check_variable = { UKR_Direktoriia_Strength_real < 0.6 }
+					check_variable = { UKR_Direktoriia_Strength_real < 0.15 }
 				}
 				country_exists = WSU
 				has_global_flag = UPR_dyrektoria_joined_peacefully
@@ -332,7 +332,7 @@ UKR_dyrektoria_uprising = {
 			OR = {
 				custom_trigger_tooltip = {
 					tooltip = UKR_rivne_uprising_trigger
-					check_variable = { UKR_Direktoriia_Strength_real < 0.051 }
+					check_variable = { UKR_Direktoriia_Strength_real < 0.15 }
 				}
 				country_exists = WSU
 				has_global_flag = UPR_dyrektoria_joined_peacefully
@@ -12098,6 +12098,7 @@ UKR_mizhmoria_alliance = {
 			}
 		}
 		visible = {			
+			tag = MIZ
 			country_exists = FROM
 			FROM = {
 				NOT = { 
@@ -12113,8 +12114,16 @@ UKR_mizhmoria_alliance = {
 		}
 		target_trigger = {
 			FROM = {
-				is_subject = no
-				is_in_faction = no
+				OR = {
+					AND = {
+						is_subject = no
+						is_in_faction = no
+					}
+					AND = {
+						tag = LIT
+						has_government = social_liberal
+					}
+				}
 				at_peace_or_same_enemies_as_ROOT = yes
 				NOT = { has_government = totalist }
 				NOT = { has_government = syndicalist }
@@ -12123,6 +12132,10 @@ UKR_mizhmoria_alliance = {
 				if = {
 					limit = { tag = TUR }
 					has_global_flag = AXIS_VICTORY
+				}
+				if = {
+					limit = { tag = LIT }
+					has_government = social_liberal
 				}
 			}
 			country_exists = FROM
@@ -12142,6 +12155,13 @@ UKR_mizhmoria_alliance = {
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision UKR_mizhmoria_invite_members target: [From.GetName]"
 			set_country_flag = { flag = UKR_joining_faction days = 10 value = 1 }
+			FROM = {
+				country_event = {
+					id = mizhmoria.60
+					days = 2
+					random = 48
+				}
+			}
 		}
 
 		remove_effect = {
@@ -12159,6 +12179,7 @@ UKR_mizhmoria_alliance = {
 			}
 		}
 		visible = {			
+			tag = MIZ
 			country_exists = FROM
 			FROM = {
 				NOT = { 
@@ -12179,53 +12200,399 @@ UKR_mizhmoria_alliance = {
 		}
 
 		cost = 0
-		days_remove = 10
 		fire_only_once = yes
 
 		ai_will_do = {
 			factor = 1000
 		}
 
-		cancel_effect = {
-			clr_country_flag = UKR_joining_faction
-		}
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision UKR_confirm_puppet_membership target: [From.GetName]"
-			set_country_flag = { flag = UKR_joining_faction days = 10 value = 1 }
+			set_country_flag = { flag = UKR_joining_faction days = 5 value = 1 }
+			FROM = { UKR_add_to_mizhmoria = yes }
 		}
 
-		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_confirm_puppet_membership target: [From.GetName]"
-			clr_country_flag = UKR_joining_faction
-		}
 	}
-	UKR_mizhmoria_fight_for_leadership = {
-		icon = generic_prepare_civil_war
-		allowed = { always = no }
-		priority = 100
+	KR_mizhmoria_bill_voting = {
+		icon = GFX_decision_generic_political_discourse
+
+		allowed = { always = no } #manually activated
+		priority = 120
+
 		available = {
 			hidden_trigger = { always = no }
 		}
+
 		cancel_trigger = {
-			num_faction_members < 2
+			hidden_trigger = { always = no }
 		}
-		
-		selectable_mission = no
+
 		days_mission_timeout = 30
-		fire_only_once = yes
+		is_good = no
 
 		cancel_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision cancel UKR_mizhmoria_fight_for_leadership target: [From.GetName]"
-			
+			log = "[GetDateText]: [Root.GetName]: Decision cancel KR_mizhmoria_bill_voting"
 		}
+
 		timeout_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision timeout UKR_mizhmoria_fight_for_leadership target: [From.GetName]"
-			every_state = {
-				limit = { UKR_is_mizhmoria_member = yes }
-				
+			log = "[GetDateText]: [Root.GetName]: Decision timeout KR_mizhmoria_bill_voting"
+			if = {
+				limit = { has_global_flag = KR_mizhmoria_economic_cooperation_vote }
+				clr_global_flag = KR_mizhmoria_economic_cooperation_vote
+				country_event = mizhmoria.4
+			}
+			else_if = {
+				limit = { has_global_flag = KR_mizhmoria_research_coop_vote }
+				clr_global_flag = KR_mizhmoria_research_coop_vote
+				country_event = mizhmoria.5
 			}
 			hidden_effect = {
-				
+				if = {
+					limit = { KR_mizhmoria_vote_passes = yes }
+					country_event = { id = mizhmoria.28 hours = 2 }
+				}
+				else = {
+					country_event = { id = mizhmoria.27 hours = 2 }
+				}
+			}
+			clear_variable = global.mizhmoria_yes_votes
+			clear_variable = global.mizhmoria_no_votes
+			clear_variable = global.mizhmoria_abstain_votes
+		}
+	}
+	UKR_propose_economic_union = {
+		icon = GFX_decision_cash_flow
+		priority = 30
+		allowed = { always = no }
+		available = {
+			num_faction_members > 2	
+			NOT = { has_active_mission = KR_mizhmoria_bill_voting }
+		}
+			
+
+		cost = 0
+		fire_only_once = yes
+
+		ai_will_do = {
+			factor = 1000
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UKR_propose_economic_union target: [From.GetName]"
+			set_global_flag = KR_mizhmoria_economic_cooperation_vote
+			activate_mission = KR_mizhmoria_bill_voting
+			country_event = mizhmoria.63
+			effect_tooltip = {
+				every_other_country = {
+					limit = { KR_is_mizhmoria_member = yes }
+					country_event = mizhmoria.63
+				}
+			}
+			hidden_effect = {
+				if = {
+					limit = { has_global_flag = UKR_mizhmoria_federal_national_curias_formed }
+					set_temp_variable = { KR_vote_delay = 1 }
+					for_each_scope_loop = {
+						array = global.mizhmoria_tags_array
+						country_event = { id = mizhmoria.63 days = KR_vote_delay }
+						add_to_temp_variable = { KR_vote_delay = 1 }
+					}
+				}
+				else = {
+					every_other_country = {
+						limit = { KR_is_mizhmoria_member = yes }
+						country_event = mizhmoria.63
+					}
+					if = {
+						limit = { has_global_flag = UKR_mizhmoria_federal_parties_formed }
+						KR_mizhmoria_calculate_parties_support = yes
+						country_event = {
+							id = mizhmoria.64
+							days = 5
+							random_days = 10
+						}
+						country_event = {
+							id = mizhmoria.65
+							days = 2
+							random_days = 10
+						}
+						country_event = {
+							id = mizhmoria.67
+							days = 4
+							random_days = 5
+						}
+					}
+					else_if = {
+						limit = { has_global_flag = UKR_mizhmoria_federal_member_delegations_formed }
+						KR_mizhmoria_calculate_member_delegations_support = yes
+					}
+				}
+			}
+		}
+	}
+	UKR_propose_research_initative = {
+		icon = GFX_decision_SOV_academy_of_sciences
+		priority = 30
+		allowed = { always = no }
+		available = {
+			num_faction_members > 1	
+			NOT = { has_active_mission = KR_mizhmoria_bill_voting }
+		}
+			
+
+		cost = 0
+		fire_only_once = yes
+
+		ai_will_do = {
+			factor = 1000
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UKR_propose_research_initative target: [From.GetName]"
+			set_global_flag = KR_mizhmoria_research_coop_vote
+			activate_mission = KR_mizhmoria_bill_voting
+			country_event = mizhmoria.68
+			effect_tooltip = {
+				every_other_country = {
+					limit = { KR_is_mizhmoria_member = yes }
+					country_event = mizhmoria.68
+				}
+			}
+			hidden_effect = {
+				if = {
+					limit = { has_global_flag = UKR_mizhmoria_federal_national_curias_formed }
+					set_temp_variable = { KR_vote_delay = 1 }
+					for_each_scope_loop = {
+						array = global.mizhmoria_tags_array
+						country_event = { id = mizhmoria.68 days = KR_vote_delay }
+						add_to_temp_variable = { KR_vote_delay = 1 }
+					}
+				}
+				else = {
+					every_other_country = {
+						limit = { KR_is_mizhmoria_member = yes }
+						country_event = mizhmoria.68
+					}
+					if = {
+						limit = { has_global_flag = UKR_mizhmoria_federal_parties_formed }
+						KR_mizhmoria_calculate_parties_support = yes
+						country_event = {
+							id = mizhmoria.69
+							days = 5
+							random_days = 10
+						}
+					}
+					else_if = {
+						limit = { has_global_flag = UKR_mizhmoria_federal_member_delegations_formed }
+						KR_mizhmoria_calculate_member_delegations_support = yes
+					}
+				}
+			}
+		}
+	}
+	KR_join_mizhmoria_economic = {
+		icon = GFX_decision_cash_flow
+		priority = 35
+		available = {
+			KR_mizhmoria_is_member_economic = no
+		}
+		visible = {			
+			is_in_faction_with = MIZ
+			MIZ = { has_idea = KR_mizhmoria_iea_1 }
+			KR_mizhmoria_is_member_economic = no
+			NOT = { has_country_flag = KR_has_left_mizhmoria_economic }
+			NOT = { has_country_flag = disable_ai_joining }
+		}		
+
+		cost = 0
+		fire_only_once = yes
+
+		ai_will_do = {
+			factor = 1000
+			modifier = {
+				factor = 0
+				has_authoritarian_government = yes
+			}
+			modifier = {
+				factor = 0.05
+				has_government = social_conservative
+			}
+			modifier = {
+				factor = 0
+				check_variable = {
+					var = ROOT.num_of_factories
+					value = MIZ.num_of_factories
+					compare = greater_than
+				}
+			}
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision KR_join_mizhmoria_economic target: [From.GetName]"
+			UKR_add_to_mizhmoria_economic = yes
+		}
+	}
+	KR_leave_mizhmoria_economic = {
+		icon = GFX_decision_cash_flow
+		priority = 5
+		available = {
+			KR_mizhmoria_is_member_economic = yes
+			is_subject = no
+			has_capitulated = no
+		}
+		visible = {			
+			is_in_faction_with = MIZ
+			MIZ = { has_idea = KR_mizhmoria_iea_1 }
+			KR_mizhmoria_is_member_economic = yes
+		}		
+
+		cost = 0
+		fire_only_once = yes
+
+		ai_will_do = {
+			factor = 0
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision KR_leave_mizhmoria_economic target: [From.GetName]"
+			set_country_flag = KR_has_left_mizhmoria_economic
+			KR_mizhmoria_remove_from_economic = yes
+		}
+	}
+	KR_join_mizhmoria_research = {
+		icon = GFX_decision_SOV_academy_of_sciences
+		priority = 35
+		available = {
+			NOT = { is_in_tech_sharing_group = mizhmoria_research }
+		}
+		visible = {			
+			is_in_faction_with = MIZ
+			MIZ = { is_in_tech_sharing_group = mizhmoria_research }
+			NOT = { is_in_tech_sharing_group = mizhmoria_research }
+			NOT = { has_country_flag = disable_ai_joining }
+		}		
+
+		cost = 0
+		fire_only_once = yes
+
+		ai_will_do = {
+			factor = 1000
+			modifier = {
+				factor = 0.05
+				has_authoritarian_government = yes
+			}
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision KR_join_mizhmoria_research target: [From.GetName]"
+			add_to_tech_sharing_group = mizhmoria_research
+			if = {
+				limit = { has_global_flag = UKR_mizhmoria_research_public_education_amendment }
+				add_ideas = KR_mizhmoria_iece_education
+			}
+		}
+	}
+	KR_leave_mizhmoria_research = {
+		icon = GFX_decision_SOV_academy_of_sciences
+		priority = 5
+		available = {
+			is_in_tech_sharing_group = mizhmoria_research
+			is_subject = no
+			has_capitulated = no
+		}
+		visible = {			
+			is_in_faction_with = MIZ
+			MIZ = { is_in_tech_sharing_group = mizhmoria_research }
+			is_in_tech_sharing_group = mizhmoria_research
+		}		
+
+		cost = 0
+		fire_only_once = yes
+
+		ai_will_do = {
+			factor = 0
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision KR_leave_mizhmoria_research target: [From.GetName]"
+			remove_from_tech_sharing_group = mizhmoria_research
+		}
+	}
+	KR_iea_economic_investment = {
+		icon = generic_industry
+		priority = 40
+		available = {
+			custom_trigger_tooltip = {
+				tooltip = CAN_iedc_invest_year_FROM
+				FROM = {
+					OR = {
+						NOT = { has_country_flag = KR_iea_investment }
+						has_country_flag = { flag = KR_iea_investment days > 364 }
+					}
+				}
+			}
+			custom_trigger_tooltip = {
+				tooltip = KR_iea_can_invest_FROM
+				set_temp_variable = { global.temp = FROM.iea_civ_factories }
+				add_to_temp_variable = { global.temp = FROM.iea_mil_factories }
+				add_to_temp_variable = { global.temp = FROM.iea_nav_factories }
+				multiply_temp_variable = { global.temp = 10 }
+				subtract_from_temp_variable = { global.temp = FROM.num_of_factories }
+				check_variable = { var = global.temp value = 0 compare = less_than_or_equals }
+			}
+		}
+		visible = {
+			tag = MIZ
+			FROM = {
+				is_in_array = { global.mizhmoria_economic_tags_array = THIS }
+			}
+		}
+		
+		cost = 0
+		custom_cost_text = KR_iea_100pp
+		custom_cost_trigger = {
+			check_variable = {
+				var = global.mizhmoria_pp_pool
+				value = 100
+				compare = greater_than_or_equals
+			}
+		}
+
+		fire_only_once = no
+
+		target_root_trigger = {
+			tag = MIZ
+		}
+
+		target_array = global.mizhmoria_economic_tags_array
+
+		target_trigger = {
+			FROM = {
+				NOT = { tag = MIZ }
+				is_in_faction_with = MIZ
+				is_in_array = { global.mizhmoria_economic_tags_array = THIS }
+			}
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision KR_iea_economic_investment target: [From.GetName]"
+			subtract_from_variable = { global.mizhmoria_pp_pool = 100 }
+			FROM = { country_event = mizhmoria.53 }
+		}
+
+		ai_will_do = {
+			factor = 10
+			modifier = {
+				factor = 1.2
+				FROM = { num_of_factories > 10 }
+			}
+			modifier = {
+				factor = 0.5
+				check_variable = { FROM.mizhmoria_pp_pool < 25 }
+			}
+			modifier = {
+				factor = 0.5
+				check_variable = { FROM.mizhmoria_pp_pool < 50 }
 			}
 		}
 	}

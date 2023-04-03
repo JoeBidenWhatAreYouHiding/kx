@@ -587,7 +587,7 @@ recalculate_ukrainian_political_variables = {
 	clamp_variable = {
 		var = UKR_Direktoriia_Strength
 		min = 0.25
-		max = 5
+		max = 2
 	}
 	clamp_variable = {
 		var = UKR_military_alignment
@@ -630,8 +630,6 @@ recalculate_ukrainian_political_variables = {
 		max = 2
 	}	
 	set_variable = { UKR_Direktoriia_Strength_real = UKR.party_popularity@social_democrat }
-	add_to_variable = { UKR_Direktoriia_Strength_real = UKR.party_popularity@social_liberal }
-	add_to_variable = { UKR_Direktoriia_Strength_real = UKR.party_popularity@syndicalist }
 	add_to_variable = { UKR_Direktoriia_Strength_real = UKR.party_popularity@radical_socialist }
 	add_to_variable = { UKR_Direktoriia_Strength_real = UKR.party_popularity@totalist }
 	if = { 
@@ -639,6 +637,11 @@ recalculate_ukrainian_political_variables = {
 		add_to_variable = { UKR_Direktoriia_Strength_real = UKR.party_popularity@national_populist }
 	}
 	multiply_variable = { UKR_Direktoriia_Strength_real = UKR_Direktoriia_Strength }
+	clamp_variable = {
+		var = UKR_Direktoriia_Strength_real
+		min = 0
+		max = 1
+	}
 	
 	set_variable = { UKR_society_support = 0 }
 	add_to_variable = { UKR_society_support = UKR_military_alignment }
@@ -834,7 +837,7 @@ UKR_increase_direktoria = {
 			ideology = radical_socialist
 			popularity = 0.01
 		}
-		add_to_variable = { UKR_Direktoriia_Strength = 1 }
+		add_to_variable = { UKR_Direktoriia_Strength = 0.2 }
 		if = {
 			limit = { has_country_flag = UPR_uvo_openly_joins_dyrektoria }
 			add_to_variable = { UKR_sun_strength = 1 }
@@ -886,12 +889,12 @@ UKR_decrease_direktoria = {
 		}
 		if = {
 			limit = {
-				check_variable = { UKR_Direktoriia_Strength < 2 }
+				check_variable = { UKR_Direktoriia_Strength < 1 }
 			}
-			add_to_variable = { UKR_Direktoriia_Strength = -0.5 }
+			add_to_variable = { UKR_Direktoriia_Strength = -0.25 }
 		}
 		else = {
-			add_to_variable = { UKR_Direktoriia_Strength = -1 }
+			add_to_variable = { UKR_Direktoriia_Strength = -0.2 }
 		}
 	}
 	recalculate_ukrainian_political_variables = yes
@@ -2935,7 +2938,13 @@ UKR_setup_dyrektoria_government = {
 			extensive_conscription
 			UKR_UNR_army_1
 		}
-		retire_ideology_leader = social_liberal
+		create_country_leader = {
+			name = "Serhiy Yefremov"
+			desc = "POLITICS_SERHIY_YEFREMOV_DESC"
+			picture = "gfx/leaders/UKR/Portrait_UKR_Serhiy_Yefremov.png"
+			expire = "1965.1.1"
+			ideology = social_liberal_subtype
+		}
 	}
 }
 
@@ -4739,52 +4748,218 @@ UKR_change_cohesion = {
 	add_to_variable = { ukr_federal_cohesion = UKR_cohesion_change }
 }
 
+UKR_activate_mizhmoria_decisions = {
+	activate_targeted_decision = { target = ROOT decision = UKR_propose_economic_union }
+	activate_targeted_decision = { target = ROOT decision = UKR_propose_research_initative }
+}
+
 UKR_add_to_mizhmoria = {
 	if = {
 		limit = { NOT = { has_country_flag = mizhmoria_member } }
 		set_country_flag = mizhmoria_member
 		add_to_array = { global.mizhmoria_tags_array = THIS }
-		#event
+		#add_to_array = { global.mizhmoria_tags_display_array = THIS }
 		if = {
-			limit = { has_global_flag = UKR_mizhmoria_federal_parties_formed }
-			UKR_global_recalculate_mizhmoria_federal_parties = yes
+			limit = { 
+				NOT = { is_in_faction_with = MIZ }
+			}
+			MIZ = { add_to_faction = PREV }
+		}
+		UKR_global_recalculate_mizhmoria_federal_parties = yes
+		if = {
+			limit = { has_global_flag = UKR_mizhmoria_federal_national_curias_formed }
+			UKR_global_recalculate_member_seats = yes
+		}
+		if = {
+			limit = { has_global_flag = UKR_mizhmoria_federal_member_delegations_formed }
+			UKR_global_recalculate_member_delegations = yes
 		}
 	}
+	KR_mizhmoria_dirty = yes
 }
 
-UKR_global_recalculate_mizhmoria_federal_parties = {
-	set_variable = { global.num_of_mizhmoria_tags = 0 }
-	every_country = {
-		limit = {
-			OR = {
-				has_country_flag = mizhmoria_member
-				has_country_flag = mizhmoria_leader
+UKR_remove_from_mizhmoria = {
+	if = {
+		limit = { has_country_flag = mizhmoria_member }
+		clr_country_flag = mizhmoria_member
+		remove_from_array = { global.mizhmoria_tags_array = THIS }
+	}
+	leave_faction = yes
+	KR_mizhmoria_remove_from_economic = yes
+	if = {
+		limit = { is_in_tech_sharing_group = mizhmoria_research }
+		remove_from_tech_sharing_group = mizhmoria_research
+	}
+	KR_mizhmoria_dirty = yes
+}
+UKR_add_to_mizhmoria_economic = {
+	if = {
+		limit = { KR_mizhmoria_is_member_economic = no }
+		custom_effect_tooltip = KR_mizhmoria_add_to_economic
+		add_to_array = { global.mizhmoria_economic_tags_array = THIS }
+		if = {
+			limit = { 
+				MIZ = { has_idea = KR_mizhmoria_iea_2 }
+			}
+			country_event = { id = mizhmoria.55 days = 2 }
+		}
+		else = {
+			hidden_effect = { add_ideas = KR_mizhmoria_iea_1 }
+		}
+		if = {
+			limit = {
+				has_global_flag = UKR_mizhmoria_economic_workers_amendment
+			}
+			add_ideas = KR_mizhmoria_iea_working_amendement
+		}
+		set_country_flag = KR_joined_iea
+		every_other_country = {
+			limit = { KR_mizhmoria_is_member_economic = yes }
+			add_opinion_modifier = {
+				target = ROOT
+				modifier = KR_mizhmoria_member_economic
+			}
+			reverse_add_opinion_modifier = {
+				target = ROOT
+				modifier = KR_mizhmoria_member_economic
 			}
 		}
-		add_to_temp_variable = { global.num_of_mizhmoria_tags = 1 }
-		# SPM
-		set_variable = { global.mizhmoria_spm_pop = ROOT.party_popularity@totalist }
-		add_to_variable = { global.mizhmoria_spm_pop = ROOT.party_popularity@syndicalist }
-		add_to_variable = { global.mizhmoria_spm_pop = ROOT.party_popularity@radical_socialist }
-		# SDPM
-		set_variable = { global.mizhmoria_sdpm_pop = ROOT.party_popularity@social_democrat }
-		# LDPM
-		set_variable = { global.mizhmoria_ldpm_pop = ROOT.party_popularity@social_liberal }
-		add_to_variable = { global.mizhmoria_ldpm_pop = ROOT.party_popularity@market_liberal }
-		# KSM
-		set_variable = { global.mizhmoria_ksm_pop = ROOT.party_popularity@social_conservative }
-		add_to_variable = { global.mizhmoria_ksm_pop = ROOT.party_popularity@authoritarian_democrat }
-		add_to_variable = { global.mizhmoria_ksm_pop = ROOT.party_popularity@paternal_autocrat }
-		add_to_variable = { global.mizhmoria_ksm_pop = ROOT.party_popularity@national_populist }
+		hidden_effect = { 
+			MIZ = { country_event = mizhmoria.48 } 
+		}
 	}
-	divide_variable = { global.mizhmoria_spm_pop = global.num_of_mizhmoria_tags }
-	divide_variable = { global.mizhmoria_sdpm_pop = global.num_of_mizhmoria_tags }
-	divide_variable = { global.mizhmoria_ldpm_pop = global.num_of_mizhmoria_tags }
-	divide_variable = { global.mizhmoria_ksm_pop = global.num_of_mizhmoria_tags }
+	KR_mizhmoria_dirty = yes
 }
-
-
-
+KR_mizhmoria_remove_from_economic = {
+	if = {
+		limit = { KR_mizhmoria_is_member_economic = yes }
+		custom_effect_tooltip = KR_mizhmoria_remove_from_economic
+		hidden_effect = {
+			remove_from_array = { global.mizhmoria_economic_tags_array = THIS }
+			remove_ideas = {
+				KR_mizhmoria_iea_1
+				KR_mizhmoria_iea_2
+				KR_iea_econ1
+				KR_iea_econ2
+				KR_iea_econ3
+				KR_iea_mil1
+				KR_iea_mil2
+				KR_iea_mil3
+				KR_iea_const1
+				KR_iea_const2
+				KR_iea_const3
+				KR_mizhmoria_iea_working_amendement
+			} 
+		}
+		clr_country_flag = KR_joined_iea
+		every_other_country = {
+			limit = { KR_mizhmoria_is_member_economic = yes }
+			remove_opinion_modifier = {
+				target = ROOT
+				modifier = KR_mizhmoria_member_economic
+			}
+			ROOT = {
+				remove_opinion_modifier = {
+					target = PREV
+					modifier = KR_mizhmoria_member_economic
+				}
+			}
+		}
+		MIZ = { country_event = { id = mizhmoria.50 days = 2 } }
+	}
+	KR_mizhmoria_dirty = yes
+}
+UKR_global_recalculate_mizhmoria_federal_parties = {
+	set_variable = { global.mizhmoria_spm_pop = 0 }
+	set_variable = { global.mizhmoria_sdpm_pop = 0 }
+	set_variable = { global.mizhmoria_ldpm_pop = 0 }
+	every_country = {
+		limit = { KR_is_mizhmoria_member = yes }
+		# SPM
+		set_variable = { THIS.mizhmoria_spm_pop = THIS.party_popularity@totalist }
+		add_to_variable = { THIS.mizhmoria_spm_pop = THIS.party_popularity@syndicalist }
+		add_to_variable = { THIS.mizhmoria_spm_pop = THIS.party_popularity@radical_socialist }
+		# SDPM
+		set_variable = { THIS.mizhmoria_sdpm_pop = THIS.party_popularity@social_democrat }
+		# LDPM
+		set_variable = { THIS.mizhmoria_ldpm_pop = THIS.party_popularity@social_liberal }
+		add_to_variable = { THIS.mizhmoria_ldpm_pop = THIS.party_popularity@market_liberal }
+		
+		add_to_variable = { global.mizhmoria_spm_pop = THIS.mizhmoria_spm_pop }
+		add_to_variable = { global.mizhmoria_sdpm_pop = THIS.mizhmoria_sdpm_pop }
+		add_to_variable = { global.mizhmoria_ldpm_pop = THIS.mizhmoria_ldpm_pop }
+	}
+	divide_variable = { global.mizhmoria_spm_pop = global.mizhmoria_tags_array^num }
+	divide_variable = { global.mizhmoria_sdpm_pop = global.mizhmoria_tags_array^num }
+	divide_variable = { global.mizhmoria_ldpm_pop = global.mizhmoria_tags_array^num }
+	set_variable = { global.mizhmoria_ksm_pop = 1 }
+	subtract_from_variable = { global.mizhmoria_ksm_pop = global.mizhmoria_spm_pop }
+	subtract_from_variable = { global.mizhmoria_ksm_pop = global.mizhmoria_sdpm_pop }
+	subtract_from_variable = { global.mizhmoria_ksm_pop = global.mizhmoria_ldpm_pop }
+	
+	KR_mizhmoria_dirty = yes
+}
+UKR_global_recalculate_member_seats = {
+	set_variable = { global.mizhmoria_member_seats = 0 }
+	every_country = {
+		limit = { KR_is_mizhmoria_member = yes }
+		set_variable = { THIS.member_seats = max_manpower_k }
+		divide_variable = { THIS.member_seats = 1000 }
+		multiply_variable = { THIS.member_seats = 1.25 }
+		round_variable = THIS.member_seats
+		
+		add_to_variable = { global.mizhmoria_member_seats = THIS.member_seats }
+	}
+	KR_mizhmoria_dirty = yes
+}
+UKR_global_recalculate_member_delegations = {
+	set_variable = { global.mizhmoria_member_delegations = 0 }
+	set_variable = { global.mizhmoria_coalition_members = 0 }
+	set_variable = { global.mizhmoria_opposition_members = 0 }
+	every_country = {
+		limit = { KR_is_mizhmoria_member = yes }
+		set_variable = { THIS.mizhmoria_member_delegations = 5 }
+		
+		set_temp_variable_to_random = {
+			var = KR_coal_members
+			min = 0
+			max = 5
+		}
+		set_variable = { THIS.member_delegate_coalition = KR_coal_members }
+		set_variable = { THIS.member_delegate_opposition = 5 }
+		subtract_from_variable = { THIS.member_delegate_opposition = THIS.member_delegate_coalition }
+				
+		add_to_variable = { global.mizhmoria_member_delegations = THIS.mizhmoria_member_delegations }
+		add_to_variable = { global.mizhmoria_coalition_members = THIS.member_delegate_coalition }
+		add_to_variable = { global.mizhmoria_opposition_members = THIS.member_delegate_opposition }
+	}
+	KR_mizhmoria_dirty = yes
+}
+KR_mizhmoria_calculate_parties_support = {
+	if = {
+		limit = { has_global_flag = KR_mizhmoria_economic_cooperation_vote }
+		set_variable = { global.mizhmoria_yes_votes = global.mizhmoria_ldpm_pop }
+		set_variable = { global.mizhmoria_no_votes = 1 }
+		subtract_from_variable = { global.mizhmoria_no_votes = global.mizhmoria_yes_votes }
+	}
+	else_if = {
+		limit = { has_global_flag = KR_mizhmoria_research_coop_vote }
+		set_variable = { global.mizhmoria_yes_votes = global.mizhmoria_ldpm_pop }
+		add_to_variable = { global.mizhmoria_yes_votes = global.mizhmoria_sdpm_pop }
+		set_variable = { global.mizhmoria_no_votes = 1 }
+		subtract_from_variable = { global.mizhmoria_no_votes = global.mizhmoria_yes_votes }
+	}
+	KR_mizhmoria_dirty = yes
+}
+KR_mizhmoria_calculate_member_delegations_support = {
+	set_variable = { global.mizhmoria_yes_votes = global.mizhmoria_coalition_members }
+	set_variable = { global.mizhmoria_no_votes = global.mizhmoria_member_delegations }
+	subtract_from_variable = { global.mizhmoria_no_votes = global.mizhmoria_yes_votes }
+	KR_mizhmoria_dirty = yes
+}
+KR_mizhmoria_dirty = {
+	add_to_variable = { mizhmoria_dirty = 1 }
+}
 UKR_remove_unr_army = {
 	if = {
 		limit = { has_idea = UKR_UNR_army_1 }
