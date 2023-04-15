@@ -174,7 +174,7 @@ ACW_deal_with_terrorists_decisions = {# dealing with terrorists
 		tag = CAL
 		tag = TEX
 		tag = COR
-		tag = PSA
+		tag = CAL
 		tag = BBR
 			}
 		}
@@ -215,7 +215,7 @@ ACW_deal_with_terrorists_decisions = {# dealing with terrorists
 		tag = COR
 		tag = WCC
 		tag = USA
-		tag = PSA
+		tag = CAL
 		tag = NEE
 		tag = BBR
 			}
@@ -255,7 +255,7 @@ ACW_deal_with_terrorists_decisions = {# dealing with terrorists
 		tag = COR
 		tag = WCC
 		tag = USA
-		tag = PSA
+		tag = CAL
 		tag = NEE
 		tag = BBR
 			}
@@ -297,7 +297,7 @@ ACW_deal_with_terrorists_decisions = {# dealing with terrorists
 		tag = TEX
 		tag = WCC
 		tag = USA
-		tag = PSA
+		tag = CAL
 		tag = NEE
 		tag = BBR
 			}
@@ -2011,10 +2011,8 @@ ACW_civil_war_decisions = {
 		icon = generic_prepare_civil_war
 		allowed = {
 			OR = {
-				tag = USA
-				tag = CSA
-				tag = TEX
-				tag = CAL
+				is_acw_tag = yes
+				is_acw_minor = yes
 			}
 		}
 		available = {
@@ -2032,7 +2030,7 @@ ACW_civil_war_decisions = {
 			FROM = { exists = yes }
 		}
 
-		targets = { USA CSA TEX CAL }
+		targets = { USA CSA TEX CAL COR BBR NYC NEE TXS }
 
 		target_trigger = {
 			FROM = {
@@ -2154,6 +2152,117 @@ ACW_civil_war_decisions = {
 			add_political_power = -20
 			add_manpower = 10000
 			hidden_effect = { activate_mission = CAL_influx_of_refugees }
+		}
+	}
+	
+	ACW_declare_on_minor = {
+		icon = generic_prepare_civil_war
+		allowed = {
+			OR = {
+				is_acw_tag = yes
+				is_acw_minor = yes
+			}
+		}
+		visible = {
+			has_global_flag = USA_civil_war_begun_flag
+			NOT = { has_global_flag = USA_civil_war_over_flag }
+			NOT = {
+				count_triggers = {
+					amount = 3
+					country_exists = USA
+					country_exists = CAL
+					country_exists = COR
+					country_exists = TEX
+					country_exists = CSA
+					country_exists = WCC
+					any_other_country = {
+						is_acw_minor = yes
+						exists = yes
+						ACW_minor_claimed_america = yes
+					}
+				}
+			}
+		}
+		visible = {
+			NOT = { has_war_with = FROM }
+			FROM = { 
+				exists = yes
+				ACW_minor_claimed_america = yes
+			}
+		}
+
+		targets = { BBR NYC NEE TXS }
+
+		target_trigger = {
+			FROM = {
+				exists = yes
+			}
+		}
+
+		fire_only_once = yes
+		
+		cost = 25
+		days_remove = 28
+		fire_only_once = yes
+		war_with_target_on_remove = yes
+		
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				has_war = yes
+			}
+			modifier = {
+				factor = 0
+				strength_ratio = { tag = FROM ratio < 1.25 }
+			}
+			modifier = {
+				factor = 0
+				FROM = {
+					is_in_faction = yes
+					any_allied_country = {
+						strength_ratio = { tag = ROOT ratio > 1.5 }
+					}
+				}
+			}
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision ACW_declare_on_minor target: [From.GetName]"
+			FROM = {
+				add_ai_strategy = {
+					type = prepare_for_war
+					id = ROOT
+					value = 1000
+				}
+			}
+			add_war_support = 0.10
+			FROM = {
+				every_owned_state = {
+					limit = {
+						is_not_claim_or_core_of_ROOT = yes
+						OR = {
+							region = 33 #Alaska
+							is_mainland_america = yes
+						}
+					}
+					add_claim_by = ROOT
+				}
+			}
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove ACW_declare_on_minor target: [From.GetName]"
+			FROM = {
+				add_ai_strategy = {
+					type = prepare_for_war
+					id = ROOT
+					value = -1000
+				}
+			}
+			declare_war_on = {
+				target = FROM
+				type = annex_everything
+			}
 		}
 	}
 }
