@@ -326,7 +326,10 @@ country_event = { #Fate of Brest
 					206 = { is_claim_or_core_of_ROOT = yes } #Minsk
 				}
 			}
-			UKR = { ROOT_can_grant_land = yes }
+			UKR = { 
+				ROOT_can_grant_land = yes 
+				owns_state = 792
+			}
 			NOT = {
 				95 = { is_owned_by = POL }
 				1295 = { is_owned_by = POL }
@@ -815,7 +818,10 @@ country_event = { #Fate of Polesia
 					206 = { is_claim_or_core_of_ROOT = yes } #Minsk
 				}
 			}
-			UKR = { ROOT_can_grant_land = yes }
+			UKR = { 
+				ROOT_can_grant_land = yes 
+				owns_state = 792
+			}
 			NOT = {
 				95 = { is_owned_by = POL }
 				1295 = { is_owned_by = POL }
@@ -6287,6 +6293,253 @@ country_event = { #SWE liberation
 		}
 		set_country_flag = SWE_CONQ
 		occupy_medium_country = yes
+	}
+}
+
+country_event = { #Fate of Krakow
+	id = annex.30
+	immediate = { log = "[GetDateText]: [Root.GetName]: event annex.30 FROM = [From.GetName]" }
+	title = annexation_KRAKOW_CONQ
+	desc = annexation_KRAKOW_CONQ_desc
+	picture = GFX_report_event_generic_conference2
+
+	is_triggered_only = yes
+
+	option = { #Liberate
+		name = annex.30.a
+		trigger = {
+			NOT = {
+				tag = POL
+				tag = GAL
+			}
+		}
+		ai_chance = { base = 0 }
+		set_temp_variable = { tag_to_release = KRK }
+		1124 = { 
+			add_core_of_target_and_transfer_if_owned = yes 
+		}		
+		if = {
+			limit = {
+				ROOT = { RUS_russian_monarch = yes }
+			}
+			KRK = { 
+				RUS_install_puppet_monarchy = yes
+			}
+		}	
+	}
+	option = { #Give it to Poland
+		name = annex.30.b
+		trigger = {
+			NOT = {
+				tag = POL
+			}
+			POL = {
+				ROOT_can_grant_land = yes
+			}
+		}
+		ai_chance = {
+			base = 20
+			modifier = {
+				factor = 0
+				GAL = { 
+					is_ally_of_ROOT = yes 
+					ROOT_can_grant_land = yes
+				}
+			}
+		}
+		set_temp_variable = { tag_to_release = POL }
+		1124 = { transfer_state_and_add_core = yes }
+	}
+	option = { #Give it to Galicia
+		name = annex.30.c
+		trigger = {
+			NOT = {
+				tag = GAL
+				AND = {
+					tag = AUS
+					AUS_is_unified = yes
+				}
+			}
+			GAL = {
+				ROOT_can_grant_land = yes
+			}
+		}
+		ai_chance = {
+			base = 40
+			modifier = {
+				factor = 0
+				POL = { 
+					is_ally_of_ROOT = yes 
+					ROOT_can_grant_land = yes
+				}
+			}
+		}
+		set_temp_variable = { tag_to_release = GAL }
+		1124 = { transfer_state_and_add_core = yes }
+	}
+	option = { #Give it to Austria
+		name = annex.30.e
+		trigger = {
+			AUS = {
+				AUS_is_unified = yes
+				is_ally_of_ROOT = yes
+				owns_state = 88
+			}
+			NOT = {
+				tag = AUS
+				tag = POL
+				tag = GAL
+			}
+		}
+		ai_chance = {
+			base = 40
+			modifier = {
+				factor = 0
+				POL = { 
+					is_ally_of_ROOT = yes 
+					ROOT_can_grant_land = yes
+				}
+			}
+		}
+		set_temp_variable = { tag_to_release = AUS }
+		1124 = { transfer_state_and_add_core = yes }
+	}
+	
+	option = { #Give it to Russia
+		name = annex.30.f
+		trigger = {
+			NOT = {
+				tag = POL
+				tag = GAL
+				is_russian_tag_that_can_integrate = yes
+			}
+			var:219.owner = {
+				ROOT_can_grant_land = yes
+				AND = {
+					is_russian_tag_that_can_integrate = yes
+					is_ally_with = ROOT
+				}
+				OR = {
+					owns_state = 88
+					owns_state = 10
+				}
+			}
+		}
+		ai_chance = {
+			base = 20
+			modifier = {
+				factor = 0
+				OR = {
+					POL = { is_ally_of_ROOT = yes }
+					GAL = { is_ally_of_ROOT = yes }
+					AUS = { 
+						is_ally_of_ROOT = yes 
+						AUS_is_unified = yes
+					}
+				}
+			}
+		}
+		set_temp_variable = { tag_to_release = 219.owner }
+		1124 = {
+			transfer_state_and_add_claim = yes
+			hidden_effect = {
+				if = {
+					limit = { has_resistance = yes }
+					set_temp_variable = { original_compliance = THIS.compliance }
+					set_temp_variable = { original_resistance = THIS.resistance }
+					cancel_resistance = yes
+				}
+				add_core_of = GAL
+				start_resistance = GAL
+				if = {
+					limit = { has_variable = original_compliance }
+					set_compliance = original_compliance
+				}
+				if = {
+					limit = { has_variable = original_resistance }
+					set_resistance = original_resistance
+				}
+				add_to_array = { global.RUS_integration_state_array = THIS }
+			}
+		}
+	}
+
+	option = { #Integrate
+		name = annex.integration
+		trigger = {
+			OR = {
+				tag = POL
+				tag = GAL
+				is_russian_tag_that_can_integrate = yes
+				AND = {
+					tag = AUS
+					AUS_is_unified = yes
+				}
+			}
+		}
+		ai_chance = {
+			base = 1000
+		}
+		if = {
+			limit = { 
+				OR = {
+					tag = POL
+					tag = GAL
+					AND = {
+						tag = AUS
+						AUS_is_unified = yes
+					}
+				}
+			}
+			add_state_core = 1124 #Krakow
+		}
+		else = {
+			add_state_claim = 1124
+			if = {
+				limit = { is_russian_tag_that_can_integrate = yes }
+				1124 = {
+					add_claim_of_ROOT = yes
+					hidden_effect = {
+						if = {
+							limit = { has_resistance = yes }
+							set_temp_variable = { original_compliance = THIS.compliance }
+							set_temp_variable = { original_resistance = THIS.resistance }
+							cancel_resistance = yes
+						}
+						add_core_of = GAL
+						start_resistance = GAL
+						if = {
+							limit = { has_variable = original_compliance }
+							set_compliance = original_compliance
+						}
+						if = {
+							limit = { has_variable = original_resistance }
+							set_resistance = original_resistance
+						}
+						add_to_array = { global.RUS_integration_state_array = THIS }
+					}
+				}
+			}
+		}		
+		recheck_annexations = yes
+	}
+
+	option = { #occupy
+		name = annex.occupation
+		trigger = {
+			NOT = {
+				tag = POL
+				tag = GAL
+				is_russian_tag_that_can_integrate = yes
+				AND = {
+					tag = AUS
+					AUS_is_unified = yes
+				}
+			}
+		}
+		ai_chance = { base = 0 }
+		occupy_tiny_country = yes
+		set_country_flag = KRAKOW_CONQ
 	}
 }
 
@@ -17495,7 +17748,6 @@ country_event = { #Fate of Ukraine
 					state = 228 #Yuzivka
 					state = 1231 #Taganrog
 					state = 792 #Volhynia
-					state = 1228 #Rivne
 					state = 192 #Odesa
 					state = 791 #Transnistria
 				}
@@ -17590,7 +17842,6 @@ country_event = { #Fate of Ukraine
 					state = 228 #Yuzivka
 					state = 1231 #Taganrog
 					state = 792 #Volhynia
-					state = 1228 #Rivne
 					state = 192 #Odesa
 					state = 791 #Transnistria
 				}
@@ -17692,7 +17943,6 @@ country_event = { #Fate of Ukraine
 					state = 228 #Yuzivka
 					state = 1231 #Taganrog
 					state = 792 #Volhynia
-					state = 1228 #Rivne
 					state = 192 #Odesa
 					state = 791 #Transnistria
 				}
@@ -17787,7 +18037,6 @@ country_event = { #Fate of Ukraine
 					state = 228 #Yuzivka
 					state = 1231 #Taganrog
 					state = 792 #Volhynia
-					state = 1228 #Rivne
 					state = 192 #Odesa
 					state = 791 #Transnistria
 				}
@@ -17866,7 +18115,6 @@ country_event = { #Fate of Ukraine
 					state = 228 #Yuzivka
 					state = 1231 #Taganrog
 					state = 792 #Volhynia
-					state = 1228 #Rivne
 					state = 192 #Odesa
 					state = 791 #Transnistria
 				}
@@ -20567,12 +20815,13 @@ country_event = { #Fate of Galicia
 					OR = {
 						state = 88 #Malopolska
 						state = 1314 #Lemkivshchyna
-						state = 1124 #Krakow
 						state = 1125 #Karpaty
+						state = 1124 #Krakow
 					}
 				}
 				add_core_of = GAL
 			}
+			1124 = { retain_state = yes } #Krakow
 		}
 	}
 	
@@ -29100,26 +29349,179 @@ country_event = { #Annexation of Tanzania
 country_event = { #Annexation of Kongo
 	id = annex.197
 	immediate = { log = "[GetDateText]: [Root.GetName]: event annex.197" }
-	title = annexation_KOG_CONQ
-	desc = annexation_KOG_CONQ_desc
+	title = annexation_CONGO_CONQ
+	desc = annexation_CONGO_CONQ_desc
 	is_triggered_only = yes
 
 	option = { #liberate
 		name = annex.197.a
 		ai_chance = {
-			factor = 100
+			factor = 80
 		}
-
-		set_temp_variable = { tag_to_release = KOG }
+		set_temp_variable = { tag_to_release = KIV }
+		var:tag_to_release = { set_cosmetic_tag = KIV_congo }
+		every_state = {
+			limit = {
+				OR = {
+					state = 1025
+					state = 1026
+					state = 1180
+					state = 1181
+					state = 1182
+					state = 1183
+					state = 1184
+					state = 1185
+					state = 295
+					state = 538
+					state = 718
+					state = 879
+					state = 881
+					state = 949
+					state = 976
+					state = 977
+				}
+			}
+			add_core_of = var:tag_to_release
+		}
 		release_targeted_tag = yes
 	}
-
+	option = { #liberate colonial
+		name = annex.197.b
+		trigger = {
+			is_actual_major = yes
+		}
+		ai_chance = {
+			factor = 80
+		}
+		set_temp_variable = { tag_to_release = LPD }
+		var:tag_to_release = { set_cosmetic_tag = LPD_CONGO_TAG }
+		every_state = {
+			limit = {
+				OR = {
+					state = 1025
+					state = 1026
+					state = 1180
+					state = 1181
+					state = 1182
+					state = 1183
+					state = 1184
+					state = 1185
+					state = 295
+					state = 538
+					state = 718
+					state = 879
+					state = 881
+					state = 949
+					state = 976
+					state = 977
+				}
+			}
+			add_core_of = var:tag_to_release
+		}
+		release_targeted_tag = yes
+	}
+	option = { #liberate
+		name = annex.197.c
+		trigger = { owns_state = 879 }
+		ai_chance = {
+			factor = 20
+		}
+		every_state = {
+			limit = {
+				OR = {
+					state = 1182
+					state = 879
+					state = 1183
+				}
+			}
+			add_core_of = UMN
+		}
+		set_temp_variable = { tag_to_release = UMN }
+		release_targeted_tag = yes
+		UMN = { set_cosmetic_tag = UMN_KATANGA }
+		set_temp_variable = { tag_to_release = LPD }
+		var:tag_to_release = { set_cosmetic_tag = LPD_CONGO_TAG }
+		every_state = {
+			limit = {
+				OR = {
+					state = 1025
+					state = 1026
+					state = 1180
+					state = 1181
+					state = 1182
+					state = 1183
+					state = 1184
+					state = 1185
+					state = 295
+					state = 538
+					state = 718
+					state = 879
+					state = 881
+					state = 949
+					state = 976
+					state = 977
+				}
+			}
+			add_core_of = var:tag_to_release
+		}
+		release_targeted_tag = yes
+	}
+	option = { #liberate
+		name = annex.197.e
+		trigger = { 
+			owns_state = 879 
+			is_actual_major = yes
+		}
+		ai_chance = {
+			factor = 20
+		}
+		every_state = {
+			limit = {
+				OR = {
+					state = 1182
+					state = 879
+					state = 1183
+				}
+			}
+			add_core_of = UMN
+		}
+		set_temp_variable = { tag_to_release = UMN }
+		release_targeted_tag = yes
+		UMN = { set_cosmetic_tag = UMN_KATANGA }
+		set_temp_variable = { tag_to_release = KIV }
+		var:tag_to_release = { set_cosmetic_tag = KIV_congo }
+		every_state = {
+			limit = {
+				OR = {
+					state = 1025
+					state = 1026
+					state = 1180
+					state = 1181
+					state = 1182
+					state = 1183
+					state = 1184
+					state = 1185
+					state = 295
+					state = 538
+					state = 718
+					state = 879
+					state = 881
+					state = 949
+					state = 976
+					state = 977
+				}
+			}
+			add_core_of = var:tag_to_release
+		}
+		release_targeted_tag = yes
+	}
+	
 	option = { #occupy
 		name = annex.occupation
 		ai_chance = {
 			factor = 0
 		}
-		set_country_flag = KOG_CONQ
+		set_country_flag = CONGO_CONQ
 		occupy_medium_country = yes
 	}
 }
@@ -45014,38 +45416,6 @@ country_event = { #Fate of Starodub
 		}
 	}
 	
-	option = { #Give it to Belarus
-		name = annex.378.a
-		trigger = {
-			NOT = {
-				tag = WHR
-				AND = {
-					tag = LIT
-					207 = { is_claim_or_core_of_ROOT = yes }
-				}
-			}
-			WHR = { ROOT_can_grant_land = yes }
-		}
-		ai_chance = {
-			base = 40
-			modifier = {
-				factor = 0
-				NOT = { is_ally_with = WHR }
-				var:219.owner = {
-					is_russian_tag_that_can_integrate = yes
-					is_ally_with = ROOT
-				}
-			}
-		}
-		set_temp_variable = { tag_to_release = WHR }
-		every_owned_state = {
-			limit = {
-				state = 1230 #Starodub
-			}
-			transfer_state_and_add_claim = yes
-		}
-	}
-
 	option = { #Give it to LitBel
 		name = annex.378.c
 		trigger = {
@@ -47416,7 +47786,6 @@ country_event = { #Fate of the East Galicia
 						state = 91
 						state = 1140
 						state = 89
-						state = 80
 						state = 1126
 						state = 1127
 					}
