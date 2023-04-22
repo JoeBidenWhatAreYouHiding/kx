@@ -1646,19 +1646,26 @@ country_event = { # Dyrektoria Uprising
 		hidden_effect = {
 			if = {
 				limit = { has_dlc = "Man the Guns" }
-				UPR = { become_exiled_in = { target = WSU legitimacy = 0.35 } }
-			}
-			UPR = {
-				every_unit_leader = {
-					set_unit_leader_flag = original_unr_leader
-					set_nationality = WSU
+				if = {
+					limit = { country_exists = WSU }
+					UPR = { become_exiled_in = { target = WSU legitimacy = 0.35 } }
 				}
 			}
-			WSU = {
-				country_event = wsu.33
+			else = {
+				UPR = {
+					every_unit_leader = {
+						set_unit_leader_flag = original_unr_leader
+						set_nationality = WSU
+					}
+				}
+				clear_variable = UKR_Direktoriia_Strength
+				clear_global_event_target = UKR_dyrektoria_headquarters			
+				WSU = {
+					save_global_event_target_as = UKR_dyrektoria_headquarters
+					set_cosmetic_tag = UKR_dyrektoria
+					country_event = wsu.33
+				}	
 			}
-			clear_variable = UKR_Direktoriia_Strength
-			clear_global_event_target = UKR_dyrektoria_headquarters			
 		}
 		if = {
 			limit = { has_idea = UKR_martial_law }
@@ -3523,24 +3530,6 @@ country_event = { # Regency Council
 			ideology = paternal_autocrat
 			desc = POLITICS_PAVLO_SKOROPADSKYI_DESC
 		}
-		if = {
-			limit = { has_country_flag = pavlo_iv }
-			set_country_leader_name = {
-				name = "Pavlo IV"
-			}
-		}
-		else_if = {
-			limit = { has_country_flag = pavlo_iii }
-			set_country_leader_name = {
-				name = "Pavlo III"
-			}
-		}
-		else_if = {
-			limit = { has_country_flag = pavlo_ii }
-			set_country_leader_name = {
-				name = "Pavlo II"
-			}
-		}
 		clr_country_flag = UKR_regency_council
 		set_country_flag = UKR_regency_council_over
 	}
@@ -3583,9 +3572,10 @@ country_event = { # Regency Council
 				restore_previous_government_type = yes
 			}
 		}
-		mark_focus_tree_layout_dirty = yes
-		clr_country_flag = UKR_regency_council
-		set_country_flag = UKR_regency_council_over
+		country_event = {
+			id = ukrpol.126
+			days = 5
+		}
 	}
 }
 country_event = { # Regency Council
@@ -3599,6 +3589,21 @@ country_event = { # Regency Council
 	option = {
 		name = ukrpol.122.a
 		add_ideas = UKR_austrian_regent
+		add_stability = -0.1
+		if = {
+			limit = {
+				NOT = { has_idea = UKR_austrian_trade }
+			}
+			add_ideas = UKR_austrian_trade
+		}
+		get_current_government_type = yes
+		AUS = {
+			set_autonomy = {
+				target = ROOT
+				autonomous_state = botde_satellite
+			}
+		}
+		restore_previous_government_type = yes
 	}
 }
 country_event = { # Freikorps
@@ -3658,49 +3663,22 @@ country_event = { # Freikorps
 		add_stability = -0.1
 	}
 }
-
-country_event = { # 
-	id = ukrpol.125
-	immediate = { log = "[GetDateText]: [Root.GetName]: event ukrpol.124" }
-	title = ukrpol.124.t
-	desc = ukrpol.124.d
-	picture = GFX_report_event_UKR_freikrops
+country_event = { # Regency Council
+	id = ukrpol.126
+	immediate = { log = "[GetDateText]: [Root.GetName]: event ukrpol.126" }
+	title = ukrpol.126.t
+	desc = ukrpol.126.d
+	picture = GFX_report_event_UKR_skoropadsky_4
 	is_triggered_only = yes
 	
 	option = {
-		name = ukrpol.124.a
-		ai_chance = { base = 85 }
-		country_event = {
-			id = ukrpol.117
-			days = 2
+		name = ukrpol.126.a
+		set_politics = {
+			ruling_party = paternal_autocrat
+			elections_allowed = no
 		}
-	}
-	option = {
-		name = ukrpol.124.b
-		ai_chance = { base = 7 }
-		set_country_flag = pavlo_ii
-		country_event = {
-			id = ukrpol.117
-			days = 2
-		}
-	}
-	option = {
-		name = ukrpol.124.c
-		ai_chance = { base = 5 }
-		set_country_flag = pavlo_iii
-		country_event = {
-			id = ukrpol.117
-			days = 2
-		}
-	}
-	option = {
-		name = ukrpol.124.e
-		ai_chance = { base = 3 }
-		set_country_flag = pavlo_iv
-		country_event = {
-			id = ukrpol.117
-			days = 2
-		}
+		clr_country_flag = UKR_regency_council
+		set_country_flag = UKR_regency_council_over		
 	}
 }
 
@@ -3709,8 +3687,15 @@ country_event = { # An Heir to King Vasily?
 	id = ukrpol.150
 	immediate = { log = "[GetDateText]: [Root.GetName]: event ukrpol.150" }
 	title = ukrpol.150.t
-	desc = ukrpol.150.d
-
+	desc = {
+		text = ukrpol.150.d
+		trigger = { UKR_upss_in_power = no }
+	}
+	desc = {
+		text = ukrpol.150.d.upss
+		trigger = { UKR_upss_in_power = yes }
+	}
+	
 	is_triggered_only = yes
 
 	option = {
@@ -3728,6 +3713,10 @@ country_event = { # An Heir to King Vasily?
 			target = AUS
 			modifier = UKR_AUS_stefan_hab
 		} # 30
+		if = {
+			limit = { UKR_upss_in_power = yes }
+			UKR_triumvirs_increase_bolbochan = yes
+		}
 		hidden_effect = {
 			UKR = {
 				country_event = {
@@ -3741,8 +3730,11 @@ country_event = { # An Heir to King Vasily?
 		name = ukrpol.150.b
 		ai_chance = {
 			factor = 70
+			modifier = {
+				factor = 0.5
+				UKR_upss_in_power = yes
+			}
 		}
-
 		add_stability = 0.03
 		set_country_flag = UKR_DAN
 		reverse_add_opinion_modifier = {
@@ -3753,6 +3745,10 @@ country_event = { # An Heir to King Vasily?
 			target = AUS
 			modifier = UKR_AUS_daniil_sko
 		} # -30
+		if = {
+			limit = { UKR_upss_in_power = yes }
+			UKR_triumvirs_increase_shapoval = yes
+		}
 		hidden_effect = {
 			UKR = {
 				country_event = {
@@ -3760,6 +3756,20 @@ country_event = { # An Heir to King Vasily?
 					id = ukrpol.151
 				}
 			}
+		}
+	}
+	option = {
+		name = ukrpol.150.c
+		trigger = {
+			UKR_upss_in_power = yes
+		}
+		ai_chance = {
+			factor = 30
+		}
+		add_political_power = -25
+		if = {
+			limit = { UKR_upss_in_power = yes }
+			UKR_triumvirs_increase_hrekiv = yes
 		}
 	}	
 }
@@ -3770,6 +3780,9 @@ country_event = { # New Head of Government?
 	desc = ukrpol.151.d
 
 	is_triggered_only = yes
+	trigger = {
+		UKR_upss_in_power = no
+	}
 
 	option = {
 		name = ukrpol.151.a
@@ -4640,6 +4653,9 @@ country_event = { #
 		else = {
 			UKR_create_danylo = yes
 		}
+		hidden_effect = {
+			random_other_country = { news_event = ukrpol.173 }
+		}
 	}
 	option = {
 		name = ukrpol.172.a
@@ -4648,6 +4664,134 @@ country_event = { #
 		}
 		add_stability = -0.05
 		hidden_effect = {
+			get_current_government_type = yes
+			set_politics = { ruling_party = social_democrat }
+			if = {
+				limit = { UKR_vasyl_in_power = yes }
+				set_country_leader_portrait = {
+					ideology = social_democrat
+					portrait = "gfx/leaders/UKR/Portrait_UKR_Vasyl_Habsburg_Old.png"
+				}
+			}
+			set_politics = { ruling_party = social_liberal }
+			if = {
+				limit = { UKR_vasyl_in_power = yes }
+				set_country_leader_portrait = {
+					ideology = social_liberal
+					portrait = "gfx/leaders/UKR/Portrait_UKR_Vasyl_Habsburg_Old.png"
+				}
+			}
+			set_politics = { ruling_party = market_liberal }
+			if = {
+				limit = { UKR_vasyl_in_power = yes }
+				set_country_leader_portrait = {
+					ideology = market_liberal
+					portrait = "gfx/leaders/UKR/Portrait_UKR_Vasyl_Habsburg_Old.png"
+				}
+			}
+			set_politics = { ruling_party = social_conservative }
+			if = {
+				limit = { UKR_vasyl_in_power = yes }
+				set_country_leader_portrait = {
+					ideology = social_conservative
+					portrait = "gfx/leaders/UKR/Portrait_UKR_Vasyl_Habsburg_Old.png"
+				}
+			}
+			set_politics = { ruling_party = authoritarian_democrat }
+			if = {
+				limit = { UKR_vasyl_in_power = yes }
+				set_country_leader_portrait = {
+					ideology = authoritarian_democrat
+					portrait = "gfx/leaders/UKR/Portrait_UKR_Vasyl_Habsburg_Old.png"
+				}
+			}
+			set_politics = { ruling_party = paternal_autocrat }
+			if = {
+				limit = { UKR_vasyl_in_power = yes }
+				set_country_leader_portrait = {
+					ideology = paternal_autocrat
+					portrait = "gfx/leaders/UKR/Portrait_UKR_Vasyl_Habsburg_Old.png"
+				}
+			}
+			restore_previous_government_type = yes
+			set_portraits = {
+				character = UKR_wilhelm_von_habsburg
+				army = { large = "gfx/leaders/UKR/Portrait_UKR_Vasyl_Habsburg_Old.png" }
+			}
+		}
+	}	
+}
+
+news_event = { # Crisis
+	id = ukrpol.173
+	immediate = { log = "[GetDateText]: [Root.GetName]: event ukrpol.173" }
+	title = ukrpol.173.t
+	desc = ukrpol.173.d
+	
+	picture = GFX_news_event_UKR_vasyl_abdication
+	
+	trigger = {
+		regional_europe_news = yes
+	}
+
+	is_triggered_only = yes
+	
+	major = yes
+	show_major = {
+		NOT = { tag = UKR }
+	}
+
+	option = {
+		name = ukrpol.231.a
+	}
+}
+
+country_event = { # 
+	id = ukrpol.174
+	immediate = { log = "[GetDateText]: [Root.GetName]: event ukrpol.174" }
+	
+	trigger = { 
+		UKR_vasyl_in_power = no
+	}
+	is_triggered_only = yes
+	hidden = yes
+	
+	option = {
+		name = ukrpol.174.a		
+		if = {
+			limit = {
+				UKR_upss_in_power = yes
+				OR = {
+					has_country_leader = {
+						name = "Vilgelm fon Habsburg-Lotarynzkyi"
+						ruling_only = yes
+					}
+					has_country_leader = {
+						name = "Vasyl Vyshyvanyi"
+						ruling_only = yes
+					}
+				}
+			}
+			get_current_government_type = yes
+			set_politics = { ruling_party = social_democrat }
+			if = {
+				limit = { 
+					OR = {
+						has_country_leader = {
+							name = "Vilgelm fon Habsburg-Lotarynzkyi"
+							ruling_only = yes
+						}
+						has_country_leader = {
+							name = "Vasyl Vyshyvanyi"
+							ruling_only = yes
+						}
+					}
+				}
+				set_country_leader_portrait = {
+					ideology = social_democrat
+					portrait = "gfx/leaders/UKR/Portrait_UKR_Vasyl_Habsburg_Old.png"
+				}
+			}
 			set_country_leader_portrait = {
 				ideology = social_conservative
 				portrait = "gfx/leaders/UKR/Portrait_UKR_Vasyl_Habsburg_Old.png"
@@ -4655,7 +4799,12 @@ country_event = { #
 			set_country_leader_portrait = {
 				ideology = authoritarian_democrat
 				portrait = "gfx/leaders/UKR/Portrait_UKR_Vasyl_Habsburg_Old.png"
-			}
+			}	
+			restore_previous_government_type = yes
+		}
+		set_portraits = {
+			character = UKR_wilhelm_von_habsburg
+			army = { large = "gfx/leaders/UKR/Portrait_UKR_Vasyl_Habsburg_Old.png" }
 		}
 	}	
 }
@@ -5328,6 +5477,935 @@ country_event = { # UPSS
 		}
 	}	
 }
+
+country_event = { # UPSS
+	id = ukrpol.224
+	immediate = { log = "[GetDateText]: [Root.GetName]: event ukrpol.224" }
+	title = ukrpol.224.t
+	desc = ukrpol.224.d
+	
+	is_triggered_only = yes
+		
+	option = {
+		name = ukrpol.224.a			
+		increase_ruling_party_popularity_by_10 = yes
+		UKR_triumvirs_decrease_militarism = yes
+	}	
+}
+
+country_event = { # UPSS
+	id = ukrpol.225
+	immediate = { log = "[GetDateText]: [Root.GetName]: event ukrpol.225" }
+	title = ukrpol.225.t
+	desc = ukrpol.225.d
+	
+	picture = GFX_report_event_UKR_vasyl
+	
+	is_triggered_only = yes
+		
+	option = {
+		name = ukrpol.225.a		
+		ai_chance = {
+			base = 70
+		}
+		hidden_effect = {
+			random_list = {
+				90 = {
+					modifier = {
+						set_temp_variable = { ai_chance = UKR_triumvirs_militarism }
+						factor = ai_chance
+					}
+					country_event = {
+						id = ukrpol.226
+						days = 5
+					}
+				}
+				10 = {
+					country_event = {
+						id = ukrpol.229
+						days = 5
+					}
+				}
+			}
+		}
+	}
+	option = {
+		name = ukrpol.225.b	
+		ai_chance = {
+			base = 30
+		}
+		set_country_flag = UKR_vasyl_first_president
+		hidden_effect = {
+			random_list = {
+				90 = {
+					modifier = {
+						set_temp_variable = { ai_chance = UKR_triumvirs_militarism }
+						factor = ai_chance
+					}
+					country_event = {
+						id = ukrpol.226
+						days = 5
+					}
+				}
+				10 = {
+					country_event = {
+						id = ukrpol.229
+						days = 5
+					}
+				}
+			}
+		}
+	}	
+}
+
+country_event = { # UPSS
+	id = ukrpol.226
+	immediate = { log = "[GetDateText]: [Root.GetName]: event ukrpol.226" }
+	title = ukrpol.226.t
+	desc = ukrpol.226.d
+	
+	picture = GFX_report_event_UKR_vasyl2
+	
+	is_triggered_only = yes
+		
+	option = {
+		name = ukrpol.226.a		
+		if = {
+			limit = { has_country_flag = UKR_vasyl_first_president }
+			UKR_triumvirs_decrease_bolbochan = yes
+			UKR_triumvirs_decrease_hrekiv = yes
+			country_event = {
+				id = ukrpol.227
+				days = 7
+			}
+		}
+		else = {
+			UKR_triumvirs_decrease_shapoval = yes
+			UKR_triumvirs_decrease_bolbochan = yes
+			country_event = {
+				id = ukrpol.228
+				days = 3
+			}
+		}
+	}	
+}
+
+country_event = { # UPSS
+	id = ukrpol.227
+	immediate = { log = "[GetDateText]: [Root.GetName]: event ukrpol.227" }
+	title = ukrpol.227.t
+	desc = ukrpol.227.d
+	
+	picture = GFX_report_event_UKR_vasyl5
+	
+	is_triggered_only = yes
+		
+	option = {
+		name = ukrpol.227.a		
+		drop_cosmetic_tag = yes
+		set_cosmetic_tag = UKR_state
+		UKR_remove_king = yes	
+		hidden_effect = {
+			random_other_country = { news_event = ukrpol.231 }
+		}
+	}	
+}
+
+country_event = { # UPSS
+	id = ukrpol.228
+	immediate = { log = "[GetDateText]: [Root.GetName]: event ukrpol.228" }
+	title = ukrpol.228.t
+	desc = ukrpol.228.d
+	
+	picture = GFX_report_event_UKR_vasyl5
+	
+	is_triggered_only = yes
+		
+	option = {
+		name = ukrpol.228.a		
+		drop_cosmetic_tag = yes
+		set_cosmetic_tag = UKR_state
+		UKR_remove_king = yes
+		create_country_leader = {
+			name = "Vilgelm fon Habsburg-Lotarynzkyi"
+			desc = "POLITICS_VASYL_PRESIDENT_DESC"
+			picture = "gfx/leaders/UKR/Portrait_UKR_Vasyl_Habsburg_suit.png"
+			expire = "1965.1.1"
+			ideology = social_nationalism_subtype
+		}
+		set_global_flag = UKR_vasyl_a_common_man
+		effect_tooltip = {
+			create_corps_commander = { name = "Vilgelm fon Habsburg-Lotarynzkyi" }
+		}
+		hidden_effect = {
+			set_character_name = {
+				character = UKR_wilhelm_franz_von_habsburg
+				name = UKR_wilhelm_franz_von_habsburg_ukrainian
+			}
+			random_other_country = { news_event = ukrpol.231 }
+		}
+	}	
+}
+
+country_event = { # UPSS
+	id = ukrpol.229
+	immediate = { log = "[GetDateText]: [Root.GetName]: event ukrpol.229" }
+	title = ukrpol.229.t
+	desc = ukrpol.229.d
+	
+	picture = GFX_report_event_UKR_vasyl5
+	
+	is_triggered_only = yes
+		
+	option = {
+		name = ukrpol.229.a		
+		hidden_effect = {
+			if = {
+				limit = {
+					OR = {
+						check_variable = { UKR_triumvirs_bolbochan_coef > UKR_triumvirs_shapoval_coef }
+						check_variable = { UKR_triumvirs_bolbochan_coef > UKR_triumvirs_hrekiv_coef }
+						AND = {
+							is_ai = yes
+							OR = {
+								has_game_rule = { rule = UKR_FUTURE option = UKR_FUTURE_KING_UPSS_BOLBOCHAN }
+								has_game_rule = { rule = UKR_FUTURE option = UKR_FUTURE_KING_UPSS_BOLBOCHAN_DEMOCRACY }
+							}
+						}
+					}
+				}
+				country_event = {
+					id = ukrpol.234
+					days = 2
+				}
+			}
+			else = {
+				country_event = {
+					id = ukrpol.230
+					days = 2
+				}
+			}
+		}
+	}	
+}
+
+country_event = { # UPSS
+	id = ukrpol.230
+	immediate = { log = "[GetDateText]: [Root.GetName]: event ukrpol.230" }
+	title = ukrpol.230.t
+	desc = ukrpol.230.d
+	
+	picture = GFX_report_event_UKR_vasyl5
+	
+	is_triggered_only = yes
+		
+	option = {
+		name = ukrpol.230.a		
+		drop_cosmetic_tag = yes
+		set_cosmetic_tag = UKR_state
+		UKR_remove_king = yes	
+		hidden_effect = {
+			random_other_country = { news_event = ukrpol.232 }
+			GER = { country_event = ukrpol.233 }
+			AUS = { country_event = ukrpol.233 }
+		}
+	}	
+}
+news_event = { # Crisis
+	id = ukrpol.231
+	immediate = { log = "[GetDateText]: [Root.GetName]: event ukrpol.231" }
+	title = ukrpol.231.t
+	desc = ukrpol.231.d
+	
+	picture = GFX_news_event_UKR_vasyl_abdication
+	
+	trigger = {
+		regional_europe_news = yes
+	}
+
+	is_triggered_only = yes
+	
+	major = yes
+	show_major = {
+		NOT = { tag = UKR }
+	}
+
+	option = {
+		name = ukrpol.231.a
+		trigger = {
+			has_socialist_government = no
+		}
+	}
+	option = {
+		name = ukrpol.231.b
+		trigger = {
+			has_socialist_government = yes
+		}
+	}		
+}
+news_event = { # Crisis
+	id = ukrpol.232
+	immediate = { log = "[GetDateText]: [Root.GetName]: event ukrpol.232" }
+	title = ukrpol.232.t
+	desc = ukrpol.232.d
+	
+	picture = GFX_news_event_UKR_vasyl_abdication
+	
+	trigger = {
+		regional_europe_news = yes
+	}
+
+	is_triggered_only = yes
+	
+	major = yes
+	show_major = {
+		NOT = { tag = UKR }
+	}
+
+	option = {
+		name = ukrpol.231.a
+		trigger = {
+			has_socialist_government = no
+		}
+	}
+	option = {
+		name = ukrpol.231.b
+		trigger = {
+			has_socialist_government = yes
+		}
+	}		
+}
+
+country_event = { # UPSS
+	id = ukrpol.233
+	immediate = { log = "[GetDateText]: [Root.GetName]: event ukrpol.233" }
+	title = ukrpol.233.t
+	desc = ukrpol.233.d
+	
+	picture = GFX_report_event_UKR_vasyl2
+	
+	is_triggered_only = yes
+		
+	option = {
+		name = ukrpol.233.a	
+		trigger = { tag = AUS }
+		ai_chance = {
+			base = 30
+			modifier = {
+				factor = 2
+				has_dictatorship_government = yes
+			}
+		}
+		add_political_power = 50
+		add_opinion_modifier = {
+			target = FROM
+			modifier = UKR_outraged_by_putsch
+		}
+		FROM = {
+			country_event = {
+				id = ukrpol.236
+				days = 2
+			}
+		}
+	}
+	option = {
+		name = ukrpol.233.b	
+		ai_chance = {
+			base = 50
+			modifier = {
+				factor = 2
+				OR = {
+					has_government = authoritarian_democrat
+					has_government = social_conservative
+				}
+			}
+			modifier = {
+				factor = 0.5
+				tag = GER
+			}
+		}
+		add_political_power = -25
+		add_stability = 0.02
+		add_opinion_modifier = {
+			target = FROM
+			modifier = UKR_condemns_the_putsch
+		}
+		FROM = {
+			country_event = {
+				id = ukrpol.237
+				days = 2
+			}
+		}
+		hidden_effect = {
+			if = {
+				limit = { tag = AUS }
+				UKR = {
+					UKR_wilhelm_franz_von_habsburg = {
+						set_nationality = AUS
+						unit_leader_event = {
+							id = ukrpol.235
+							days = 2
+						}
+					}
+				}
+			}
+		}
+	}
+	option = {
+		name = ukrpol.233.c	
+		ai_chance = {
+			base = 20
+			modifier = {
+				factor = 2
+				OR = {
+					has_left_democratic_government = yes
+					has_government = market_liberal
+				}
+			}
+		}
+		add_stability = -0.02
+		add_opinion_modifier = {
+			target = FROM
+			modifier = UKR_deep_concern
+		}
+		FROM = {
+			country_event = {
+				id = ukrpol.238
+				days = 2
+			}
+		}
+		hidden_effect = {
+			if = {
+				limit = { tag = AUS }
+				UKR = {
+					UKR_wilhelm_franz_von_habsburg = {
+						set_nationality = AUS
+						unit_leader_event = {
+							id = ukrpol.235
+							days = 2
+						}
+					}
+				}
+			}
+		}
+	}	
+	option = {
+		name = ukrpol.233.e
+		trigger = { tag = GER }
+		ai_chance = {
+			base = 30
+		}
+		add_stability = -0.02
+		add_opinion_modifier = {
+			target = FROM
+			modifier = UKR_back_gov
+		}
+		AUS = {
+			add_opinion_modifier = {
+				target = GER
+				modifier = UKR_back_gov_AUS_GER
+			}
+		}
+		FROM = {
+			country_event = {
+				id = ukrpol.239
+				days = 2
+			}
+		}
+	}	
+}
+
+country_event = { # UPSS
+	id = ukrpol.234
+	immediate = { log = "[GetDateText]: [Root.GetName]: event ukrpol.234" }
+	title = ukrpol.234.t
+	desc = ukrpol.234.d
+	
+	picture = GFX_report_event_UKR_bolbochan
+	
+	is_triggered_only = yes
+		
+	option = {
+		name = ukrpol.234.a	
+		set_country_flag = UKR_bolbochan_coups_hrekiv
+		random_unit_leader = {
+			limit = { has_id = 17986 }
+			retire = yes
+		}
+		set_country_flag = Vsevolod_Petrov_dead
+		set_country_flag = Oleksander_Hrekiv_dead
+		set_variable = { UKR_triumvirs_hrekiv_coef = -99 }
+		if = {
+			limit = { has_idea = UKR_Oleksander_Hrekiv_carm_ade }
+			remove_ideas = UKR_Oleksander_Hrekiv_carm_ade
+		}
+	}	
+}
+
+unit_leader_event = {
+	id = ukrpol.235
+	immediate = { log = "[GetDateText]: [Root.GetName]: event ukrpol.235: [THIS.GetName]" }
+	title = ukrpol.235.t
+	desc = ukrpol.235.d
+	picture = GFX_report_event_military_planning
+	
+	is_triggered_only = yes
+		
+	option = {
+		name = ukrpol.235.a	
+		if = {
+			limit = {
+				ROOT = {
+					OR = {
+						has_unit_leader = 17906
+						has_unit_leader = 17907
+						has_unit_leader = 28001
+						has_unit_leader = 17916
+						has_unit_leader = 17926
+					}
+				}
+			}
+			THIS = { add_unit_leader_trait = UKR_uga_officer }
+		}
+	}
+	option = {
+		name = ukrpol.235.b
+		trigger = { 
+			ROOT = { tag = AUS }
+			GAL = { is_subject_of = AUS }
+		}
+		THIS = {
+			set_nationality = GAL
+			unit_leader_event = {
+				ukrpol.235
+				days = 2
+			}
+		}
+	}
+	option = {
+		name = ukrpol.235.c
+		hidden_effect = {
+			THIS = { set_nationality = XXA }
+		}
+	}	
+}
+
+country_event = { # UPSS
+	id = ukrpol.236
+	immediate = { log = "[GetDateText]: [Root.GetName]: event ukrpol.236" }
+	title = ukrpol.236.t
+	desc = ukrpol.236.d
+	
+	is_triggered_only = yes
+		
+	option = {
+		name = ukrpol.236.a	
+		add_political_power = 15
+		increase_ruling_party_popularity_by_2 = yes
+		add_opinion_modifier = {
+			target = FROM
+			modifier = KR_disapproves_of_govt
+		}
+		FROM = {
+			country_event = {
+				id = ukrpol.240
+				days = 2
+				random = 48
+			}
+		}
+	}	
+}
+
+country_event = { # UPSS
+	id = ukrpol.237
+	immediate = { log = "[GetDateText]: [Root.GetName]: event ukrpol.237" }
+	title = ukrpol.237.t
+	desc = ukrpol.237.d
+	
+	is_triggered_only = yes
+		
+	option = {
+		name = ukrpol.237.a	
+		add_political_power = 25
+		increase_ruling_party_popularity_by_3 = yes
+		add_opinion_modifier = {
+			target = FROM
+			modifier = KR_hates_govt
+		}
+	}	
+}
+
+country_event = { # UPSS
+	id = ukrpol.238
+	immediate = { log = "[GetDateText]: [Root.GetName]: event ukrpol.238" }
+	title = ukrpol.238.t
+	desc = ukrpol.238.d
+	
+	is_triggered_only = yes
+		
+	option = {
+		name = ukrpol.238.a	
+		add_political_power = 35
+		increase_ruling_party_popularity_by_5 = yes
+		add_opinion_modifier = {
+			target = FROM
+			modifier = KR_hates_govt
+		}
+	}	
+}
+
+country_event = { # UPSS
+	id = ukrpol.239
+	immediate = { log = "[GetDateText]: [Root.GetName]: event ukrpol.239" }
+	title = ukrpol.239.t
+	desc = ukrpol.239.d
+	
+	is_triggered_only = yes
+		
+	option = {
+		name = ukrpol.239.a	
+		add_opinion_modifier = {
+			target = FROM
+			modifier = KR_pleased
+		}
+	}	
+}
+
+country_event = { # UPSS
+	id = ukrpol.240
+	immediate = { log = "[GetDateText]: [Root.GetName]: event ukrpol.240" }
+	title = ukrpol.240.t
+	desc = ukrpol.240.d
+	
+	is_triggered_only = yes
+		
+	option = {
+		name = ukrpol.240.a	
+		clear_relations_with_FROM = yes
+		embargo_FROM = yes
+		hidden_effect = {
+			UKR = {
+				UKR_wilhelm_franz_von_habsburg = {
+					set_nationality = AUS
+					unit_leader_event = {
+						id = ukrpol.235
+						days = 2
+					}
+				}
+			}
+		}
+	}	
+	option = {
+		name = ukrpol.240.b
+		trigger = {
+			AUS_is_unified = no
+			91 = { is_owned_and_controlled_by_AUS_or_subject = yes }
+			OR = {
+				has_global_flag = AUS_ausgleich_kingdoms
+				has_global_flag = AUS_ausgleich_peoples
+			}
+		}
+		every_state = {
+			limit = {
+				OR = {
+					state = 91
+					state = 89
+					state = 80
+					state = 1140
+					state = 1127
+					state = 1126
+					state = 713 
+					state = 1119
+					state = 1119
+					state = 73
+				}
+				is_owned_and_controlled_by_AUS_or_subject = yes
+				NOT = { is_owned_by = HUN }
+			}
+			transfer_state_to = WSU
+			add_core_of = WSU
+			WSU = { WSU_create_kronland = yes }
+		}	
+		FROM = {
+			country_event = {
+				id = ukrpol.241
+				days = 2
+			}
+		}
+	}	
+}
+
+country_event = { # UPSS
+	id = ukrpol.241
+	immediate = { log = "[GetDateText]: [Root.GetName]: event ukrpol.241" }
+	title = ukrpol.241.t
+	desc = ukrpol.241.d
+	
+	is_triggered_only = yes
+		
+	option = {
+		name = ukrpol.241.a	
+		set_country_flag = UKR_has_terminated_brotfrieden_with_AUS
+		remove_relation_modifier = {
+			target = AUS
+			modifier = UKR_brotfrieden
+		}
+		FROM = {
+			country_event = {
+				id = ukreco.6
+				days = 3
+				random_days = 5
+			}
+		}
+		clear_relations_with_FROM = yes
+		embargo_FROM = yes
+	}	
+}
+
+country_event = { # UPSS
+	id = ukrpol.242
+	immediate = { log = "[GetDateText]: [Root.GetName]: event ukrpol.242" }
+	title = ukrpol.242.t
+	desc = ukrpol.242.d
+	
+	picture = GFX_report_event_UKR_vasyl5
+	
+	is_triggered_only = yes
+		
+	option = {
+		name = ukrpol.242.a		
+		hidden_effect = {
+			if = {
+				limit = {
+					OR = {
+						check_variable = { UKR_triumvirs_hrekiv_coef > UKR_triumvirs_shapoval_coef }
+						check_variable = { UKR_triumvirs_hrekiv_coef > UKR_triumvirs_bolbochan_coef }
+						AND = {
+							is_ai = yes
+							OR = {
+								has_game_rule = { rule = UKR_FUTURE option = UKR_FUTURE_KING_UPSS_HREKIV_JUNTA }
+								has_game_rule = { rule = UKR_FUTURE option = UKR_FUTURE_KING_UPSS_HREKIV_OTAMANOVSKYI }
+							}
+						}
+					}
+				}
+				country_event = {
+					id = ukrpol.242
+					days = 2
+				}
+			}
+		}
+	}	
+}
+
+country_event = { # UPSS
+	id = ukrpol.243
+	immediate = { log = "[GetDateText]: [Root.GetName]: event ukrpol.243" }
+	title = ukrpol.243.t
+	desc = ukrpol.243.d
+	
+	picture = GFX_report_event_UKR_hrekiv
+	
+	is_triggered_only = yes
+		
+	option = {
+		name = ukrpol.243.a	
+		set_country_flag = UKR_hrekiv_coups_bolbochan
+		random_unit_leader = {
+			limit = { has_id = 17942 }
+			retire = yes
+		}
+		set_variable = { UKR_triumvirs_bolbochan_coef = -99 }
+		if = {
+			limit = { has_idea = UKR_Petro_Bolbochan_carm_ade }
+			remove_ideas = UKR_Petro_Bolbochan_carm_ade
+		}
+	}	
+}
+
+country_event = { # UPSS
+	id = ukrpol.244
+	immediate = { log = "[GetDateText]: [Root.GetName]: event ukrpol.244" }
+	title = ukrpol.244.t
+	desc = ukrpol.244.d
+	
+	is_triggered_only = yes
+		
+	option = {
+		name = ukrpol.244.a	
+		add_stability = 0.05
+		UKR_finalize_triuvmirs = yes
+	}	
+}
+
+country_event = { # UPSS
+	id = ukrpol.245
+	immediate = { log = "[GetDateText]: [Root.GetName]: event ukrpol.245" }
+	title = ukrpol.245.t
+	desc = ukrpol.245.d
+	
+	picture = GFX_report_event_UKR_bolbochan
+	is_triggered_only = yes
+		
+	option = {
+		name = ukrpol.245.a	
+		remove_all_ministers = yes
+		complete_national_focus = UKR_Leadership_Of_Bolbochan
+		add_ideas = UKR_Petro_Bolbochan_hog_ade
+		add_ideas = UKR_Valentyn_Otamanovskyi_for_ade
+		if = {
+			limit = { 
+				OR = {
+					has_country_flag = UKR_upss_militarist_nationalist 
+					has_country_flag = UKR_upss_socialist_nationalist 
+				}
+			}
+			add_ideas = UKR_Oleksander_Natiyev_eco_ade
+		}
+		else_if = {
+			limit = { 
+				OR = {
+					has_country_flag = UKR_upss_militarist_socialist 
+					has_country_flag = UKR_upss_socialist_militarist 
+				}
+			}
+			add_ideas = UKR_Mykhailo_Bilynskyi_eco_ade
+		}
+		else = {
+			add_ideas = UKR_Yevhen_Arkhypenko_eco_ade
+		}
+		if = {
+			limit = { 
+				OR = {
+					has_country_flag = UKR_upss_militarist_nationalist 
+					has_country_flag = UKR_upss_nationalist_militarist 
+					has_country_flag = UKR_upss_socialist_militarist 
+				}
+			}
+			add_ideas = UKR_Volodymyr_Oskilko_sec_ade
+		}
+		else = {
+			add_ideas = UKR_Opanas_Andrievskyi_sec_ade
+		}		
+	}	
+}
+
+country_event = { # UPSS
+	id = ukrpol.246
+	immediate = { log = "[GetDateText]: [Root.GetName]: event ukrpol.246" }
+	title = ukrpol.246.t
+	desc = ukrpol.246.d
+	
+	picture = GFX_report_event_UKR_shapoval
+	is_triggered_only = yes
+		
+	option = {
+		name = ukrpol.246.a	
+		remove_all_ministers = yes
+		complete_national_focus = UKR_The_First_Independentist_Party
+		add_ideas = UKR_Oleksander_Shapoval_hog_ade
+		add_ideas = UKR_Valentyn_Otamanovskyi_for_ade
+		if = {
+			limit = { 
+				OR = {
+					has_country_flag = UKR_upss_militarist_nationalist 
+					has_country_flag = UKR_upss_socialist_nationalist 
+				}
+			}
+			add_ideas = UKR_Oleksander_Natiyev_eco_ade
+		}
+		else_if = {
+			limit = { 
+				OR = {
+					has_country_flag = UKR_upss_militarist_socialist 
+					has_country_flag = UKR_upss_socialist_militarist 
+				}
+			}
+			add_ideas = UKR_Mykhailo_Bilynskyi_eco_ade
+		}
+		else = {
+			add_ideas = UKR_Yevhen_Arkhypenko_eco_ade
+		}
+		if = {
+			limit = { 
+				OR = {
+					has_country_flag = UKR_upss_militarist_nationalist 
+					has_country_flag = UKR_upss_nationalist_militarist 
+					has_country_flag = UKR_upss_socialist_militarist 
+				}
+			}
+			add_ideas = UKR_Volodymyr_Oskilko_sec_ade
+		}
+		else = {
+			add_ideas = UKR_Opanas_Andrievskyi_sec_ade
+		}
+		custom_effect_tooltip = elections_in_one_year
+		meta_effect = {
+			text = {
+				set_politics = {
+					ruling_party = authoritarian_democrat
+					last_election = "[CURRENT_DATE]"
+					election_frequency = 12
+					elections_allowed = yes
+				}
+			}
+			CURRENT_DATE = "[?global.date.GetDateStringNoHour]"
+		}
+	}	
+}
+country_event = { # UPSS
+	id = ukrpol.247
+	immediate = { log = "[GetDateText]: [Root.GetName]: event ukrpol.247" }
+	title = ukrpol.247.t
+	desc = ukrpol.247.d
+	
+	picture = GFX_report_event_UKR_hrekiv
+	is_triggered_only = yes
+		
+	option = {
+		name = ukrpol.247.a	
+		remove_all_ministers = yes
+		complete_national_focus = UKR_Batkivschyna_In_Power
+		add_ideas = UKR_Oleksander_Hrekiv_hog_ade
+		add_ideas = UKR_Valentyn_Otamanovskyi_for_ade
+		if = {
+			limit = { 
+				OR = {
+					has_country_flag = UKR_upss_militarist_nationalist 
+					has_country_flag = UKR_upss_socialist_nationalist 
+				}
+			}
+			add_ideas = UKR_Oleksander_Natiyev_eco_ade
+		}
+		else_if = {
+			limit = { 
+				OR = {
+					has_country_flag = UKR_upss_militarist_socialist 
+					has_country_flag = UKR_upss_socialist_militarist 
+				}
+			}
+			add_ideas = UKR_Mykhailo_Bilynskyi_eco_ade
+		}
+		else = {
+			add_ideas = UKR_Yevhen_Arkhypenko_eco_ade
+		}
+		if = {
+			limit = { 
+				OR = {
+					has_country_flag = UKR_upss_militarist_nationalist 
+					has_country_flag = UKR_upss_nationalist_militarist 
+					has_country_flag = UKR_upss_socialist_militarist 
+				}
+			}
+			add_ideas = UKR_Volodymyr_Oskilko_sec_ade
+		}
+		else = {
+			add_ideas = UKR_Opanas_Andrievskyi_sec_ade
+		}		
+	}	
+}
+
+
 
 country_event = { # Fall of Kyiv for Dyrektoria
 	id = ukrpol.630
@@ -10280,18 +11358,9 @@ country_event = { # UKP
 	
 	option = {
 		name = ukrsoc.122.a
-		if = {
-			limit = { 
-				NOT = { has_government = radical_socialist }
-			}
-			set_party_name = {
-				ideology = radical_socialist
-				name = UKR_radical_socialist_party
-				long_name = UKR_radical_socialist_party_long
-			}
-			set_temp_variable = { coalition_partner_var = token:radical_socialist }
-			add_to_coalition = yes
-		}
+		set_country_flag = UKR_disable_borotbist_uprisings
+		set_temp_variable = { coalition_partner_var = token:syndicalist }
+		add_to_coalition = yes
 		remove_all_ministers_but_hog = yes
 		add_ideas = {
 			UKR_Antin_Prikhodko_for_rso
@@ -11235,13 +12304,16 @@ country_event = { # USDRP
 		if = {
 			limit = { UKR_USDRP_left = yes }
 			UKR_USDRP_more_left = yes
+			complete_national_focus = UKR_The_Left_Rallies_Support
 		}
 		else_if = {
 			limit = { UKR_USDRP_right = yes }
 			UKR_USDRP_more_right = yes
+			complete_national_focus = UKR_Unexpected_Allies
 		}
 		else = {
 			UKR_USDRP_more_center = yes
+			complete_national_focus = UKR_Center_Holds
 		}		
 	}			
 }
@@ -11502,7 +12574,7 @@ country_event = { # USDRP
 		add_political_power = 25
 	}
 	option = {
-		name = ukrsoc.142.a
+		name = ukrsoc.142.b
 		ai_chance = { base = 50 }
 		UKR_USDRP_more_right = yes
 		add_political_power = -25
@@ -12016,6 +13088,32 @@ country_event = { # USDRP
 				days = 180
 				random_days = 90
 			}
+			country_event = {
+				id = ukrsoc.1531
+				months = 1
+			}
+		}
+	}		
+}
+country_event = { # USDRP
+	id = ukrsoc.1531
+	immediate = { log = "[GetDateText]: [Root.GetName]: event ukrsoc.1531" }
+	
+	is_triggered_only = yes
+	hidden = yes
+	trigger = {
+		tag = UKR
+		has_idea = UKR_red_kyiv
+	}
+	
+	option = {
+		if = {
+			limit = { controls_state = 202 }
+			UKR_monthly_red_kyiv_recalc = yes
+		}
+		country_event = {
+			id = ukrsoc.1531
+			months = 1
 		}
 	}		
 }
@@ -16793,6 +17891,7 @@ news_event = { # Ukraine leaves bread peace?
 	}
 
 	is_triggered_only = yes
+	fire_only_once = yes
 	
 	major = yes
 	show_major = {
