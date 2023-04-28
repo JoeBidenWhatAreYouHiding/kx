@@ -2018,7 +2018,7 @@ political_actions = {
 		on_map_mode = map_and_decisions_view
 
 		state_target = yes
-		targets = { 1231 1222 234 1227 137 1220 1221 80 }
+		targets = { 1231 1222 1227 137 1220 1221 80 }
 		target_trigger = {
 			FROM = {
 				is_controlled_by = ROOT
@@ -2080,7 +2080,7 @@ political_actions = {
 		on_map_mode = map_and_decisions_view
 
 		state_target = yes
-		targets = { 235 240 821 1088 713 73 }
+		targets = { 234 240 821 1088 713 73 }
 		target_trigger = {
 			FROM = {
 				is_controlled_by = ROOT
@@ -2135,7 +2135,7 @@ political_actions = {
 		on_map_mode = map_and_decisions_view
 
 		state_target = yes
-		targets = { 78 218 220 1229 260 1190 }
+		targets = { 78 218 220 235 1229 260 1190 }
 		target_trigger = {
 			FROM = {
 				is_controlled_by = ROOT
@@ -2208,7 +2208,8 @@ political_actions = {
 UKR_seeking_allies = {
 	UKR_join_internationale = {
 		icon = generic_agreement
-		allowed = { always = no } # Activated by focus
+		name = UKR_Join_Revolutionary_Fray
+		allowed = { is_ukrainian_tag = yes } 
 
 		available = {
 			at_peace_or_same_enemies_as_FROM = yes			
@@ -2217,6 +2218,12 @@ UKR_seeking_allies = {
 		visible = {
 			is_subject = no
 			is_in_faction = no
+			UKR_has_socialist_government = yes
+			UKR_richytskyi_in_power = no
+			any_allied_country = {
+				has_socialist_government = yes
+				is_faction_leader = no
+			}
 			if = {
 				limit = {
 					FROM = { tag = RUS }
@@ -2224,17 +2231,20 @@ UKR_seeking_allies = {
 				soviets_exist = yes
 				FROM = { 
 					NOT = { is_in_faction_with = INT }
-					NOT = { has_war_with = ROOT }
-				}
-			}
-			else = {
-				FROM = {
-					is_faction_leader = yes
-					NOT = { has_war_with = ROOT }
 				}
 			}
 			NOT = { has_idea = UKR_Splendid_Isolation }
 		}
+		
+		targets = { RUS INT }
+		target_trigger = {
+			is_faction_leader = yes
+			NOT = { has_war_with = ROOT }
+		}
+		target_root_trigger = { 
+			UKR_can_pick_foreign_policy = yes 
+		}
+		
 		cancel_if_not_visible = yes
 
 		fire_only_once = yes
@@ -2248,6 +2258,8 @@ UKR_seeking_allies = {
 			log = "[GetDateText]: [Root.GetName]: Decision UKR_join_internationale target: [From.GetName]"
 			set_country_flag = { flag = UKR_joining_faction days = 15 value = 1 }
 			FROM = { country_event = ukraine.37  }
+			activate_targeted_decision = { target = GER decision = UKR_terminate_the_brotfrieden }
+			activate_targeted_decision = { target = INT decision = UKR_internationale_assistance }
 		}
 	}
 	UKR_internationale_assistance = {
@@ -2274,18 +2286,30 @@ UKR_seeking_allies = {
 	}
 	UKR_stay_with_germany = {
 		icon = GFX_decision_generic_agreement
-		allowed = { always = no }
+		name = UKR_Mend_Ties_With_Germany
+		allowed = { is_ukrainian_tag = yes }
 		available = {
+			at_peace_or_same_enemies_as_FROM = yes
+		}
+		visible = {
 			OR = {
 				is_in_faction_with = GER
 				GER_is_in_mitteleuropa = yes
 				UKR_can_ally_germany = yes			
 			}
-			at_peace_or_same_enemies_as_FROM = yes
-		}
-		visible = {
-			FROM = { is_faction_leader = yes }
+			is_subject = no
+			is_faction_leader = no
 			NOT = { has_idea = UKR_Splendid_Isolation }
+		}
+		targets = { GER }
+		target_trigger = {
+			FROM = {
+				is_faction_leader = yes
+				NOT = { has_war_with = ROOT }
+			}
+		}
+		target_root_trigger = {
+			UKR_can_pick_foreign_policy = yes
 		}
 		
 		fire_only_once = yes
@@ -2296,6 +2320,10 @@ UKR_seeking_allies = {
 				OR = {
 					has_game_rule = { rule = UKR_foreign_policy option = UKR_FOREIGN_POLICY_NEUTRALITY }
 					has_game_rule = { rule = UKR_foreign_policy option = UKR_FOREIGN_POLICY_RUSSIA }
+					has_game_rule = { rule = UKR_foreign_policy option = UKR_FOREIGN_POLICY_RUSSIA_PEREYASLAV }
+					has_game_rule = { rule = UKR_foreign_policy option = UKR_FOREIGN_POLICY_AUSTRIA }
+					has_game_rule = { rule = UKR_foreign_policy option = UKR_FOREIGN_POLICY_FACTION }
+					has_game_rule = { rule = UKR_foreign_policy option = UKR_FOREIGN_POLICY_FACTION_LEADER }
 					has_game_rule = { rule = UKR_foreign_policy option = UKR_FOREIGN_POLICY_INTERNATIONALE }
 				}
 			}
@@ -2303,29 +2331,51 @@ UKR_seeking_allies = {
 		cost = 0
 		cancel_if_not_visible = yes
 
-		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_stay_with_germany target: [From.GetName]"
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UKR_stay_with_germany target: [From.GetName]"
+			set_country_flag = { flag = UKR_joining_faction days = 15 value = 1 }
 			add_ideas = UKR_Ties_Germany
 			add_stability = 0.03
 			if = {
 				limit = {
 					NOT = { is_in_faction_with = GER }
 				}
-				GER = { add_to_faction = ROOT }
+				FROM = { country_event = sic.34 }
 			}
+			unlock_decision_tooltip = UKR_ostwall			
+			activate_targeted_decision = { target = GER decision = UKR_german_staff }
 		}
 	}
 	UKR_join_austria = {
 		icon = GFX_decision_generic_agreement
-		allowed = { always = no }
+		name = UKR_Bind_The_Dnieper_and_Danube
+		allowed = { is_ukrainian_tag = yes }
 		available = {
-			UKR_can_ally_austria = yes
 			at_peace_or_same_enemies_as_FROM = yes
+			AUS = {
+				NOT = { is_in_faction_with = GER }
+			}
+		}
+		visible = {
+			is_subject = no
+			is_faction_leader = no
+			NOT = { has_idea = UKR_Splendid_Isolation }
+			UKR_can_ally_austria = yes
 		}
 		visible = {
 			FROM = { is_faction_leader = yes }
 			NOT = { has_idea = UKR_Splendid_Isolation }
-		}		
+		}
+		targets = { AUS }
+		target_trigger = {
+			FROM = {
+				is_faction_leader = yes
+				NOT = { has_war_with = ROOT }
+			}
+		}
+		target_root_trigger = { 
+			UKR_can_pick_foreign_policy = yes
+		}
 		fire_only_once = yes
 		ai_will_do = {
 			factor = 100
@@ -2334,6 +2384,10 @@ UKR_seeking_allies = {
 				OR = {
 					has_game_rule = { rule = UKR_foreign_policy option = UKR_FOREIGN_POLICY_NEUTRALITY }
 					has_game_rule = { rule = UKR_foreign_policy option = UKR_FOREIGN_POLICY_RUSSIA }
+					has_game_rule = { rule = UKR_foreign_policy option = UKR_FOREIGN_POLICY_RUSSIA_PEREYASLAV }
+					has_game_rule = { rule = UKR_foreign_policy option = UKR_FOREIGN_POLICY_AUSTRIA }
+					has_game_rule = { rule = UKR_foreign_policy option = UKR_FOREIGN_POLICY_FACTION }
+					has_game_rule = { rule = UKR_foreign_policy option = UKR_FOREIGN_POLICY_FACTION_LEADER }
 					has_game_rule = { rule = UKR_foreign_policy option = UKR_FOREIGN_POLICY_INTERNATIONALE }
 				}
 			}
@@ -2343,6 +2397,7 @@ UKR_seeking_allies = {
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_stay_with_germany target: [From.GetName]"
 			set_country_flag = { flag = UKR_joining_faction days = 15 value = 1 }
+			unlock_decision_tooltip = UKR_ostwall			
 			FROM = {
 				country_event = {
 					id = ukraine.71
@@ -2354,9 +2409,6 @@ UKR_seeking_allies = {
 	UKR_german_staff = {
 		icon = GFX_decision_soldierly_discipline
 		allowed = { always = no }
-		visible = {
-			has_country_flag = joined_germany
-		}
 		available = {
 			is_in_faction_with = GER
 		}
@@ -2374,9 +2426,18 @@ UKR_seeking_allies = {
 	}
 	UKR_ostwall = {
 		icon = GFX_decision_fortress
-		allowed = { always = no }
+		allowed = { is_ukrainian_tag = yes }
 		available = { has_full_control_of_state = FROM }
-
+		
+		targets = { 241 225 1284 1239 1283 221 228 }
+		target_trigger = { is_owned_by = ROOT }
+		target_root_trigger = {
+			OR = {
+				is_in_faction_with = AUS
+				has_idea = UKR_Ties_Germany
+			}
+		}
+		
 		cost = 30
 		days_remove = 50
 		fire_only_once = yes
@@ -2525,25 +2586,30 @@ UKR_seeking_allies = {
 		}
 	}
 	UKR_go_it_alone = {
+		name = UKR_is_alone
 		icon = GFX_decision_generic_flags
-		allowed = { always = no }
-		available = {
+		allowed = { is_ukrainian_tag = yes }
+		visible = {
 			is_subject = no
-			has_war = no
+			OR = {
+				has_completed_focus = UKR_Connections_With_AntiGerman_Movements
+				has_completed_focus = UKR_Secret_Collusion_With_Russia
+				has_completed_focus = UKR_Mizhmoria_Concept
+				has_completed_focus = UKR_Samostiyna_Ukraina
+			}
+			UKR_borotbysts_in_power = no
 		}
 		fire_only_once = yes
 		ai_will_do = {
 			factor = 200
 			modifier = {
-				factor = 1000
-				has_government = national_populist
-			}
-			modifier = {
 				factor = 0
 				OR = {
 					has_game_rule = { rule = UKR_foreign_policy option = UKR_FOREIGN_POLICY_RUSSIA }
+					has_game_rule = { rule = UKR_foreign_policy option = UKR_FOREIGN_POLICY_RUSSIA_PEREYASLAV }
 					has_game_rule = { rule = UKR_foreign_policy option = UKR_FOREIGN_POLICY_REICHSPAKT }
 					has_game_rule = { rule = UKR_foreign_policy option = UKR_FOREIGN_POLICY_INTERNATIONALE }
+					has_game_rule = { rule = UKR_foreign_policy option = UKR_FOREIGN_POLICY_AUSTRIA }
 					has_game_rule = { rule = UKR_foreign_policy option = UKR_FOREIGN_POLICY_FACTION_LEADER }
 					has_game_rule = { rule = UKR_foreign_policy option = UKR_FOREIGN_POLICY_FACTION }
 				}
@@ -2568,19 +2634,49 @@ UKR_seeking_allies = {
 				}
 			}
 			add_ideas = UKR_Splendid_Isolation
+			activate_targeted_decision = { target = GER decision = UKR_terminate_the_brotfrieden }
 		}
 	}
 	UKR_rus_friendship = {
+		name = UKR_The_Northern_Wind
 		icon = GFX_decision_generic_agreement
-		allowed = { always = no }
+		allowed = { is_ukrainian_tag = yes }
 		available = {
 			at_peace_or_same_enemies_as_FROM = yes
 		}
 		visible = {
-			FROM = { is_faction_leader = yes }
+			is_subject = no
+			is_faction_leader = no
 			NOT = { has_idea = UKR_Splendid_Isolation }
+			OR = {
+				AND = {
+					has_completed_focus = UKR_Regency_Council
+					custom_trigger_tooltip = {
+						tooltip = RUS_skoropadskyi_russophile_higher
+						power_balance_value = {
+							id = UKR_sgd_bop
+							value > 0.2
+						}
+					}
+				}
+				AND = {
+					has_left_democratic_government = yes
+					RUS = { has_left_democratic_government = yes }
+				}
+			}
 		}
-		
+		targets = { RUS }
+		target_trigger = {
+			FROM = {
+				soviets_exist = no
+				is_faction_leader = yes
+				NOT = { has_war_with = ROOT }
+			}
+		}
+		target_root_trigger = {
+			UKR_can_pick_foreign_policy = yes
+		}
+			
 		fire_only_once = yes
 		ai_will_do = {
 			factor = 200
@@ -2590,6 +2686,9 @@ UKR_seeking_allies = {
 					has_game_rule = { rule = UKR_foreign_policy option = UKR_FOREIGN_POLICY_NEUTRALITY }
 					has_game_rule = { rule = UKR_foreign_policy option = UKR_FOREIGN_POLICY_REICHSPAKT }
 					has_game_rule = { rule = UKR_foreign_policy option = UKR_FOREIGN_POLICY_INTERNATIONALE }
+					has_game_rule = { rule = UKR_foreign_policy option = UKR_FOREIGN_POLICY_AUSTRIA }
+					has_game_rule = { rule = UKR_foreign_policy option = UKR_FOREIGN_POLICY_FACTION }
+					has_game_rule = { rule = UKR_foreign_policy option = UKR_FOREIGN_POLICY_FACTION_LEADER }
 				}
 			}
 		}
@@ -2599,6 +2698,7 @@ UKR_seeking_allies = {
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_rus_friendship target: [From.GetName]"
 			FROM = { country_event = ukraine.71 }
+			activate_targeted_decision = { target = GER decision = UKR_terminate_the_brotfrieden }
 		}
 	}	
 		
@@ -3357,15 +3457,42 @@ UKR_foreign_policy = {
 		fire_only_once = yes
 		war_with_target_on_remove = yes
 
-		remove_effect = {
+		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_galicia_claims"
+			setup_decision_attack_AI = yes
 			add_state_claim = 91
 			add_state_claim = 89
 			add_state_claim = 80
             add_state_claim = 1140
-			declare_war_on = {
-				target = FROM
-				type = annex_everything
+			if = {
+				limit = {
+					FROM = { 
+						OR = {
+							tag = AUS
+							is_subject_of = AUS
+						}
+					}
+				}
+				country_event = ukrfor.25
+			}
+			
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_galicia_claims"
+			clear_decision_attack_AI = yes
+			if = {
+				limit = {
+					FROM = { 
+						NOT = {
+							tag = AUS
+							is_subject_of = AUS
+						}
+					}
+				}
+				declare_war_on = {
+					target = FROM
+					type = annex_everything
+				}
 			}
 		}
 	}
@@ -11578,6 +11705,7 @@ UKR_breadbasket_decision_cat = {
 					target = AUS
 					modifier = UKR_brotfrieden
 				}
+				set_country_flag = UKR_has_terminated_brotfrieden_with_AUS
 				AUS = {
 					country_event = {
 						id = ukreco.6
