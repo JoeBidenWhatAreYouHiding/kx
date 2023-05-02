@@ -3450,13 +3450,13 @@ UKR_foreign_policy = {
 		days_remove = 14
 
 		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision UKR_romania_claims target: [From.GetName]"
+			log = "[GetDateText]: [Root.GetName]: Decision UKR_attack_country target: [From.GetName]"
 			set_country_flag = { flag = imminent_war days = 20 value = 1 }
 			setup_decision_attack_AI = yes			
 		}
 
 		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_romania_claims target: [From.GetName]"
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_attack_country target: [From.GetName]"
 			clear_decision_attack_AI = yes
 			declare_war_on = {
 				target = FROM
@@ -14062,6 +14062,579 @@ UKR_triumvirs_category = {
 				promote_leader = yes
 			}
 		}
+	}	
+}
+UKR_galicia_partisans_category = {
+	UKR_fund_separatist_movement = {
+		icon = GFX_decision_hol_draw_up_staff_plans
+		
+		visible = {
+			NOT = { has_war_with = 91.owner }
+		}
+		
+		ai_hint_pp_cost = 50
+		custom_cost_text = PP_50_infantry_equipment_500
+		custom_cost_trigger = {
+			has_political_power > 49.99
+			has_equipment = { infantry_equipment > 499 }
+		}
+
+		days_remove = 30
+		fire_only_once = yes
+
+		ai_will_do = {
+			factor = 1000
+			modifier = {
+				factor = 0
+				OR = {
+					has_war_with = GAL
+					has_war_with = POL
+					has_war_with = AUS
+				}
+			}
+			modifier = {
+				factor = 0.1
+				has_war = yes
+			}
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UKR_fund_separatist_movement target: [From.GetName]"
+			hidden_effect = {
+				add_political_power = -50
+				add_equipment_to_stockpile = {
+					type = infantry_equipment
+					amount = -500
+				}
+			}
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_fund_separatist_movement target: [From.GetName]"
+			add_to_variable = { UKR_galicia_readiness = 1 }
+			every_state = {
+				limit = {
+					OR = {
+						state = 89
+						state = 1140
+					}
+				}
+				add_to_array = { global.UKR_east_galicia_states }
+				force_enable_resistance = { occupier = var:THIS.owner occupied = UKR }
+				start_resistance = UKR
+				add_dynamic_modifier = { modifier = UKR_galician_resistance }
+				set_variable = { UKR_galician_resistance_target = 0 }
+				set_variable = { UKR_galician_resistance_activity = 0 }
+				set_variable = { UKR_galician_resistance_garrison = 0 }
+			}
+		}
+	}
+	UKR_supply_equipment_to_partisans = {
+		icon = generic_prepare_civil_war
+
+		visible = {
+			NOT = { has_war_with = 91.owner }
+			check_variable = { UKR_supply_equipment_to_partisans_var < 3 }
+			check_variable = { UKR_galicia_readiness > 0 }
+		}
+		
+		custom_cost_text = 500_infantry_equipment_1
+		custom_cost_trigger = {
+			has_equipment = { infantry_equipment > 499 }
+		}
+		
+		days_remove = 20
+		days_re_enable = 30
+		cancel_if_not_visible = yes
+		
+		ai_will_do = {
+			factor = 100
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UKR_supply_equipment_to_partisans target: [From.GetName]"
+			add_to_variable = { UKR_supply_equipment_to_partisans = 1 }
+			hidden_effect = {
+				add_equipment_to_stockpile = {
+					type = infantry_equipment
+					amount = -500
+				}
+			}
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_supply_equipment_to_partisans target: [From.GetName]"
+			add_to_variable = { UKR_galicia_readiness = 1 }
+			for_each_scope_loop = {
+				array = global.UKR_east_galicia_states
+				tooltip = UKR_galician_resistance_effect_tooltip
+				add_to_variable = {
+					UKR_galician_resistance_target = 0.1
+					tooltip = UKR_galician_resistance_target_tooltip
+				}
+				add_to_variable = {
+					UKR_galician_resistance_activity = 0.2
+					tooltip = UKR_galician_resistance_activity_tooltip
+				}				
+			}
+		}
 	}
 	
+	UKR_establish_loyal_locals = {
+		icon = generic_political_discourse
+
+		visible = {
+			NOT = { has_war_with = 91.owner }
+			check_variable = { UKR_galicia_readiness > 1 }
+			UKR_has_socialist_government = no
+			NOT = { has_government = national_populist }
+		}
+		
+		cost = 50		
+		days_remove = 20
+		fire_only_once = yes
+		cancel_if_not_visible = yes
+		
+		ai_will_do = {
+			factor = 100
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_establish_loyal_locals target: [From.GetName]"
+			for_each_scope_loop = {
+				array = global.UKR_east_galicia_states
+				tooltip = UKR_galician_resistance_effect_tooltip
+				add_to_variable = {
+					UKR_galician_resistance_activity = 0.05
+					tooltip = UKR_galician_resistance_activity_tooltip
+				}
+				add_to_variable = {
+					UKR_galician_resistance_garrison = 0.2
+					tooltip = UKR_galician_resistance_garrison_tooltip
+				}				
+			}
+		}
+	}
+	
+	UKR_contact_uwo_cells = {
+		icon = generic_political_discourse
+
+		visible = {
+			NOT = { has_war_with = 91.owner }
+			check_variable = { UKR_galicia_readiness > 1 }
+			has_government = national_populist
+		}
+		
+		cost = 50		
+		days_remove = 20
+		fire_only_once = yes
+		cancel_if_not_visible = yes
+		
+		ai_will_do = {
+			factor = 100
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_contact_uwo_cells target: [From.GetName]"
+			for_each_scope_loop = {
+				array = global.UKR_east_galicia_states
+				tooltip = UKR_galician_resistance_effect_tooltip
+				add_to_variable = {
+					UKR_galician_resistance_activity = 0.1
+					tooltip = UKR_galician_resistance_activity_tooltip
+				}
+				add_to_variable = {
+					UKR_galician_resistance_garrison = 0.15
+					tooltip = UKR_galician_resistance_garrison_tooltip
+				}				
+			}
+		}
+	}
+	
+	UKR_establish_red_guard = {
+		icon = generic_political_discourse
+
+		visible = {
+			NOT = { has_war_with = 91.owner }
+			check_variable = { UKR_galicia_readiness > 1 }
+			UKR_has_socialist_government = yes
+		}
+		
+		cost = 50		
+		days_remove = 20
+		fire_only_once = yes
+		cancel_if_not_visible = yes
+		
+		ai_will_do = {
+			factor = 100
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_establish_red_guard target: [From.GetName]"
+			for_each_scope_loop = {
+				array = global.UKR_east_galicia_states
+				tooltip = UKR_galician_resistance_effect_tooltip
+				add_to_variable = {
+					UKR_galician_resistance_activity = 0.2
+					tooltip = UKR_galician_resistance_activity_tooltip
+				}
+				add_to_variable = {
+					UKR_galician_resistance_garrison = 0.1
+					tooltip = UKR_galician_resistance_garrison_tooltip
+				}				
+			}
+		}
+	}
+	
+	UKR_prepare_local_resistance_in_state_medium = {
+		name = UKR_prepare_local_resistance_in_state
+		icon = onmap_recruit_operative
+
+		allowed = { tag = UKR }
+		
+		visible = {
+			NOT = { has_war_with = FROM.owner }
+			check_variable = { UKR_galicia_readiness > 0 }
+		}
+		
+		ai_hint_pp_cost = 25
+		custom_cost_text = CP_40
+		custom_cost_trigger = {
+			has_command_power > 39.99
+		}
+		cost = 25
+		days_remove = 40
+		cancel_if_not_visible = yes
+		on_map_mode = map_only
+		fire_only_once = yes
+		
+		state_target = yes
+		targets = { 80 1127 1126 1319 }
+		target_trigger = {
+			FROM = { is_owned_and_controlled_by_AUS_or_subject = yes }
+		}
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UKR_prepare_local_resistance_in_state target: [From.GetName]"
+			hidden_effect = {
+				add_command_power = -40
+			}
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_prepare_local_resistance_in_state target: [From.GetName]"
+			FROM = {
+				add_to_array = { global.UKR_east_galicia_states }
+				force_enable_resistance = { occupier = var:THIS.owner occupied = UKR }
+				start_resistance = UKR
+				add_dynamic_modifier = { modifier = UKR_galician_resistance }
+				set_variable = { UKR_galician_resistance_target = 0 }
+				set_variable = { UKR_galician_resistance_activity = 0 }
+				set_variable = { UKR_galician_resistance_garrison = 0 }
+			}
+		}
+	}
+	UKR_prepare_local_resistance_in_state_hard = {
+		name = UKR_prepare_local_resistance_in_state
+		icon = onmap_recruit_operative
+
+		allowed = { tag = UKR }
+		
+		visible = {
+			NOT = { has_war_with = FROM.owner }
+			check_variable = { UKR_galicia_readiness > 0 }
+		}
+		
+		ai_hint_pp_cost = 25
+		cost = 25
+		custom_cost_text = PP_25_CP_50
+		custom_cost_trigger = {
+			has_political_power > 24.99
+			has_command_power > 49.99
+		}
+		days_remove = 40
+		cancel_if_not_visible = yes
+		on_map_mode = map_only
+		fire_only_once = yes
+		
+		state_target = yes
+		targets = { 91 73 }
+		target_trigger = {
+			FROM = { is_owned_and_controlled_by_AUS_or_subject = yes }
+		}
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UKR_prepare_local_resistance_in_state target: [From.GetName]"
+			hidden_effect = {
+				add_political_power = -25
+				add_command_power = -50
+			}
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_prepare_local_resistance_in_state target: [From.GetName]"
+			FROM = {
+				add_to_array = { global.UKR_east_galicia_states }
+				force_enable_resistance = { occupier = var:THIS.owner occupied = UKR }
+				start_resistance = UKR
+				add_dynamic_modifier = { modifier = UKR_galician_resistance }
+				set_variable = { UKR_galician_resistance_target = 0 }
+				set_variable = { UKR_galician_resistance_activity = 0 }
+				set_variable = { UKR_galician_resistance_garrison = 0 }
+			}
+		}
+	}
+	UKR_rise_an_uprising = {
+		icon = generic_ignite_civil_war
+
+		available = {
+			can_declare_war_on = FROM
+		}
+		visible = {
+			FROM = { owns_state = 91 }
+			check_variable = { UKR_galicia_readiness > 1 }
+		}
+
+		targets = { 91.OWNER }
+		target_root_trigger = { has_country_flag = UKR_preparing_for_galicia_attack }
+		target_trigger = {
+			can_declare_war_on = FROM
+			FROM = { owns_state = 91 }
+		}
+
+		cost = 30
+		days_remove = 30
+		fire_only_once = yes
+		war_with_target_on_remove = yes
+		cancel_if_not_visible = yes
+
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				OR = {
+					dont_start_major_faction_wars = yes
+					ROOT_is_threatened_cautious = yes
+				}
+			}
+			modifier = { # don't do anything if already at war
+				factor = 0
+				has_war = yes
+			}
+			modifier = { #don't attack if...
+				factor = 0
+				AUS = {
+					is_ally_with = FROM 
+					is_faction_leader = yes
+					has_war = no
+				}
+				strength_ratio = { tag = AUS ratio > 2.0 } #ROM isn't stronk
+			}
+			modifier = {
+				factor = 10
+				AUS = { is_ally_with = FROM } #owner of TRS is AUS or AUS-aligned
+				strength_ratio = { tag = AUS ratio > 2.0 }
+			}
+			modifier = { #attack if uprising starts or ROM is stronk (POL version)
+				factor = 20
+				POL = {
+					is_ally_with = FROM
+					NOT = { GER = { is_ally_with = PREV } }
+				}
+				strength_ratio = { tag = POL ratio > 1.0 }
+			}
+			modifier = { #don't attack if...
+				factor = 0
+				NOT = {
+					AUS = { is_ally_with = FROM }
+					GER = { is_ally_with = FROM }
+				}
+				FROM = { 
+					OR = {
+						strength_ratio = { tag = ROOT ratio > 1.0 }
+						AND = {
+							is_in_faction = yes
+							faction_leader = {
+								is_faction_leader = yes
+								surrender_progress < 0.10
+								strength_ratio = { tag = ROOT ratio > 1.0 }
+							}
+						}
+						AND = {
+							is_subject = yes
+							overlord = {
+								surrender_progress < 0.10
+								strength_ratio = { tag = ROOT ratio > 1.0 }
+							}
+						}
+					}
+				}
+			}
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancelled UKR_rise_an_uprising target: [From.GetName]"
+			clear_decision_attack_AI = yes
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UKR_rise_an_uprising target: [From.GetName]"
+			setup_decision_attack_AI = yes
+			FROM = { country_event = kr.political.30 } #warning event
+			hidden_effect = {
+				var:91.owner = {
+					save_event_target_as = UKR_galicia_target
+				}
+				if = {
+					limit = { var:91.owner = { tag = GAL } }
+					var:91.owner = {
+						country_event = {
+							id = ukrpol.39
+							days = 3
+						}
+					}
+				}
+			}
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_rise_an_uprising target: [From.GetName]"
+			clear_decision_attack_AI = yes
+			if = {
+				limit = {
+					NOT = { has_war_with = event_target:UKR_galicia_target }
+				}
+				declare_war_on = {
+					target = event_target:UKR_galicia_target
+					type = annex_everything
+				}
+			}
+			hidden_effect = {
+				set_country_flag = UKR_GAL_revolt
+				for_each_scope_loop = {
+					array = global.UKR_east_galicia_states
+					
+					#Remove AUS/HUN/POL armies
+					teleport_armies = {
+						limit = {
+							OR = {
+								is_ally_with = AUS
+								is_ally_with = HUN
+								is_ally_with = POL
+							}
+						}
+						to_state_array = owned_controlled_states
+					}
+					
+					#Remove resistance
+					if = {
+						limit = { has_resistance = yes }
+						add_resistance = -100
+					}
+					add_dynamic_modifier = { modifier = UKR_galician_collaboration }
+					if = {
+						limit = { 
+							ROOT = { UKR_has_socialist_government = yes }
+						}
+						ROOT = {
+							division_template = {
+								name = "Halytska Chervona Hvardiia"
+								division_names_group = UKR_MIL_01
+								is_locked = yes
+								regiments = {
+									militia = { x = 0 y = 0 }
+									militia = { x = 0 y = 1 }
+									militia = { x = 0 y = 2 }
+									militia = { x = 1 y = 0 }
+									militia = { x = 1 y = 1 }
+									militia = { x = 1 y = 2 }
+								}
+							}
+						}
+						create_unit = {
+							division = "division_template = \"Halytska Chervona Hvardiia\" start_experience_factor = 0.1"
+							owner = ROOT
+							allow_spawning_on_enemy_provs = yes
+						}
+					}
+					else = {
+						ROOT = {
+							division_template = {
+								name = "Okrema Halytska Bryhada"
+								division_names_group = UKR_MIL_01
+								is_locked = yes
+								regiments = {
+									militia = { x = 0 y = 0 }
+									militia = { x = 0 y = 1 }
+									militia = { x = 0 y = 2 }
+									militia = { x = 1 y = 0 }
+									militia = { x = 1 y = 1 }
+									militia = { x = 1 y = 2 }
+								}
+							}
+						}
+						create_unit = {
+							division = "division_template = \"Okrema Halytska Bryhada\" start_experience_factor = 0.1"
+							owner = ROOT
+							allow_spawning_on_enemy_provs = yes
+						}
+					}
+				}
+				if = {
+					limit = { has_government = national_populist }
+					if = {
+						limit = {
+							NOT = { has_template = "Halytskyi korpus Sichovykh Striltsiv" }
+						}
+						division_template = {
+							name = "Halytskyi korpus Sichovykh Striltsiv"
+							division_names_group = UKR_ELI_02
+							regiments = {
+								elite_infantry = { x = 0 y = 0 }
+								elite_infantry = { x = 0 y = 1 }
+								elite_infantry = { x = 0 y = 2 }
+								elite_infantry = { x = 0 y = 3 }
+								elite_infantry = { x = 1 y = 0 }
+								elite_infantry = { x = 1 y = 1 }
+								elite_infantry = { x = 1 y = 2 }
+								infantry = { x = 2 y = 0 }
+								infantry = { x = 2 y = 1 }
+							}
+							support = {
+								artillery = { x = 0 y = 0 }
+								engineer = { x = 0 y = 1 }
+								recon = { x = 0 y = 2 }
+							}
+						}
+					}
+					random_controlled_state = {
+						limit = {
+							is_in_array = { global.UKR_east_galicia_states = THIS }
+						}
+						create_unit = {
+							division = "division_template = \"Halytskyi korpus Sichovykh Striltsiv\" start_experience_factor = 0.2"
+							owner = ROOT
+						}
+					}
+					random_controlled_state = {
+						limit = {
+							is_in_array = { global.UKR_east_galicia_states = THIS }
+						}
+						create_unit = {
+							division = "division_template = \"Halytskyi korpus Sichovykh Striltsiv\" start_experience_factor = 0.2"
+							owner = ROOT
+						}
+					}
+				}
+			}
+		}
+	}
 }
