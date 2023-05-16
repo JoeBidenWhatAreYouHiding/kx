@@ -18,6 +18,13 @@ country_event = { #History
 	
 	option = {
 		name = kub.1.a
+		hidden_effect = {
+			country_event = {
+				id = kub.899
+				days = 30
+				random = 60
+			}
+		}
 	}
 }
 country_event = { #Black Monday
@@ -37,10 +44,14 @@ country_event = { #Black Monday
 		set_variable = { lineytsy_support_bill = -1 }
 		set_variable = { nonpartisan_support_bill = -1 }
 		KUB_calculate_bill_support = yes
-		set_variable = { kuban_recovery_days = 500 }
+		set_variable = { kuban_recovery_days = 400 }
 		country_event = {
 			id = kub.999
 			days = 7
+		}
+		country_event = {
+			id = kub.1035
+			days = 15
 		}
 		set_variable = { KUB_collapse_var = 1 }
 	}
@@ -76,6 +87,10 @@ country_event = { #Election of the Ataman
 	immediate = {
 		set_country_flag = KUB_new_ataman_elected
 		set_country_flag = KUB_1937_Elections
+		set_variable = { chernomortsy_pop = party_popularity@social_liberal }
+		add_to_variable = { chernomortsy_pop = party_popularity@social_democrat }
+		set_variable = { linetsy_pop = party_popularity@authoritarian_democrat }
+		add_to_variable = { chernomortsy_pop = party_popularity@social_conservative }
 	}
 	title = kub.6.t
 	desc = kub.6.d
@@ -86,6 +101,13 @@ country_event = { #Election of the Ataman
 		name = kub.5.a
 		trigger = { 
 			NOT = { has_country_flag = KUB_Announce_Ivanic_Retirement_unlocked }
+			OR = {
+				check_variable = { chernomortsy_pop > linetsy_pop }
+				AND = {
+					is_ai = yes
+					has_game_rule = { rule = KUB_path option = KUB_PATH_CHERN }
+				}
+			}
 		}
 		ai_chance = {
 			base = 50
@@ -101,10 +123,6 @@ country_event = { #Election of the Ataman
 			set_politics = {
 				ruling_party = social_liberal
 				elections_allowed = yes
-			}
-			add_popularity = {
-				ideology = social_liberal
-				popularity = 0.2
 			}
 		}
 		if = {
@@ -135,6 +153,15 @@ country_event = { #Election of the Ataman
 	}
 	option = {
 		name = kub.5.b
+		trigger = {
+			OR = {
+				check_variable = { chernomortsy_pop < linetsy_pop }
+				AND = {
+					is_ai = yes
+					has_game_rule = { rule = KUB_path option = KUB_PATH_LIN }
+				}
+			}
+		}
 		ai_chance = {
 			base = 50
 			modifier = {
@@ -149,10 +176,6 @@ country_event = { #Election of the Ataman
 			set_politics = {
 				ruling_party = authoritarian_democrat
 				elections_allowed = yes
-			}
-			add_popularity = {
-				ideology = authoritarian_democrat
-				popularity = 0.2
 			}
 		}
 		remove_all_ministers = yes
@@ -169,6 +192,13 @@ country_event = { #Election of the Ataman
 		name = kub.5.c
 		trigger = {
 			has_country_flag = KUB_Announce_Ivanic_Retirement_unlocked
+			OR = {
+				check_variable = { chernomortsy_pop < linetsy_pop }
+				AND = {
+					is_ai = yes
+					has_game_rule = { rule = KUB_path option = KUB_PATH_CHERN }
+				}
+			}
 		}
 		ai_chance = {
 			base = 100
@@ -184,10 +214,6 @@ country_event = { #Election of the Ataman
 			set_politics = {
 				ruling_party = social_liberal
 				elections_allowed = yes
-			}
-			add_popularity = {
-				ideology = social_liberal
-				popularity = 0.2
 			}
 		}
 		create_country_leader = {
@@ -237,10 +263,7 @@ country_event = { #Session
 	
 	option = {
 		name = kub.8.a
-		add_popularity = {
-			ideology = social_liberal
-			popularity = 0.026
-		}
+		KUB_increase_chernomortsy = yes
 		hidden_effect = {
 			country_event = {
 				id = kub.9
@@ -392,7 +415,6 @@ country_event = { #Help Kuban?
 		name = kub.14.a
 		add_political_power = 15
 		KUB_increase_chernomortsy = yes
-		KUB_decrease_black_monday = yes
 		decrease_kuban_collapse = yes
 	}
 }
@@ -504,7 +526,6 @@ country_event = { #Help Kuban?
 		name = kub.14.a
 		add_political_power = 15
 		KUB_increase_lineytsy = yes
-		KUB_decrease_black_monday = yes
 		decrease_kuban_collapse = yes
 		activate_targeted_decision = { target = FROM decision = KUB_Invite_Russian_Companies }
 	}
@@ -576,6 +597,13 @@ country_event = { #Problems
 			ideology = social_democrat
 			popularity = 0.05
 		}
+		if = {
+			limit = { KUB_has_lineytsy = yes }
+			KUB_increase_chernomortsy = yes
+			else = {
+				KUB_increase_lineytsy = yes
+			}
+		}
 		swap_ideas = {
 			remove_idea = KUB_Divided_Region
 			add_idea = KUB_cossack_in_denial
@@ -590,7 +618,13 @@ country_event = { #Problems
 			ideology = totalist
 			popularity = 0.05
 		}
-		increase_ruling_party_popularity_by_5 = yes
+		if = {
+			limit = { KUB_has_lineytsy = yes }
+			KUB_increase_chernomortsy = yes
+			else = {
+				KUB_increase_lineytsy = yes
+			}
+		}
 		swap_ideas = {
 			remove_idea = KUB_Divided_Region
 			add_idea = KUB_peasant_unrest
@@ -1062,10 +1096,15 @@ country_event = {
 
 	option = {
 		name = kub.202.a
-		FROM = {
-			every_unit_leader = {
-				set_unit_leader_flag = DKB_original_leader
-				set_nationality = ROOT
+		if = {
+			limit = { 
+				FROM = { both_socialist_or_both_not_socialist = yes }
+			}
+			FROM = {
+				every_unit_leader = {
+					set_unit_leader_flag = DKB_original_leader
+					set_nationality = ROOT
+				}
 			}
 		}
 		annex_country = {
@@ -1081,6 +1120,17 @@ country_event = {
 		set_cosmetic_tag = DKB_union
 		add_stability = 0.2
 		add_war_support = 0.2
+		if = {
+			limit = { has_socialist_government = yes }
+			activate_targeted_decision = { target = 219.owner decision = KUB_join_internationale }
+			hidden_effect = {
+				if = {
+					limit = { soviets_exist = no }
+					activate_targeted_decision = { target = 219.owner decision = KUB_all_russian_ambitions }
+					activate_targeted_decision = { target = ROOT decision = KUB_SOV_Create_Soviet_Union }
+				}
+			}
+		}		
 	}
 }
 country_event = { 
@@ -1254,6 +1304,12 @@ country_event = {
 		add_to_variable = { lineytsy_support_bill = 1 }
 		KUB_calculate_bill_support = yes
 		activate_mission = KUB_Crisis_Management
+		activate_targeted_decision = { target = ROOT decision = KUB_negotiate_with_kubsoyuz }
+		activate_targeted_decision = { target = ROOT decision = KUB_negotiate_with_lineytsy }
+		activate_targeted_decision = { target = ROOT decision = KUB_negotiate_with_nonpartisans }
+		hidden_effect = {
+			activate_targeted_decision = { target = ROOT decision = KUB_negotiate_with_chernomortsy }
+		}
 		decrease_kuban_collapse = yes		
 	}		
 }
@@ -1313,6 +1369,12 @@ country_event = { #Initial Events
 		KUB_calculate_bill_support = yes
 		increase_kuban_collapse = yes
 		KUB_increase_lineytsy = yes
+		hidden_effect = {
+			country_event = {
+				id = kub.998
+				days = 7
+			}
+		}
 	}
 	option = {
 		name = kub.1001.b
@@ -1329,6 +1391,13 @@ country_event = { #Initial Events
 		}
 		add_stability = -0.15
 		activate_mission = KUB_Crisis_Management
+		activate_targeted_decision = { target = ROOT decision = KUB_negotiate_with_kubsoyuz }
+		activate_targeted_decision = { target = ROOT decision = KUB_negotiate_with_lineytsy }
+		activate_targeted_decision = { target = ROOT decision = KUB_negotiate_with_nonpartisans }
+		hidden_effect = {
+			activate_targeted_decision = { target = ROOT decision = KUB_intervene_as_ataman }
+			activate_targeted_decision = { target = ROOT decision = KUB_negotiate_with_chernomortsy }
+		}
 		decrease_kuban_collapse = yes
 		KUB_increase_chernomortsy = yes
 	}		
@@ -1713,6 +1782,11 @@ country_event = { #Civil War
 			KUB_Praskovya_Vishnyakova_for_tot
 			KUB_Epifan_Kovtiukh_eco_tot
 			KUB_Aleksey_Avtonomov_sec_tot
+		}
+		swap_ideas = {
+			remove_idea = KUB_black_monday_1
+			add_idea = KUB_black_monday_2
+			days = kuban_recovery_days
 		}
 		hidden_effect = {
 			XXA = {
@@ -2192,6 +2266,28 @@ country_event = { #Initial Events
 	}		
 }
 country_event = { #Initial Events
+	id = kub.1035
+	immediate = { log = "[GetDateText]: [Root.GetName]: event kub.1035" }
+	title = kub.1035.t
+	desc = kub.1035.d
+	fire_only_once = yes
+	
+	option = {
+		name = kub.1035.a
+		decrease_ruling_party_popularity_by_5 = yes
+		custom_effect_tooltip = KUB_add_recovery_days_50
+		add_to_variable = { kuban_recovery_days = 50 }
+		custom_effect_tooltip = KUB_modify_cooperatives
+		custom_effect_tooltip = KUB_modify_cooperatives_consumer_goods_factor_15
+		custom_effect_tooltip = KUB_modify_cooperatives_trade_opinion_30
+		custom_effect_tooltip = KUB_modify_cooperatives_factory_max_efficiency_10
+		add_to_variable = { KUB.KUB_coop_consumer_goods_factor = 0.15 }
+		add_to_variable = { KUB.KUB_coop_trade_opinion = -0.3 }
+		add_to_variable = { KUB.KUB_coop_production_factory_max_efficiency_factor = -0.1 }
+	}		
+}
+
+country_event = { #Initial Events
 	id = kub.1036
 	immediate = { log = "[GetDateText]: [Root.GetName]: event kub.1036" }
 	title = kub.1036.t
@@ -2297,6 +2393,542 @@ country_event = { #Initial Events
 		}
 	}		
 }
+country_event = { #Initial Events
+	id = kub.1041
+	immediate = { log = "[GetDateText]: [Root.GetName]: event kub.1041" }
+	title = kub.1041.t
+	desc = kub.1041.d
+	fire_only_once = yes
+	
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	option = {
+		name = kub.1041.b
+		add_political_power = -25
+		KUB_increase_chernomortsy = yes
+	}
+}
+country_event = { #Initial Events
+	id = kub.1042
+	immediate = { log = "[GetDateText]: [Root.GetName]: event kub.1042" }
+	title = kub.1042.t
+	desc = kub.1042.d
+	fire_only_once = yes
+	
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	option = {
+		name = kub.1042.a
+		add_political_power = -50
+		add_stability = -0.05
+	}
+	option = {
+		name = kub.1042.b
+		add_political_power = -25
+		KUB_increase_chernomortsy = yes
+	}
+}
+country_event = { #Initial Events
+	id = kub.1043
+	immediate = { log = "[GetDateText]: [Root.GetName]: event kub.1043" }
+	title = kub.1043.t
+	desc = kub.1043.d
+	fire_only_once = yes
+	
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	option = {
+		name = kub.1043.a
+		add_political_power = -75
+		add_power_balance_value = {
+			id = KUB_rada_bop
+			value = -0.05
+		}
+		set_temp_variable_to_random = {
+			var = KUB_pop_added
+			min = -0.06
+			max = -0.01
+		}
+		if = {
+			limit = { has_country_flag = KUB_chernomortsy_authoritarian }
+			add_popularity = {
+				ideology = social_conservative
+				popularity = KUB_pop_added
+			}
+			else = {
+				add_popularity = {
+					ideology = authoritarian_democrat
+					popularity = KUB_pop_added
+				}
+			}
+		}
+	}
+	option = {
+		name = kub.1043.b
+		add_political_power = -50
+		add_power_balance_value = {
+			id = KUB_rada_bop
+			value = -0.15
+		}
+		set_temp_variable_to_random = {
+			var = KUB_pop_added
+			min = 0.01
+			max = 0.06
+		}
+		if = {
+			limit = { has_country_flag = KUB_chernomortsy_authoritarian }
+			add_popularity = {
+				ideology = authoritarian_democrat
+				popularity = KUB_pop_added
+			}
+		}
+		else_if = {
+			limit = { has_country_flag = KUB_chernomortsy_socdem }
+			add_popularity = {
+				ideology = social_democrat
+				popularity = KUB_pop_added
+			}
+		}
+		else = {
+			add_popularity = {
+				ideology = social_liberal
+				popularity = KUB_pop_added
+			}
+		}
+	}
+}
+country_event = { #Initial Events
+	id = kub.1044
+	immediate = { log = "[GetDateText]: [Root.GetName]: event kub.1044" }
+	title = kub.1044.t
+	desc = kub.1044.d
+	fire_only_once = yes
+	
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	option = {
+		name = kub.1044.b
+		add_political_power = -25
+		KUB_increase_lineytsy = yes
+	}
+}
+country_event = { #Initial Events
+	id = kub.1045
+	immediate = { log = "[GetDateText]: [Root.GetName]: event kub.1045" }
+	title = kub.1045.t
+	desc = kub.1045.d
+	fire_only_once = yes
+	
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	option = {
+		name = kub.1045.a
+		add_political_power = -75
+		add_power_balance_value = {
+			id = KUB_rada_bop
+			value = -0.05
+		}
+		set_temp_variable_to_random = {
+			var = KUB_pop_added
+			min = -0.06
+			max = -0.01
+		}
+		if = {
+			limit = { has_country_flag = KUB_chernomortsy_authoritarian }
+			add_popularity = {
+				ideology = social_conservative
+				popularity = KUB_pop_added
+			}
+			else = {
+				add_popularity = {
+					ideology = authoritarian_democrat
+					popularity = KUB_pop_added
+				}
+			}
+		}
+	}
+	option = {
+		name = kub.1045.b
+		add_political_power = -50
+		add_power_balance_value = {
+			id = KUB_rada_bop
+			value = 0.15
+		}
+		set_temp_variable_to_random = {
+			var = KUB_pop_added
+			min = 0.01
+			max = 0.06
+		}
+		if = {
+			limit = { has_country_flag = KUB_chernomortsy_authoritarian }
+			add_popularity = {
+				ideology = social_conservative
+				popularity = KUB_pop_added
+			}
+			else = {
+				add_popularity = {
+					ideology = authoritarian_democrat
+					popularity = KUB_pop_added
+				}
+			}
+		}
+	}
+}
+country_event = { #Initial Events
+	id = kub.1046
+	immediate = { log = "[GetDateText]: [Root.GetName]: event kub.1046" }
+	title = kub.1046.t
+	desc = kub.1046.d
+	fire_only_once = yes
+	
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	option = {
+		name = kub.1046.a
+		add_political_power = -50
+		add_stability = -0.05
+	}
+	option = {
+		name = kub.1046.b
+		add_political_power = -25
+		KUB_increase_lineytsy = yes
+	}
+}
 
+country_event = { #Initial Events
+	id = kub.1047
+	immediate = { log = "[GetDateText]: [Root.GetName]: event kub.1047" }
+	immediate = { 
+		hidden_effect = {
+			random_other_country = { news_event = kub.1048 }
+		}
+	}
+	title = kub.1047.t
+	desc = kub.1047.d
+	fire_only_once = yes
+	
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	option = {
+		name = kub.1047.a
+		increase_kuban_collapse = yes
+		set_country_flag = Nikolay_Ryabovol_dead
+		effect_tooltip = { kill_country_leader = yes }
+		add_power_balance_value = {
+			id = KUB_rada_bop
+			value = 0.35
+		}
+		set_temp_variable_to_random = {
+			var = KUB_pop_added
+			min = -0.15
+			max = -0.05
+		}
+		if = {
+			limit = { has_country_flag = KUB_chernomortsy_authoritarian }
+			add_popularity = {
+				ideology = authoritarian_democrat
+				popularity = KUB_pop_added
+			}
+		}
+		else_if = {
+			limit = { has_country_flag = KUB_chernomortsy_socdem }
+			add_popularity = {
+				ideology = social_democrat
+				popularity = KUB_pop_added
+			}
+		}
+		else = {
+			add_popularity = {
+				ideology = social_liberal
+				popularity = KUB_pop_added
+			}
+		}
+		create_country_leader = {
+			name = "Kraievaya Rada"
+			picture = "gfx/leaders/KUB/Portrait_KUB_council.png"
+			expire = "1965.1.1"
+			ideology = centrist_subtype
+		}
+		set_temp_variable = { KUB_integration_process_change = -30 }
+		KUB_change_integration_process = yes
+		country_event = {
+			id = kub.1049
+			days = 5
+		}
+	}		
+}
+country_event = { #Initial Events
+	id = kub.1049
+	immediate = { log = "[GetDateText]: [Root.GetName]: event kub.1049" }
+	title = kub.1049.t
+	desc = kub.1049.d
+	
+	trigger = {
+		has_government = social_liberal
+		NOT = { has_completed_focus = KUB_Deal_With_Pokrovsky_Radicals }
+		OR = {
+			has_country_leader = {
+				name = "Nikolai Ryabovol"
+				ruling_only = yes
+			}
+			has_country_leader = {
+				name = "Mykola Riabovil"
+				ruling_only = yes
+			}
+		}
+	}
+	
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	option = {
+		name = kub.1049.a
+		decrease_kuban_collapse = yes
+		custom_effect_tooltip = elections_in_three_months
+		meta_effect = {
+			text = {
+				set_politics = {
+					ruling_party = social_liberal
+					last_election = "[CURRENT_DATE]"
+					election_frequency = 3
+					elections_allowed = yes
+				}
+			}
+			CURRENT_DATE = "[?global.date.GetDateStringNoHour]"
+		}
+		hidden_effect = {
+			country_event = {
+				id = kub.1051
+				days = 10
+			}
+		}
+	}		
+}
+country_event = { #Initial Events
+	id = kub.1050
+	immediate = { log = "[GetDateText]: [Root.GetName]: event kub.1050" }
+	title = kub.1050.t
+	desc = kub.1050.d
+	
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	option = {
+		name = kub.1050.a
+		trigger = { 
+			NOT = { has_completed_focus = KUB_Formally_Give_Up_Power }
+		}
+		create_country_leader = {
+			name = "Vasil Ryabokon"
+			picture = "gfx/leaders/KUB/Portrait_KUB_Vasily_Ryabokon.png"
+			expire = "1965.1.1"
+			ideology = centrist_subtype
+		}
+		hidden_effect = {
+			meta_effect = {
+				text = {
+					set_politics = {
+						ruling_party = paternal_autocrat
+						last_election = "[CURRENT_DATE]"
+						election_frequency = 48
+						elections_allowed = yes
+					}
+				}
+				CURRENT_DATE = "[?global.date.GetDateStringNoHour]"
+			}
+		}
+		set_country_flag = KUB_new_ataman_elected
+		complete_national_focus = KUB_Elect_New_Ataman_focus
+		KUB_increase_chernomortsy = yes
+	}
+	option = {
+		name = kub.1050.b
+		trigger = { has_completed_focus = KUB_Formally_Give_Up_Power }
+		meta_effect = {
+			text = {
+				set_politics = {
+					ruling_party = social_liberal
+					last_election = "[CURRENT_DATE]"
+					election_frequency = 48
+					elections_allowed = yes
+				}
+			}
+			CURRENT_DATE = "[?global.date.GetDateStringNoHour]"
+		}
+		create_country_leader = {
+			name = "Nikolai Ryabovol"
+			desc = "POLITICS_NIKOLAI_RYABOVOL_DESC"
+			picture = "gfx/leaders/KUB/Portrait_KUB_Nikolai_Ryabovol.png"
+			expire = "1965.1.1"
+			ideology = centrist_subtype
+		}
+		remove_all_ministers = yes
+		add_ideas = {
+			KUB_Nikolai_Ryabovol_hog_sli
+			KUB_Petro_Makarenko_for_sli
+			KUB_Kuzma_Bezkrovnyi_eco_sli
+			KUB_Pavlo_Kurhanskyi_sec_sli
+		}
+		set_country_flag = KUB_new_ataman_elected
+		complete_national_focus = KUB_Elect_New_Ataman_focus
+		KUB_increase_chernomortsy = yes
+	}	
+}
+### 
+country_event = {
+	id = kub.899
+	immediate = { log = "[GetDateText]: [Root.GetName]: event kub.899 FROM = [From.GetName]" }
+	is_triggered_only = yes
+	hidden = yes
+
+	trigger = {
+		has_any_power_balance = yes
+		KUB_has_bolsheviks = no
+		NOT = { has_completed_focus = KUB_Dissolve_Rada }
+		is_subject = no
+	}
+
+	immediate = {
+		country_event = kub.900
+	}
+	
+	option = {
+		trigger = { KUB_has_chernomortsy = yes }
+		ai_chance = {
+			base = 15
+			modifier = {
+				factor = 0
+				OR = {
+					has_war_with = AUS
+					has_war_with = HUN
+				}
+			}
+		}
+		country_event = kub.902
+	}
+	
+	option = {
+		trigger = { KUB_has_lineytsy = yes }
+		ai_chance = {
+			base = 15
+			modifier = {
+				factor = 0
+				OR = {
+					has_war_with = AUS
+					has_war_with = HUN
+				}
+			}
+		}
+		country_event = kub.901
+	}
+
+}
+
+country_event = { #Next event
+	id = kub.900
+	immediate = { log = "[GetDateText]: [Root.GetName]: event kub.900 FROM = [From.GetName]" }
+	is_triggered_only = yes
+	hidden = yes
+	
+	option = {
+		ai_chance = {
+			base = 15
+			modifier = {
+				factor = 2
+				has_stability > 0.8
+			}
+		}
+		country_event = { id = kub.899 days = 120 random = 30 }
+	}
+	
+	option = {
+		ai_chance = { base = 20 }
+		country_event = { id = kub.899 days = 60 random = 30 }
+	}
+	
+	option = {
+		ai_chance = {
+			base = 15
+			modifier = {
+				factor = 2
+				has_stability < 0.5
+			}
+			modifier = {
+				factor = 2
+				social_liberal > 0.9					
+			}
+		}
+		country_event = { id = kub.899 days = 30 random = 30 }
+	}
+}
+
+country_event = { #
+	id = kub.901
+	immediate = { log = "[GetDateText]: [Root.GetName]: event kub.901 FROM = [From.GetName]" }
+	is_triggered_only = yes
+	hidden = yes
+	
+	trigger = {
+		has_any_power_balance = yes
+		KUB_has_bolsheviks = no
+		NOT = { has_completed_focus = KUB_Dissolve_Rada }
+		is_subject = no
+	}
+	
+	option = {
+		ai_chance = { base = 35 }
+		country_event = kub.1041
+	}
+	
+	option = {
+		ai_chance = { base = 30 }
+		country_event = kub.1042
+	}
+	
+	option = {
+		trigger = {
+			NOT = { has_country_flag = KUB285 }
+		}
+		ai_chance = { base = 35 }
+		country_event = kub.1043 #
+		set_country_flag = KUB285
+	}
+}
+
+country_event = { #
+	id = kub.902
+	immediate = { log = "[GetDateText]: [Root.GetName]: event kub.902 FROM = [From.GetName]" }
+	is_triggered_only = yes
+	hidden = yes
+	
+	trigger = {
+		has_any_power_balance = yes
+		KUB_has_bolsheviks = no
+		NOT = { has_completed_focus = KUB_Dissolve_Rada }
+		is_subject = no
+	}
+	
+	option = {
+		ai_chance = { base = 35 }
+		country_event = kub.1044
+	}
+	
+	option = {
+		ai_chance = { base = 30 }
+		country_event = kub.1045
+	}
+	
+	option = {
+		ai_chance = { base = 35 }
+		country_event = kub.1046 #
+	}
+}
 			
 		

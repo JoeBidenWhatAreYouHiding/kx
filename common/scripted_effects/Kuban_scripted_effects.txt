@@ -5,7 +5,7 @@ increase_kuban_collapse = {
 		limit = {
 			check_variable = {
 				var = KUB_collapse_var
-				value = 3
+				value = 4
 				compare = greater_than_or_equals
 			}
 		}
@@ -31,9 +31,18 @@ KUB_increase_lineytsy = {
 		min = 0.01
 		max = 0.06
 	}
-	add_popularity = {
-		ideology = authoritarian_democrat
-		popularity = KUB_pop_added
+	if = {
+		limit = { has_country_flag = KUB_chernomortsy_authoritarian }
+		add_popularity = {
+			ideology = social_conservative
+			popularity = KUB_pop_added
+		}
+		else = {
+			add_popularity = {
+				ideology = authoritarian_democrat
+				popularity = KUB_pop_added
+			}
+		}
 	}
 }
 KUB_increase_chernomortsy = {
@@ -46,9 +55,25 @@ KUB_increase_chernomortsy = {
 		min = 0.01
 		max = 0.06
 	}
-	add_popularity = {
-		ideology = social_liberal
-		popularity = KUB_pop_added
+	if = {
+		limit = { has_country_flag = KUB_chernomortsy_authoritarian }
+		add_popularity = {
+			ideology = authoritarian_democrat
+			popularity = KUB_pop_added
+		}
+	}
+	else_if = {
+		limit = { has_country_flag = KUB_chernomortsy_socdem }
+		add_popularity = {
+			ideology = social_democrat
+			popularity = KUB_pop_added
+		}
+	}
+	else = {
+		add_popularity = {
+			ideology = social_liberal
+			popularity = KUB_pop_added
+		}
 	}
 }
 
@@ -122,13 +147,11 @@ KUB_increase_ukrainian_cooperation = {
 		}
 		add_opinion_modifier = {
 			target = UKR
-			modifier = KR_pleased
+			modifier = KR_close_allies
 		}
-		UKR = {
-			add_opinion_modifier = {
-				target = KUB
-				modifier = KR_pleased
-			}
+		reverse_add_opinion_modifier = {
+			target = UKR
+			modifier = KR_close_allies
 		}
 	}
 	else_if = {
@@ -150,11 +173,9 @@ KUB_increase_ukrainian_cooperation = {
 			target = UKR
 			modifier = KR_pleased
 		}
-		UKR = {
-			add_opinion_modifier = {
-				target = KUB
-				modifier = KR_pleased
-			}
+		reverse_add_opinion_modifier = {
+			target = UKR
+			modifier = KR_pleased
 		}
 	}
 	else_if = {
@@ -162,6 +183,46 @@ KUB_increase_ukrainian_cooperation = {
 			NOT = { has_idea = KUB_Unification_Sentiments }
 		}
 		add_ideas = KUB_Unification_Sentiments
+	}
+}
+# requires a temp variable KUB_integration_process_change
+KUB_change_integration_process = {
+	if = {
+		limit = { KUB_has_unification_sentiments = yes }
+		# convert percent to absolute
+		if = {
+			limit = {
+				check_variable = { KUB_integration_process_change > -1 }
+				check_variable = { KUB_integration_process_change < 1 }
+			}
+			multiply_temp_variable = { KUB_integration_process_change = 100 }
+		}
+
+		# tooltip
+		effect_tooltip = {
+			add_to_variable = {
+				KUB.Integration_Process = KUB_integration_process_change
+				tooltip = KUB_integration_process_tooltip
+			}
+		}
+
+		# lower limit = legitimacy * -1
+		set_temp_variable = { KUB_lower_limit = KUB.Integration_Process }
+		multiply_temp_variable = { KUB_lower_limit = -1 }
+
+		# upper limit = 100 - legitimacy
+		set_temp_variable = { KUB_upper_limit = 100 }
+		subtract_from_temp_variable = { KUB_upper_limit = KUB.Integration_Process }
+
+		# avoid values outside the allowed range
+		clamp_temp_variable = {
+			var = KUB_integration_process_change
+			min = KUB_lower_limit
+			max = KUB_upper_limit
+		}
+
+		# add the variable
+		add_to_variable = { KUB.Integration_Process = KUB_integration_process_change }
 	}
 }
 UKR_increase_kuban_cooperation = {
@@ -187,67 +248,6 @@ UKR_increase_kuban_cooperation = {
 	}
 }
 
-KUB_decrease_black_monday = {
-	if = {
-		limit = { has_idea = KUB_black_monday_1 }
-		swap_ideas = {
-			remove_idea = KUB_black_monday_1
-			add_idea = KUB_black_monday_2
-		}		
-	}
-	else_if = {
-		limit = { has_idea = KUB_black_monday_2 }
-		swap_ideas = {
-			remove_idea = KUB_black_monday_2
-			add_idea = KUB_black_monday_3
-		}		
-	}
-	else_if = {
-		limit = { has_idea = KUB_black_monday_3 }
-		swap_ideas = {
-			remove_idea = KUB_black_monday_3
-			add_idea = KUB_black_monday_4
-		}		
-	}
-	else_if = {
-		limit = { has_idea = KUB_black_monday_3_1 }
-		swap_ideas = {
-			remove_idea = KUB_black_monday_3_1
-			add_idea = KUB_black_monday_4_1
-		}		
-	}
-	else_if = {
-		limit = { has_idea = KUB_black_monday_3_2 }
-		swap_ideas = {
-			remove_idea = KUB_black_monday_3_2
-			add_idea = KUB_black_monday_4_2
-		}		
-	}
-	else_if = {
-		limit = { has_idea = KUB_black_monday_4 }
-		swap_ideas = {
-			remove_idea = KUB_black_monday_4
-			add_idea = KUB_black_monday_5
-			days = 180
-		}		
-	}
-	else_if = {
-		limit = { has_idea = KUB_black_monday_4_1 }
-		swap_ideas = {
-			remove_idea = KUB_black_monday_4_1
-			add_idea = KUB_black_monday_5_1
-			days = 180
-		}		
-	}
-	else_if = {
-		limit = { has_idea = KUB_black_monday_4_2 }
-		swap_ideas = {
-			remove_idea = KUB_black_monday_4_2
-			add_idea = KUB_black_monday_5_2
-			days = 180
-		}		
-	}
-}
 setup_kuban_cooperation = {
 	set_variable = { KUB_coop_global_building_slots_factor = 0.1 }
 	set_variable = { KUB_coop_consumer_goods_factor = 0.25 }
@@ -308,23 +308,37 @@ setup_puppet_KUB = {
 				name = KUB_social_democrat_party
 				long_name = KUB_social_democrat_party_long
 			}
-			set_party_name = {
-				ideology = authoritarian_democrat
-				name = KUB_authoritarian_democrat_party
-				long_name = KUB_authoritarian_democrat_party_long
-			}
 			create_country_leader = {
 				name = "Sobraniye Aktsionerov Kubsoyuza"
 				picture = "gfx/leaders/KUB/Portrait_KUB_kubsoyuz.png"
 				expire = "1965.1.1"
 				ideology = market_socialist_subtype
 			}
-			create_country_leader = {
-				name = "Alexander Filimonov"
-				desc = "POLITICS_ALEXANDER_FILIMONOV_DESC"
-				picture = "gfx/leaders/KUB/Portrait_KUB_Alexander_Filimonov.png"
-				expire = "1965.1.1"
-				ideology = authdem_cossack_subtype
+			if = {
+				limit = { has_country_flag = KUB_chernomortsy_authoritarian }
+				set_party_name = {
+					ideology = authoritarian_democrat
+					name = KUB_authoritarian_democrat_party
+					long_name = KUB_authoritarian_democrat_party_long
+				}
+				create_country_leader = {
+					name = "Alexander Filimonov"
+					desc = "POLITICS_ALEXANDER_FILIMONOV_DESC"
+					picture = "gfx/leaders/KUB/Portrait_KUB_Alexander_Filimonov.png"
+					expire = "1965.1.1"
+					ideology = authdem_cossack_subtype
+				}
+				set_temp_variable = { KUB_moderate_to_extremist_value = party_popularity@authoritarian_democrat }
+				set_temp_variable = { KUB_moderate_to_extremist_value_reverse = 0 }
+				subtract_from_temp_variable = { var = KUB_moderate_to_extremist_value_reverse value = party_popularity@authoritarian_democrat }
+				add_popularity = { ideology = authoritarian_democrat popularity = KUB_moderate_to_extremist_value_reverse }
+				add_popularity = { ideology = social_liberal popularity = KUB_moderate_to_extremist_value }
+			
+				set_temp_variable = { KUB_moderate_to_extremist_value = party_popularity@social_conservative }
+				divide_temp_variable = { KUB_moderate_to_extremist_value = 2 }
+				add_popularity = { ideology = authoritarian_democrat popularity = KUB_moderate_to_extremist_value }
+				divide_temp_variable = { KUB_moderate_to_extremist_value = -1 }
+				add_popularity = { ideology = social_conservative popularity = KUB_moderate_to_extremist_value }
 			}
 		}
 	}
