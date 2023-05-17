@@ -88,7 +88,10 @@ FNG_CCPOP = {
 #Concordia Association
 FNG_CAPOP = {
 	if = {
-		limit = { has_country_flag = FNG_concordia_association_active }
+		limit = {
+			has_country_flag = FNG_concordia_association_active
+			NOT = { has_country_flag = FNG_direct_rule }
+		}
 		divide_temp_variable = { CAPOP = 100 }
 		hidden_effect = {
 			add_popularity = {
@@ -115,6 +118,32 @@ FNG_CAPOP = {
 		}
 		custom_effect_tooltip = CA_POP
 	}
+	else_if = {
+		limit = {
+			has_country_flag = FNG_direct_rule
+			has_government = paternal_autocrat
+		}
+		divide_temp_variable = { CAPOP = 100 }
+		hidden_effect = {
+			add_popularity = {
+				ideology = paternal_autocrat
+				popularity = CAPOP
+			}
+		}
+	}
+	else_if = {
+		limit = {
+			has_country_flag = FNG_direct_rule
+			has_government = authoritarian_democrat
+		}
+		divide_temp_variable = { CAPOP = 100 }
+		hidden_effect = {
+			add_popularity = {
+				ideology = authoritarian_democrat
+				popularity = CAPOP
+			}
+		}
+	}
 }
 FNG_CA_remove = {
 	clr_country_flag = FNG_concordia_association_active
@@ -130,6 +159,11 @@ FNG_CA_remove = {
 		}
 	}
 	custom_effect_tooltip = CA_remove
+	set_party_name = {
+		ideology = market_liberal
+		long_name = FNG_market_liberal_alt_party_long
+		name = FNG_market_liberal_alt_party
+	}
 }
 
 #Zhigong Party
@@ -335,10 +369,23 @@ FNG_recalculate_mantetsu_effects = {
 		}
 		#Max influence effects at 50% popularity
 		set_variable = { FNG_mantetsu_influence_var = FNG.party_popularity@market_liberal }
-		clamp_variable = {
-			var = FNG_mantetsu_influence_var
-			min = 0
-			max = 0.5
+		if = {
+			limit = {
+				has_country_flag = FNG_mantetsu_less_downsides_flag
+				NOT = { has_country_flag = FNG_mantetsu_full_again }
+			}
+			clamp_variable = {
+				var = FNG_mantetsu_influence_var
+				min = 0
+				max = 0.35
+			}
+		}
+		else = {
+			clamp_variable = {
+				var = FNG_mantetsu_influence_var
+				min = 0
+				max = 0.5
+			}
 		}
 
 		set_temp_variable = { FNG_mantetsu_positive_factor = FNG_mantetsu_influence_var }
@@ -358,9 +405,7 @@ FNG_recalculate_mantetsu_effects = {
 
 		# Efficient Rail System bonus (from focus)
 		if = {
-			limit = {
-				has_country_flag = FNG_efficient_rail_system
-			}
+			limit = { has_country_flag = FNG_efficient_rail_system }
 			add_to_variable = { FNG.FNG_mantetsu_construction_speed = 0.1 }
 			add_to_variable = { FNG.FNG_mantetsu_factory_output = 0.1 }
 		}
@@ -369,6 +414,7 @@ FNG_recalculate_mantetsu_effects = {
 		if = {
 			limit = {
 				check_variable = { party_popularity@market_liberal > 0.2 }
+				NOT = { has_country_flag = FNG_mantetsu_no_more_downsides_flag }
 			}
 			set_variable = { FNG.FNG_mantetsu_political_power = -0.3 }
 			set_variable = { FNG.FNG_mantetsu_stability = -0.3 }
@@ -381,9 +427,21 @@ FNG_recalculate_mantetsu_effects = {
 			multiply_variable = { FNG.FNG_mantetsu_political_power = FNG_mantetsu_negative_factor }
 			multiply_variable = { FNG.FNG_mantetsu_stability = FNG_mantetsu_negative_factor }
 			multiply_variable = { FNG.FNG_mantetsu_war_support = FNG_mantetsu_negative_factor }
+			
+			if = {
+				limit = { has_country_flag = FNG_mantetsu_less_downsides_flag }
+				divide_variable = { FNG.FNG_mantetsu_political_power = 2 }
+				divide_variable = { FNG.FNG_mantetsu_stability = 2 }
+				divide_variable = { FNG.FNG_mantetsu_war_support = 2 }
+			}
 
 			if = {
-				limit = { has_government = market_liberal }
+				limit = {
+					OR = {
+						has_government = market_liberal
+						has_country_flag = FNG_direct_rule
+					}
+				}
 				divide_variable = { FNG.FNG_mantetsu_political_power = 3 }
 				divide_variable = { FNG.FNG_mantetsu_stability = 3 }
 				divide_variable = { FNG.FNG_mantetsu_war_support = 3 }
@@ -473,17 +531,44 @@ FNG_mantetsu_collapse = {
 }
 
 FNG_dynastic_own_libtards = {
-
 	if = {
-		limit = {
-			has_idea = FNG_republican_dilating
-		}
-		remove_ideas = FNG_republican_dilating
+		limit = { has_idea = FNG_republican_coming }
+		remove_ideas = FNG_republican_coming
 	}
 	else_if = {
-		limit = {
-			has_idea = FNG_republican_seething
+		limit = { has_idea = FNG_republican_urinating }
+		swap_ideas = {
+			remove_idea = FNG_republican_urinating
+			add_idea = FNG_republican_coming
 		}
+	}
+	else_if = {
+		limit = { has_idea = FNG_republican_scheissing }
+		swap_ideas = {
+			remove_idea = FNG_republican_scheissing
+			add_idea = FNG_republican_urinating
+		}
+	}
+	else_if = {
+		limit = { has_idea = FNG_republican_crying }
+		remove_ideas = FNG_republican_crying
+	}
+	else_if = {
+		limit = { has_idea = FNG_republican_malding }
+		swap_ideas = {
+			remove_idea = FNG_republican_malding
+			add_idea = FNG_republican_crying
+		}
+	}
+	else_if = {
+		limit = { has_idea = FNG_republican_dilating }
+		swap_ideas = {
+			remove_idea = FNG_republican_dilating
+			add_idea = FNG_republican_malding
+		}
+	}
+	else_if = {
+		limit = { has_idea = FNG_republican_seething }
 		swap_ideas = {
 			remove_idea = FNG_republican_seething
 			add_idea = FNG_republican_dilating
@@ -494,6 +579,80 @@ FNG_dynastic_own_libtards = {
 			remove_idea = FNG_republican_coping
 			add_idea = FNG_republican_seething
 		}
+	}
+}
+
+FNG_claim_peak_qing = {
+	add_state_core = 561
+	add_state_core = 560
+	add_state_core = 657
+	add_state_core = 409
+	add_state_core = 408
+	add_state_claim = 586
+	add_state_claim = 589
+}
+
+FNG_claim_buryats = {
+	add_state_claim = 566
+	add_state_claim = 565
+	add_state_claim = 564
+	add_state_claim = 563
+}
+
+FNG_claim_vietnam_singapore = {
+	add_state_claim = 857
+	add_state_claim = 671
+	add_state_claim = 827
+	add_state_claim = 286
+	add_state_claim = 856
+	add_state_core = 336
+}
+
+FNG_claim_sino_tibetan_areas = {
+	add_state_claim = 432
+	add_state_claim = 434
+	add_state_claim = 790
+	add_state_claim = 701
+	add_state_claim = 640
+	add_state_claim = 288
+	add_state_claim = 72
+	add_state_claim = 756
+	add_state_claim = 831
+	add_state_claim = 749
+	add_state_claim = 888
+	add_state_claim = 324
+}
+
+FNG_claim_land_asia = {
+	FNG_claim_buryats = yes
+	FNG_claim_vietnam_singapore = yes
+	FNG_claim_sino_tibetan_areas = yes
+	every_state = {
+		limit = {
+			OR = {
+				is_india = yes
+				is_siberia = yes
+				region = 196 #Indochina
+				region = 142 #Siam
+				region = 194 #Malay Peninsula
+				region = 195 #Burma
+				region = 136 #Central Asia
+				state = 406 #Guryev
+				state = 1208 #Orenburg
+				state = 582 #Orsk
+				state = 573 #Zlatoust
+				state = 581 #Northern Urals
+				state = 1196 #Mesyagutovo
+				state = 1195 #Southern Urals
+				state = 323
+				state = 267
+				state = 415
+			}
+			NOT = {
+				state = 336
+			}
+		}
+		add_claim_by = FROM
 	}
 }
 

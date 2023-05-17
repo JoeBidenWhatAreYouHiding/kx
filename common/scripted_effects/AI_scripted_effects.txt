@@ -9,8 +9,11 @@ FROM_send_volunteers_to_ROOT = {
 					has_country_flag = sent_volunteers_@ROOT
 					has_country_flag = imminent_war
 					any_claim = yes #is justifying/being justified against
+					check_variable = { modifier@cannot_receive_volunteers > 0 }
 				}
 			}
+			#set flag
+			set_country_flag = sent_volunteers_@ROOT
 
 			#unlock volunteers diplo action
 			if = {
@@ -30,6 +33,7 @@ FROM_send_volunteers_to_ROOT = {
 				}
 				set_variable = { send_volunteers_count = 0 }
 			}
+			#update count
 			add_to_variable = { send_volunteers_count = 1 }
 
 			#add spare unit factor
@@ -78,7 +82,12 @@ FROM_send_volunteers_to_ROOT = {
 			add_ai_strategy = {
 				type = send_volunteers_desire
 				id = ROOT
-				value = 10000
+				value = 400
+			}
+			add_ai_strategy = {
+				type = send_lend_lease_desire
+				id = ROOT
+				value = 400
 			}
 			add_ai_strategy = {
 				type = send_lend_lease_desire
@@ -104,8 +113,11 @@ send_volunteers_to_TARGET = {
 				has_country_flag = sent_volunteers_@event_target:volunteer_target
 				has_country_flag = imminent_war
 				any_claim = yes #is justifying/being justified against
+				check_variable = { event_target:volunteer_target.modifier@cannot_receive_volunteers > 0 }
 			}
 		}
+		#set flag
+		set_country_flag = sent_volunteers_@event_target:volunteer_target
 
 		#unlock volunteers diplo action
 		if = {
@@ -174,7 +186,12 @@ send_volunteers_to_TARGET = {
 		add_ai_strategy = {
 			type = send_volunteers_desire
 			id = event_target:volunteer_target
-			value = 10000
+			value = 400
+		}
+		add_ai_strategy = {
+			type = send_lend_lease_desire
+			id = event_target:volunteer_target
+			value = 400
 		}
 		add_ai_strategy = {
 			type = send_lend_lease_desire
@@ -196,13 +213,14 @@ clear_volunteers_to_TARGET = {
 	#lock volunteers diplo action if no other volunteers
 	subtract_from_variable = { send_volunteers_count = 1 }
 	if = {
-		limit = {
-			check_variable = { send_volunteers_count < 1 }
-		}
-		clr_country_flag = can_send_volunteers
-		log = "[THIS.GetName]: locked AI volunteers"
-	}
+		limit = { has_country_flag = sent_volunteers_@event_target:volunteer_target }
 
+		#clear flag
+		clr_country_flag = sent_volunteers_@event_target:volunteer_target
+
+		#lock volunteers diplo action if no other volunteers
+		subtract_from_variable = { send_volunteers_count = 1 }
+	}
 	#remove spare unit factor
 	if = {
 		limit = {
@@ -243,7 +261,12 @@ clear_volunteers_to_TARGET = {
 	add_ai_strategy = {
 		type = send_volunteers_desire
 		id = event_target:volunteer_target
-		value = -10000
+			value = -400
+		}
+		add_ai_strategy = {
+			type = send_lend_lease_desire
+			id = event_target:volunteer_target
+			value = -400
 	}
 	add_ai_strategy = {
 		type = send_lend_lease_desire
@@ -264,11 +287,12 @@ clear_volunteers_to_PREV = {
 	#lock volunteers diplo action if no other volunteers
 	subtract_from_variable = { send_volunteers_count = 1 }
 	if = {
-		limit = {
-			check_variable = { send_volunteers_count < 1 }
-		}
-		clr_country_flag = can_send_volunteers
-		log = "[THIS.GetName]: locked AI volunteers"
+		limit = { has_country_flag = sent_volunteers_@PREV }
+		#clear flag
+		clr_country_flag = sent_volunteers_@PREV
+
+		#lock volunteers diplo action if no other volunteers
+		subtract_from_variable = { send_volunteers_count = 1 }
 	}
 
 	#remove spare unit factor
@@ -311,7 +335,12 @@ clear_volunteers_to_PREV = {
 	add_ai_strategy = {
 		type = send_volunteers_desire
 		id = PREV
-		value = -10000
+			value = -400
+		}
+		add_ai_strategy = {
+			type = send_lend_lease_desire
+			id = PREV
+			value = -400
 	}
 	add_ai_strategy = {
 		type = send_lend_lease_desire
@@ -330,12 +359,7 @@ clear_volunteers_to_PREV = {
 
 clear_all_volunteers = {
 	every_country = {
-		limit = {
-			OR = {
-				ROOT = { has_volunteers_amount_from = { tag = PREV count > 0 } }
-				has_country_flag = sent_volunteers_@PREV
-			}
-		}
+		limit = { has_country_flag = sent_volunteers_@PREV }
 		recall_volunteers_from = PREV
 		clear_volunteers_to_PREV = yes
 	}
@@ -343,52 +367,145 @@ clear_all_volunteers = {
 
 clear_all_sent_volunteers = {
 	every_country = {
-		limit = {
-			OR = {
-				has_volunteers_amount_from = { tag = ROOT count > 0 }
-				ROOT = { has_country_flag = sent_volunteers_@PREV }
-			}
-		}
-		ROOT = {
-			recall_volunteers_from = PREV
-			clear_volunteers_to_PREV = yes
-		}
-	}
+		limit = { PREV = { has_country_flag = sent_volunteers_@PREV } }
+		PREV = { clear_volunteers_to_PREV = yes }
+	} 
 }
 
 ### For use in decisions ###
 setup_decision_attack_AI = {
+	if = {
+		limit = { has_country_flag = imminent_war }
+		modify_country_flag = { flag = imminent_war value = 1 }
+	}
+	else = {
+		set_country_flag = { flag = imminent_war value = 1 days = 50 }
+	}
 	hidden_effect = {
-		add_ai_strategy = {
-			type = prepare_for_war
-			id = FROM
-			value = 1000
-		}
-		FROM = {
-			add_ai_strategy = {
-				type = prepare_for_war
-				id = ROOT
-				value = 1000
-			}
-			if = {
-				limit = { is_in_faction = yes }
-				faction_leader = {
-					set_variable = { ROOT.ai_strategy_target_@FROM = THIS }
+		if = {
+			limit = { FROM = { has_civil_war = yes } }
+			every_country_with_original_tag = {
+				original_tag_to_check = FROM
+				limit = { NOT = { has_country_flag = preparing_for_war_with_@ROOT } }
+				add_ai_strategy = {
+					type = prepare_for_war
+					id = ROOT
+					value = 100
+				}
+				set_country_flag = preparing_for_war_with_@ROOT
+				ROOT = {
+					add_to_array = { preparing_for_war_with_@FROM = PREV }
 					add_ai_strategy = {
 						type = prepare_for_war
-						id = ROOT
-						value = 1000
+						id = FROM
+						value = 100
+					}
+				}
+				if = {
+					limit = {
+						is_in_faction = yes #shouldn't ever happen, but just in case
+						is_faction_leader = no
+						faction_leader = { NOT = { has_country_flag = preparing_for_war_with_@ROOT } }
+					}
+					faction_leader = {
+						add_ai_strategy = {
+							type = prepare_for_war
+							id = ROOT
+							value = 100
+						}
+						set_country_flag = preparing_for_war_with_@ROOT
+						ROOT = {
+							add_to_array = { preparing_for_war_with_@FROM = PREV }
+							add_ai_strategy = {
+								type = prepare_for_war
+								id = PREV
+								value = 100
+							}
+						}
+					}
+				}
+				if = {
+					limit = {
+						is_subject = yes #shouldn't ever happen, but just in case
+						overlord = { NOT = { has_country_flag = preparing_for_war_with_@ROOT } }
+					}
+					overlord = {
+						add_ai_strategy = {
+							type = prepare_for_war
+							id = ROOT
+							value = 100
+						}
+						set_country_flag = preparing_for_war_with_@ROOT
+						ROOT = {
+							add_to_array = { preparing_for_war_with_@FROM = PREV }
+							add_ai_strategy = {
+								type = prepare_for_war
+								id = PREV
+								value = 100
+							}
+						}
 					}
 				}
 			}
-			else_if = {
-				limit = { is_subject = yes }
-				overlord = {
-					set_variable = { ROOT.ai_strategy_target_@FROM = THIS }
-					add_ai_strategy = {
-						type = prepare_for_war
-						id = ROOT
-						value = 1000
+		}
+		else_if = {
+			limit = { NOT = { FROM = { has_country_flag = preparing_for_war_with_@ROOT } } }
+			add_to_array = { preparing_for_war_with_@FROM = FROM }
+			add_ai_strategy = {
+				type = prepare_for_war
+				id = FROM
+				value = 100
+			}
+			FROM = {
+				set_country_flag = preparing_for_war_with_@ROOT
+				add_ai_strategy = {
+					type = prepare_for_war
+					id = ROOT
+					value = 100
+				}
+				if = {
+					limit = {
+						is_in_faction = yes
+						is_faction_leader = no
+						faction_leader = { NOT = { has_country_flag = preparing_for_war_with_@ROOT } }
+					}
+					faction_leader = {
+						add_ai_strategy = {
+							type = prepare_for_war
+							id = ROOT
+							value = 100
+						}
+						set_country_flag = preparing_for_war_with_@ROOT
+						ROOT = {
+							add_to_array = { preparing_for_war_with_@FROM = PREV }
+							add_ai_strategy = {
+								type = prepare_for_war
+								id = PREV
+								value = 100
+							}
+						}
+					}
+				}
+				if = {
+					limit = {
+						is_subject = yes
+						overlord = { NOT = { has_country_flag = preparing_for_war_with_@ROOT } }
+					}
+					overlord = {
+						add_ai_strategy = {
+							type = prepare_for_war
+							id = ROOT
+							value = 100
+						}
+						set_country_flag = preparing_for_war_with_@ROOT
+						ROOT = {
+							add_to_array = { preparing_for_war_with_@FROM = PREV }
+							add_ai_strategy = {
+								type = prepare_for_war
+								id = PREV
+								value = 100
+							}
+						}
 					}
 				}
 			}
@@ -397,30 +514,31 @@ setup_decision_attack_AI = {
 }
 
 clear_decision_attack_AI = {
+	if = {
+		limit = { has_country_flag = { flag = imminent_war value > 1 } }
+		modify_country_flag = { flag = imminent_war value = -1 }
+	}
+	else = {
+		clr_country_flag = imminent_war
+	}
 	hidden_effect = {
-		add_ai_strategy = {
-			type = prepare_for_war
-			id = FROM
-			value = -1000
-		}
-		FROM = {
+		for_each_scope_loop = {
+			array = preparing_for_war_with_@FROM
+			clr_country_flag = preparing_for_war_with_@ROOT
 			add_ai_strategy = {
 				type = prepare_for_war
 				id = ROOT
-				value = -1000
+				value = -100
 			}
-			if = {
-				limit = { has_variable = ROOT.ai_strategy_target_@FROM }
-				var:ROOT.ai_strategy_target_@FROM = {
-					add_ai_strategy = {
-						type = prepare_for_war
-						id = ROOT
-						value = -1000
-					}
+			ROOT = {
+				add_ai_strategy = {
+					type = prepare_for_war
+					id = PREV
+					value = -100
 				}
-				clear_variable = ROOT.ai_strategy_target_@FROM
 			}
 		}
+		clear_array = preparing_for_war_with_@FROM
 	}
 }
 

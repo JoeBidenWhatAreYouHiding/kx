@@ -10,9 +10,9 @@ on_actions = {
 
 		effect = {
 			log = "[GetDateText] [From.GetName]: on_operative_on_mission_spotted in [Root.GetName] OPERATIVE: [This.GetName]"
-            # SCOPE  the operative
-            # ROOT   the country the operative was performing its mission in
-            # FROM   the country the operative is operating for
+			# SCOPE  the operative
+			# ROOT   the country the operative was performing its mission in
+			# FROM   the country the operative is operating for
 
 			# base values
 			set_temp_variable = {
@@ -24,7 +24,7 @@ on_actions = {
 				value = 10
 			}
 
-            # nullify kill chance for some missions
+			# nullify kill chance for some missions
 			if = {
 				limit = {
 					OR = {
@@ -38,19 +38,19 @@ on_actions = {
 				}
 			}
 
-            # Capture chance modifier unused as it would just increased or decrease death chance
-            #multiply_temp_variable = {
-            #   var = capture_chance
-            #   value = own_capture_chance_factor # the operative's capture chance modifiers
-            #}
-            #clamp_temp_variable = {
-            #   var = capture_chance
-            #   min = 0
-            #   max = 100
-            #}
+			# Capture chance modifier unused as it would just increased or decrease death chance
+			#multiply_temp_variable = {
+			#   var = capture_chance
+			#   value = own_capture_chance_factor # the operative's capture chance modifiers
+			#}
+			#clamp_temp_variable = {
+			#   var = capture_chance
+			#   min = 0
+			#   max = 100
+			#}
 
 			random_list = {
-                #log = yes # log picked effect in game.log
+				#log = yes # log picked effect in game.log
 				temp_var:capture_chance = {
 					capture_operative = {
 						captured_by = ROOT
@@ -278,25 +278,206 @@ on_actions = {
 			country_event = kr.political.55
 			
 			# maintain list of guarantors
-            if = {
-                limit = { has_variable = guarantor_array^num } #the array exists
-                for_each_loop = {
-                    array = guarantor_array
-                    if = {
-                        limit = { NOT = { is_guaranteed_by = var:v }  }
-                        add_to_temp_array = { guarantors_to_remove = v }
-                    }
-                }
-                for_each_loop = {
-                    array = guarantors_to_remove
-                    remove_from_array = { guarantor_array = v }
-                }
-            }
+			if = {
+				limit = { has_variable = guarantor_array^num } #the array exists
+				for_each_loop = {
+					array = guarantor_array
+					if = {
+						limit = { NOT = { is_guaranteed_by = var:v }  }
+						add_to_temp_array = { guarantors_to_remove = v }
+					}
+				}
+				if = {
+					limit = { check_variable = { guarantors_to_remove^num = guarantor_array^num } }
+					clear_array = guarantor_array
+				}
+				else = {
+					for_each_loop = {
+						array = guarantors_to_remove
+						remove_from_array = { guarantor_array = v }
+					}
+				}
+			}
 		}
 	}
 
 	on_startup = {
 		effect = {
+			# add all VPS to array
+			
+			every_possible_country = {
+				#Party Popularity Setup
+				if = {
+					limit = { has_variable = political_power_ideology }
+					map_party_popularity_PP_gain_to_ideology = yes
+				}
+				else = {
+					default_party_popularity_PP_gain = yes
+				}
+
+				#Opinion Modifiers Setup
+				every_other_country = {
+					if = {
+						limit = { has_government = PREV }
+						add_opinion_modifier = {
+							target = PREV
+							modifier = KR_same_ideology
+						}
+					}
+					else_if = {
+						limit = {
+							OR = {
+								AND = {
+									OR = {
+										has_government = social_conservative
+										has_government = authoritarian_democrat
+									}
+									PREV = {
+										OR = {
+											has_government = social_conservative
+											has_government = authoritarian_democrat
+										}
+									}
+								}
+								AND = {
+									OR = {
+										has_government = social_democrat
+										has_government = social_liberal
+									}
+									PREV = {
+										OR = {
+											has_government = social_democrat
+											has_government = social_liberal
+										}
+									}
+								}
+							}
+						}
+						add_opinion_modifier = {
+							target = PREV
+							modifier = KR_similar_ideology_close
+						}
+					}
+					else_if = {
+						limit = {
+							OR = {
+								AND = {
+									has_government = social_democrat
+									PREV = {
+										OR = {
+											has_government = market_liberal
+											has_government = social_conservative
+											has_government = authoritarian_democrat
+										}
+									}
+								}
+								AND = {
+									OR = {
+										has_government = market_liberal
+										has_government = social_conservative
+										has_government = authoritarian_democrat
+									}
+									PREV = { has_government = social_democrat }
+								}
+								AND = {
+									has_government = totalist
+									PREV = { has_government = radical_socialist }
+								}
+								AND = {
+									has_government = radical_socialist
+									PREV = { has_government = totalist }
+								}
+							}
+						}
+						add_opinion_modifier = {
+							target = PREV
+							modifier = KR_similar_ideology_distant
+						}
+					}
+					else_if = {
+						limit = {
+							OR = {
+								AND = {
+									has_socialist_government = yes
+									PREV = { has_socialist_government = yes }
+								}
+								AND = {
+									has_democratic_government = yes
+									PREV = { has_democratic_government = yes }
+								}
+								AND = {
+									has_dictatorship_government = yes
+									PREV = { has_dictatorship_government = yes }
+								}
+								AND = {
+									OR = {
+										has_government = authoritarian_democrat
+										has_government = paternal_autocrat
+									}
+									PREV = {
+										OR = {
+											has_government = authoritarian_democrat
+											has_government = paternal_autocrat
+										}
+									}
+								}
+							}
+						}
+						add_opinion_modifier = {
+							target = PREV
+							modifier = KR_similar_ideology
+						}
+					}
+					else_if = {
+						limit = {
+							OR = {
+								AND = {
+									has_government = social_democrat
+									PREV = { has_government = radical_socialist }
+								}
+								AND = {
+									has_government = radical_socialist
+									PREV = { has_government = social_democrat }
+								}
+								AND = {
+									has_government = paternal_autocrat
+									PREV = { has_government = social_conservative }
+								}
+								AND = {
+									has_government = social_conservative
+									PREV = { has_government = paternal_autocrat }
+								}
+								AND = {
+									has_government = national_populist
+									PREV = {
+										OR = {
+											has_government = social_conservative
+											has_government = authoritarian_democrat
+										}
+									}
+								}
+								AND = {
+									OR = {
+										has_government = social_conservative
+										has_government = authoritarian_democrat
+									}
+									PREV = { has_government = national_populist }
+								}
+							}
+						}
+						add_opinion_modifier = {
+							target = PREV
+							modifier = KR_different_ideology_close
+						}
+					}
+					else = {
+						add_opinion_modifier = {
+							target = PREV
+							modifier = KR_different_ideology
+						}
+					}
+				}
+			}
 			#Set MP flag
 			if = {
 				limit = {
@@ -324,18 +505,6 @@ on_actions = {
 			# Set up news events settings
 			set_global_flag = NEWS_ALL
 
-			#Party Popularity Setup
-			for_each_scope_loop = {
-				array = countries
-				if = {
-					limit = { has_variable = political_power_ideology }
-					map_party_popularity_PP_gain_to_ideology = yes
-				}
-				else = {
-					default_party_popularity_PP_gain = yes
-				}
-			}
-
 			#UI Setup
 			for_each_scope_loop = {
 				array = global.players
@@ -352,11 +521,14 @@ on_actions = {
 				#}
 			}
 
+			#Ambition Areas
+			#every_state = { create_ambition_areas = yes }
+			
 			#Core Removal
 			random_country = {
 				limit = { is_ai = yes }
 				country_event = kr.political.10
-			}
+			}			
 		}
 	}
 
@@ -373,6 +545,12 @@ on_actions = {
 	on_state_control_changed = {
 		effect = {
 			log = "[GetDateText] [Root.GetName] on_state_control_changed OLD CONTROLLER: [From.GetName] STATE: [From.From.GetName]"
+			### Endonym Check
+			if = {
+				limit = { has_global_flag = allowrenaming_flag }
+				FROM.FROM = { rename_state_effect = yes }
+			}
+
 			### Operative Nationality Check
 			if = {
 				limit = {
@@ -392,16 +570,28 @@ on_actions = {
 							OR = {
 								is_in_faction_with = ROOT
 								is_subject_of = ROOT
-								ROOT = { is_subject_of = PREV }
+								has_subject = ROOT
 							}
 						}
 					}
 				}
-				FROM.FROM = {
-					owner = {
-						set_state_controller = PREV
-					}
+				FROM.FROM = { set_state_controller_to = owner }
+			}
+
+			#Important countries for logalyzer
+			if = {
+				limit = {
+					ROOT = { tag = CAN }
+					FROM = { tag = ENG }
 				}
+				log = "KR_Event_Logging;CANADA LANDS IN BRITAIN;[GetDateText];[ROOT.GetName];[FROM.GetName]"
+			}
+			else_if = {
+				limit = {
+					ROOT = { tag = NFA }
+					FROM = { tag = FRA }
+				}
+				log = "KR_Event_Logging;FRANCE LANDS IN FRANCE;[GetDateText];[ROOT.GetName];[FROM.GetName]"
 			}
 		}
 	}
@@ -428,7 +618,16 @@ on_actions = {
 				#clr_country_flag = KR_can_lower_autonomy_level
 				#clr_country_flag = KR_can_be_annexed
 				clr_country_flag = KR_can_become_free
+				if = {
+					limit = { is_dynamic_country = yes }
+					drop_cosmetic_tag = yes 
+					every_state = {
+						limit = { is_claimed_by = PREV }
+						remove_claim_by = PREV
+					}
+				}
 			}
+			recheck_annexations = yes
 		}
 	}
 
@@ -488,6 +687,14 @@ on_actions = {
 	on_government_change = {
 		effect = {
 			log = "[GetDateText] [Root.GetName] on_government_change"
+			if = {
+				limit = { has_global_flag = allowrenaming_flag }
+				every_controlled_state = { rename_state_effect = yes }
+			}
+			if = {
+				limit = { has_elections = yes }
+				set_country_flag = had_elections
+			}
 			mark_focus_tree_layout_dirty = yes
 			end_coalition = yes
 			country_event = kr.political.41 #opinion modifiers
@@ -513,10 +720,256 @@ on_actions = {
 		}
 	}
 
+	#ROOT is winner, FROM is loser (called for all winners against all losers)
+	on_peaceconference_started = {
+		effect = {
+			log = "[GetDateText] on_peaceconference_started ROOT = [Root.GetName] FROM = [From.GetName]"
+
+			#set up PC country arrays
+			if = {
+				limit = { NOT = { has_global_flag = KR_set_up_pc_arrays } }
+				set_global_flag = KR_set_up_pc_arrays
+				every_country = {
+					limit = { pc_is_winner = yes }
+					add_to_array = { global.pc_winners_array = THIS }
+					if = {
+						limit = { is_major = yes }
+						set_global_flag = pc_has_major_winner
+					}
+					if = {
+						limit = { is_subject = no }
+						set_global_flag = pc_has_non_subject_winner
+					}
+				}
+				every_country = {
+					limit = { pc_is_loser = yes }
+					add_to_array = { global.pc_losers_array = THIS }
+				}
+			}
+		}
+	}
+
 	#ROOT is winner #FROM is loser
 	on_peaceconference_ended = {
 		effect = {
-			log = "[GetDateText] [Root.GetName] (ROOT) on_peaceconference_ended [From.GetName] (FROM)"
+			log = "[GetDateText] [Root.GetName] (ROOT) on_peaceconference_ended FROM = [From.GetName]"
+			
+			#post-PC data cleanup
+			if = {
+				limit = {
+					set_temp_variable = { last_winner_index = global.pc_winners_array^num }
+					subtract_from_temp_variable = { last_winner_index = 1 }
+					check_variable = { global.pc_winners_array^last_winner_index = ROOT }
+
+					set_temp_variable = { last_loser_index = global.pc_losers_array^num }
+					subtract_from_temp_variable = { last_loser_index = 1 }
+					check_variable = { global.pc_losers_array^last_loser_index = FROM }
+				}
+				clr_global_flag = KR_set_up_pc_arrays
+				clr_global_flag = pc_has_major_winner
+				clr_global_flag = pc_has_non_subject_winner
+				clear_array = global.pc_winners_array
+				clear_array = global.pc_losers_array
+				every_country = { recheck_annexations = yes }
+			}
+
+				# Remove the force-surrender idea, just in case it's still there
+			FROM = {
+				remove_ideas = ready_to_surrender
+			}
+
+			### transfer impassables to the correct targets
+			for_each_scope_loop = {
+				array = global.paired_impassable_states
+				if = {
+					limit = { NOT = { is_owned_by = var:paired_impassable:owner } }
+					transfer_state_to = paired_impassable:owner
+				}
+			}	
+			### civil war tags should always annex each other
+			if = {
+				limit = {
+					NOT = { has_global_flag = scripted_peace }
+					FROM = { 
+						exists = yes #so that we don't keep checking this for every winner-loser pair
+						has_capitulated = yes
+					}
+				}
+				if = {
+					limit = {
+						OR = {
+							#India
+							AND = {
+								is_indian_unifier_tag = yes
+								FROM = { 
+									is_indian_unifier_tag = yes 
+								}
+							}
+							#LEP breakaways
+							AND = {
+								is_leauge_war_tag = yes
+								FROM = { 	
+									is_leauge_war_tag = yes
+								}
+							}
+							#Liangguang
+							AND = {
+								original_tag = GXC
+								FROM = { 
+									tag = PRC
+								}
+							}
+							#Portugal
+							AND = {
+								original_tag = POR
+								FROM = { 
+									original_tag = POR
+								}
+							}
+							#Spaiin
+							AND = {
+								is_spanish_tag = yes
+								FROM = { 
+									is_spanish_tag = yes
+								}
+							}
+							#Siam
+							AND = {
+								original_tag = SIR
+								FROM = { 
+									tag = SIA 
+								}
+							}
+							AND = {
+								original_tag = SIA
+								FROM = { 
+									tag = SIR 
+								}
+							}
+							#Greece
+							AND = {
+								original_tag = GRR
+								FROM = { 
+									tag = GRE 
+								}
+							}
+							AND = {
+								original_tag = GRE
+								FROM = { 
+									tag = GRR 
+								}
+							}
+							#Kenya
+							AND = {
+								original_tag = KIK
+								FROM = { 	
+									tag = KEN 
+								}
+							}
+							AND = {
+								original_tag = KEN
+								FROM = { 
+									tag = KIK
+								}
+							}
+							#Russia
+							AND = {
+								is_russian_cw_tag = yes
+								FROM = { 
+									is_russian_cw_tag = yes
+								}
+							}
+			
+							#Union of Britain
+							AND = {
+								tag = ENT
+								FROM = { 
+									tag = ENG
+								}
+							}
+							#France
+							AND = {
+								is_french_tag = yes
+								FROM = { 
+									is_french_tag = yes 
+								}
+							}
+							#Germany
+							AND = {
+								OR = {
+									tag = GER
+									tag = GRU
+								}
+								FROM = {
+									OR = {
+										tag = GER
+										tag = GRU
+									}
+								}
+							}
+							#United States
+							AND = {
+								is_american_tag = yes
+								NOT = { has_country_flag = ACW_deal_with_devil_@FROM }
+								FROM = {
+									is_american_tag = yes
+									NOT = { has_country_flag = ACW_deal_with_devil_@ROOT }
+								}
+							}
+							#Argentina
+							AND = {
+								OR = {
+									tag = FOP
+									tag = ARG
+								}
+								FROM = {
+									OR = {
+										tag = FOP
+										tag = ARG
+									}
+								}
+							}
+							#Congo
+							AND = {
+								is_congo_tag = yes
+								FROM = {
+									is_congo_tag = yes
+								}
+							}
+							#Italy
+							AND = {
+								is_italian_tag = yes
+								FROM = {
+									is_italian_tag = yes
+								}
+							}
+							#Brazilian Revolts
+							AND = {
+								is_brazilian_tag = yes
+								FROM = { 
+									is_brazilian_tag = yes
+								}
+							}
+							#Arabia
+							AND = {
+								OR = {
+									tag = SAU
+									tag = JBS
+									original_tag = IKH
+								}
+								FROM = {
+									OR = {
+										tag = SAU
+										tag = JBS
+										original_tag = IKH
+									}
+								}
+							}
+						}
+					}
+					annex_country = { target = FROM transfer_troops = no }
+				}
+			}
 		}
 	}
 
@@ -553,14 +1006,14 @@ on_actions = {
 			if = {
 				limit = { is_faction_leader = yes }
 				every_country = {
-					limit = { is_ally_with = ROOT }
+					limit = { is_ally_of_ROOT = yes }
 					every_controlled_state = {
 						limit = {
 							owner = {
 								NOT = { has_war_with = ROOT }
 							}
 						}
-						owner = { set_state_controller = PREV }
+						set_state_controller_to = owner
 					}
 				}
 			}
@@ -579,6 +1032,28 @@ on_actions = {
 					country_event = { id = kr.political.80 hours = 3 }
 				}
 			}
+
+			# transfer the navy if set to
+			if = {
+				limit = { has_variable = transfer_navy_to }
+				if = {
+					limit = {
+						country_exists = var:transfer_navy_to
+						FROM = { is_ally_with = var:transfer_navy_to }
+					}
+					var:transfer_navy_to = {
+						ROOT = { transfer_navy = { target = PREV } }
+					}
+				}
+				clear_variable = transfer_navy_to
+			}
+		}
+	}
+
+	# ROOT is capitulated country, FROM is winner
+	on_capitulation_immediate = {
+		effect = {
+			log = "[GetDateText] [Root.GetName] (ROOT) on_capitulation_immediate FROM = [From.GetName]"
 		}
 	}
 
@@ -639,6 +1114,15 @@ on_actions = {
 	on_call_allies = {
 		effect = {
 			log = "[GetDateText] [Root.GetName] has called its ally [From.GetName] into its war"
+
+			#Important countries for logalyzer
+			if = {
+				limit = {
+					ROOT = { tag = EGY }
+					FROM = { tag = LBA }
+				}
+				log = "KR_Event_Logging;CYRENAICA REVOLTS AGAINST OTT;[GetDateText];[ROOT.GetName];[FROM.GetName]"
+			}
 		}
 	}
 
@@ -687,7 +1171,7 @@ on_actions = {
 	# FROM = country requesting them, ROOT = requesting country
 	on_request_expeditionary_forces = {
 		effect = {
-			log = "[GetDateText] [From.GetName] has requested expeditionary forces from [Root.GetName]"
+			log = "[GetDateText] [Root.GetName] has requested expeditionary forces from [From.GetName]"
 		}
 	}
 
@@ -790,6 +1274,14 @@ on_actions = {
 		}
 	}
 
+	#used when liberating in a peace conference
+	#ROOT = nation being liberated, FROM = overlord
+	on_liberate = {
+		effect = {
+			log = "[GetDateText] [Root.GetName] liberating FROM = [From.GetName]"
+		}
+	}
+
 	#used when puppeting through the occupied territories menu during peace time (or when releasing from non-core but owned territory, f.e. Britain releasing Egypt)
 	#ROOT = nation being released, FROM = overlord
 	on_release_as_puppet = {
@@ -830,6 +1322,20 @@ on_actions = {
 	on_join_faction = {
 		effect = {
 			log = "[GetDateText] [Root.GetName] on_join_faction FROM = [From.GetName]"
+		}
+	}
+
+	#FROM is the one that joins the faction
+	on_create_faction = {
+		effect = {
+			log = "[GetDateText] [Root.GetName] on_create_faction"
+		}
+	}
+
+	# ROOT is the new faction leader FROM is the old faction leader
+	on_assume_faction_leadership = {
+		effect = {
+			log = "[GetDateText] [Root.GetName] on_assume_faction_leadership"
 		}
 	}
 
@@ -874,10 +1380,261 @@ on_actions = {
 
 	on_army_leader_promoted = {
 		effect = {
-			log = "[GetDateText] [Root.GetName] on_army_leader_promoted [From.GetName]"
+			log = "[GetDateText] [Root.GetName] on_army_leader_promoted FROM = [From.GetName]"
 			add_timed_unit_leader_trait = {
 				trait = recently_promoted
 				days = 100
+			}
+		}
+	}
+
+	#FROM - Country (owner)
+	#ROOT - leader
+	#FROMFROM - original owner for exiled leaders
+	on_unit_leader_level_up = {
+		effect = {
+			if = { 
+				limit = { 
+					FROM = { 
+						has_idea = bold_attack_spirit 
+					} 
+				}
+				character = { 
+					IF = { 
+						limit = { is_army_leader = yes }
+					
+						random_list = { 
+							50 = { add_attack = 1 } 
+							50 = {} 
+						} 
+					}
+				}
+			}
+			else_if = { #since these spirits are mutually exclusive, we can use else_if for added performance!
+				limit = {
+					FROM = { has_idea = tenacious_defense_spirit }
+				}
+				character = { 
+					IF = { 
+						limit = { is_army_leader = yes }
+					
+						random_list = {
+							50 = { add_defense = 1 }
+							50 = {}
+						}
+					}
+				}
+			}
+			else_if = {
+				limit = {
+					FROM = { has_idea = meticulous_preparation_spirit }
+				}
+				character = { 
+					IF = { 
+						limit = { is_army_leader = yes }
+					
+						random_list = {
+							50 = { 
+								add_planning = 1 
+								add_logistics = 1
+							}
+							50 = {}
+						}
+					}
+				}
+			}
+			else_if = {
+				limit = {
+					FROM = { has_idea = instilled_aggression_spirit }
+				}
+				character = { 
+					IF = { 
+						limit = { is_navy_leader = yes }
+		
+						random_list = {
+							40 = { 
+								add_attack = 1 
+							}
+							60 = {}
+						}
+					}
+				}
+			}
+			else_if = {
+				limit = {
+					FROM = { has_idea = calculated_restraint_spirit }
+				}
+				character = { 
+					IF = { 
+						limit = { is_navy_leader = yes }
+					
+						random_list = {
+							40 = { 
+								add_defense = 1 
+							}
+							60 = {}
+						}
+					}
+				}
+			}
+			else_if = {
+				limit = {
+					FROM = { has_idea = signals_training_spirit }
+				}
+				character = { 
+					IF = { 
+						limit = { is_navy_leader = yes }
+					
+						random_list = {
+							40 = { 
+								add_maneuver = 1
+								add_coordination = 1
+							}
+							60 = {}
+						}
+					}
+				}
+			}
+		}  
+	}
+
+	on_unit_leader_created = { # This uses the UNIT LEADER sub scope of a character, FROM == country
+		effect = {
+			character = {
+				if = { 
+					limit = {
+						is_army_leader = yes
+					}
+					if = {
+						limit = {	
+							FROM = { has_idea = political_loyalty_spirit } #done here instead of the trait file to avoid some oddness with generating assignable traits under certain circumstances, makes it easier to control probabilities
+						}
+						root = {
+							random_list = {
+								50 = { 
+									add_unit_leader_trait = media_personality
+								}
+								50 = { 
+									add_unit_leader_trait = politically_connected
+								}
+							}
+						}
+					}
+					else_if = {
+						limit = {
+							FROM = { has_idea = mobile_warfare_academy_spirit } #done here instead of the trait file to avoid some oddness with generating assignable traits under certain circumstances, makes it easier to control probabilities
+						}
+						root = {
+							random_list = {
+								50 = { 
+									add_unit_leader_trait = panzer_leader
+								}
+								50 = {}
+							}
+						}
+					}
+					else_if = {
+						limit = {
+							FROM = { has_idea = inventive_leadership_spirit } #done here instead of the trait file to avoid some oddness with generating assignable traits under certain circumstances, makes it easier to control probabilities
+						}
+						root = {
+							random_list = {
+								75 = {
+									random_list = {
+										33 = { add_unit_leader_trait = naval_invader }
+										33 = { add_unit_leader_trait = commando }
+										33 = { add_unit_leader_trait = trickster }
+								}
+								}
+								25 = {}
+							}
+						}
+					}
+					else_if = {
+						limit = {
+							FROM = { has_idea = mass_assault_academy_spirit } #done here instead of the trait file to avoid some oddness with generating assignable traits under certain circumstances, makes it easier to control probabilities
+						}
+						root = {
+							random_list = {
+								50 = {
+									add_unit_leader_trait = infantry_officer
+								}
+								50 = {}
+							}
+						}
+					}
+					else_if = {
+						limit = {
+							FROM = { has_idea = superior_firepower_academy_spirit } #done here instead of the trait file to avoid some oddness with generating assignable traits under certain circumstances, makes it easier to control probabilities
+						}
+						root = {
+							random_list = {
+								50 = { 
+									add_unit_leader_trait = engineer_officer
+								}
+								50 = {}
+							}
+						}
+					}
+					else_if = {
+						limit = {
+							FROM = { has_idea = theatre_training_spirit } #done here instead of the trait file to avoid some oddness with generating assignable traits under certain circumstances, makes it easier to control probabilities
+						}
+						root = {
+							random_list = {
+								50 = { 
+									random_list = {
+										50 = { add_unit_leader_trait = brilliant_strategist }
+										50 = { add_unit_leader_trait = inflexible_strategist }
+									}
+								}
+								50 = {}
+							}
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						FROM = { has_idea = fleet_in_being_academy_spirit } #done here instead of the trait file to avoid some oddness with generating assignable traits under certain circumstances, makes it easier to control probabilities
+					}
+					root = {
+						random_list = {
+							50 = { 
+								add_unit_leader_trait = gunnery_expert
+							}
+							50 = {}
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						FROM = { has_idea = trade_interdiction_academy_spirit } #done here instead of the trait file to avoid some oddness with generating assignable traits under certain circumstances, makes it easier to control probabilities
+					}
+					root = {
+						random_list = {
+							25 = { 
+								add_unit_leader_trait = seawolf
+							}
+							25 = { 
+								add_unit_leader_trait = blockade_runner
+							}
+							50 = {}
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						FROM = { has_idea = base_strike_academy_spirit } #done here instead of the trait file to avoid some oddness with generating assignable traits under certain circumstances, makes it easier to control probabilities
+					}
+					root = {
+						random_list = {
+							50 = { 
+								add_unit_leader_trait = aviation_enthusiast 
+							}
+							50 = {}
+						}
+					}
+				}
 			}
 		}
 	}
@@ -886,32 +1643,40 @@ on_actions = {
 	# Scope is the country owner of the PotF, FROM is the country of the killer
 	on_pride_of_the_fleet_sunk = {
 		effect = {
-			log = "[GetDateText] [Root.GetName] on_pride_of_the_fleet_sunk [From.GetName]"
-
+			log = "[GetDateText] [Root.GetName] on_pride_of_the_fleet_sunk FROM = [From.GetName]"
 		}
 	}
 
 	#ROOT is winner #FROM gets annexed - This fires just before FROM gets annexed, meaning the country and everything it owns still exists. It will also fire on_annex and on_civil_war_end
 	on_civil_war_end_before_annexation = {
 		effect = {
-			log = "[GetDateText] [Root.GetName] on_civil_war_end_before_annexation [From.GetName]"
-
+			log = "[GetDateText] [Root.GetName] on_civil_war_end_before_annexation FROM = [From.GetName]"
 		}
 	}
 	on_civil_war_end = {
 		effect = {
-			log = "[GetDateText] [Root.GetName] on_civil_war_end [From.GetName]"
-
+			log = "[GetDateText] [Root.GetName] on_civil_war_end FROM = [From.GetName]"
+			if = {
+				limit = {
+					has_country_flag = had_elections
+					has_elections = no
+				}
+				clr_country_flag = had_elections
+				set_politics = {
+					ruling_party = var:ROOT.current_party_ideology_group
+					elections_allowed = yes
+				}
+			}
 		}
 	}
 	on_unit_leader_created = {
 		effect = {
-			log = "[GetDateText] [Root.GetName] on_unit_leader_created"
+			log = "[GetDateText] [Root.GetName] on_unit_leader_created - [From.GetName]"
 			if = {
 				limit = { is_exiled_leader = yes }
 				From.From = { save_event_target_as = exile_nation }
 				add_unit_leader_trait = exiled_leader
-				unit_leader_event = { id = mtg_exile_leader_added.1 }
+				unit_leader_event = mtg_exile_leader_added.1
 			}
 		}
 	}
@@ -959,7 +1724,21 @@ on_actions = {
 
 	on_war = {
 		effect = {
-			log = "[GetDateText]: [From.GetName]: on_war"
+			log = "[GetDateText]: [Root.GetName]: on_war"
+			# Check for puppets at war with their overlord
+			if = {
+				limit = {
+					is_subject = yes
+					any_enemy_country = { has_subject = ROOT }
+				}
+				overlord = {
+					set_autonomy = {
+						target = ROOT
+						autonomy_state = autonomy_free
+					}
+				}
+			}
+			
 			# Start of the Second Weltkrieg
 			country_event = ai_events.201
 			
@@ -988,7 +1767,7 @@ on_actions = {
 
 	on_peace = {
 		effect = {
-			log = "[GetDateText]: [From.GetName]: on_peace"
+			log = "[GetDateText]: [Root.GetName]: on_peace"
 			#Demobilization check for the AI
 			if = {
 				limit = {
@@ -1051,6 +1830,43 @@ on_actions = {
 					divide_variable = { coalition_pp_gain = 2 }
 				}
 			}
+		}
+	}
+	#ROOT = invading tag
+	#FROM = invasion origin state
+	#THIS = invasion landing point
+	on_naval_invasion = {
+		effect = {
+			log = "[GetDateText]: [Root.GetName] has invaded [This.GetName] from [From.GetName]"
+		}
+	}
+
+	# root country that paradrops
+	# scope state that is paradroped into
+	# from scope state that the paradrop started
+	on_paradrop = {
+		effect = {
+			log = "[GetDateText]: [Root.GetName] has paradropped into [This.GetName] from [From.GetName]"
+		}
+	}
+
+	on_unit_leader_promote_from_ranks_veteran = { #Unit leader scope, FROM is unit
+		effect = {
+			FROM = {
+				add_random_valid_trait_from_unit = {
+					character = ROOT
+				}
+			}
+		}
+	}
+
+	on_unit_leader_promote_from_ranks_green = { #Unit leader scope, FROM is unit
+		effect = {
+		}
+	}
+
+	on_add_history = { #Unit Scope
+		effect = {
 		}
 	}
 }

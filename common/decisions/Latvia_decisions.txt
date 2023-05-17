@@ -71,8 +71,17 @@ foreign_politics = {
 			has_socialist_government = yes
 			is_in_faction = no
 			is_subject = no
+			if = {
+				limit = {
+					FROM = { tag = RUS }
+				}
+				FROM = {
+					has_country_flag = soviet_russia_restored
+				}
+			}
 			FROM = {
 				is_faction_leader = yes
+				has_socialist_government = yes
 				NOT = { has_war_with = ROOT }
 			}
 		}
@@ -95,12 +104,25 @@ foreign_politics = {
 					surrender_progress > 0.10
 				}
 			}
+			modifier = {
+				factor = 0
+				FROM = { tag = INT }
+				RUS = {
+					has_country_flag = soviet_russia_restored
+					NOT = { is_in_faction_with = INT }
+				}
+			}
 		}
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision LAT_join_internationale target: [From.GetName]"
 			if = {
-				limit = { SOV = { is_faction_leader = yes } }
-				SOV = { country_event = KRLAT.6 }
+				limit = { 
+					RUS = { 
+						is_faction_leader = yes
+						has_socialist_government = yes
+					}
+				}
+				RUS = { country_event = KRLAT.6 }
 			}
 			else = {
 				FROM = { country_event = KRLAT.6 }
@@ -127,6 +149,33 @@ foreign_politics = {
 			remove_ideas = LAT_remember_riga
 		}
 	}
+	LAT_form_pribaltika = {
+		icon = generic_political_discourse
+		allowed = {
+			original_tag = LAT
+		}
+		visible = {
+			has_government = national_populist
+			NOT = { country_exists = EST }
+			owns_state = 13
+			owns_state = 191
+			is_subject = no
+		}
+		fire_only_once = yes
+		cost = 0
+		ai_will_do = { factor = 100 }
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision LAT_form_pribaltika"
+			set_cosmetic_tag = LAT_PRI
+			every_state = {
+				limit = {
+					is_core_of = EST
+				}
+				remove_claim_by = ROOT
+				add_core_of = ROOT
+			}
+		}
+	}
 	LAT_demand_western_dvinsk = {
 		icon = generic_flags
 
@@ -137,30 +186,32 @@ foreign_politics = {
 			OR = {
 				has_government = paternal_autocrat
 				has_government = authoritarian_democrat
+				has_government = national_populist
 			}
 		}
 
 		visible = {
-			SOV = {
-				has_war_with = RUS
+			RUS = {
+				has_war_with = RVA
 			}
 			NOT = {
-				SOV = {
+				RUS = {
 					has_war = no
 				}
 			}
 
 			can_declare_war_on = FROM
 			FROM = {
-				has_war_with = RUS
+				has_war_with = RVA
 				owns_state = 880 #dvinsk
 			}
 		}
 
-		targets = { SOV }
+		targets = { RUS RVA RRF }
 
 		target_root_trigger = {
-			is_ai = no
+			has_war = no
+			is_in_faction = no
 		}
 
 		target_trigger = {
@@ -168,7 +219,7 @@ foreign_politics = {
 			FROM = {
 				OR = {
 					has_war_with = RUS
-					has_war_with = SOV
+					has_war_with = RVA
 				}
 				owns_state = 880 #dvinsk
 			}
@@ -178,7 +229,7 @@ foreign_politics = {
 		cost = 0
 		days_remove = 7
 
-		war_with_on_remove = RUS
+		war_with_on_remove = FROM
 
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision LAT_demand_western_dvinsk target: [From.GetName]"
@@ -288,7 +339,6 @@ foreign_politics = {
 		}
 
 		visible = {
-			is_ai = no
 			can_declare_war_on = FROM
 			FROM = {
 				is_subject = no
@@ -297,7 +347,12 @@ foreign_politics = {
 		}
 
 		targets = { LIT EST }
-		target_root_trigger = { has_completed_focus = LAT_a_country_on_the_verge_of_war }
+		target_root_trigger = { 
+			OR = {
+				has_completed_focus = LAT_a_country_on_the_verge_of_war
+				has_completed_focus = LAT_a_world_revolution
+			}
+		}
 		target_trigger = {
 			can_declare_war_on = FROM
 		}
@@ -368,6 +423,169 @@ foreign_politics = {
 			}
 		}
 	}
+	LAT_SOV_Create_Soviet_Union = {
+		icon = generic_prepare_civil_war
+		allowed = { always = no }
+
+		available = {
+			219 = {
+				is_owned_and_controlled_by = ROOT
+				is_claim_or_core_of_ROOT = no
+			}
+		}
+
+		visible = {
+			has_government = totalist
+			has_completed_focus = LAT_look_to_russian_bolshevism
+			NOT = { country_exists = RUS }
+		}
+
+		cost = 25
+		fire_only_once = yes
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision LAT_SOV_Create_Soviet_Union"
+			add_stability = 0.1
+			set_country_flag = RUS_can_integrate
+			country_event = ISKO.16
+		}
+	}
+	LAT_SOV_Attack_Europe = {
+		icon = hol_draw_up_staff_plans
+
+		allowed = {
+			tag = LAT
+		}
+
+		available = {
+			OR = {
+				is_neighbor_of = FROM
+				any_allied_country = { is_neighbor_of = FROM }
+				any_subject_country = { is_neighbor_of = FROM }
+			}
+		}
+
+		visible = {
+			is_subject = no
+			can_declare_war_on = FROM
+		}
+
+		target_array = global.european_tags_array
+		target_root_trigger = {
+			has_completed_focus = LAT_SOV_invasion_of_europe
+		}
+		target_trigger = {
+			can_declare_war_on = FROM
+		}
+
+		cost = 10
+		days_remove = 20
+		fire_only_once = yes
+		cancel_if_not_visible = yes
+		war_with_target_on_remove = yes
+
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				ROOT_is_threatened_cautious = yes
+			}
+			modifier = {
+				factor = 0
+				FROM = { default_attack_AI_trigger_FROM = yes }
+			}
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancelled LAT_SOV_Attack_Europe target: [From.GetName]"
+			clear_decision_attack_AI = yes
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision LAT_SOV_Attack_Europe target: [From.GetName]"
+			FROM = { country_event = kr.political.30 } #warning event
+			setup_decision_attack_AI = yes
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove LAT_SOV_Attack_Europe target: [From.GetName]"
+			clear_decision_attack_AI = yes
+			declare_war_on = {
+				target = FROM
+				type = annex_everything
+			}
+		}
+	}
+	LAT_SOV_Attack_Asia = {
+		icon = hol_draw_up_staff_plans
+
+		allowed = {
+			tag = LAT
+		}
+
+		available = {
+			OR = {
+				is_neighbor_of = FROM
+				any_allied_country = { is_neighbor_of = FROM }
+				any_subject_country = { is_neighbor_of = FROM }
+			}
+		}
+
+		visible = {
+			is_subject = no
+			can_declare_war_on = FROM
+		}
+
+		target_array = global.asian_tags_array
+		target_root_trigger = {
+			has_completed_focus = LAT_SOV_invasion_of_asia
+		}
+		target_trigger = {
+			can_declare_war_on = FROM
+		}
+
+		cost = 10
+		days_remove = 20
+		fire_only_once = yes
+		cancel_if_not_visible = yes
+		war_with_target_on_remove = yes
+
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				ROOT_is_threatened_cautious = yes
+			}
+			modifier = {
+				factor = 0
+				FROM = { default_attack_AI_trigger_FROM = yes }
+			}
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancelled LAT_SOV_Attack_Asia target: [From.GetName]"
+			clear_decision_attack_AI = yes
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision LAT_SOV_Attack_Asia target: [From.GetName]"
+			FROM = { country_event = kr.political.30 } #warning event
+			setup_decision_attack_AI = yes
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove LAT_SOV_Attack_Asia target: [From.GetName]"
+			clear_decision_attack_AI = yes
+			declare_war_on = {
+				target = FROM
+				type = annex_everything
+			}
+		}
+	}
 }
 
 political_actions = {
@@ -381,6 +599,7 @@ political_actions = {
 			OR = {
 				has_government = authoritarian_democrat
 				has_government = paternal_autocrat
+				has_government = national_populist
 			}
 			country_exists = FROM
 			FROM = {
@@ -543,6 +762,7 @@ political_actions = {
 			OR = {
 				has_government = authoritarian_democrat
 				has_government = paternal_autocrat
+				has_government = national_populist
 			}
 			country_exists = FROM
 			FROM = {

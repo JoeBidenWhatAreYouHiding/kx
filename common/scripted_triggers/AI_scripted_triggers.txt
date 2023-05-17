@@ -48,7 +48,7 @@ anglo_afghan_war_volunteers = {
 		AND = {
 			FROM = { tag = AFG }
 			OR = {
-				tag = OTT
+				tag = TUR
 				tag = GER
 			}
 		}
@@ -122,12 +122,18 @@ russian_civil_war_volunteers = {
 		AND = {
 			FROM = { tag = RVA }
 			OR = {
-				tag = FIN
-				tag = GER
 				tag = CAN
 				tag = NFA
+			}
+		}
+		AND = {
+			FROM = { tag = WRA }
+			OR = {
+				tag = FIN
+				tag = GER
 				tag = AUS
 				tag = UKR
+				tag = BAT
 			}
 		}
 	}
@@ -208,7 +214,7 @@ fourth_balkan_war_volunteers = {
 					tag = AUS
 					tag = HUN
 					tag = ALB
-					tag = OTT
+					tag = TUR
 				}
 				has_country_flag = SER_supported_bulgaria
 			}
@@ -492,7 +498,7 @@ csa_internationale_volunteers = {
 
 assyrian_war_volunteers = {
 	ASY = {
-		has_war_with = OTT
+		has_war_with = TUR
 		NOT = {
 			has_completed_focus = ASS_New_Assur
 			has_completed_focus = ASS_Frontline_Imperialism
@@ -851,7 +857,7 @@ has_unattained_important_goals = {
 				tag = PER
 			}
 			is_subject = no
-			country_exists = OTT
+			NOT = { has_global_flag = AXIS_VICTORY }
 		}
 		# These countries never fully demobilize
 		tag = RUS
@@ -886,73 +892,115 @@ ROOT_is_threatened = {
 	}
 }
 
-is_stronger_than_ROOT_and_not_vulnerable = {
-	FROM = {
-		strength_ratio = { tag = ROOT ratio > 1 }
-		OR = {
-			enemies_strength_ratio < 1
-			surrender_progress < 0.1
+
+#on the target's scope
+dont_start_major_faction_wars = {
+	ROOT = {
+		is_in_faction = yes
+		is_faction_leader = no
+		is_actual_major = no
+		faction_leader = { is_actual_major = yes }
+	}
+	OR = {
+		AND = {
+			is_in_faction = yes
+			faction_leader = { is_actual_major = yes }
+		}
+		AND = {
+			is_subject = yes
+			overlord = { is_actual_major = yes }
+		}
+		AND = {
+			has_guarantor = yes
+			any_of_scopes = {
+				array = guarantor_array
+				has_guaranteed = PREV
+				is_actual_major = yes
+			}
 		}
 	}
 }
 
+#on the target's scope
+is_stronger_than_ROOT_and_not_vulnerable = {
+	strength_ratio = { tag = ROOT ratio > 1 }
+	enemies_strength_ratio < 1
+	surrender_progress < 0.1
+}
+
+#on the target's scope
 faction_leader_is_stronger_than_ROOT_and_not_vulnerable = {
 	if = {
-		limit = { has_war = yes }
-		FROM = {
-			is_in_faction = yes
-			is_faction_leader = no
-			faction_leader = {
+		limit = { ROOT = { has_war = yes } }
+		is_in_faction = yes
+		is_faction_leader = no
+		faction_leader = {
+			OR = {
+				strength_ratio = { tag = ROOT ratio > 0.7 }
 				is_actual_major = yes
-				OR = {
-					enemies_strength_ratio < 1.5
-					surrender_progress < 0.2
-				}
 			}
+			enemies_strength_ratio < 1.5
+			surrender_progress < 0.2
 		}
 	}
 	else = {
-		FROM = {
-			is_in_faction = yes
-			is_faction_leader = no
-			faction_leader = {
-				strength_ratio = { tag = ROOT ratio > 0.7 }
-				OR = {
-					enemies_strength_ratio < 1
-					surrender_progress < 0.2
-				}
-			}
+		is_in_faction = yes
+		is_faction_leader = no
+		faction_leader = {
+			strength_ratio = { tag = ROOT ratio > 0.7 }
+			enemies_strength_ratio < 1
+			surrender_progress < 0.2
 		}
 	}
 }
 
+#on the target's scope
 overlord_is_stronger_than_ROOT_and_not_vulnerable = {
-	FROM = {
-		is_subject = yes
-		overlord = {
-			strength_ratio = { tag = ROOT ratio > 0.8 }
-			OR = {
-				enemies_strength_ratio < 1
-				surrender_progress < 0.2
-			}
-		}
+	is_subject = yes
+	overlord = {
+		strength_ratio = { tag = ROOT ratio > 0.8 }
+		enemies_strength_ratio < 1
+		surrender_progress < 0.1
 	}
 }
 
+#on the target's scope
 guarantor_is_stronger_than_ROOT_and_not_vulnerable = {
-	FROM = {
-		has_guarantor = yes
-		any_of_scopes = {
-			array = guarantor_array
-			has_guaranteed = PREV
-			OR = {
+	has_guarantor = yes
+	any_of_scopes = {
+		array = guarantor_array
+		has_guaranteed = PREV
+		NOT = { tag = ROOT }
+		OR = {
+			AND = {
 				strength_ratio = { tag = ROOT ratio > 0.8 }
-				is_in_faction = yes
-			}
-			OR = {
 				enemies_strength_ratio < 1
-				surrender_progress < 0.2
+			}
+			AND = {
+				is_in_faction = yes
+				is_faction_leader = no
+				faction_leader = { enemies_strength_ratio < 1 }
 			}
 		}
+		surrender_progress < 0.1
+	}
+}
+
+default_attack_AI_trigger = {
+	OR = {
+		PREV = { ROOT_is_threatened = yes }
+		is_stronger_than_ROOT_and_not_vulnerable = yes
+		overlord_is_stronger_than_ROOT_and_not_vulnerable = yes
+		faction_leader_is_stronger_than_ROOT_and_not_vulnerable = yes
+		guarantor_is_stronger_than_ROOT_and_not_vulnerable = yes
+	}
+}
+
+default_attack_AI_trigger_FROM = {
+	OR = {
+		is_stronger_than_ROOT_and_not_vulnerable = yes
+		overlord_is_stronger_than_ROOT_and_not_vulnerable = yes
+		faction_leader_is_stronger_than_ROOT_and_not_vulnerable = yes
+		guarantor_is_stronger_than_ROOT_and_not_vulnerable = yes
 	}
 }

@@ -369,6 +369,12 @@ is_claim_or_core_of_ROOT = {
 		is_core_of = ROOT
 	}
 }
+is_claim_or_core_of_ROOT_FROM = {
+	OR = {
+		is_claimed_by = ROOT.FROM
+		is_core_of = ROOT.FROM
+	}
+}
 
 is_claim_or_core_of_FROM = {
 	OR = {
@@ -423,21 +429,21 @@ is_claim_or_core_or_ambition_of_PREV = {
 
 is_owned_or_claimed_by_ROOT = {
 	OR = {
-		has_claimed_state_in_peace_conference = ROOT
+		pc_is_state_claimed_by = ROOT
 		is_owned_by = ROOT
 	}
 }
 
 is_owned_or_claimed_by_PREV = {
 	OR = {
-		has_claimed_state_in_peace_conference = PREV
+		pc_is_state_claimed_by = PREV
 		is_owned_by = PREV
 	}
 }
 
 is_owned_or_claimed_by_PREVPREV = {
 	OR = {
-		has_claimed_state_in_peace_conference = PREV.PREV
+		pc_is_state_claimed_by = PREV.PREV
 		is_owned_by = PREV.PREV
 	}
 }
@@ -445,7 +451,10 @@ is_owned_or_claimed_by_PREVPREV = {
 is_adjacent_to_ROOT_or_coastal = {
 	OR = {
 		num_owned_neighbour_states = { count > 0 owner = ROOT }
-		num_claimed_peace_conference_neighbour_states = { count > 0 owner = ROOT }
+		num_owned_neighbour_states = { 
+			pc_is_state_claimed_by = ROOT
+			count > 0 owner = FROM
+		}
 		AND = {
 			is_coastal = yes
 			ROOT = {
@@ -458,7 +467,10 @@ is_adjacent_to_ROOT_or_coastal = {
 is_adjacent_to_PREV_or_coastal = {
 	OR = {
 		num_owned_neighbour_states = { count > 0 owner = PREV }
-		num_claimed_peace_conference_neighbour_states = { count > 0 owner = PREV }
+		num_owned_neighbour_states = { 
+			pc_is_state_claimed_by = ROOT
+			count > 0 owner = PREV
+		}
 		AND = {
 			is_coastal = yes
 			PREV = {
@@ -655,7 +667,9 @@ ROOT_is_restriction_exception = {
 		AND = {
 			tag = AUS
 			is_faction_leader = yes
-			any_other_country = {
+			any_of_scopes = {
+				array = global.conference
+				NOT = { tag = ROOT }
 				is_actual_major = yes
 				is_faction_leader = yes
 				at_conference_no_war_with_ROOT = yes
@@ -742,7 +756,7 @@ ROOT_is_restriction_exception = {
 					SER = { at_conference_no_war_with_ROOT = yes }
 				}
 				AND = {
-					OTT = { at_conference_has_war_with_ROOT = yes }
+					TUR = { at_conference_has_war_with_ROOT = yes }
 					SER = { at_conference_no_war_with_ROOT = yes }
 				}
 			}
@@ -750,7 +764,7 @@ ROOT_is_restriction_exception = {
 		# Serbia will restrict itself if dividing up the Ottomans with Egypt
 		AND = {
 			tag = SER
-			OTT = { at_conference_has_war_with_ROOT = yes }
+			TUR = { at_conference_has_war_with_ROOT = yes }
 			EGY = { at_conference_no_war_with_ROOT = yes }
 		}
 		# Paraguay and Uruguay will restrict themselves if Brazil or Argentina are at the conference
@@ -776,24 +790,74 @@ ROOT_is_restriction_exception = {
 			PER = { at_conference_has_war_with_ROOT = yes }
 			EGY = { at_conference_no_war_with_ROOT = yes }
 		}
-		# Russia will restrict itself if dividing up Europe
+		# Iran will restrict itself if dividing up Arabia with Egypt
 		AND = {
+			tag = PER
 			OR = {
-				tag = RUS
-				tag = SOV
+				SAU = { at_conference_has_war_with_ROOT = yes }
+				JBS = { at_conference_has_war_with_ROOT = yes }
 			}
+			EGY = { at_conference_no_war_with_ROOT = yes }
+		}
+		# Russia will restrict itself if dividing up many continents
+		AND = {
+			tag = RUS
 			OR = {
-				FRA = { at_conference_no_war_with_ROOT = yes }
+				INT = {
+					at_conference_no_war_with_ROOT = yes
+					OR = {
+						NOT = { is_in_faction_with = ROOT }
+						is_faction_leader = yes
+					}
+				}
 				GER = { at_conference_no_war_with_ROOT = yes }
-				CAN = { at_conference_no_war_with_ROOT = yes }
-				GBR = { at_conference_no_war_with_ROOT = yes }
+				ENT = { at_conference_no_war_with_ROOT = yes }
 			}
+			var:global.eval_state = {
+				OR = {
+					is_on_continent = africa
+					is_on_continent = europe
+					is_on_continent = north_america
+					is_on_continent = south_america
+					is_on_continent = central_america
+				}
+			}
+		}
+		# Japan will restrict itself on many continents
+		AND = {
+			tag = JAP
 			OR = {
-				AUS = { at_conference_has_war_with_ROOT = yes }
-				HUN = { at_conference_has_war_with_ROOT = yes }
-				GER = { at_conference_has_war_with_ROOT = yes }
-				POL = { at_conference_has_war_with_ROOT = yes }
+				INT = { at_conference_no_war_with_ROOT = yes }
+				GER = { at_conference_no_war_with_ROOT = yes }
+				ENT = { at_conference_no_war_with_ROOT = yes }
 			}
+			var:global.eval_state = {
+				OR = {
+					is_on_continent = africa
+					is_on_continent = middle_east
+					is_on_continent = europe
+					is_on_continent = north_america
+					is_on_continent = south_america
+					is_on_continent = central_america
+				}
+			}
+		}
+		# American factions restrict themselves during the ACW
+		AND = {
+			is_american_tag = yes
+			has_global_flag = USA_civil_war_begun_flag
+			NOT = { has_global_flag = USA_civil_war_over_flag }
+			OR = {
+				INT = { at_conference_no_war_with_ROOT = yes }
+				GER = { at_conference_no_war_with_ROOT = yes }
+				ENT = { at_conference_no_war_with_ROOT = yes }
+			}
+		}
+		# Tibet will restrict itself if dividing up Chinese tags with Mongolia
+		AND = {
+			tag = TIB
+			MON = { at_conference_no_war_with_ROOT = yes }
+			var:global.eval_state = { is_mainland_china = yes }
 		}
 	}
 }
@@ -806,7 +870,9 @@ PREV_is_restriction_exception = {
 		AND = {
 			tag = AUS
 			is_faction_leader = yes
-			any_other_country = {
+			any_of_scopes = {
+				array = global.conference
+				NOT = { tag = PREV }
 				is_actual_major = yes
 				is_faction_leader = yes
 				at_conference_no_war_with_PREV = yes
@@ -844,6 +910,10 @@ PREV_is_restriction_exception = {
 				}
 				AND = {
 					CSA = { at_conference_has_war_with_PREV = yes }
+					USA = { at_conference_no_war_with_PREV = yes }
+				}
+				AND = {
+					CAL = { at_conference_has_war_with_PREV = yes }
 					USA = { at_conference_no_war_with_PREV = yes }
 				}
 			}
@@ -894,7 +964,7 @@ PREV_is_restriction_exception = {
 					SER = { at_conference_no_war_with_PREV = yes }
 				}
 				AND = {
-					OTT = { at_conference_has_war_with_PREV = yes }
+					TUR = { at_conference_has_war_with_PREV = yes }
 					SER = { at_conference_no_war_with_PREV = yes }
 				}
 			}
@@ -902,7 +972,7 @@ PREV_is_restriction_exception = {
 		# Serbia will restrict itself if dividing up the Ottomans with Egypt
 		AND = {
 			tag = SER
-			OTT = { at_conference_has_war_with_PREV = yes }
+			TUR = { at_conference_has_war_with_PREV = yes }
 			EGY = { at_conference_no_war_with_PREV = yes }
 		}
 		# Paraguay and Uruguay will restrict themselves if Brazil or Argentina are at the conference
@@ -928,24 +998,74 @@ PREV_is_restriction_exception = {
 			PER = { at_conference_has_war_with_PREV = yes }
 			EGY = { at_conference_no_war_with_PREV = yes }
 		}
-		# Russia will restrict itself if dividing up Europe
+		# Iran will restrict itself if dividing up Arabia with Egypt
 		AND = {
+			tag = PER
 			OR = {
-				tag = RUS
-				tag = SOV
+				SAU = { at_conference_has_war_with_PREV = yes }
+				JBS = { at_conference_has_war_with_PREV = yes }
 			}
+			EGY = { at_conference_no_war_with_ROOT = yes }
+		}
+		# Russia will restrict itself if dividing up many continents
+		AND = {
+			tag = RUS
 			OR = {
-				FRA = { at_conference_no_war_with_PREV = yes }
+				INT = {
+					at_conference_no_war_with_PREV = yes
+					OR = {
+						NOT = { is_in_faction_with = PREV }
+						is_faction_leader = yes
+					}
+				}
 				GER = { at_conference_no_war_with_PREV = yes }
-				CAN = { at_conference_no_war_with_PREV = yes }
-				GBR = { at_conference_no_war_with_PREV = yes }
+				ENT = { at_conference_no_war_with_PREV = yes }
 			}
+			var:global.eval_state = {
+				OR = {
+					is_on_continent = africa
+					is_on_continent = europe
+					is_on_continent = north_america
+					is_on_continent = south_america
+					is_on_continent = central_america
+				}
+			}
+		}
+		# Japan will restrict itself on many continents
+		AND = {
+			tag = JAP
 			OR = {
-				AUS = { at_conference_has_war_with_PREV = yes }
-				HUN = { at_conference_has_war_with_PREV = yes }
-				GER = { at_conference_has_war_with_PREV = yes }
-				POL = { at_conference_has_war_with_PREV = yes }
+				INT = { at_conference_no_war_with_PREV = yes }
+				GER = { at_conference_no_war_with_PREV = yes }
+				ENT = { at_conference_no_war_with_PREV = yes }
 			}
+			var:global.eval_state = {
+				OR = {
+					is_on_continent = africa
+					is_on_continent = middle_east
+					is_on_continent = europe
+					is_on_continent = north_america
+					is_on_continent = south_america
+					is_on_continent = central_america
+				}
+			}
+		}
+		# American factions restrict themselves during the ACW
+		AND = {
+			is_american_tag = yes
+			has_global_flag = USA_civil_war_begun_flag
+			NOT = { has_global_flag = USA_civil_war_over_flag }
+			OR = {
+				INT = { at_conference_no_war_with_PREV = yes }
+				GER = { at_conference_no_war_with_PREV = yes }
+				ENT = { at_conference_no_war_with_PREV = yes }
+			}
+		}
+		# Tibet will restrict itself if dividing up Chinese tags with Mongolia
+		AND = {
+			tag = TIB
+			MON = { at_conference_no_war_with_PREV = yes }
+			var:global.eval_state = { is_mainland_china = yes }
 		}
 	}
 }
@@ -953,20 +1073,57 @@ PREV_is_restriction_exception = {
 restrict_territorial_ambitions_PREV = {
 	OR = {
 		# is a puppet
+		AND = {
 		is_subject = yes
+			overlord = { is_in_peace_conference = yes }
+		}
 		# is a faction member and leader is a major and at the conference
 		AND = {
 			is_in_faction = yes
 			is_faction_leader = no
-			var:faction_leader = {
+			faction_leader = {
 				is_actual_major = yes
 				at_conference_no_war_with_PREV = yes
+			}
+			NOT = {
+				# exception: European majors will still take states in Africa
+				AND = {
+					is_in_europe = yes
+					is_actual_major = yes
+					var:global.eval_state = { is_on_continent = africa }
+				}
+				# exception: major Austria will take states in its sphere of influence
+				AND = {
+					tag = AUS
+					is_actual_major = yes
+					var:global.eval_state = {
+						OR = {
+							region = 15 #Romania
+							region = 22 #Bohemia
+							region = 23 #Italy
+							region = 24 #Southern Balkans
+							region = 25 #Greece
+							region = 26 #Bulgaria
+							region = 27 #Hungary
+							region = 69 #Eastern Mediterranean
+							region = 129 #Anatolia
+							region = 131 #Switzerland
+							region = 143 #Northern Balkans
+							region = 144 #Transylvania
+							region = 169 #Tyrrhenian Sea
+							region = 181 #Po Valley
+							region = 223 #Aegean Sea
+						}
+					}
+				}
 			}
 		}
 		# is not a major and a major is at the conference
 		AND = {
 			is_actual_major = no
-			any_other_country = {
+			any_of_scopes = {
+				array = global.conference
+				NOT = { tag = PREV }
 				is_actual_major = yes
 				at_conference_has_war_with_owner = yes
 			}
@@ -975,13 +1132,17 @@ restrict_territorial_ambitions_PREV = {
 		AND = {
 			is_actual_major = no
 			NOT = {
-				any_other_country = {
+				any_of_scopes = {
+					array = global.conference
+					NOT = { tag = PREV }
 					is_actual_major = yes
 					at_conference_has_war_with_owner = yes
 				}
 			}
 
-			any_other_country = {
+			any_of_scopes = {
+				array = global.conference
+				NOT = { tag = PREV }
 				is_actual_major = no
 				is_subject = no
 				at_conference_no_war_with_PREV = yes
@@ -989,21 +1150,10 @@ restrict_territorial_ambitions_PREV = {
 				PREV_is_restriction_exception = no
 
 				# country has more than 1.5 total number of factories/battalions
-				set_temp_variable = { global.power_score = 0 }
-				all_of_scopes = {
-					array = PREV.owned_states
-					add_to_temp_variable = { global.power_score = THIS.arms_factory_level }
-					add_to_temp_variable = { global.power_score = THIS.industrial_complex_level }
+				OR = {
+					strength_ratio = { tag = PREV ratio > 1.5 }
+					ic_ratio = { tag = PREV ratio > 1.5 }
 				}
-				add_to_temp_variable = { global.power_score = PREV.num_divisions }
-				multiply_temp_variable = { global.power_score = 1.5 }
-				all_of_scopes = {
-					array = owned_states
-					subtract_from_temp_variable = { global.power_score = THIS.arms_factory_level }
-					subtract_from_temp_variable = { global.power_score = THIS.industrial_complex_level }
-				}
-				subtract_from_temp_variable = { global.power_score = num_divisions }
-				check_variable = { global.power_score < 0 }
 			}
 		}
 		# is an exception to the restriction rules
@@ -1014,27 +1164,57 @@ restrict_territorial_ambitions_PREV = {
 restrict_territorial_ambitions_ROOT = {
 	OR = {
 		# is a puppet
+		AND = {
 		is_subject = yes
+			overlord = { is_in_peace_conference = yes }
+		}
 		# is a faction member and leader is a major and at the conference
 		AND = {
 			is_in_faction = yes
 			is_faction_leader = no
-			var:faction_leader = {
+			faction_leader = {
 				is_actual_major = yes
 				at_conference_no_war_with_ROOT = yes
 			}
 			NOT = {
+				# exception: European majors will still take states in Africa
 				AND = {
 					is_in_europe = yes
 					is_actual_major = yes
 					var:global.eval_state = { is_on_continent = africa }
+				}
+				# exception: major Austria will take states in its sphere of influence
+				AND = {
+					tag = AUS
+					is_actual_major = yes
+					var:global.eval_state = {
+						OR = {
+							region = 15 #Romania
+							region = 22 #Bohemia
+							region = 23 #Italy
+							region = 24 #Southern Balkans
+							region = 25 #Greece
+							region = 26 #Bulgaria
+							region = 27 #Hungary
+							region = 69 #Eastern Mediterranean
+							region = 129 #Anatolia
+							region = 131 #Switzerland
+							region = 143 #Northern Balkans
+							region = 144 #Transylvania
+							region = 169 #Tyrrhenian Sea
+							region = 181 #Po Valley
+							region = 223 #Aegean Sea
+						}
+					}
 				}
 			}
 		}
 		# is not a major and a major is at the conference
 		AND = {
 			is_actual_major = no
-			any_other_country = {
+			any_of_scopes = {
+				array = global.conference
+				NOT = { tag = ROOT }
 				is_actual_major = yes
 				at_conference_has_war_with_owner = yes
 			}
@@ -1043,7 +1223,9 @@ restrict_territorial_ambitions_ROOT = {
 		AND = {
 			is_actual_major = no
 			NOT = {
-				any_other_country = {
+				any_of_scopes = {
+					array = global.conference
+					NOT = { tag = ROOT }
 					is_actual_major = yes
 					at_conference_has_war_with_owner = yes
 				}
@@ -1052,7 +1234,9 @@ restrict_territorial_ambitions_ROOT = {
 			set_temp_variable = { power_score = num_of_factories }
 			add_to_temp_variable = { power_score = num_divisions }
 
-			any_other_country = {
+			any_of_scopes = {
+				array = global.conference
+				NOT = { tag = ROOT }
 				is_actual_major = no
 				is_subject = no
 				at_conference_no_war_with_ROOT = yes
@@ -1060,21 +1244,10 @@ restrict_territorial_ambitions_ROOT = {
 				PREV_is_restriction_exception = no
 
 				# country has more than 1.5 total number of factories/battalions
-				set_temp_variable = { global.power_score = 0 }
-				all_of_scopes = {
-					array = ROOT.owned_states
-					add_to_temp_variable = { global.power_score = THIS.arms_factory_level }
-					add_to_temp_variable = { global.power_score = THIS.industrial_complex_level }
+				OR = {
+					strength_ratio = { tag = ROOT ratio > 1.5 }
+					ic_ratio = { tag = ROOT ratio > 1.5 }
 				}
-				add_to_temp_variable = { global.power_score = ROOT.num_divisions }
-				multiply_temp_variable = { global.power_score = 1.5 }
-				all_of_scopes = {
-					array = owned_states
-					subtract_from_temp_variable = { global.power_score = THIS.arms_factory_level }
-					subtract_from_temp_variable = { global.power_score = THIS.industrial_complex_level }
-				}
-				subtract_from_temp_variable = { global.power_score = num_divisions }
-				check_variable = { global.power_score < 0 }
 			}
 		}
 		# is an exception to the restriction rules
@@ -1131,7 +1304,6 @@ is_exception_to_taking_states_on_other_continents = {
 		AND = {
 			is_in_europe = yes
 			NOT = { tag = RUS }
-			NOT = { tag = SOV }
 			var:global.eval_state = {
 				OR = {
 					is_on_continent = africa
@@ -1146,7 +1318,6 @@ is_exception_to_taking_states_on_other_continents = {
 		AND = {
 			is_in_europe = yes
 			NOT = { tag = RUS }
-			NOT = { tag = SOV }
 			var:global.eval_state = {
 				OR = {
 					state = 690 #Northern Bahamas
@@ -1157,10 +1328,7 @@ is_exception_to_taking_states_on_other_continents = {
 		}
 		# Russia will always take non-island states in Asia and the Middle East
 		AND = {
-			OR = {
-				tag = RUS
-				tag = SOV
-			}
+			tag = RUS
 			var:global.eval_state = {
 				OR = {
 					is_on_continent = asia
@@ -1172,10 +1340,7 @@ is_exception_to_taking_states_on_other_continents = {
 		}
 		# Russia will take island regions in asia and oceania if it has an eastern port
 		AND = {
-			OR = {
-				tag = RUS
-				tag = SOV
-			}
+			tag = RUS
 			any_owned_state = {
 				is_coastal = yes
 				OR = {
@@ -1268,10 +1433,7 @@ is_exception_to_taking_states_on_other_continents = {
 		}
 		# Turkey/Ottomans will take states in the Balkans
 		AND = {
-			OR = {
-				tag = OTT
 				tag = TUR
-			}
 			var:global.eval_state = {
 				OR = {
 					region = 15 #Romania
@@ -1359,12 +1521,18 @@ can_reach_state = {
 	#check every state owned by the country being annexed
 	var:global.eval_state = {
 		owner = {
-			all_of_scopes = {
-				array = current_states@THIS
+			all_owned_state = {
 				if = {
 					limit = {
 						#which are not already in the array
 						NOT = { is_in_array = { global.canreach = THIS } }
+						#and are not already claimed
+						NOT = {
+							any_of_scopes = {
+								array = global.conference
+								PREV = { pc_is_state_claimed_by = PREV }
+							}
+						}
 						#any states which are claimed/cores/ambitions (meaning they will be taken)
 						OR = {
 							is_claimed_by = var:global.taker
@@ -1372,15 +1540,13 @@ can_reach_state = {
 							AND = {
 								has_variable = ambition_area_@PREV.PREV.PREV
 								NOT = {
-									any_country = {
+									any_of_scopes = {
+										array = global.conference
 										NOT = { tag = var:global.taker }
 										PREV = { is_claim_or_core_of_PREV = yes }
-										is_in_peace_conference = yes
 										has_war_with = PREV.PREV
-										OR = {
+										is_subject = no
 											is_in_faction_with = var:global.taker
-											is_subject_of = var:global.taker
-										}
 									}
 								}
 							}
@@ -1398,7 +1564,7 @@ can_reach_state = {
 								OR = {
 									is_in_array = { global.canreach = THIS }
 									is_owned_by = var:global.taker
-									has_claimed_state_in_peace_conference = var:global.taker
+									pc_is_state_claimed_by = var:global.taker
 								}
 							}
 						}
@@ -1415,10 +1581,16 @@ can_reach_state = {
 		limit = {
 			var:global.eval_state = {
 				owner = {
-					any_of_scopes = {
-						array = current_states@THIS
+					any_owned_state = {
 						#which are not already in the array
 						NOT = { is_in_array = { global.canreach = THIS } }
+						#and are not already claimed
+						NOT = {
+							any_of_scopes = {
+								array = global.conference
+								PREV = { pc_is_state_claimed_by = PREV }
+							}
+						}
 						#any states which are claimed/cores/ambitions (meaning they will be taken)
 						OR = {
 							is_claimed_by = var:global.taker
@@ -1426,15 +1598,13 @@ can_reach_state = {
 							AND = {
 								has_variable = ambition_area_@PREV.PREV.PREV
 								NOT = {
-									any_country = {
+									any_of_scopes = {
+										array = global.conference
 										NOT = { tag = var:global.taker }
 										PREV = { is_claim_or_core_of_PREV = yes }
-										is_in_peace_conference = yes
 										has_war_with = PREV.PREV
-										OR = {
+										is_subject = no
 											is_in_faction_with = var:global.taker
-											is_subject_of = var:global.taker
-										}
 									}
 								}
 							}
@@ -1452,7 +1622,7 @@ can_reach_state = {
 								OR = {
 									is_in_array = { global.canreach = THIS }
 									is_owned_by = var:global.taker
-									has_claimed_state_in_peace_conference = var:global.taker
+									pc_is_state_claimed_by = var:global.taker
 								}
 							}
 						}
@@ -1476,12 +1646,18 @@ can_reach_state_direct = {
 	#check every state owned by the country being annexed
 	var:global.eval_state = {
 		owner = {
-			all_of_scopes = {
-				array = current_states@THIS
+			all_owned_state = {
 				if = {
 					limit = {
 						#which are not already in the array
 						NOT = { is_in_array = { global.canreach = THIS } }
+						#and are not already claimed
+						NOT = {
+							any_of_scopes = {
+								array = global.conference
+								PREV = { pc_is_state_claimed_by = PREV }
+							}
+						}
 						#any states which are claimed/cores/ambitions (meaning they will be taken)
 						OR = {
 							is_claimed_by = var:global.taker
@@ -1489,15 +1665,13 @@ can_reach_state_direct = {
 							AND = {
 								has_variable = ambition_area_@PREV.PREV.PREV
 								NOT = {
-									any_country = {
+									any_of_scopes = {
+										array = global.conference
 										NOT = { tag = var:global.taker }
 										PREV = { is_claim_or_core_of_PREV = yes }
-										is_in_peace_conference = yes
 										has_war_with = PREV.PREV
-										OR = {
+										is_subject = no
 											is_in_faction_with = var:global.taker
-											is_subject_of = var:global.taker
-										}
 									}
 								}
 							}
@@ -1507,7 +1681,7 @@ can_reach_state_direct = {
 							OR = {
 								is_in_array = { global.canreach = THIS }
 								is_owned_by = var:global.taker
-								has_claimed_state_in_peace_conference = var:global.taker
+								pc_is_state_claimed_by = var:global.taker
 							}
 						}
 					}
@@ -1523,10 +1697,16 @@ can_reach_state_direct = {
 		limit = {
 			var:global.eval_state = {
 				owner = {
-					any_of_scopes = {
-						array = current_states@THIS
+					any_owned_state = {
 						#which are not already in the array
 						NOT = { is_in_array = { global.canreach = THIS } }
+						#and are not already claimed
+						NOT = {
+							any_of_scopes = {
+								array = global.conference
+								PREV = { pc_is_state_claimed_by = PREV }
+							}
+						}
 						#any states which are claimed/cores/ambitions (meaning they will be taken)
 						OR = {
 							is_claimed_by = var:global.taker
@@ -1534,15 +1714,13 @@ can_reach_state_direct = {
 							AND = {
 								has_variable = ambition_area_@PREV.PREV.PREV
 								NOT = {
-									any_country = {
+									any_of_scopes = {
+										array = global.conference
 										NOT = { tag = var:global.taker }
 										PREV = { is_claim_or_core_of_PREV = yes }
-										is_in_peace_conference = yes
 										has_war_with = PREV.PREV
-										OR = {
+										is_subject = no
 											is_in_faction_with = var:global.taker
-											is_subject_of = var:global.taker
-										}
 									}
 								}
 							}
@@ -1552,7 +1730,7 @@ can_reach_state_direct = {
 							OR = {
 								is_in_array = { global.canreach = THIS }
 								is_owned_by = var:global.taker
-								has_claimed_state_in_peace_conference = var:global.taker
+								pc_is_state_claimed_by = var:global.taker
 							}
 						}
 					}
@@ -1569,10 +1747,9 @@ can_reach_state_direct = {
 	}
 }
 
-
 ### conference rules
 is_willing_to_take_state_ROOT = {
-	# general ruless
+	# general rules
 	rule_puppets_only_get_leftovers_ROOT = no
 	rule_dont_take_ally_claims_ROOT = no
 	rule_dont_take_ally_ambitions_ROOT = no
@@ -1702,20 +1879,29 @@ rule_take_bordering_first = {
 		is_important_state = no
 		NOT = {
 			num_owned_neighbour_states = { count > 0 owner = ROOT }
-			num_claimed_peace_conference_neighbour_states = { count > 0 owner = ROOT }
+			num_owned_neighbour_states = { 
+				pc_is_state_claimed_by = PREV
+				count > 0 owner = ROOT
+			}
 		}
 		owner = {
 			any_owned_state = {
 				OR = {
 					num_owned_neighbour_states = { count > 0 owner = ROOT }
-					num_claimed_peace_conference_neighbour_states = { count > 0 owner = ROOT }
+					num_owned_neighbour_states = { 
+						pc_is_state_claimed_by = PREV.PREV
+						count > 0 owner = PREV
+					}
 				}
 				set_temp_variable = { global.eval_state = THIS.id }
 				NOT = {
 					owner = {
 						any_enemy_country = {
 							var:global.eval_state = {
-								has_claimed_state_in_peace_conference = PREV
+								OR = {
+								pc_is_state_claimed_by = PREV
+									is_controlled_by = PREV
+								}
 							}
 						}
 					}
@@ -1729,7 +1915,9 @@ rule_take_bordering_first = {
 rule_puppets_only_get_leftovers_ROOT = {
 	is_subject = yes
 	var:global.eval_state = { is_claim_or_core_of_ROOT = no }
-	any_other_country = {
+	any_of_scopes = {
+		array = global.conference
+		NOT = { tag = ROOT }
 		is_subject = no
 		at_conference_has_war_with_owner = yes
 		var:global.eval_state = { is_claim_or_core_or_ambition_of_PREV = yes }
@@ -1740,7 +1928,9 @@ rule_puppets_only_get_leftovers_ROOT = {
 rule_puppets_only_get_leftovers_PREV = {
 	is_subject = yes
 	var:global.eval_state = { is_claim_or_core_of_PREV = no }
-	any_other_country = {
+	any_of_scopes = {
+		array = global.conference
+		NOT = { tag = PREV }
 		is_subject = no
 		at_conference_has_war_with_owner = yes
 		var:global.eval_state = { is_claim_or_core_or_ambition_of_PREV = yes }
@@ -1749,14 +1939,12 @@ rule_puppets_only_get_leftovers_PREV = {
 
 rule_dont_take_ally_claims_ROOT = {
 	var:global.eval_state = { is_claim_or_core_of_ROOT = no }
-	any_other_country = {
+	any_of_scopes = {
+		array = global.conference
+		NOT = { tag = ROOT }
 		var:global.eval_state = { is_claim_or_core_of_PREV = yes }
 		at_conference_has_war_with_owner = yes
-		OR = {
-			is_in_faction_with = ROOT
-			is_subject_of = ROOT
-			ROOT = { is_subject_of = PREV }
-		}
+		is_ally_of_ROOT = yes
 		is_willing_to_take_state_PREV = yes
 		can_reach_state = yes
 
@@ -1775,14 +1963,12 @@ rule_dont_take_ally_claims_ROOT = {
 
 rule_dont_take_ally_claims_PREV = {
 	var:global.eval_state = { is_claim_or_core_of_PREV = no }
-	any_other_country = {
+	any_of_scopes = {
+		array = global.conference
+		NOT = { tag = PREV }
 		var:global.eval_state = { is_claim_or_core_of_PREV = yes }
 		at_conference_has_war_with_owner = yes
-		OR = {
-			is_in_faction_with = PREV
-			is_subject_of = PREV
-			PREV = { is_subject_of = PREV }
-		}
+		is_ally_with = PREV
 
 		# Exception: Japan taking China
 		NOT = {
@@ -1803,7 +1989,9 @@ rule_dont_take_ally_ambitions_ROOT = {
 		is_claim_or_core_or_ambition_of_ROOT = no
 		is_important_state = no
 	}
-	any_other_country = {
+	any_of_scopes = {
+		array = global.conference
+		NOT = { tag = ROOT }
 		is_ai = yes
 		is_in_faction_with = ROOT
 		at_conference_has_war_with_owner = yes
@@ -1822,7 +2010,6 @@ rule_dont_take_ally_ambitions_ROOT = {
 		else = {
 			can_reach_state_direct = yes
 		}
-
 
 		# exception: Germany & NFA will still take lands in France
 		NOT = {
@@ -1882,7 +2069,9 @@ rule_dont_take_ally_ambitions_PREV = {
 		is_claim_or_core_or_ambition_of_PREV = no
 		is_important_state = no
 	}
-	any_other_country = {
+	any_of_scopes = {
+		array = global.conference
+		NOT = { tag = PREV }
 		is_ai = yes
 		is_in_faction_with = PREV
 		at_conference_has_war_with_owner = yes
@@ -1948,7 +2137,9 @@ rule_dont_take_friend_claims_ROOT = {
 		is_claim_or_core_or_ambition_of_ROOT = no
 		is_important_state = no
 	}
-	any_other_country = {
+	any_of_scopes = {
+		array = global.conference
+		NOT = { tag = ROOT }
 		at_conference_has_war_with_owner = yes
 		NOT = { has_war_with = ROOT }
 		var:global.eval_state = { is_claim_or_core_of_PREV = yes }
@@ -1984,7 +2175,9 @@ rule_dont_take_friend_claims_PREV = {
 		is_claim_or_core_or_ambition_of_PREV = no
 		is_important_state = no
 	}
-	any_other_country = {
+	any_of_scopes = {
+		array = global.conference
+		NOT = { tag = PREV }
 		at_conference_has_war_with_owner = yes
 		NOT = { has_war_with = PREV }
 		var:global.eval_state = { is_claim_or_core_of_PREV = yes }
@@ -2026,7 +2219,9 @@ rule_needs_connection_ROOT = {
 		AND = {
 			restrict_territorial_ambitions_ROOT = no
 			NOT = {
-				any_other_country = {
+				any_of_scopes = {
+					array = global.conference
+					NOT = { tag = ROOT }
 					at_conference_has_war_with_owner = yes
 					OR = {
 						AND = {
@@ -2051,7 +2246,9 @@ rule_claims_needs_connection_ROOT = {
 		is_important_state = no
 	}
 	can_reach_state = no
-	any_other_country = {
+	any_of_scopes = {
+		array = global.conference
+		NOT = { tag = ROOT }
 		at_conference_has_war_with_owner = yes
 		OR = {
 			AND = {
@@ -2083,7 +2280,6 @@ rule_claims_needs_connection_ROOT = {
 				tag = NFA
 				tag = CAN
 				tag = RUS
-				tag = SOV
 				is_german_tag = yes
 			}
 			var:global.eval_state = { is_germany = yes }
@@ -2096,7 +2292,10 @@ rule_look_for_direct_connection_ROOT = {
 	var:global.eval_state = {
 		NOT = {
 			num_owned_neighbour_states = { count > 0 owner = ROOT }
-			num_claimed_peace_conference_neighbour_states = { count > 0 owner = ROOT }
+			num_owned_neighbour_states = { 
+				pc_is_state_claimed_by = ROOT
+				count > 0 owner = PREV
+			}
 			# unless it's an important state, an island, or a coastal state in an island region (like Britain)
 			is_important_state = yes
 			AND = {
@@ -2106,7 +2305,9 @@ rule_look_for_direct_connection_ROOT = {
 		}
 	}
 	# when there's another country who can and will take that state through a direct connection
-	any_other_country = {
+	any_of_scopes = {
+		array = global.conference
+		NOT = { tag = ROOT }
 		at_conference_has_war_with_owner = yes
 		OR = {
 			var:global.eval_state = { is_claim_or_core_or_ambition_of_PREV = yes }
@@ -2134,17 +2335,36 @@ rule_look_for_direct_connection_ROOT = {
 				tag = NFA
 				tag = CAN
 				tag = RUS
-				tag = SOV
 			}
 			var:global.eval_state = { is_germany = yes }
 		}
 	}
-
 	# exception: this is JAP in Asia
 	NOT = {
 		AND = {
 			tag = JAP
 			var:global.eval_state = { is_on_continent = asia }
+		}
+	}
+	# exception: this is eastern Europe, for GER
+	NOT = {
+		AND = {
+			tag = GER
+			var:global.eval_state = {
+				OR = {
+					region = 37 #Baltic States
+					region = 39 #White Ruthenia
+					region = 130 #Western Ukraine
+					region = 165 #Eastern Ukraine
+				}
+			}
+		}
+	}
+	# exception: this is America, for ACW
+	NOT = {
+		AND = {
+			is_american_tag = yes
+			var:global.eval_state = { is_mainland_america = yes }
 		}
 	}
 }
@@ -2153,7 +2373,9 @@ rule_dont_take_land_other_continents_ROOT = {
 	same_continent_as_state_FROM = no
 	var:global.eval_state = { is_claim_or_core_or_ambition_of_ROOT = no }
 	is_exception_to_taking_states_on_other_continents = no
-	any_other_country = {
+	any_of_scopes = {
+		array = global.conference
+		NOT = { tag = ROOT }
 		at_conference_has_war_with_owner = yes
 		OR = {
 			same_continent_as_state_FROM = yes
@@ -2165,10 +2387,7 @@ rule_dont_take_land_other_continents_ROOT = {
 		}
 		OR = {
 			restrict_territorial_ambitions_PREV = no
-			AND = {
 				var:global.eval_state = { is_claim_or_core_or_ambition_of_PREV = yes }
-				can_reach_state = yes
-			}
 		}
 		# exceptions: look for states the other country won't take, even if they can
 		is_willing_to_take_state_PREV = yes
@@ -2179,7 +2398,9 @@ rule_dont_take_land_other_continents_PREV = {
 	same_continent_as_state_FROM = no
 	var:global.eval_state = { is_claim_or_core_or_ambition_of_PREV = no }
 	is_exception_to_taking_states_on_other_continents = no
-	any_other_country = {
+	any_of_scopes = {
+		array = global.conference
+		NOT = { tag = PREV }
 		at_conference_has_war_with_owner = yes
 		OR = {
 			same_continent_as_state_FROM = yes
@@ -2224,7 +2445,9 @@ rule_dont_take_cheap_island_states_ROOT = {
 			controller = { is_in_faction_with = ROOT }
 		}
 	}
-	any_other_country = {
+	any_of_scopes = {
+		array = global.conference
+		NOT = { tag = ROOT }
 		at_conference_has_war_with_owner = yes
 		NOT = { is_in_faction_with = ROOT }
 		OR = {
@@ -2276,7 +2499,9 @@ rule_dont_take_cheap_island_states_PREV = {
 			controller = { is_in_faction_with = PREV.PREV }
 		}
 	}
-	any_other_country = {
+	any_of_scopes = {
+		array = global.conference
+		NOT = { tag = PREV }
 		at_conference_has_war_with_owner = yes
 		NOT = { is_in_faction_with = PREV }
 		OR = {
@@ -2538,7 +2763,6 @@ rule_dont_take_impassable_states_PREV = {
 	}
 }
 
-
 # country_specific rules
 rule_dont_take_france_from_GER_NFA_ally_ROOT = {
 	var:global.eval_state = {
@@ -2618,32 +2842,20 @@ rule_GER_split_up_france_PREV = {
 		region = 20 #Southern France
 		NOT = {
 			AND = {
-				controller = {
-					OR = {
-						tag = GER
-						is_subject_of = GER
-						is_in_faction_with = GER
-					}
-				}
+				GER = { is_ally_with = PREV.controller }
 				any_neighbor_state = {
 					OR = {
-						has_claimed_state_in_peace_conference = GER
+						pc_is_state_claimed_by = GER
 						is_owned_by = GER
 					}
 				}
 			}
 			AND = {
-				controller = {
-					NOT = {
-						tag = GER
-						is_subject_of = GER
-						is_in_faction_with = GER
-					}
-				}
+				NOT = { GER = { is_ally_with = PREV.controller } }
 				NOT = { controller = { is_in_faction_with = NFA } }
 				any_neighbor_state = {
 					OR = {
-						has_claimed_state_in_peace_conference = GER
+						pc_is_state_claimed_by = GER
 						is_owned_by = GER
 					}
 				}
@@ -2705,17 +2917,11 @@ rule_NFA_split_up_france_PREV = {
 		}
 		NOT = {
 			AND = {
-				controller = {
-					OR = {
-						tag = NFA
-						is_subject_of = NFA
-						is_in_faction_with = NFA
-					}
-				}
+				NFA = { is_ally_with = PREV.controller }
 				OR = {
 					any_neighbor_state = {
 						OR = {
-							has_claimed_state_in_peace_conference = NFA
+							pc_is_state_claimed_by = NFA
 							is_owned_by = NFA
 						}
 					}
@@ -2723,17 +2929,11 @@ rule_NFA_split_up_france_PREV = {
 				}
 			}
 			AND = {
-				controller = {
-					NOT = {
-						tag = NFA
-						is_subject_of = NFA
-						is_in_faction_with = NFA
-					}
-				}
+				NOT = { NFA = { is_ally_with = var:PREV.controller } }
 				NOT = { controller = { is_in_faction_with = GER } }
 				any_neighbor_state = {
 					OR = {
-						has_claimed_state_in_peace_conference = NFA
+						pc_is_state_claimed_by = NFA
 						is_owned_by = NFA
 					}
 				}
@@ -2928,7 +3128,9 @@ rule_stay_out_of_scotland_ROOT = {
 		controls_state = 121 #Lothian
 		any_allied_country = { controls_state = 121 }
 	}
-	any_other_country = {
+	any_of_scopes = {
+		array = global.conference
+		NOT = { tag = ROOT }
 		NOT = { is_in_faction_with = ROOT }
 		at_conference_has_war_with_owner = yes
 		OR = {
@@ -2951,7 +3153,9 @@ rule_stay_out_of_scotland_PREV = {
 		controls_state = 121 #Lothian
 		any_allied_country = { controls_state = 121 }
 	}
-	any_other_country = {
+	any_of_scopes = {
+		array = global.conference
+		NOT = { tag = PREV }
 		NOT = { is_in_faction_with = PREV }
 		at_conference_has_war_with_owner = yes
 		OR = {
@@ -2974,7 +3178,9 @@ rule_stay_out_of_wales_ROOT = {
 		controls_state = 122 #Wales
 		any_allied_country = { controls_state = 122 }
 	}
-	any_other_country = {
+	any_of_scopes = {
+		array = global.conference
+		NOT = { tag = ROOT }
 		NOT = { is_in_faction_with = ROOT }
 		at_conference_has_war_with_owner = yes
 		OR = {
@@ -2997,8 +3203,10 @@ rule_stay_out_of_wales_PREV = {
 		controls_state = 122 #Wales
 		any_allied_country = { controls_state = 122 }
 	}
-	any_other_country = {
-		NOT = { is_in_faction_with = ROOT }
+	any_of_scopes = {
+		array = global.conference
+		NOT = { tag = PREV }
+		NOT = { is_in_faction_with = PREV }
 		at_conference_has_war_with_owner = yes
 		OR = {
 			restrict_territorial_ambitions_PREV = no
@@ -3022,7 +3230,9 @@ rule_stay_out_of_north_england_ROOT = {
 		controls_state = 121 #Lothian
 		any_allied_country = { controls_state = 121 }
 	}
-	any_other_country = {
+	any_of_scopes = {
+		array = global.conference
+		NOT = { tag = ROOT }
 		NOT = { is_in_faction_with = ROOT }
 		at_conference_has_war_with_owner = yes
 		OR = {
@@ -3049,7 +3259,9 @@ rule_stay_out_of_north_england_PREV = {
 		controls_state = 121 #Lothian
 		any_allied_country = { controls_state = 121 }
 	}
-	any_other_country = {
+	any_of_scopes = {
+		array = global.conference
+		NOT = { tag = PREV }
 		NOT = { is_in_faction_with = PREV }
 		at_conference_has_war_with_owner = yes
 		OR = {
@@ -3084,7 +3296,9 @@ rule_stay_out_of_england_ROOT = {
 		controls_state = 126 #London
 		any_allied_country = { controls_state = 126 }
 	}
-	any_other_country = {
+	any_of_scopes = {
+		array = global.conference
+		NOT = { tag = ROOT }
 		NOT = { is_in_faction_with = ROOT }
 		at_conference_has_war_with_owner = yes
 		OR = {
@@ -3117,7 +3331,9 @@ rule_stay_out_of_england_PREV = {
 		controls_state = 126 #London
 		any_allied_country = { controls_state = 126 }
 	}
-	any_other_country = {
+	any_of_scopes = {
+		array = global.conference
+		NOT = { tag = PREV }
 		NOT = { is_in_faction_with = PREV }
 		at_conference_has_war_with_owner = yes
 		OR = {
@@ -3256,7 +3472,9 @@ rule_CAN_only_neighboring_american_ROOT = {
 	}
 	ROOT_is_restriction_exception = no
 	can_reach_state_direct = no
-	any_other_country = {
+	any_of_scopes = {
+		array = global.conference
+		NOT = { tag = ROOT }
 		is_american_tag = yes
 		at_conference_no_war_with_ROOT = yes
 		at_conference_has_war_with_owner = yes
@@ -3418,15 +3636,14 @@ rule_stay_out_of_alands_ROOT = {
 	}
 	NOT = {
 		tag = RUS
-		tag = SOV
 		tag = FIN
 		tag = SWE
 		tag = SCA
 	}
-	any_country = {
+	any_of_scopes = {
+		array = global.conference
 		OR = {
 			tag = RUS
-			tag = SOV
 			var:global.eval_state = { is_claim_or_core_or_ambition_of_PREV = yes }
 		}
 		at_conference_no_war_with_ROOT = yes
@@ -3442,15 +3659,14 @@ rule_stay_out_of_alands_PREV = {
 	}
 	NOT = {
 		tag = RUS
-		tag = SOV
 		tag = FIN
 		tag = SWE
 		tag = SCA
 	}
-	any_country = {
+	any_of_scopes = {
+		array = global.conference
 		OR = {
 			tag = RUS
-			tag = SOV
 			var:global.eval_state = { is_claim_or_core_or_ambition_of_PREV = yes }
 		}
 		at_conference_no_war_with_PREV = yes
@@ -3470,7 +3686,10 @@ rule_BHC_stay_out_of_siam_ROOT = {
 		is_core_of = SIA
 		NOT = {
 			num_owned_neighbour_states = { count > 0 owner = ROOT }
-			num_claimed_peace_conference_neighbour_states = { count > 0 owner = ROOT }
+			num_owned_neighbour_states = { 
+				pc_is_state_claimed_by = BHC
+				count > 0 owner = SIA
+			}
 		}
 	}
 }
@@ -3486,7 +3705,10 @@ rule_BHC_stay_out_of_siam_PREV = {
 		is_core_of = SIA
 		NOT = {
 			num_owned_neighbour_states = { count > 0 owner = PREV }
-			num_claimed_peace_conference_neighbour_states = { count > 0 owner = PREV }
+			num_owned_neighbour_states = { 
+				pc_is_state_claimed_by = BHC
+				count > 0 owner = BRM
+			}
 		}
 	}
 }
@@ -3719,7 +3941,6 @@ rule_leave_UKR_to_RUS_ROOT = {
 	NOT = {
 		tag = UKR
 		tag = RUS
-		tag = SOV
 		tag = GER
 		AND = {
 			is_faction_leader = yes
@@ -3749,7 +3970,6 @@ rule_leave_UKR_to_RUS_PREV = {
 	NOT = {
 		tag = UKR
 		tag = RUS
-		tag = SOV
 		tag = GER
 		AND = {
 			is_faction_leader = yes
@@ -3793,7 +4013,9 @@ rule_stay_out_of_western_russia_ROOT = {
 			region = 137 #Western Steppe
 		}
 	}
-	any_other_country = {
+	any_of_scopes = {
+		array = global.conference
+		NOT = { tag = ROOT }
 		OR = {
 			tag = GER
 			tag = FRA
@@ -3811,10 +4033,7 @@ rule_stay_out_of_western_russia_ROOT = {
 			restrict_territorial_ambitions_PREV = no
 			var:global.eval_state = { is_claim_or_core_or_ambition_of_PREV = yes }
 		}
-		OR = {
 			is_willing_to_take_state_PREV = yes
-			var:global.eval_state = { impassable = yes }
-		}
 	}
 }
 
@@ -3837,7 +4056,9 @@ rule_stay_out_of_western_russia_PREV = {
 			state = 213 #Murmansk
 		}
 	}
-	any_other_country = {
+	any_of_scopes = {
+		array = global.conference
+		NOT = { tag = PREV }
 		OR = {
 			tag = GER
 			tag = FRA
@@ -3882,7 +4103,9 @@ rule_stay_out_of_siberia_ROOT = {
 			state = 577 #Surgut
 		}
 	}
-	any_other_country = {
+	any_of_scopes = {
+		array = global.conference
+		NOT = { tag = ROOT }
 		OR = {
 			tag = TRM
 			tag = JAP
@@ -3929,7 +4152,9 @@ rule_stay_out_of_siberia_PREV = {
 			state = 577 #Surgut
 		}
 	}
-	any_other_country = {
+	any_of_scopes = {
+		array = global.conference
+		NOT = { tag = PREV }
 		OR = {
 			tag = TRM
 			tag = JAP
@@ -3948,10 +4173,7 @@ rule_stay_out_of_siberia_PREV = {
 }
 
 rule_RUS_stay_out_of_west_europe_ROOT = {
-	OR = {
-		tag = RUS
-		tag = SOV
-	}
+	tag = RUS
 	var:global.eval_state = {
 		OR = {
 			region = 5 #Lowlands
@@ -3964,11 +4186,13 @@ rule_RUS_stay_out_of_west_europe_ROOT = {
 		781 = {
 			OR = {
 				is_owned_by_ROOT_or_ally = yes
-				has_claimed_state_in_peace_conference = ROOT
+				pc_is_state_claimed_by = ROOT
 			}
 		}
 	}
-	any_other_country = {
+	any_of_scopes = {
+		array = global.conference
+		NOT = { tag = ROOT }
 		at_conference_has_war_with_owner = yes
 		OR = {
 			restrict_territorial_ambitions_PREV = no
@@ -3979,10 +4203,7 @@ rule_RUS_stay_out_of_west_europe_ROOT = {
 }
 
 rule_RUS_stay_out_of_west_europe_PREV = {
-	OR = {
-		tag = RUS
-		tag = SOV
-	}
+	tag = RUS
 	var:global.eval_state = {
 		OR = {
 			region = 5 #Lowlands
@@ -3996,11 +4217,13 @@ rule_RUS_stay_out_of_west_europe_PREV = {
 			OR = {
 				is_owned_by = PREV
 				owner = { is_ally_with = PREV.PREV }
-				has_claimed_state_in_peace_conference = PREV
+				pc_is_state_claimed_by = PREV
 			}
 		}
 	}
-	any_other_country = {
+	any_of_scopes = {
+		array = global.conference
+		NOT = { tag = PREV }
 		at_conference_has_war_with_owner = yes
 		OR = {
 			restrict_territorial_ambitions_PREV = no
@@ -4011,10 +4234,7 @@ rule_RUS_stay_out_of_west_europe_PREV = {
 }
 
 rule_RUS_stay_out_of_spain_ROOT = {
-	OR = {
-		tag = RUS
-		tag = SOV
-	}
+	tag = RUS
 	var:global.eval_state = {
 		OR = {
 			region = 41 #Eastern Iberia
@@ -4027,11 +4247,13 @@ rule_RUS_stay_out_of_spain_ROOT = {
 		16 = {
 			OR = {
 				is_owned_by_ROOT_or_ally = yes
-				has_claimed_state_in_peace_conference = ROOT
+				pc_is_state_claimed_by = ROOT
 			}
 		}
 	}
-	any_other_country = {
+	any_of_scopes = {
+		array = global.conference
+		NOT = { tag = ROOT }
 		at_conference_has_war_with_owner = yes
 		OR = {
 			restrict_territorial_ambitions_PREV = no
@@ -4042,10 +4264,7 @@ rule_RUS_stay_out_of_spain_ROOT = {
 }
 
 rule_RUS_stay_out_of_spain_PREV = {
-	OR = {
-		tag = RUS
-		tag = SOV
-	}
+	tag = RUS
 	var:global.eval_state = {
 		OR = {
 			region = 41 #Eastern Iberia
@@ -4059,11 +4278,13 @@ rule_RUS_stay_out_of_spain_PREV = {
 			OR = {
 				is_owned_by = PREV
 				owner = { is_ally_with = PREV.PREV }
-				has_claimed_state_in_peace_conference = PREV
+				pc_is_state_claimed_by = PREV
 			}
 		}
 	}
-	any_other_country = {
+	any_of_scopes = {
+		array = global.conference
+		NOT = { tag = PREV }
 		at_conference_has_war_with_owner = yes
 		OR = {
 			restrict_territorial_ambitions_PREV = no
@@ -4074,10 +4295,7 @@ rule_RUS_stay_out_of_spain_PREV = {
 }
 
 rule_RUS_stay_out_of_italy_ROOT = {
-	OR = {
-		tag = RUS
-		tag = SOV
-	}
+	tag = RUS
 	var:global.eval_state = {
 		OR = {
 			region = 23 #Italy
@@ -4090,17 +4308,19 @@ rule_RUS_stay_out_of_italy_ROOT = {
 		4 = {
 			OR = {
 				is_owned_by_ROOT_or_ally = yes
-				has_claimed_state_in_peace_conference = ROOT
+				pc_is_state_claimed_by = ROOT
 			}
 		}
 		109 = {
 			OR = {
 				is_owned_by_ROOT_or_ally = yes
-				has_claimed_state_in_peace_conference = ROOT
+				pc_is_state_claimed_by = ROOT
 			}
 		}
 	}
-	any_other_country = {
+	any_of_scopes = {
+		array = global.conference
+		NOT = { tag = ROOT }
 		at_conference_has_war_with_owner = yes
 		OR = {
 			restrict_territorial_ambitions_PREV = no
@@ -4111,10 +4331,7 @@ rule_RUS_stay_out_of_italy_ROOT = {
 }
 
 rule_RUS_stay_out_of_italy_PREV = {
-	OR = {
-		tag = RUS
-		tag = SOV
-	}
+	tag = RUS
 	var:global.eval_state = {
 		OR = {
 			region = 23 #Italy
@@ -4128,18 +4345,20 @@ rule_RUS_stay_out_of_italy_PREV = {
 			OR = {
 				is_owned_by = PREV
 				owner = { is_ally_with = PREV.PREV }
-				has_claimed_state_in_peace_conference = PREV
+				pc_is_state_claimed_by = PREV
 			}
 		}
 		109 = {
 			OR = {
 				is_owned_by = PREV
 				owner = { is_ally_with = PREV.PREV }
-				has_claimed_state_in_peace_conference = PREV
+				pc_is_state_claimed_by = PREV
 			}
 		}
 	}
-	any_other_country = {
+	any_of_scopes = {
+		array = global.conference
+		NOT = { tag = PREV }
 		at_conference_has_war_with_owner = yes
 		OR = {
 			restrict_territorial_ambitions_PREV = no
@@ -4150,10 +4369,7 @@ rule_RUS_stay_out_of_italy_PREV = {
 }
 
 rule_RUS_stay_out_of_ireland_ROOT = {
-	OR = {
-		tag = RUS
-		tag = SOV
-	}
+	tag = RUS
 	var:global.eval_state = {
 		region = 4 #Ireland
 	}
@@ -4161,17 +4377,19 @@ rule_RUS_stay_out_of_ireland_ROOT = {
 		126 = {
 			OR = {
 				is_owned_by_ROOT_or_ally = yes
-				has_claimed_state_in_peace_conference = ROOT
+				pc_is_state_claimed_by = ROOT
 			}
 		}
 		121 = {
 			OR = {
 				is_owned_by_ROOT_or_ally = yes
-				has_claimed_state_in_peace_conference = ROOT
+				pc_is_state_claimed_by = ROOT
 			}
 		}
 	}
-	any_other_country = {
+	any_of_scopes = {
+		array = global.conference
+		NOT = { tag = ROOT }
 		at_conference_has_war_with_owner = yes
 		OR = {
 			restrict_territorial_ambitions_PREV = no
@@ -4182,10 +4400,7 @@ rule_RUS_stay_out_of_ireland_ROOT = {
 }
 
 rule_RUS_stay_out_of_ireland_PREV = {
-	OR = {
-		tag = RUS
-		tag = SOV
-	}
+	tag = RUS
 	var:global.eval_state = {
 		region = 4 #Ireland
 	}
@@ -4194,18 +4409,20 @@ rule_RUS_stay_out_of_ireland_PREV = {
 			OR = {
 				is_owned_by = PREV
 				owner = { is_ally_with = PREV.PREV }
-				has_claimed_state_in_peace_conference = PREV
+				pc_is_state_claimed_by = PREV
 			}
 		}
 		121 = {
 			OR = {
 				is_owned_by = PREV
 				owner = { is_ally_with = PREV.PREV }
-				has_claimed_state_in_peace_conference = PREV
+				pc_is_state_claimed_by = PREV
 			}
 		}
 	}
-	any_other_country = {
+	any_of_scopes = {
+		array = global.conference
+		NOT = { tag = PREV }
 		at_conference_has_war_with_owner = yes
 		OR = {
 			restrict_territorial_ambitions_PREV = no
@@ -4219,6 +4436,7 @@ rule_JAP_leave_russian_coast_to_TRM_ROOT = {
 	tag = JAP
 	var:global.eval_state = {
 		OR = {
+			state = 1246 #Vladivostok
 			state = 408 #Vladivostok
 			state = 409 #Khabarovsk
 			state = 560 #Nikolayevsk
@@ -4227,10 +4445,7 @@ rule_JAP_leave_russian_coast_to_TRM_ROOT = {
 		}
 	}
 	TRM = {
-		OR = {
-			is_subject_of = JAP
-			is_in_faction_with = JAP
-		}
+		is_ally_with = JAP
 		at_conference_has_war_with_owner = yes
 		var:global.eval_state = { is_claim_or_core_or_ambition_of_PREV = yes }
 	}
@@ -4241,6 +4456,7 @@ rule_JAP_leave_russian_coast_to_TRM_PREV = {
 	var:global.eval_state = {
 		OR = {
 			state = 408 #Vladivostok
+			state = 1246 #Vladivostok
 			state = 409 #Khabarovsk
 			state = 560 #Nikolayevsk
 			state = 562 #Okhotsk
@@ -4248,10 +4464,7 @@ rule_JAP_leave_russian_coast_to_TRM_PREV = {
 		}
 	}
 	TRM = {
-		OR = {
-			is_subject_of = JAP
-			is_in_faction_with = JAP
-		}
+		is_ally_with = JAP
 		at_conference_has_war_with_owner = yes
 		var:global.eval_state = { is_claim_or_core_or_ambition_of_PREV = yes }
 	}
@@ -4278,9 +4491,10 @@ rule_AUS_stay_out_of_northern_germany_ROOT = {
 			state = 65 #Sachsen
 		}
 	}
-	any_other_country = {
+	any_of_scopes = {
+		array = global.conference
+		NOT = { tag = ROOT }
 		NOT = { tag = RUS }
-		NOT = { tag = SOV }
 		at_conference_has_war_with_owner = yes
 		is_willing_to_take_state_PREV = yes
 	}
@@ -4307,9 +4521,10 @@ rule_AUS_stay_out_of_northern_germany_PREV = {
 			state = 65 #Sachsen
 		}
 	}
-	any_other_country = {
+	any_of_scopes = {
+		array = global.conference
+		NOT = { tag = PREV }
 		NOT = { tag = RUS }
-		NOT = { tag = SOV }
 		at_conference_has_war_with_owner = yes
 		#is_willing_to_take_state_PREV = yes
 	}
@@ -4318,15 +4533,16 @@ rule_AUS_stay_out_of_northern_germany_PREV = {
 rule_AUS_stay_out_of_eastern_germany_ROOT = {
 	tag = AUS
 	NOT = {
-		POL = { is_subject_of = ROOT }
+		POL = { is_ally_of_ROOT = yes }
 		10 = { is_owned_or_claimed_by_ROOT = yes } #Warsaw
 	}
 	var:global.eval_state = {
 		region = 8 #Eastern Germany
 	}
-	any_other_country = {
+	any_of_scopes = {
+		array = global.conference
+		NOT = { tag = ROOT }
 		NOT = { tag = RUS }
-		NOT = { tag = SOV }
 		at_conference_has_war_with_owner = yes
 		is_willing_to_take_state_PREV = yes
 	}
@@ -4335,15 +4551,16 @@ rule_AUS_stay_out_of_eastern_germany_ROOT = {
 rule_AUS_stay_out_of_eastern_germany_PREV = {
 	tag = AUS
 	NOT = {
-		POL = { is_subject_of = PREV }
+		POL = { is_ally_with = PREV }
 		10 = { is_owned_or_claimed_by_PREV = yes } #Warsaw
 	}
 	var:global.eval_state = {
 		region = 8 #Eastern Germany
 	}
-	any_other_country = {
+	any_of_scopes = {
+		array = global.conference
+		NOT = { tag = PREV }
 		NOT = { tag = RUS }
-		NOT = { tag = SOV }
 		at_conference_has_war_with_owner = yes
 		#is_willing_to_take_state_PREV = yes
 	}
@@ -4352,7 +4569,6 @@ rule_AUS_stay_out_of_eastern_germany_PREV = {
 rule_stay_out_of_eastern_germany_ROOT = {
 	NOT = {
 		tag = RUS
-		tag = SOV
 		AND = {
 			tag = AUS
 			OR = {
@@ -4374,7 +4590,6 @@ rule_stay_out_of_eastern_germany_ROOT = {
 rule_stay_out_of_eastern_germany_PREV = {
 	NOT = {
 		tag = RUS
-		tag = SOV
 		AND = {
 			tag = AUS
 			OR = {
@@ -4432,10 +4647,7 @@ rule_stay_out_of_southern_germany_PREV = {
 }
 
 rule_OTT_stay_out_of_northern_europe_ROOT = {
-	OR = {
-		tag = OTT
-		tag = TUR
-	}
+	tag = TUR
 	restrict_territorial_ambitions_ROOT = no
 	var:global.eval_state = {
 		is_on_continent = europe
@@ -4457,7 +4669,9 @@ rule_OTT_stay_out_of_northern_europe_ROOT = {
 			state = 1221 #Crimea
 		}
 	}
-	any_other_country = {
+	any_of_scopes = {
+		array = global.conference
+		NOT = { tag = ROOT }
 		at_conference_has_war_with_owner = yes
 		OR = {
 			var:global.eval_state = { is_claim_or_core_or_ambition_of_PREV = yes }
@@ -4468,10 +4682,7 @@ rule_OTT_stay_out_of_northern_europe_ROOT = {
 }
 
 rule_OTT_stay_out_of_northern_europe_PREV = {
-	OR = {
-		tag = OTT
-		tag = TUR
-	}
+	tag = TUR
 	restrict_territorial_ambitions_PREV = no
 	var:global.eval_state = {
 		is_on_continent = europe
@@ -4493,7 +4704,9 @@ rule_OTT_stay_out_of_northern_europe_PREV = {
 			state = 1221 #Crimea
 		}
 	}
-	any_other_country = {
+	any_of_scopes = {
+		array = global.conference
+		NOT = { tag = PREV }
 		at_conference_has_war_with_owner = yes
 		OR = {
 			var:global.eval_state = { is_claim_or_core_or_ambition_of_PREV = yes }
@@ -4511,7 +4724,9 @@ rule_leave_italy_to_italy_ROOT = {
 		is_claim_or_core_or_ambition_of_ROOT = no
 		is_european_italy = yes
 	}
-	any_other_country = {
+	any_of_scopes = {
+		array = global.conference
+		NOT = { tag = ROOT }
 		is_italian_tag = yes
 		NOT = { has_war_with = ROOT }
 		at_conference_has_war_with_owner = yes
@@ -4528,7 +4743,9 @@ rule_leave_italy_to_italy_PREV = {
 		is_claim_or_core_or_ambition_of_PREV = no
 		is_european_italy = yes
 	}
-	any_other_country = {
+	any_of_scopes = {
+		array = global.conference
+		NOT = { tag = PREV }
 		is_italian_tag = yes
 		NOT = { has_war_with = PREV }
 		at_conference_has_war_with_owner = yes
@@ -4544,7 +4761,9 @@ rule_leave_india_to_india_ROOT = {
 		is_claim_or_core_of_ROOT = no
 		is_india = yes
 	}
-	any_other_country = {
+	any_of_scopes = {
+		array = global.conference
+		NOT = { tag = ROOT }
 		is_indian_tag = yes
 		NOT = { has_war_with = ROOT }
 		at_conference_has_war_with_owner = yes
@@ -4561,7 +4780,9 @@ rule_leave_india_to_india_PREV = {
 		is_claim_or_core_of_PREV = no
 		is_india = yes
 	}
-	any_other_country = {
+	any_of_scopes = {
+		array = global.conference
+		NOT = { tag = PREV }
 		is_indian_tag = yes
 		NOT = { has_war_with = PREV }
 		at_conference_has_war_with_owner = yes
@@ -4660,10 +4881,7 @@ rule_leave_INS_to_DEI_ROOT = {
 		is_core_of = DEI
 	}
 	DEI = {
-		OR = {
-			is_subject_of = ROOT
-			is_in_faction_with = ROOT
-		}
+		is_ally_of_ROOT = yes
 		at_conference_has_war_with_owner = yes
 	}
 }
@@ -4675,10 +4893,7 @@ rule_leave_INS_to_DEI_PREV = {
 		is_core_of = DEI
 	}
 	DEI = {
-		OR = {
-			is_subject_of = PREV
-			is_in_faction_with = PREV
-		}
+		is_ally_with = PREV
 		at_conference_has_war_with_owner = yes
 	}
 }
