@@ -1840,6 +1840,84 @@ political_actions = {
 			}
 		}
 	}
+	UKR_recruit_legion = {
+		icon = GFX_decision_generic_military
+
+		allowed = { always = no }
+		
+		available = {
+			has_war_support > 0.5			
+		}
+		visible = {
+			UKR_uvo_in_power = yes
+			is_subject = no
+		}
+		cost = 25
+		days_remove = 15
+		days_re_enable = 120
+		fire_only_once = no
+		cancel_if_not_visible = yes
+		
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				if = {
+					limit = {
+						NOT = { has_game_rule = { rule = unit_limit_options option = NONE } }
+						set_temp_variable = { unit_limit_factor = num_divisions }
+						add_to_temp_variable = { unit_limit_factor = units_to_spawn }
+						check_variable = { unit_limit_factor > max_divisions }
+					}
+					set_temp_variable = { units_to_spawn = 0 }
+				}
+
+				factor = units_to_spawn
+			}
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel UKR_recruit_legion target: [From.GetName]"
+			hidden_effect = { add_political_power = 25 }
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UKR_recruit_legion target: [From.GetName]"
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_recruit_legion target: [From.GetName]"
+			if = {
+				limit = {
+					NOT = { has_template = "Sichovi Striltsi" }
+				}
+				division_template = {
+					name = "Sichovi Striltsi"
+					division_names_group = UKR_ELI_01
+				
+					regiments = {
+						elite_infantry = { x = 0 y = 0 }
+						elite_infantry = { x = 0 y = 1 }
+						elite_infantry = { x = 0 y = 2 }
+						elite_infantry = { x = 1 y = 0 }
+						elite_infantry = { x = 1 y = 1 }
+						elite_infantry = { x = 1 y = 2 }
+						elite_infantry = { x = 2 y = 0 }
+						elite_infantry = { x = 2 y = 1 }
+						elite_infantry = { x = 2 y = 2 }
+					}
+					support = {
+						artillery = { x = 0 y = 0 }
+						engineer = { x = 0 y = 1 }
+						recon = { x = 0 y = 2 }
+					}
+				}
+			}
+			capital_scope = {
+				create_unit = {
+					division = "division_template = \"Sichovi Striltsi\" start_experience_factor = 0.1"
+					owner = ROOT
+				}
+			}			
+		}
+	}
 	UKR_deal_with_social_nationalist_resistance = {
 		icon = GFX_decision_generic_police_action
 
@@ -2377,7 +2455,7 @@ UKR_seeking_allies = {
 					has_game_rule = { rule = UKR_foreign_policy option = UKR_FOREIGN_POLICY_NEUTRALITY }
 					has_game_rule = { rule = UKR_foreign_policy option = UKR_FOREIGN_POLICY_RUSSIA }
 					has_game_rule = { rule = UKR_foreign_policy option = UKR_FOREIGN_POLICY_RUSSIA_PEREYASLAV }
-					has_game_rule = { rule = UKR_foreign_policy option = UKR_FOREIGN_POLICY_AUSTRIA }
+					has_game_rule = { rule = UKR_foreign_policy option = UKR_FOREIGN_POLICY_REICHSPAKT }
 					has_game_rule = { rule = UKR_foreign_policy option = UKR_FOREIGN_POLICY_FACTION }
 					has_game_rule = { rule = UKR_foreign_policy option = UKR_FOREIGN_POLICY_FACTION_LEADER }
 					has_game_rule = { rule = UKR_foreign_policy option = UKR_FOREIGN_POLICY_INTERNATIONALE }
@@ -2587,9 +2665,12 @@ UKR_seeking_allies = {
 			is_subject = no
 			OR = {
 				has_completed_focus = UKR_Connections_With_AntiGerman_Movements
-				has_completed_focus = UKR_Secret_Collusion_With_Russia
 				has_completed_focus = UKR_Mizhmoria_Concept
 				has_completed_focus = UKR_Samostiyna_Ukraina
+				OR = {
+					has_country_flag = UKR_germany_refused_coop
+					has_country_flag = UKR_russia_refused_coop
+				}
 				AND = {
 					has_completed_focus = UKR_Ternopil_Agreement
 					NOT = { is_in_faction_with = AUS }
@@ -2648,15 +2729,16 @@ UKR_seeking_allies = {
 			NOT = { has_idea = UKR_Splendid_Isolation }
 			OR = {
 				AND = {
-					has_completed_focus = UKR_Regency_Council
-					custom_trigger_tooltip = {
-						tooltip = RUS_skoropadskyi_russophile_higher
-						check_variable = { UKR_skoropadskyi_orientation > 0 }
+					has_completed_focus = UKR_Look_Out_To_Russia
+					FROM = {
+						has_socialist_government = no
+						NOT = { has_government = social_democrat }
+						NOT = { has_government = national_populist }
 					}
 				}
 				AND = {
 					has_left_democratic_government = yes
-					RUS = { has_left_democratic_government = yes }
+					FROM = { has_left_democratic_government = yes }
 				}
 			}
 		}
@@ -2699,6 +2781,323 @@ UKR_seeking_allies = {
 		
 }
 UKR_foreign_policy = {
+	UKR_evacuate_industry = {
+		allowed = { is_ukrainian_tag = yes }
+		priority = 10
+		icon = generic_construction
+		ai_will_do = {
+			factor = 200
+			modifier = {
+				factor = 0
+				surrender_progress < 0.01
+			}
+		}
+		state_target = yes
+
+		targets = { 221 227 228 200 1239 1283 1282 1284 1285 1286 }
+
+		target_trigger = {
+			FROM = {
+				is_owned_by = ROOT
+				is_core_of = ROOT
+				is_fully_controlled_by = ROOT
+				OR = { #Has at least 2 factories
+					arms_factory > 1
+					industrial_complex > 1
+					AND = {
+						arms_factory > 0
+						industrial_complex > 0
+					}
+				}
+				infrastructure > 1
+			}
+		}
+		target_root_trigger = {
+			has_civil_war = no
+			has_war_with = var:219.owner
+		}
+
+		available = {
+			FROM = {
+				is_fully_controlled_by = ROOT
+				infrastructure > 2
+			}
+			has_equipment = { train_equipment > 39 } #10 trains per factory
+		}		
+		cancel_if_not_visible = no
+		cost = 25
+		days_remove = 30
+		complete_effect = {  #Attempt to remove 2 CIVS & 2 MILS
+			hidden_effect = {
+				add_equipment_to_stockpile = {
+					type = train_equipment
+					amount = -40
+					producer = UKR
+				}
+			}
+			custom_effect_tooltip = UKR_industry_relocation_trains_tt
+			custom_effect_tooltip = UKR_industry_relocation_complete_effect_tt
+			#REMOVE factories
+			FROM = {
+				hidden_effect = {
+					set_temp_variable = { UKR_factories_counter = 0 }
+
+					#Attempt to relocate 50%-50% of mils-civs
+					set_temp_variable = { UKR_half_the_factories_to_relocate = 4 }
+					divide_temp_variable = { UKR_half_the_factories_to_relocate = 2 }
+					while_loop_effect = {
+						limit = {
+							check_variable = { UKR_factories_counter = 4 compare = less_than }
+						}
+						if = { #GO MILS (if possible)
+							limit = {
+								check_variable = { UKR_factories_counter = UKR_half_the_factories_to_relocate compare = less_than }
+							}
+							if = {
+								limit = { arms_factory > 0 }
+								remove_building = {
+									type = arms_factory
+									level = 1
+								}
+								if = {
+									limit = { has_state_flag = UKR_mils_removed_flag }
+									modify_state_flag = { flag = UKR_mils_removed_flag value = 1 }
+								}
+								else = {
+									set_state_flag = UKR_mils_removed_flag
+								}
+							}
+							else_if = {
+								limit = { industrial_complex > 0 }
+								remove_building = {
+									type = industrial_complex
+									level = 1
+								}
+								if = {
+									limit = { has_state_flag = UKR_civs_removed_flag }
+									modify_state_flag = { flag = UKR_civs_removed_flag value = 1 }
+								}
+								else = {
+									set_state_flag = UKR_civs_removed_flag
+								}
+							}
+						}
+						else = { #GO CIVS (if possible)
+							if = {
+								limit = { industrial_complex > 0 }
+								remove_building = {
+									type = industrial_complex
+									level = 1
+								}
+								if = {
+									limit = { has_state_flag = UKR_civs_removed_flag }
+									modify_state_flag = { flag = UKR_civs_removed_flag value = 1 }
+								}
+								else = {
+									set_state_flag = UKR_civs_removed_flag
+								}
+							}
+							else_if = {
+								limit = { arms_factory > 0 }
+								remove_building = {
+									type = arms_factory
+									level = 1
+								}
+								if = {
+									limit = { has_state_flag = UKR_mils_removed_flag }
+									modify_state_flag = { flag = UKR_mils_removed_flag value = 1 }
+								}
+								else = {
+									set_state_flag = UKR_mils_removed_flag
+								}
+							}
+						}
+						add_to_temp_variable = { UKR_factories_counter = 1 }
+					}
+				}
+			}
+		}
+
+		remove_effect = {
+			hidden_effect = {
+				add_equipment_to_stockpile = {
+					type = train_equipment
+					amount = 40
+					producer = UKR
+				}
+			}
+			custom_effect_tooltip = UKR_industry_relocation_remove_effect_tt
+			#RELOCATE FACTORIES
+			FROM = {
+				set_temp_variable = { UKR_factories_counter = 0 }
+				#Factories attempt to get relocated in 2 different states
+				set_temp_variable = { UKR_half_the_factories_to_relocate = 4 }
+				divide_temp_variable = { UKR_half_the_factories_to_relocate = 2 }
+				while_loop_effect = { #NOTE: Due to the seed not changing during the execution of this effect, the same state will always be chosen, UNLESS it runs out of slots -> That's the reason for this
+					limit = {
+						check_variable = { UKR_factories_counter = UKR_half_the_factories_to_relocate compare = less_than }
+					}
+					UKR_relocate_industry_in_appropriate_state_effect = yes
+					add_to_temp_variable = { UKR_factories_counter = 1 }
+				}
+			}
+			custom_effect_tooltip = UKR_relocate_industry_repair_tt
+			custom_effect_tooltip = UKR_relocate_industry_lose_control_tt
+		}
+	}
+	UKR_dnieper_line_of_defence = {
+		icon = GFX_decision_fortress
+		allowed = { is_ukrainian_tag = yes }
+		
+		visible = {
+			has_civil_war = no
+			has_war_with = var:219.owner
+		}
+		cost = 30
+		days_remove = 30
+		fire_only_once = yes
+		
+		ai_will_do = {
+			factor = 0
+			modifier = {
+				add = 200
+				OR = {
+					NOT = { has_full_control_of_state = 1242 }
+					NOT = { has_full_control_of_state = 225 }
+					NOT = { has_full_control_of_state = 221 }
+					NOT = { has_full_control_of_state = 1285 }
+					NOT = { has_full_control_of_state = 1282 }
+					NOT = { has_full_control_of_state = 1284 }
+					NOT = { has_full_control_of_state = 227 }
+					NOT = { has_full_control_of_state = 1283 }
+					NOT = { has_full_control_of_state = 228 }
+				}
+			}
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_dnieper_line_of_defence target: [From.GetName]"
+			every_owned_state = {
+				limit = {
+					is_fully_controlled_by = ROOT
+					OR = {
+						state = 1244
+						state = 202
+						state = 1240
+						state = 203
+						state = 1233
+						state = 226
+						state = 197
+					}
+				}
+				if = {
+					limit = { state = 1244 }
+					add_building_construction = {
+						type = bunker
+						province = 9568
+						level = 2
+						instant_build = yes
+					}
+					add_building_construction = {
+						type = bunker
+						province = 3543
+						level = 2
+						instant_build = yes
+					}
+				}
+				if = {
+					limit = { state = 202 }
+					add_building_construction = {
+						type = bunker
+						province = 525
+						level = 3
+						instant_build = yes
+					}
+				}
+				if = {
+					limit = { state = 1240 }
+					add_building_construction = {
+						type = bunker
+						province = 3494
+						level = 2
+						instant_build = yes
+					}
+				}
+				if = {
+					limit = { state = 203 }
+					add_building_construction = {
+						type = bunker
+						province = 11454
+						level = 2
+						instant_build = yes
+					}
+					add_building_construction = {
+						type = bunker
+						province = 488
+						level = 2
+						instant_build = yes
+					}
+				}
+				if = {
+					limit = { state = 1233 }
+					add_building_construction = {
+						type = bunker
+						province = 3468
+						level = 2
+						instant_build = yes
+					}
+					add_building_construction = {
+						type = bunker
+						province = 6478
+						level = 2
+						instant_build = yes
+					}
+				}
+				if = {
+					limit = { state = 226 }
+					add_building_construction = {
+						type = bunker
+						province = 9433
+						level = 2
+						instant_build = yes
+					}
+					add_building_construction = {
+						type = bunker
+						province = 11437
+						level = 2
+						instant_build = yes
+					}
+					add_building_construction = {
+						type = bunker
+						province = 11422
+						level = 2
+						instant_build = yes
+					}
+				}
+				if = {
+					limit = { state = 197 }
+					add_building_construction = {
+						type = bunker
+						province = 3755
+						level = 2
+						instant_build = yes
+					}
+					add_building_construction = {
+						type = bunker
+						province = 11715
+						level = 2
+						instant_build = yes
+					}
+					add_building_construction = {
+						type = bunker
+						province = 574
+						level = 2
+						instant_build = yes
+					}
+				}				
+			}
+		}
+	}
 	UKR_resist_the_germans = {
 		icon = GFX_decision_generic_agreement
 
@@ -9531,7 +9930,7 @@ UKR_land_reform = { #Land Reform time
 		allowed = { always = no } #manually activated
 
 		fixed_random_seed = no
-		days_mission_timeout = 42
+		days_mission_timeout = UKR_Borotbyst_Riot_timeout?42
 		is_good = yes
 		fire_only_once = yes
 		
@@ -14687,7 +15086,10 @@ UKR_uskhd_category = {
 				}
 				AND = {
 					has_stability > 0.25
-					check_variable = { party_popularity@ruling_party > 0.5 }
+					custom_trigger_tooltip = {
+						tooltip = UKR_impending_failure_mission_tt
+						check_variable = { party_popularity@ruling_party > 0.5 }
+					}
 				}
 			}
 		}
@@ -14758,4 +15160,637 @@ UKR_uskhd_category = {
 			increase_ruling_party_popularity_by_5 = yes
 		}		
 	}
+}
+UKR_nationalist_state = {
+	UKR_visit_stsiborskyi_lectures_in_west = {
+		icon = GFX_decision_eng_blackshirt_speech
+		available = {
+			NOT = { has_country_flag = UKR_sun_taken_decision }
+		}
+		cost = 30
+		fire_only_once = yes
+		days_remove = 30
+		ai_will_do = { base = 0 }
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UKR_visit_stsiborskyi_lectures_in_west"
+			set_country_flag = { flag = UKR_sun_taken_decision days = 30 value = 1 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_visit_stsiborskyi_lectures_in_west"
+			clr_country_flag = UKR_sun_taken_decision
+			custom_effect_tooltip = UKR_sun_nrm_10
+			add_to_variable = { UKR_sun_nrm = 0.1 }
+			if = {
+				limit = { UKR_dmytro_dontsov_in_power = yes }
+				add_to_variable = { UKR_sun_old_guard = -0.05 }
+				add_to_variable = { UKR_sun_integralists = -0.05 }
+			}
+			else = {
+				add_to_variable = { UKR_sun_old_guard = -0.1 }
+			}
+			UKR_clamp_sun_variables = yes
+			add_popularity = {
+				ideology = totalist
+				popularity = 0.05
+			}
+			add_to_variable = { UKR_sun_decisions = 1 }
+		}	
+	}
+	UKR_attack_local_church_officials = {
+		icon = GFX_decision_eng_blackshirt_march
+		available = {
+			NOT = { has_country_flag = UKR_sun_taken_decision }
+		}
+		cost = 30
+		fire_only_once = yes
+		days_remove = 30
+		ai_will_do = { base = 0 }
+		modifier = {
+			stability_weekly = -0.02
+		}
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UKR_attack_local_church_officials"
+			set_country_flag = { flag = UKR_sun_taken_decision days = 30 value = 1 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_attack_local_church_officials"
+			clr_country_flag = UKR_sun_taken_decision
+			custom_effect_tooltip = UKR_sun_nrm_10
+			add_to_variable = { UKR_sun_nrm = 0.1 }
+			if = {
+				limit = { UKR_dmytro_dontsov_in_power = yes }
+				add_to_variable = { UKR_sun_old_guard = -0.05 }
+				add_to_variable = { UKR_sun_integralists = -0.05 }
+			}
+			else = {
+				add_to_variable = { UKR_sun_old_guard = -0.1 }
+			}
+			UKR_clamp_sun_variables = yes
+			add_popularity = {
+				ideology = totalist
+				popularity = 0.05
+			}
+			decrease_ruling_party_popularity_by_3 = yes
+			add_to_variable = { UKR_sun_decisions = 1 }
+		}	
+	}
+	UKR_beat_the_old_guard = {
+		icon = GFX_decision_generic_military
+		available = {
+			NOT = { has_country_flag = UKR_sun_taken_decision }
+		}
+		custom_cost_text = UKR_beat_the_old_guard_cost
+		custom_cost_trigger = {
+			has_war_support > 0.05
+		}
+		fire_only_once = yes
+		days_remove = 30
+		ai_will_do = { base = 0 }
+		fixed_random_seed = no
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UKR_beat_the_old_guard"
+			set_country_flag = { flag = UKR_sun_taken_decision days = 30 value = 1 }
+			hidden_effect = {
+				add_war_support = -0.05
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_beat_the_old_guard"
+			clr_country_flag = UKR_sun_taken_decision
+			custom_effect_tooltip = UKR_sun_old_guard_minus_5
+			add_to_variable = { UKR_sun_old_guard = -0.05 }
+			if = {
+				limit = { UKR_dmytro_dontsov_in_power = yes }
+				add_to_variable = { UKR_sun_integralists = 0.05 }
+			}
+			else = {
+				add_to_variable = { UKR_sun_nrm = 0.05 }
+			}
+			UKR_clamp_sun_variables = yes
+			add_stability = -0.05
+			set_temp_variable_to_random = {
+				var = UKR_infantry_equipment_lost
+				min = -500
+				max = -50
+			}
+			add_equipment_to_stockpile = {
+				type = infantry_equipment
+				amount = var:UKR_infantry_equipment_lost
+			}
+			set_temp_variable_to_random = {
+				var = UKR_manpower_lost
+				min = -250
+				max = -25
+			}
+			add_manpower = UKR_manpower_lost
+			add_to_variable = { UKR_sun_decisions = 1 }
+		}	
+	}
+	UKR_organise_students_totalist_societies = {
+		icon = GFX_decision_soldierly_discipline
+		available = {
+			NOT = { has_country_flag = UKR_sun_taken_decision }
+		}
+		
+		cost = 25
+		fire_only_once = yes
+		days_remove = 30
+		ai_will_do = { base = 0 }
+		modifier = {
+			political_power_cost = 0.1
+		}
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UKR_organise_students_totalist_societies"
+			set_country_flag = { flag = UKR_sun_taken_decision days = 30 value = 1 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_organise_students_totalist_societies"
+			clr_country_flag = UKR_sun_taken_decision
+			custom_effect_tooltip = UKR_sun_nrm_5
+			add_to_variable = { UKR_sun_nrm = 0.05 }
+			if = {
+				limit = { UKR_dmytro_dontsov_in_power = yes }
+				add_to_variable = { UKR_sun_old_guard = -2.5 }
+				add_to_variable = { UKR_sun_integralists = -2.5 }
+			}
+			else = {
+				add_to_variable = { UKR_sun_old_guard = -0.05 }
+			}
+			UKR_clamp_sun_variables = yes
+			add_popularity = {
+				ideology = totalist
+				popularity = 0.03
+			}			
+			add_to_variable = { UKR_sun_decisions = 1 }
+		}	
+	}
+	UKR_circles_for_reactionary_revolution = {
+		icon = GFX_decision_generic_political_discourse
+		available = {
+			NOT = { has_country_flag = UKR_sun_taken_decision }
+		}
+		visible = { UKR_dmytro_dontsov_in_power = yes }
+		
+		cost = 25
+		fire_only_once = yes
+		days_remove = 30
+		ai_will_do = { 
+			base = 100 
+			modifier = {
+				factor = 0
+				UKR_dmytro_dontsov_in_power = no
+			}
+		}
+		modifier = {
+			stability_weekly = -0.02
+		}
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UKR_circles_for_reactionary_revolution"
+			set_country_flag = { flag = UKR_sun_taken_decision days = 30 value = 1 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_circles_for_reactionary_revolution"
+			clr_country_flag = UKR_sun_taken_decision
+			custom_effect_tooltip = UKR_sun_integralists_10
+			add_to_variable = { UKR_sun_integralists = 0.1 }
+			if = {
+				limit = { UKR_dmytro_dontsov_in_power = yes }
+				add_to_variable = { UKR_sun_old_guard = -0.05 }
+				add_to_variable = { UKR_sun_nrm = -5 }
+			}
+			else = {
+				add_to_variable = { UKR_sun_old_guard = -0.1 }
+			}
+			UKR_clamp_sun_variables = yes
+			increase_ruling_party_popularity_by_5 = yes			
+			add_to_variable = { UKR_sun_decisions = 1 }
+		}	
+	}
+	UKR_paganism_reinvented = {
+		icon = GFX_decision_eng_blackshirt_march
+		available = {
+			NOT = { has_country_flag = UKR_sun_taken_decision }
+		}
+		visible = { 
+			UKR_dmytro_dontsov_in_power = yes 
+			has_completed_focus = UKR_Rely_On_Tradition
+		}
+		
+		cost = 50
+		fire_only_once = yes
+		days_remove = 30
+		ai_will_do = { 
+			base = 100 
+			modifier = {
+				factor = 0
+				UKR_dmytro_dontsov_in_power = no
+			}
+		}
+		modifier = {
+			stability_weekly = -0.03
+		}
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UKR_paganism_reinvented"
+			set_country_flag = { flag = UKR_sun_taken_decision days = 30 value = 1 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_paganism_reinvented"
+			clr_country_flag = UKR_sun_taken_decision
+			custom_effect_tooltip = UKR_sun_integralists_10
+			add_to_variable = { UKR_sun_integralists = 0.1 }
+			if = {
+				limit = { UKR_dmytro_dontsov_in_power = yes }
+				add_to_variable = { UKR_sun_old_guard = -0.05 }
+				add_to_variable = { UKR_sun_nrm = -5 }
+			}
+			else = {
+				add_to_variable = { UKR_sun_old_guard = -0.1 }
+			}
+			UKR_clamp_sun_variables = yes
+			increase_ruling_party_popularity_by_5 = yes			
+			add_to_variable = { UKR_sun_decisions = 1 }
+		}	
+	}
+	UKR_futurist_societies = {
+		icon = GFX_decision_eng_blackshirt_march
+		available = {
+			NOT = { has_country_flag = UKR_sun_taken_decision }
+		}
+		
+		cost = 40
+		fire_only_once = yes
+		days_remove = 30
+		ai_will_do = { 
+			base = 100 
+			modifier = {
+				factor = 0
+				UKR_dmytro_dontsov_in_power = no
+			}
+		}
+		modifier = {
+			stability_weekly = -0.03
+		}
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UKR_futurist_societies"
+			set_country_flag = { flag = UKR_sun_taken_decision days = 30 value = 1 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_futurist_societies"
+			clr_country_flag = UKR_sun_taken_decision
+			custom_effect_tooltip = UKR_sun_nrm_5
+			add_to_variable = { UKR_sun_nrm = 0.05 }
+			custom_effect_tooltip = UKR_sun_integralists_5
+			add_to_variable = { UKR_sun_integralists = 0.05 }
+			add_to_variable = { UKR_sun_old_guard = -0.1 }
+			UKR_clamp_sun_variables = yes
+			add_popularity = {
+				ideology = totalist
+				popularity = 0.03
+			}
+			increase_ruling_party_popularity_by_3 = yes			
+			add_to_variable = { UKR_sun_decisions = 1 }
+		}	
+	}
+	UKR_school_for_nationalist_youth = {
+		icon = GFX_decision_generic_form_nation
+		available = {
+			NOT = { has_country_flag = UKR_sun_taken_decision }
+		}
+		
+		cost = 30
+		fire_only_once = yes
+		days_remove = 30
+		ai_will_do = { 
+			base = 100 
+			modifier = {
+				factor = 0
+				UKR_dmytro_dontsov_in_power = no
+			}
+		}
+		modifier = {
+			political_power_cost = 0.15
+			weekly_manpower = 1000
+		}
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UKR_school_for_nationalist_youth"
+			set_country_flag = { flag = UKR_sun_taken_decision days = 30 value = 1 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_school_for_nationalist_youth"
+			clr_country_flag = UKR_sun_taken_decision
+			if = {
+				limit = { UKR_dmytro_dontsov_in_power = no }
+				custom_effect_tooltip = UKR_sun_nrm_5
+				add_to_variable = { UKR_sun_nrm = 0.05 }
+				add_to_variable = { UKR_sun_old_guard = -0.05 }
+			}
+			else = {
+				custom_effect_tooltip = UKR_sun_integralists_5
+				add_to_variable = { UKR_sun_integralists = 0.05 }
+				add_to_variable = { UKR_sun_old_guard = -0.025 }
+				add_to_variable = { UKR_sun_nrm = -0.025 }
+			}
+			UKR_clamp_sun_variables = yes
+			add_popularity = {
+				ideology = totalist
+				popularity = 0.03
+			}
+			increase_ruling_party_popularity_by_3 = yes			
+			add_to_variable = { UKR_sun_decisions = 1 }
+		}	
+	}
+	UKR_visit_mazepas_grave = {
+		icon = GFX_decision_soldierly_discipline
+		available = {
+			NOT = { has_country_flag = UKR_sun_taken_decision }
+		}
+		
+		cost = 30
+		fire_only_once = yes
+		days_remove = 30
+		ai_will_do = { 
+			base = 100 
+			modifier = {
+				factor = 0
+				UKR_dmytro_dontsov_in_power = yes
+			}
+		}
+		modifier = {
+			national_populist_drift = 0.05
+		}
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UKR_visit_mazepas_grave"
+			set_country_flag = { flag = UKR_sun_taken_decision days = 30 value = 1 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_visit_mazepas_grave"
+			clr_country_flag = UKR_sun_taken_decision
+			custom_effect_tooltip = UKR_sun_old_guard_5
+			add_to_variable = { UKR_sun_old_guard = 0.05 }
+			if = {
+				limit = { check_variable = { UKR_sun_integralists > 0.025 } }
+				add_to_variable = { UKR_sun_integralists = -0.025 }
+				add_to_variable = { UKR_sun_nrm = -0.025 }
+			}
+			else = {
+				add_to_variable = { UKR_sun_nrm = -0.05 }
+			}			
+			UKR_clamp_sun_variables = yes			
+			increase_ruling_party_popularity_by_3 = yes			
+			add_to_variable = { UKR_sun_decisions = 1 }
+		}	
+	}
+	UKR_commemorate_the_heroes = {
+		icon = GFX_decision_generic_military
+		available = {
+			NOT = { has_country_flag = UKR_sun_taken_decision }
+		}
+		
+		cost = 40
+		fire_only_once = yes
+		days_remove = 30
+		ai_will_do = { 
+			base = 100 
+			modifier = {
+				factor = 0
+				UKR_dmytro_dontsov_in_power = yes
+			}
+		}
+		modifier = {
+			war_support_weekly = 0.02
+		}
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UKR_commemorate_the_heroes"
+			set_country_flag = { flag = UKR_sun_taken_decision days = 30 value = 1 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_commemorate_the_heroes"
+			clr_country_flag = UKR_sun_taken_decision
+			custom_effect_tooltip = UKR_sun_old_guard_10
+			add_to_variable = { UKR_sun_old_guard = 0.1 }
+			if = {
+				limit = { check_variable = { UKR_sun_integralists > 0.05 } }
+				add_to_variable = { UKR_sun_integralists = -0.05 }
+				add_to_variable = { UKR_sun_nrm = -0.05 }
+			}
+			else = {
+				add_to_variable = { UKR_sun_nrm = -0.1 }
+			}			
+			UKR_clamp_sun_variables = yes			
+			add_war_support = 0.05		
+			add_to_variable = { UKR_sun_decisions = 1 }
+		}	
+	}
+	UKR_organize_a_military_parade = {
+		icon = GFX_decision_generic_army_support
+		available = {
+			NOT = { has_country_flag = UKR_sun_taken_decision }
+		}
+		
+		custom_cost_text = 500_infantry_equipment_1
+		custom_cost_trigger = {
+			has_equipment = { infantry_equipment > 499 }
+		}
+		fire_only_once = yes
+		days_remove = 30
+		ai_will_do = { 
+			base = 100 
+			modifier = {
+				factor = 0
+				UKR_dmytro_dontsov_in_power = yes
+			}
+		}
+		modifier = {
+			political_power_cost = 0.1
+		}
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UKR_organize_a_military_parade"
+			set_country_flag = { flag = UKR_sun_taken_decision days = 30 value = 1 }
+			hidden_effect = {
+				add_equipment_to_stockpile = {
+					type = infantry_equipment
+					amount = 500
+				}
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_organize_a_military_parade"
+			clr_country_flag = UKR_sun_taken_decision
+			custom_effect_tooltip = UKR_sun_old_guard_10
+			add_to_variable = { UKR_sun_old_guard = 0.1 }
+			if = {
+				limit = { check_variable = { UKR_sun_integralists > 0.05 } }
+				add_to_variable = { UKR_sun_integralists = -0.05 }
+				add_to_variable = { UKR_sun_nrm = -0.05 }
+			}
+			else = {
+				add_to_variable = { UKR_sun_nrm = -0.1 }
+			}			
+			UKR_clamp_sun_variables = yes			
+			add_war_support = 0.03
+			increase_ruling_party_popularity_by_3 = yes
+			add_to_variable = { UKR_sun_decisions = 1 }
+		}	
+	}
+	UKR_incorporate_scouts_organisations = {
+		icon = GFX_decision_eng_trade_unions_support
+		available = {
+			NOT = { has_country_flag = UKR_sun_taken_decision }
+		}
+		visible = { has_completed_focus = UKR_Plast_Cooperation }
+		
+		cost = 40
+		fire_only_once = yes
+		days_remove = 50
+		ai_will_do = { 
+			base = 100 
+			modifier = {
+				factor = 0
+				UKR_dmytro_dontsov_in_power = yes
+			}
+		}
+		modifier = {
+			political_power_cost = 0.07
+		}
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UKR_incorporate_scouts_organisations"
+			set_country_flag = { flag = UKR_sun_taken_decision days = 30 value = 1 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_incorporate_scouts_organisations"
+			clr_country_flag = UKR_sun_taken_decision
+			add_equipment_to_stockpile = {
+				type = infantry_equipment
+				amount = 300
+			}
+			custom_effect_tooltip = UKR_sun_old_guard_10
+			add_to_variable = { UKR_sun_old_guard = 0.1 }
+			if = {
+				limit = { check_variable = { UKR_sun_integralists > 0.05 } }
+				add_to_variable = { UKR_sun_integralists = -0.05 }
+				add_to_variable = { UKR_sun_nrm = -0.05 }
+			}
+			else = {
+				add_to_variable = { UKR_sun_nrm = -0.1 }
+			}			
+			UKR_clamp_sun_variables = yes			
+			add_war_support = 0.03
+			increase_ruling_party_popularity_by_3 = yes
+			if = {
+				limit = {
+					NOT = { has_unit_leader = 17927 }
+				}
+				WSU = {
+					random_unit_leader = {
+						limit = { has_id = 17927 }
+						set_nationality = ROOT
+					}
+				}
+			}
+			add_to_variable = { UKR_sun_decisions = 1 }
+		}	
+	}
+	UKR_establish_communications_with_lithuania = {
+		icon = GFX_decision_generic_prepare_civil_war
+		available = {
+			NOT = { has_country_flag = UKR_sun_taken_decision }
+		}
+		
+		custom_cost_text = CP_40
+		custom_cost_trigger = {
+			command_power > 39.99
+		}
+		fire_only_once = yes
+		days_remove = 50
+		ai_will_do = { 
+			base = 100 
+			modifier = {
+				factor = 0
+				UKR_dmytro_dontsov_in_power = yes
+			}
+		}
+		modifier = {
+			stability_weekly = -0.005
+		}
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UKR_establish_communications_with_lithuania"
+			set_country_flag = { flag = UKR_sun_taken_decision days = 30 value = 1 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_establish_communications_with_lithuania"
+			clr_country_flag = UKR_sun_taken_decision
+			army_experience = 30
+			custom_effect_tooltip = UKR_sun_old_guard_10
+			add_to_variable = { UKR_sun_old_guard = 0.1 }
+			if = {
+				limit = { check_variable = { UKR_sun_integralists > 0.05 } }
+				add_to_variable = { UKR_sun_integralists = -0.05 }
+				add_to_variable = { UKR_sun_nrm = -0.05 }
+			}
+			else = {
+				add_to_variable = { UKR_sun_nrm = -0.1 }
+			}			
+			UKR_clamp_sun_variables = yes			
+			add_war_support = 0.03
+			add_to_variable = { UKR_sun_decisions = 1 }
+		}	
+	}
+	UKR_newspapers_surma = {
+		icon = GFX_decision_eng_propaganda_campaigns
+		available = {
+			NOT = { has_country_flag = UKR_sun_taken_decision }
+		}
+		
+		cost = 20
+		fire_only_once = yes
+		days_remove = 30
+		ai_will_do = { 
+			base = 100 
+			modifier = {
+				factor = 0
+				UKR_dmytro_dontsov_in_power = yes
+			}
+		}
+		modifier = {
+			national_populist_drift = 0.05
+		}
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UKR_newspapers_surma"
+			set_country_flag = { flag = UKR_sun_taken_decision days = 30 value = 1 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_newspapers_surma"
+			clr_country_flag = UKR_sun_taken_decision
+			army_experience = 30
+			add_command_power = 50
+			custom_effect_tooltip = UKR_sun_old_guard_5
+			add_to_variable = { UKR_sun_old_guard = 0.05 }
+			if = {
+				limit = { check_variable = { UKR_sun_integralists > 0.025 } }
+				add_to_variable = { UKR_sun_integralists = -0.025 }
+				add_to_variable = { UKR_sun_nrm = -0.025 }
+			}
+			else = {
+				add_to_variable = { UKR_sun_nrm = -0.05 }
+			}			
+			UKR_clamp_sun_variables = yes			
+			increase_ruling_party_popularity_by_3 = yes
+			add_to_variable = { UKR_sun_decisions = 1 }
+		}	
+	}
+	
 }
