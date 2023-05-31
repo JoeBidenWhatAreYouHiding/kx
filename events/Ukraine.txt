@@ -1615,6 +1615,8 @@ country_event = { # Dyrektoria Uprising
 		hidden_effect = {
 			GER = { country_event = crm.4 }
 			random_other_country = { news_event = ukrnews.2 }
+			set_variable = { UKR_army_conscription = 0.004 }
+			set_variable = { UKR_army_conscription_factor = 0.1 }
 		}
 	}
 }
@@ -1827,6 +1829,45 @@ country_event = { # UPSS
 		}
 	}	
 }
+country_event = { #
+	id = ukrpol.42
+	immediate = { log = "[GetDateText]: [Root.GetName]: event ukrpol.42" }
+	title = ukrpol.42.t
+	desc = ukrpol.42.d
+	is_triggered_only = yes
+	trigger = {
+		country_exists = CRM
+		CRM = { 
+			OR = { 
+				is_subject_of = GER 
+				is_guaranteed_by = GER
+			}
+		}
+	}
+
+	option = {
+		name = ukrpol.42.a
+		FROM = { country_event = ukrpol.43 }
+	}	
+}
+
+country_event = { #
+	id = ukrpol.43
+	immediate = { log = "[GetDateText]: [Root.GetName]: event ukrpol.43" }
+	title = ukrpol.43.t
+	desc = ukrpol.43.d
+	is_triggered_only = yes
+	
+	option = {
+		name = ukrpol.43.a
+		if = {
+			limit = { has_country_flag = UKR_transfered_our_fleet_to_CRM }
+			CRM = { CRM_transfer_all_fleet_to_UKR = yes }
+		}
+		annex_country = { target = CRM }
+	}	
+}
+
 country_event = { # Crimea
 	id = ukrpol.54
 	immediate = { log = "[GetDateText]: [Root.GetName]: event ukrpol.54" }
@@ -2026,6 +2067,7 @@ country_event = { # Victory of Kingdom
 			}
 			clear_variable = UKR_Direktoriia_Strength
 			clear_global_event_target = UKR_dyrektoria_headquarters
+			GER = { country_event = ukrpol.42 }
 		}
 	}
 }
@@ -2246,6 +2288,7 @@ country_event = { # Dyrektoria Mechanics
 			target = FROM
 			modifier = KR_disapproves_of_govt
 		}
+		set_country_flag = UKR_galicia_threatened_bad
 		UKR_increase_direktoria = yes
 		UPR = {
 			add_stability = 0.05
@@ -2679,26 +2722,12 @@ country_event = { # Austrian Reconcilation
 
 	option = {
 		name = ukrpol.100.a
-		trigger = {
-			OR = {
-				GAL = { is_ally_with = ROOT }
-				AND = {
-					NOT = { country_exists = GAL }
-					POL = { is_ally_with = ROOT }
-				}
-				91 = { is_owned_by = ROOT }
-			}
-		}
 		ai_chance = {
-			base = 5
+			base = 50
 			modifier = {
-				factor = 5
-				has_war_with = POL
-			}
-			modifier = {
-				factor = 2
-				has_war_with = HUN
-			}
+				factor = 0
+				FROM = { has_country_flag = UKR_galicia_threatened_bad }
+			}			
 		}
 		FROM = {
 			country_event = {
@@ -2711,15 +2740,7 @@ country_event = { # Austrian Reconcilation
 	option = {
 		name = ukrpol.100.b
 		ai_chance = {
-			base = 95
-			modifier = {
-				factor = 0.3
-				has_war_with = POL
-			}
-			modifier = {
-				factor = 0.15
-				has_war_with = HUN
-			}
+			base = 50
 		}
 		FROM = {
 			country_event = {
@@ -2741,64 +2762,11 @@ country_event = { # Austrian Reconcilation
 
 	option = {
 		name = ukrpol.101.a
-		every_state = {
-			limit = {
-				OR = {
-					state = 91
-					state = 89
-					state = 80
-					state = 1140
-					state = 1127
-					state = 1126
-				}
-				OR = {
-					is_owned_by = GAL
-					is_owned_by = AUS
-					AND = {
-						is_owned_by = POL
-						POL = { is_ally_with = AUS }
-					}
-				}
-			}
-			ROOT = { transfer_state = PREV }
-			ROOT = { add_state_claim = PREV }
-		}
-		hidden_effect = {
-			if = {
-				limit = {
-					713 = {
-						OR = {
-							is_owned_by = FROM
-							is_owned_by = GAL
-							AND = {
-								is_owned_by = POL
-								POL = { is_ally_with = FROM }
-							}
-						}
-					}
-				}
-				BUK = {
-					transfer_state = 713
-					add_state_core = 713
-					get_current_government_type = yes
-				}
-				FROM = {
-					puppet = BUK
-				}
-				BUK = { restore_previous_government_type = yes }
-			}
-		}
-		add_ideas = UKR_austrian_trade
-		add_opinion_modifier = {
-			target = FROM
-			modifier = KR_returned_land
-		}
 		diplomatic_relation = {
 			country = FROM
 			relation = non_aggression_pact
 			active = yes
 		}
-		give_military_access = FROM
 		FROM = { give_military_access = ROOT }
 		UKR_skoropadsky_increase_germanophiles = yes
 	}
@@ -2814,7 +2782,6 @@ country_event = { # Austrian Reconcilation
 
 	option = {
 		name = ukrpol.102.a
-		embargo_FROM = yes
 		add_opinion_modifier = {
 			target = FROM
 			modifier = KR_hates_govt
@@ -3298,11 +3265,7 @@ country_event = { # Regency Council
 		name = ukrpol.117.a
 		add_political_power = 15		
 		UKR_regency_increase_leo_stefan = yes
-		UKR_regency_increase_skoropadskyi = yes
-		country_event = {
-			id = ukrpol.119
-			days = 15
-		}
+		UKR_regency_increase_skoropadskyi = yes		
 	}	
 }
 country_event = { # Regency Council
@@ -3316,10 +3279,6 @@ country_event = { # Regency Council
 	
 	option = {
 		name = ukrpol.118.a
-		country_event = {
-			id = ukrpol.125
-			days = 1
-		}
 	}	
 }
 country_event = { # Regency Council
@@ -3333,6 +3292,31 @@ country_event = { # Regency Council
 	
 	option = {
 		name = ukrpol.119.a
+		ai_chance = { base = 50 }
+		drop_cosmetic_tag = yes
+		end_coalition = yes
+		effect_tooltip = { retire_country_leader = yes }
+		if = {
+			limit = {
+				NOT = { has_government = paternal_autocrat }
+			}
+			set_politics = { ruling_party = paternal_autocrat }
+		}
+		create_country_leader = {
+			name = "Mykola Mikhnovskyi"
+			desc = "POLITICS_MYKOLA_MIKHHNOVSKY_DESC"
+			picture = "gfx/leaders/UKR/Portrait_UKR_Mykola_Mikhnovsky.png"
+			expire = "1965.1.1"
+			ideology = pataut_ukrainian_conservatism_subtype
+		}
+		remove_all_ministers = yes
+		add_ideas = UKR_Mykola_Mikhnovskyi_hog_pau		
+		add_ideas = UKR_Yuri_Kollard_eco_pau		
+	}
+	option = {
+		name = ukrpol.119.b
+		ai_chance = { base = 50 }
+		end_coalition = yes
 		effect_tooltip = { retire_country_leader = yes }
 		if = {
 			limit = {
@@ -3347,8 +3331,9 @@ country_event = { # Regency Council
 			expire = "1965.1.1"
 			ideology = pataut_ukrainian_conservatism_subtype
 		}
-		remove_ideas_with_trait = head_of_government
-		add_ideas = UKR_Mykola_Mikhnovskyi_hog_pau
+		remove_all_ministers = yes
+		add_ideas = UKR_Mykola_Mikhnovskyi_hog_pau		
+		add_ideas = UKR_Yuri_Kollard_eco_pau		
 	}
 }
 country_event = { # Regency Council
@@ -3369,6 +3354,7 @@ country_event = { # Regency Council
 				OR = {
 					has_game_rule = { rule = UKR_FUTURE option = UKR_FUTURE_HETMAN_AUT }
 					has_game_rule = { rule = UKR_FUTURE option = UKR_FUTURE_HETMAN_COSSACK }
+					has_game_rule = { rule = UKR_foreign_policy option = UKR_FOREIGN_POLICY_RUSSIA }
 				}
 			}
 		}
@@ -3376,25 +3362,6 @@ country_event = { # Regency Council
 		add_ideas = UKR_Mykola_Mikhnovskyi_hog_pau
 		complete_national_focus = UKR_Grey_Eminence
 		add_war_support = 0.05
-		increase_ruling_party_popularity_by_3 = yes
-	}
-	option = {
-		name = ukrpol.120.b
-		ai_chance = { 
-			base = 15
-			modifier = {
-				factor = 0
-				OR = {
-					has_game_rule = { rule = UKR_FUTURE option = UKR_FUTURE_HETMAN_AUT }
-					has_game_rule = { rule = UKR_FUTURE option = UKR_FUTURE_HETMAN_DEM }
-				}
-			}
-		}
-		remove_ideas_with_trait = head_of_government
-		add_ideas = UKR_Ivan_Poltvets_Ostrianytsia_hog_pau
-		complete_national_focus = UKR_Palm_Of_MC
-		add_stability = 0.025
-		add_war_support = 0.025
 		increase_ruling_party_popularity_by_3 = yes
 	}
 	option = {
@@ -3426,7 +3393,7 @@ country_event = { # Regency Council
 				factor = 0
 				OR = {
 					has_game_rule = { rule = UKR_FUTURE option = UKR_FUTURE_HETMAN_COSSACK }
-					has_game_rule = { rule = UKR_FUTURE option = UKR_FUTURE_HETMAN_DEM }
+					has_game_rule = { rule = UKR_foreign_policy option = UKR_FOREIGN_POLICY_RUSSIA }
 				}
 			}
 		}
@@ -3442,6 +3409,7 @@ country_event = { # Regency Council
 	title = ukrpol.121.t
 	desc = ukrpol.121.d
 	
+	picture = GFX_report_event_UKR_hetman
 	is_triggered_only = yes
 	
 	option = {
@@ -3454,7 +3422,7 @@ country_event = { # Regency Council
 		}
 		set_country_leader_description = {
 			ideology = paternal_autocrat
-			desc = POLITICS_PAVLO_SKOROPADSKYI_DESC
+			desc = POLITICS_PAVLO_SKOROPADSKYI_HETMAN_DESC
 		}
 		clr_country_flag = UKR_regency_council
 		set_country_flag = UKR_regency_council_over
@@ -3545,22 +3513,465 @@ country_event = { # Freikorps
 		add_stability = -0.1
 	}
 }
-country_event = { # Regency Council
+country_event = { # SHD
+	id = ukrpol.125
+	immediate = { log = "[GetDateText]: [Root.GetName]: event ukrpol.125" }
+	title = ukrpol.125.t
+	desc = ukrpol.125.d
+	picture = GFX_report_event_UKR_skoropadsky_lypynskyi
+	is_triggered_only = yes
+	
+	option = {
+		name = ukrpol.125.a
+		custom_effect_tooltip = UKR_integrate_organisations_full
+		hidden_effect = {
+			set_politics = { ruling_party = authoritarian_democrat }
+			set_party_name = {
+				ideology = authoritarian_democrat
+				long_name = UKR_paternal_autocrat_party_long
+				name = UKR_paternal_autocrat_party
+			}			
+			set_temp_variable = { UKR_new_authdem = party_popularity_100@authoritarian_democrat}
+			add_to_temp_variable = { UKR_new_authdem = party_popularity_100@paternal_autocrat  }
+
+			set_temp_variable = { sum = 100 }
+			subtract_from_temp_variable = { sum = party_popularity_100@totalist }
+			subtract_from_temp_variable = { sum = party_popularity_100@syndicalist }
+			subtract_from_temp_variable = { sum = party_popularity_100@radical_socialist }
+			subtract_from_temp_variable = { sum = party_popularity_100@social_democrat }
+			subtract_from_temp_variable = { sum = party_popularity_100@social_liberal }
+			subtract_from_temp_variable = { sum = party_popularity_100@market_liberal }
+			subtract_from_temp_variable = { sum = party_popularity_100@social_conservative }
+			subtract_from_temp_variable = { sum = UKR_new_authdem }
+			subtract_from_temp_variable = { sum = party_popularity_100@national_populist }
+
+			add_to_temp_variable = { UKR_new_authdem = sum } #avoid rounding errors
+
+			set_popularities = {
+				totalist = party_popularity_100@totalist
+				syndicalist = party_popularity_100@syndicalist
+				radical_socialist = party_popularity_100@radical_socialist
+				social_democrat = party_popularity_100@social_democrat
+				social_liberal = party_popularity_100@social_liberal
+				market_liberal = party_popularity_100@market_liberal
+				social_conservative = party_popularity_100@social_conservative
+				authoritarian_democrat = UKR_new_authdem
+				paternal_autocrat = 0
+				national_populist = party_popularity_100@national_populist
+			}
+			
+			if = {
+				limit = { UKR_pavlo_skoropadsky_in_power = no }
+				create_country_leader = {
+					name = "Pavlo Skoropadskyi"
+					desc = "POLITICS_PAVLO_SKOROPADSKYI_HETMAN_DESC"
+					picture = "gfx/leaders/UKR/Portrait_UKR_Pavlo_Skoropadskyi_Hetman.png"
+					expire = "1965.1.1"
+					ideology = ukrainian_conservatism_subtype
+					traits = { UKR_hetman_title }
+				}
+			}
+		}
+		remove_ideas_with_trait = head_of_government
+		add_ideas = UKR_Vyacheslav_Lypynskyi_hog_ade
+	}
+}
+country_event = { # SHD
 	id = ukrpol.126
 	immediate = { log = "[GetDateText]: [Root.GetName]: event ukrpol.126" }
 	title = ukrpol.126.t
 	desc = ukrpol.126.d
-	picture = GFX_report_event_UKR_skoropadsky_4
+	picture = GFX_report_event_UKR_uskhd_symbol
 	is_triggered_only = yes
 	
 	option = {
 		name = ukrpol.126.a
-		set_politics = {
-			ruling_party = paternal_autocrat
-			elections_allowed = no
+		set_temp_variable = { coalition_partner_var = token:authoritarian_democrat }
+		add_to_coalition = yes
+	}
+}
+
+country_event = { # SHD
+	id = ukrpol.127
+	immediate = { log = "[GetDateText]: [Root.GetName]: event ukrpol.127" }
+	title = ukrpol.127.t
+	desc = ukrpol.127.d
+	picture = GFX_report_event_generic_farming
+	is_triggered_only = yes
+	
+	option = {
+		name = ukrpol.127.a
+		set_variable = { UKR_Land_Reform_Success = 15 }
+		set_variable = { UKR_Land_Reform_Popularity = 55 }
+		set_variable = { UKR_Land_Reform_Borotbysts_extra = 0 }
+		set_country_flag = LandReformBegunUKR
+		custom_effect_tooltip = LandReformBegunUKR_desc
+		unlock_decision_category_tooltip = UKR_land_reform
+		activate_mission = UKR_Land_Reform_Plan
+		hidden_effect = {
+			add_dynamic_modifier = { modifier = UKR_land_reform_modifier }
+			add_ideas = UKR_land_reform
+			activate_mission = UKR_Borotbyst_Riot
+			UKR_recalculate_land_reform = yes
+			country_event = { 
+				id = ukrpol.128
+				days = 14
+				random_days = 30
+			}
 		}
-		clr_country_flag = UKR_regency_council
-		set_country_flag = UKR_regency_council_over		
+	}
+}
+country_event = { # SHD 
+	id = ukrpol.128
+	immediate = { log = "[GetDateText]: [Root.GetName]: event ukrpol.128" }
+	title = ukrpol.128.t
+	desc = ukrpol.128.d
+	picture = GFX_report_event_UKR_borys_butenko
+	is_triggered_only = yes
+	
+	option = { #Hetman dismisses Protofis
+		name = ukrpol.128.a
+		ai_chance = { 
+			base = 50
+			modifier = {
+				factor = 0
+				has_game_rule = { rule = UKR_foreign_policy option = UKR_FOREIGN_POLICY_RUSSIA }
+			}
+		}
+		set_country_flag = UKR_protofis_dismissed
+		set_temp_variable = { coalition_partner_var = token:market_liberal }
+		remove_from_coalition = yes
+		custom_effect_tooltip = UKR_protofis_dismissed_tt
+		UKR_increase_Protofis_opinion_hetman = yes
+		UKR_increase_landowners_opinion_hetman = yes
+	}
+	option = {
+		name = ukrpol.128.b
+		ai_chance = { base = 50 }
+		UKR_skoropadsky_increase_russophiles = yes
+		UKR_decrease_Protofis_opinion_hetman = yes
+		UKR_decrease_landowners_opinion_hetman = yes		
+		add_stability = -0.06
+		add_political_power = -50
+		remove_ideas_with_trait = economy_minister
+		add_ideas = UKR_Vsevolod_Demchenko_eco_pau
+	}
+}
+country_event = { # SHD 
+	id = ukrpol.129
+	immediate = { log = "[GetDateText]: [Root.GetName]: event ukrpol.129" }
+	title = ukrpol.129.t
+	desc = ukrpol.129.d
+	picture = GFX_report_event_UKR_vsevolod_demchenko
+	is_triggered_only = yes
+	
+	option = { #H
+		name = ukrpol.129.a
+		set_country_flag = UKR_protofis_marlib
+		set_party_name = {
+			ideology = market_liberal
+			name = UKR_market_liberal_party2
+			long_name = UKR_market_liberal_party2_long
+		}
+		set_temp_variable = { coalition_partner_var = token:market_liberal }
+		add_to_coalition = yes		
+		custom_effect_tooltip = UKR_protofis_marlib_tt
+		hidden_effect = {
+			if = {
+				limit = { check_variable = { UKR_skoropadskyi_orientation > 0 } }
+				add_popularity = { 
+					ideology = market_liberal 
+					popularity = UKR_skoropadskyi_orientation 
+				}
+			}
+		}
+	}	
+}
+
+country_event = { #Crimean Autonomy Abolished
+	id = ukrpol.130
+	immediate = { log = "[GetDateText]: [Root.GetName]: ukrpol.130" }
+	title = ukrpol.130.t
+	desc = ukrpol.130.d
+	is_triggered_only = yes
+	fire_only_once = yes
+	picture = GFX_news_event_UKR_crimean_separatism
+	
+	option = {
+		name = ukrpol.130.a
+		if = {
+			limit = { has_government = paternal_autocrat }
+			add_stability = 0.01
+		}
+		else = {
+			add_stability = -0.05
+		}
+		137 = {
+			remove_dynamic_modifier = {
+				modifier = UKR_crimean_autonomy
+			}
+		}
+	}
+}
+country_event = { #
+	id = ukrpol.131
+	immediate = { log = "[GetDateText]: [Root.GetName]: ukrpol.131" }
+	title = ukrpol.131.t
+	desc = ukrpol.131.d
+	is_triggered_only = yes
+	fire_only_once = yes
+	picture = GFX_report_event_UKR_danylo_pavlo
+	
+	option = {
+		name = ukrpol.131.a
+		add_popularity = {
+			ideology = paternal_autocrat
+			popularity = -0.05
+		}
+		add_political_power = 50
+	}
+}
+country_event = { #Question of USKhD and UDKhP
+	id = ukrpol.134
+	immediate = { log = "[GetDateText]: [Root.GetName]: ukrpol.134" }
+	title = ukrpol.134.t
+	desc = ukrpol.134.d
+	is_triggered_only = yes
+	fire_only_once = yes
+	picture = GFX_report_event_UKR_uskhd_symbol
+
+	option = { #Fully integrate
+		name = ukrpol.134.a
+		ai_chance = {
+			base = 20
+			modifier = {
+				factor = 0 
+				has_game_rule = { rule = UKR_FUTURE option = UKR_FUTURE_HETMAN_COSSACK }
+			}
+		}
+		add_stability = -0.10
+		set_country_flag = UKR_bribed_uskhd_join			
+		custom_effect_tooltip = UKR_integrate_organisations_half
+		hidden_effect = {
+			set_temp_variable = { UKR_new_authdem = UKR.party_popularity_100@authoritarian_democrat }
+			divide_temp_variable = { UKR_new_authdem = 2 }
+
+			set_temp_variable = { UKR_new_pataut = UKR.party_popularity_100@paternal_autocrat }
+			add_to_temp_variable = { UKR_new_pataut = UKR_new_authdem }
+
+			set_temp_variable = { sum = 100 }
+			subtract_from_temp_variable = { sum = party_popularity_100@totalist }
+			subtract_from_temp_variable = { sum = party_popularity_100@syndicalist }
+			subtract_from_temp_variable = { sum = party_popularity_100@radical_socialist }
+			subtract_from_temp_variable = { sum = party_popularity_100@social_democrat }
+			subtract_from_temp_variable = { sum = party_popularity_100@social_liberal }
+			subtract_from_temp_variable = { sum = party_popularity_100@market_liberal }
+			subtract_from_temp_variable = { sum = party_popularity_100@social_conservative }
+			subtract_from_temp_variable = { sum = UKR_new_authdem }
+			subtract_from_temp_variable = { sum = UKR_new_pataut }
+			subtract_from_temp_variable = { sum = party_popularity_100@national_populist }
+
+			add_to_temp_variable = { UKR_new_pataut = sum } #avoid rounding errors
+
+			set_popularities = {
+				totalist = party_popularity_100@totalist
+				syndicalist = party_popularity_100@syndicalist
+				radical_socialist = party_popularity_100@radical_socialist
+				social_democrat = party_popularity_100@social_democrat
+				social_liberal = party_popularity_100@social_liberal
+				market_liberal = party_popularity_100@market_liberal
+				social_conservative = party_popularity_100@social_conservative
+				authoritarian_democrat = UKR_new_authdem
+				paternal_autocrat = UKR_new_pataut
+				national_populist = party_popularity_100@national_populist
+			}
+			country_event = { id = ukrpol.135 days = 35 }
+		}
+	}
+	option = { #Somewhat integrate
+		name = ukrpol.134.b
+		ai_chance = {
+			base = 20
+			modifier = {
+				factor = 0 
+				has_game_rule = { rule = UKR_FUTURE option = UKR_FUTURE_HETMAN_COSSACK }
+			}
+		}
+		add_stability = -0.05
+		effect_tooltip = { unlock_national_focus = UKR_Pardon_Monarchists }
+		set_country_flag = UKR_encouraged_uskhd_join			
+	}
+	option = { #Don't integrate
+		name = ukrpol.134.c
+		add_stability = 0.06
+	}
+}
+country_event = { #Breakup of USKhD
+	id = ukrpol.135
+	immediate = { log = "[GetDateText]: [Root.GetName]: ukrpol.135" }
+	title = ukrpol.135.t
+	desc = ukrpol.135.d
+	picture = GFX_report_event_WHR_sojm_meeting
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	option = {
+		name = ukrpol.135.a
+		add_political_power = 10
+		set_party_name = {
+			ideology = authoritarian_democrat
+			long_name = UKR_paternal_autocrat_party_long
+			name = UKR_paternal_autocrat_party
+		}
+	}
+}
+country_event = { #Strength & Unity
+	id = ukrpol.137
+	immediate = { log = "[GetDateText]: [Root.GetName]: ukrpol.137" }
+	title = ukrpol.137.t
+	desc = ukrpol.137.d
+	picture = GFX_report_event_UKR_skoropadsky_army
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	option = {
+		name = ukrpol.137.a
+		add_political_power = 10
+		set_party_name = {
+			ideology = authoritarian_democrat
+			long_name = UKR_paternal_autocrat_party_long
+			name = UKR_paternal_autocrat_party
+		}
+		if = {
+			limit = {
+				OR = {
+					AND = {
+						is_ai = yes
+						NOT = { has_game_rule = { rule = UKR_FUTURE option = UKR_FUTURE_HETMAN_COSSACK } }
+					}
+					AND = {
+						paternal_autocrat > 0.4
+						has_country_flag = UKR_LandReform_Success
+						has_completed_focus = UKR_Finish_The_Banditry
+					}
+				}
+			}
+			set_country_flag = UKR_skoro_success
+		}
+		else_if = {
+			limit = {
+				OR = {
+					AND = {
+						is_ai = yes
+						has_game_rule = { rule = UKR_FUTURE option = UKR_FUTURE_HETMAN_COSSACK }
+					}
+					AND = {
+						has_completed_focus = UKR_Restore_Vilne_Kozatstvo
+						has_completed_focus = UKR_integration_of_cossacks
+						NOT = { has_country_flag = UKR_encouraged_uskhd_join }
+						NOT = { has_country_flag = UKR_bribed_uskhd_join }
+					}
+				}
+			}
+			country_event = {
+				id = ukrpol.138
+				days = 5
+			}
+		}
+		else = {
+			country_event = {
+				id = ukrpol.139
+				days = 5
+			}
+		}
+	}
+}
+country_event = { #Poltavets
+	id = ukrpol.138
+	immediate = { log = "[GetDateText]: [Root.GetName]: ukrpol.138" }
+	title = ukrpol.138.t
+	desc = ukrpol.138.d
+	picture = GFX_report_event_UKR_poltavets
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	option = {
+		name = ukrpol.138.a
+		remove_ideas_with_trait = head_of_government
+		add_ideas = UKR_Ivan_Poltvets_Ostrianytsia_hog_pau
+		complete_national_focus = UKR_Palm_Of_MC
+	}
+}
+country_event = { #Poltavets
+	id = ukrpol.139
+	immediate = { log = "[GetDateText]: [Root.GetName]: ukrpol.139" }
+	title = ukrpol.139.t
+	desc = ukrpol.139.d
+	picture = GFX_report_event_UKR_skoropadsky_svita_3
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	option = {
+		name = ukrpol.139.a
+		decrease_ruling_party_popularity_by_10 = yes
+		add_stability = -0.1
+		country_event = {
+			id = ukrpol.140
+			days = 5
+		}
+	}
+}
+country_event = { #
+	id = ukrpol.140
+	immediate = { log = "[GetDateText]: [Root.GetName]: ukrpol.140" }
+	title = ukrpol.140.t
+	desc = ukrpol.140.d
+	picture = GFX_report_event_UKR_skoropadsky_4
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	option = {
+		name = ukrpol.140.a
+		add_political_power = -50
+		custom_effect_tooltip = elections_in_one_month
+		hidden_effect = {
+			country_event = {
+				id = ukrpol.141
+				months = 1
+			}
+		}
+	}
+}
+country_event = { #
+	id = ukrpol.141
+	immediate = { log = "[GetDateText]: [Root.GetName]: ukrpol.141" }
+	title = ukrpol.141.t
+	desc = ukrpol.141.d
+	picture = GFX_report_event_UKR_skoropadsky_svita
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	option = {
+		name = ukrpol.141.a
+		increase_ruling_party_popularity_by_3 = yes
+		remove_ideas_with_trait = head_of_government
+		add_ideas = UKR_Vasyl_Kochubei_hog_pau
+	}
+}
+country_event = { #
+	id = ukrpol.631
+	immediate = { log = "[GetDateText]: [Root.GetName]: ukrpol.631" }
+	title = ukrpol.631.t
+	desc = ukrpol.631.d
+	picture = GFX_report_event_UKR_poltavets
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	option = {
+		name = ukrpol.631.a
+		increase_ruling_party_popularity_by_3 = yes
+		set_cosmetic_tag = UKR_cossack_hetmanate
+		set_country_leader_ideology = pataut_cossack_subtype
 	}
 }
 
@@ -7587,7 +7998,9 @@ country_event = { # Fall of Kyiv for Dyrektoria
 				ideology = paternal_autocrat
 				popularity = 0.08
 			}
-		}	
+		}
+		remove_ideas_with_trait = head_of_government
+		add_ideas = UKR_Ivan_Poltvets_Ostrianytsia_hog_pau
 		create_country_leader = {
 			name = "Ivan Poltavets-Ostrianytsia"
 			desc = "POLITICS_IVAN_POLTAVETS_DESC"
@@ -27392,7 +27805,19 @@ country_event = { #Straits Treaty w/ TUR for UKR
 		}
 	}
 }
-	
+country_event = { # Ukrainian compensation for the railways
+	id = ukrfor.268
+	immediate = { log = "[GetDateText]: [Root.GetName]: event ukrfor.268" }
+	title = ukrfor.268.t
+	desc = ukrfor.268.d
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = ukrfor.268.a
+		add_political_power = 50
+	}
+}
 ### Elections & Stuff	
 country_event = { # Elections
 	id = ukrel.1
@@ -27837,23 +28262,6 @@ country_event = { # Elections
 		}
 		mark_focus_tree_layout_dirty = yes
 		remove_all_ministers = yes
-		if = {
-			limit = { check_variable = { UKR_skoropadskyi_orientation > 0 } }
-			add_ideas = {
-				UKR_Pavlo_Skoropadsky_hog_pau
-				UKR_Liudvih_Sidletskyi_for_pau
-				UKR_Mykhailo_Kovalenko_eco_pau
-				UKR_Igor_Kistyakovsky_sec_pau
-			}
-		}
-		else = {
-			add_ideas = {
-				UKR_Pavlo_Skoropadsky_hog_pau
-				UKR_Liudvih_Sidletskyi_for_pau
-				UKR_Mykola_Sakhno_Ustymovych_eco_pau
-				UKR_Borys_Homzyn_sec_pau
-			}
-		}
 	}
 	option = {
 		name = ukrel.2.u
@@ -27889,23 +28297,6 @@ country_event = { # Elections
 		}
 		mark_focus_tree_layout_dirty = yes
 		remove_all_ministers = yes
-		if = {
-			limit = { check_variable = { UKR_skoropadskyi_orientation > 0 } }
-			add_ideas = {
-				UKR_Pavlo_Skoropadsky_hog_pau
-				UKR_Dmitri_Doroshenko_for_mli
-				UKR_Mykhailo_Kovalenko_eco_pau
-				UKR_Igor_Kistyakovsky_sec_pau
-			}
-		}
-		else = {
-			add_ideas = {
-				UKR_Pavlo_Skoropadsky_hog_pau
-				UKR_Dmitri_Doroshenko_for_mli
-				UKR_Mykola_Sakhno_Ustymovych_eco_pau
-				UKR_Borys_Homzyn_sec_pau
-			}
-		}
 	}
 	option = {
 		name = ukrel.2.l
