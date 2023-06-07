@@ -293,7 +293,59 @@ UKR_dualism_category = {
 		}
 	}
 }
+UKR_pacification = {
+	UKR_pacification_generic = {
+		icon = GFX_decision_generic_ignite_civil_war
+		allowed = { always = no } # manually activated
+		
+		available = {
+			FROM = { has_dynamic_modifier = { modifier = UKR_rebel_state } }
+		}
 
+		highlight_states = {
+			highlight_state_targets = {
+				state = FROM
+			}
+		}
+		visible = { FROM = { has_dynamic_modifier = { modifier = UKR_rebel_state } } }
+		custom_cost_text = CP_5
+		custom_cost_trigger = {
+			check_variable = { command_power > 4.99 }
+		}
+		days_remove = 20
+		fire_only_once = yes
+		ai_will_do = { factor = 100 }
+		state_target = yes
+		on_map_mode = map_and_decisions_view
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete UKR_pacification_generic target: [From.GetName]"
+			add_command_power = -5
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_pacification_generic target: [From.GetName]"
+			army_experience = 2
+			FROM = {
+				remove_core_of = UPR
+				cancel_resistance = yes
+				force_disable_resistance = { clear = yes }
+				if = {
+					limit = {
+						NOT = { is_core_of = ROOT }
+					}
+					remove_claim_by = ROOT
+					add_core_of = ROOT
+				}
+				remove_dynamic_modifier = { modifier = UKR_rebel_state }
+				if = {
+					limit = { is_demilitarized_zone = yes }
+					set_demilitarized_zone = no
+				}
+			}
+		}
+	}
+}
 UKR_dyrektoria_uprising = {
 	UKR_rivne_uprising = {
 		icon = GFX_decision_trumpet
@@ -576,30 +628,6 @@ UKR_dyrektoria_uprising = {
 			}
 		}
 	}
-	UKR_Knock_The_Enemy_Out_Of_Rivne = {
-		icon = GFX_decision_generic_prepare_civil_war
-		allowed = { always = no }
-		available = {
-			all_owned_state = {
-				NOT = { 
-					has_dynamic_modifier = { modifier = UKR_dyrektoria_controlled_state }
-				}
-			}
-		}		
-		
-		fire_only_once = yes
-		cost = 0
-		target_non_existing = yes		
-		
-		ai_will_do = {
-			factor = 100
-		}
-		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision UKR_Knock_The_Enemy_Out_Of_Rivne target: [From.GetName]"
-			UKR_decrease_direktoria = yes
-			country_event = ukrpol.61
-		}
-	}
 	UKR_Impose_Martial_Law = {
 		icon = GFX_decision_eng_propaganda_campaigns
 		allowed = { always = no }
@@ -673,7 +701,7 @@ UKR_dyrektoria_uprising = {
 				set_demilitarized_zone = yes
 				start_resistance = yes
 				set_resistance = 15
-				add_dynamic_modifier = { modifier = UKR_dyrektoria_controlled_state }
+				add_dynamic_modifier = { modifier = UKR_rebel_state }
 				ROOT = { 
 					add_to_variable = { UKR_dyrektoria_strength_temp = 1 }
 					UKR_increase_direktoria = yes
@@ -681,11 +709,19 @@ UKR_dyrektoria_uprising = {
 			}
 			if = {
 				limit = { 
-					check_variable = { UKR_dyrektoria_strength_temp > 1 }
+					check_variable = { UKR_dyrektoria_strength_temp > 1 }					
 				}
-				country_event = {
-					id = ukrpol.55
-					days = 2
+				if = {
+					limit = { 
+						is_ai = yes
+						has_game_rule = { rule = UKR_rivne_uprising option = UKR_RIVNE_UPRISING_HETMANATE_WINS }
+					}
+				}
+				else = {
+					country_event = {
+						id = ukrpol.55
+						days = 2
+					}
 				}
 			}
 			activate_mission = UKR_deadline_rivne_2
@@ -730,7 +766,7 @@ UKR_dyrektoria_uprising = {
 				set_demilitarized_zone = yes
 				start_resistance = yes
 				set_resistance = 15
-				add_dynamic_modifier = { modifier = UKR_dyrektoria_controlled_state }
+				add_dynamic_modifier = { modifier = UKR_rebel_state }
 				ROOT = { 
 					add_to_variable = { UKR_dyrektoria_strength_temp = 1 }
 					UKR_increase_direktoria = yes
@@ -738,18 +774,15 @@ UKR_dyrektoria_uprising = {
 			}
 			if = {
 				limit = { 
-					check_variable = { UKR_dyrektoria_strength_temp < 4 }
-				}
-				set_country_flag = ukr_hetman_wins
-				every_owned_state = {
-					limit = {
-						has_dynamic_modifier = { modifier = UKR_dyrektoria_controlled_state }
-					}
-					ROOT = {
-						activate_targeted_decision = { target = PREV decision = UKR_Secure_state }
+					OR = {
+						check_variable = { UKR_dyrektoria_strength_temp < 4 }
+						AND = {
+							is_ai = yes
+							has_game_rule = { rule = UKR_rivne_uprising option = UKR_RIVNE_UPRISING_HETMANATE_WINS }
+						}
 					}
 				}
-				activate_targeted_decision = { target = UPR decision = UKR_Knock_The_Enemy_Out_Of_Rivne }				
+				country_event = ukrpol.61
 			}
 			else = {
 				country_event = ukrpol.41
@@ -790,7 +823,11 @@ UKR_dyrektoria_uprising = {
 		
 		cancel_if_not_visible = yes
 		ai_will_do = {
-			factor = 1000
+			factor = 10
+			modifier = {
+				factor = 10
+				has_country_flag = UKR_hetman_side_ai
+			}
 			modifier = {
 				factor = 0
 				has_game_rule = { rule = UKR_RIVNE_UPRISING option = UKR_RIVNE_UPRISING_DYREKTORIA_GUARANTEED }
@@ -809,8 +846,7 @@ UKR_dyrektoria_uprising = {
 			UKR_decrease_direktoria = yes
 			FROM = {
 				set_state_flag = UKR_secured_state
-				set_border_war = no
-				remove_dynamic_modifier = { modifier = UKR_dyrektoria_controlled_state }
+				remove_dynamic_modifier = { modifier = UKR_rebel_state }
 				if = {
 					limit = { is_demilitarized_zone = yes }
 					set_demilitarized_zone = no
@@ -846,7 +882,11 @@ UKR_dyrektoria_uprising = {
 		
 		cancel_if_not_visible = yes
 		ai_will_do = {
-			factor = 1000
+			factor = 10
+			modifier = {
+				factor = 10
+				has_country_flag = UKR_hetman_side_ai
+			}
 			modifier = {
 				factor = 0
 				has_game_rule = { rule = UKR_RIVNE_UPRISING option = UKR_RIVNE_UPRISING_DYREKTORIA_GUARANTEED }
@@ -900,8 +940,12 @@ UKR_dyrektoria_uprising = {
 		
 		cancel_if_not_visible = yes
 		ai_will_do = {
-			factor = 1000 #dont take the fleet if dyrektoria is supposed to win
+			factor = 10 
 			modifier = {
+				factor = 10
+				has_country_flag = UKR_hetman_side_ai
+			}
+			modifier = { #dont take the fleet if dyrektoria is supposed to win
 				factor = 0
 				has_game_rule = { rule = UKR_RIVNE_UPRISING option = UKR_RIVNE_UPRISING_DYREKTORIA_GUARANTEED }
 			}
@@ -2640,10 +2684,8 @@ UKR_seeking_allies = {
 				has_completed_focus = UKR_Connections_With_AntiGerman_Movements
 				has_completed_focus = UKR_Mizhmoria_Concept
 				has_completed_focus = UKR_Samostiyna_Ukraina
-				OR = {
-					has_country_flag = UKR_germany_refused_coop
-					has_country_flag = UKR_russia_refused_coop
-				}
+				has_country_flag = UKR_germany_refused_coop
+				has_country_flag = UKR_russia_refused_coop
 				AND = {
 					has_completed_focus = UKR_Ternopil_Agreement
 					NOT = { is_in_faction_with = AUS }
@@ -2686,6 +2728,7 @@ UKR_seeking_allies = {
 			}
 			add_ideas = UKR_Splendid_Isolation
 			activate_targeted_decision = { target = GER decision = UKR_terminate_the_brotfrieden }
+			UKR_update_military = yes
 		}
 	}
 	UKR_rus_friendship = {
@@ -4296,6 +4339,20 @@ UKR_foreign_policy = {
 			set_country_flag = { flag = imminent_war days = 20 value = 1 }
 			setup_decision_attack_AI = yes
 			if = {
+				limit = {
+					UKR_is_hetmanate_or_monarchy = yes
+					CRM = { 
+						OR = { 
+							is_subject_of = GER 
+							is_guaranteed_by = GER
+						}
+					}
+				}
+				GER = {
+					country_event = ukrpol.42
+				}
+			}
+			else_if = {
 				limit = {
 					FROM = {
 						OR = {
@@ -11484,7 +11541,7 @@ UKR_breadbasket_decision_cat = {
 		}
 	}
 	UKR_Nationalize_NUSK = {
-		icon = GFX_decision_SWI_dismiss_council
+		icon = GFX_decision_train
 		allowed = { always = no }
 		available = {
 			NOT = { is_subject_of = GER }

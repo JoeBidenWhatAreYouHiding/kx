@@ -292,7 +292,7 @@ CRM_criman_rebellion = {
 		}
 	}
 	CRM_Ask_For_Russian_Assistance = {
-		#icon = GFX_decision_road
+		icon = GFX_decision_generic_flags
 		allowed = { always = no }
 		
 		available = {
@@ -329,7 +329,7 @@ CRM_criman_rebellion = {
 		}
 	}
 	CRM_Request_Ottoman_Support = {
-		#icon = GFX_decision_road
+		icon = GFX_decision_generic_flags
 		allowed = { always = no }
 		
 		available = {
@@ -424,6 +424,59 @@ CRM_criman_rebellion = {
 	}
 }
 CRM_water_resources = {
+	CRM_water_situation_worsens = {
+		icon = GFX_decision_oil
+		
+		allowed = { always = no } #manually activated
+		
+		cancel_trigger = {
+			NOT = {
+				has_idea = CRM_water_shortage
+				has_idea = CRM_severe_water_shortage
+			}			
+		}
+		available = {
+			hidden_trigger = { always = no }
+		}
+		
+		is_good = no
+		fire_only_once = yes
+		days_mission_timeout = CRM_water_resources_days?100
+		
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel CRM_water_situation_worsens"
+			country_event = crm.143
+		}
+		timeout_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision timeout CRM_water_situation_worsens"
+			if = {
+				limit = {
+					check_variable = { CRM_water_resources_status < 6}
+				}
+				add_to_variable = { CRM_water_resources_status = 1 }
+				clamp_variable = {
+					var = CRM_water_resources_status
+					min = 0
+					max = 6
+				}
+				if = {
+					limit = {
+						NOT = { has_idea = CRM_severe_water_shortage }
+						check_variable = { CRM_water_resources_status > 4 }
+					}
+					country_event = crm.142
+				}
+			}
+			if = {
+				limit = {
+					check_variable = { CRM_water_resources_days > 50 }
+				}
+				custom_effect_tooltip = CRM_water_resources_days_mission_less_10
+				add_to_variable = { CRM_water_resources_days = -10 }
+			}
+			activate_mission = CRM_water_situation_worsens
+		}
+	}
 	CRM_Build_Alminsk_Reservoir = {
 		icon = GFX_decision_generic_construction
 		allowed = { always = no }
@@ -447,9 +500,21 @@ CRM_water_resources = {
 		days_remove = 250
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CRM_Build_Alminsk_Reservoir target: [From.GetName]"
+			add_to_variable = { CRM_water_resources_status = -2 }			
+			if = {
+				limit = {
+					has_idea = CRM_severe_water_shortage
+					check_variable = { CRM_water_resources_status < 5 }
+				}
+				swap_ideas = {
+					remove_idea = CRM_severe_water_shortage
+					add_idea = CRM_water_shortage
+				}
+			}
 			set_country_flag = CRM_alminsk_reservoir
-			add_to_variable = { CRM_water_supplies = 30 }
 			custom_effect_tooltip = CRM_alminsk_reservoir_tt
+			custom_effect_tooltip = CRM_water_resources_days_mission_20
+			add_to_variable = { CRM_water_resources_days = 20 }
 		}
 	}
 	CRM_Build_Ayan_Reservoir = {
@@ -476,14 +541,26 @@ CRM_water_resources = {
 		days_remove = 150
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CRM_Build_Ayan_Reservoir target: [From.GetName]"
+			add_to_variable = { CRM_water_resources_status = -2 }
+			if = {
+				limit = {
+					has_idea = CRM_severe_water_shortage
+					check_variable = { CRM_water_resources_status < 5 }
+				}
+				swap_ideas = {
+					remove_idea = CRM_severe_water_shortage
+					add_idea = CRM_water_shortage
+				}
+			}
 			set_country_flag = CRM_ayan_reservoir
-			add_to_variable = { CRM_water_supplies = 15 }
 			custom_effect_tooltip = CRM_ayan_reservoir_tt
+			custom_effect_tooltip = CRM_water_resources_days_mission_20
+			add_to_variable = { CRM_water_resources_days = 20 }
 		}
 	}
 	CRM_import_water = {
 		icon = GFX_decision_global_trade
-		
+		allowed = { tag = CRM }
 		available = {
 			FROM = {
 				has_opinion = {
@@ -505,7 +582,6 @@ CRM_water_resources = {
 		}
 		cost = 25
 		modifier = {
-			water_supply = 5
 			political_power_cost = 0.15
 		}
 		ai_will_do = {
@@ -516,7 +592,6 @@ CRM_water_resources = {
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision CRM_import_water target: [From.GetName]"
 			custom_effect_tooltip = "We will start importing water from [FROM.GetName]"
-			add_to_variable = { CRM_water_supplies = 5 }
 			add_opinion_modifier = {
 				target = FROM
 				modifier = small_increase
@@ -525,7 +600,19 @@ CRM_water_resources = {
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CRM_import_water target: [From.GetName]"
 			custom_effect_tooltip = "The [FROM.GetAdjective] supplies will end"
-			add_to_variable = { CRM_water_supplies = -5 }
+			add_to_variable = { CRM_water_resources_status = -1 }
+			if = {
+				limit = {
+					has_idea = CRM_severe_water_shortage
+					check_variable = { CRM_water_resources_status < 5 }
+				}
+				swap_ideas = {
+					remove_idea = CRM_severe_water_shortage
+					add_idea = CRM_water_shortage
+				}
+			}
+			custom_effect_tooltip = CRM_water_resources_days_mission_5
+			add_to_variable = { CRM_water_resources_days = 5 }
 		}
 	}
 	CRM_crimean_ukrainian_treaty = {
@@ -610,11 +697,23 @@ CRM_water_resources = {
 					}
 				}
 			}
+			custom_effect_tooltip = CRM_water_resources_days_mission_30
+			add_to_variable = { CRM_water_resources_days = 30 }
 		}
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CRM_built_north_crimean_canal target: [From.GetName]"
 			set_country_flag = CRM_built_north_crimean_canal
-			add_to_variable = { CRM_water_supplies = 60 }
+			add_to_variable = { CRM_water_resources_status = -3 }
+			if = {
+				limit = {
+					has_idea = CRM_severe_water_shortage
+					check_variable = { CRM_water_resources_status < 5 }
+				}
+				swap_ideas = {
+					remove_idea = CRM_severe_water_shortage
+					add_idea = CRM_water_shortage
+				}
+			}
 			custom_effect_tooltip = CRM_built_north_crimean_canal_tt
 			hidden_effect = {
 				UKR = { remove_ideas = CRM_UKR_builds_SKK }
@@ -624,16 +723,69 @@ CRM_water_resources = {
 	}
 }
 CRM_alliance = {
+	CRM_join_reichspakt = {
+		name = GEO_join_reichspakt_decision
+		icon = generic_agreement
+
+		allowed = { always = no }
+
+		available = {
+			at_peace_or_same_enemies_as_FROM = yes
+			is_subject = no
+			is_in_faction = no
+		}
+
+		fire_only_once = yes
+		cost = 0
+
+		ai_will_do = {
+			factor = 25
+			modifier = {
+				factor = 0
+				FROM = { surrender_progress > 0.3 }
+			}
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CRM_join_reichspakt target: [From.GetName]"
+			FROM = { country_event = sic.34 }
+		}
+	}
+	CRM_join_russia = {
+		icon = generic_agreement
+
+		allowed = { always = no }
+
+		available = {
+			at_peace_or_same_enemies_as_FROM = yes
+			is_subject = no
+			is_in_faction = no
+		}
+
+		fire_only_once = yes
+		cost = 0
+
+		ai_will_do = {
+			factor = 25
+			modifier = {
+				factor = 0
+				FROM = { surrender_progress > 0.3 }
+			}
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CRM_join_russia target: [From.GetName]"
+			FROM = { country_event = crm.114 }
+		}
+	}
+	
 	CRM_invite_country = {
 		icon = GFX_decision_generic_political_discourse
 		
 		available = {
 			at_peace_or_same_enemies_as_FROM = yes
 			is_subject = no
-			AND = {
-				has_democratic_government = yes
-				FROM = { has_democratic_government = yes }
-			}
+			FROM = { has_democratic_government = yes }
 			NOT = { has_country_flag = CRM_inviting_country }
 		}
 		visible = {
@@ -655,6 +807,16 @@ CRM_alliance = {
 					DKB = { is_in_faction_with = ROOT }
 					KUB = { is_in_faction_with = ROOT }
 				}
+			}
+			OR = {
+				has_democratic_government = yes
+				AND = {
+					has_government = radical_socialist
+					has_country_leader = {
+						name = "Amet Ozenbashly"
+						ruling_only = yes
+					}
+				}				
 			}
 		}
 		targets = { BUL KUB GEO TTR DKB KLY }
@@ -702,7 +864,7 @@ CRM_offshore = {
 		}
 				
 		targets = { RUS UKR WHR EST LAT LIT GER POL ROM BUL TUR GRE AZE MTR KUB DKB AUS HUN CZE ITA SRI MLT EGY }
-		target_root_ttigger = {
+		target_root_trigger = {
 			has_completed_focus = CRM_Establish_Offshore_Tax_Zone
 			is_subject = no
 		}
@@ -841,6 +1003,53 @@ CRM_resources = {
 	}
 }
 CRM_expansion = {
+	CRM_attack_country = {
+		name = RUS_Attack_Region
+		icon = generic_prepare_civil_war
+		allowed = { always = no }
+		available = {
+			is_subject = no
+			can_declare_war_on = FROM
+		}
+		visible = {
+			FROM = {
+				NOT = { has_war_with = ROOT }
+			}
+		}
+		
+		cost = 0
+		days_remove = 14
+		fire_only_once = yes
+		war_with_target_on_remove = yes
+		ai_will_do = {
+			factor = 200
+			modifier = {
+				factor = 0
+				OR = {
+					dont_start_major_faction_wars = yes
+					ROOT_is_threatened_cautious = yes
+					FROM = { default_attack_AI_trigger_FROM = yes }
+				}
+			}
+		}
+		cost = 25
+		days_remove = 14
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CRM_attack_country target: [From.GetName]"
+			set_country_flag = { flag = imminent_war days = 20 value = 1 }
+			setup_decision_attack_AI = yes			
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CRM_attack_country target: [From.GetName]"
+			clear_decision_attack_AI = yes
+			declare_war_on = {
+				target = FROM
+				type = annex_everything
+			}
+		}
+	}
 	CRM_demand_our_territory = {
 		icon = GFX_decision_hol_draw_up_staff_plans
 		
@@ -963,6 +1172,55 @@ CRM_expansion = {
 			clear_decision_attack_AI = yes
 		}
 	}
+	CRM_integrate_state_easy = {
+		name = integrate_state
+		icon = eng_trade_unions_demand
+
+		allowed = { tag = CRM }
+
+		available = {
+			has_stability > 0
+			has_full_control_of_state = FROM
+		}
+
+		visible = {
+			FROM = {
+				is_owned_by = ROOT
+				is_controlled_by = ROOT
+				NOT = { is_core_of = ROOT }
+			}
+		}
+
+		cost = 15
+		days_remove = 90
+		cancel_if_not_visible = yes
+		on_map_mode = map_and_decisions_view
+
+		state_target = yes
+		targets = { 1221 }
+		target_trigger = {
+			FROM = {
+				is_controlled_by = ROOT
+				is_claimed_by = ROOT
+				NOT = { is_core_of = ROOT }
+			}
+		}
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel CRM_integrate_state_easy target: [From.GetName]"
+			add_political_power = 15
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CRM_integrate_state_easy target: [From.GetName]"
+			hidden_effect = { remove_state_claim = FROM }
+			add_state_core = FROM
+		}
+	}
 	CRM_integrate_state_medium = {
 		name = integrate_state
 		icon = eng_trade_unions_demand
@@ -1004,7 +1262,6 @@ CRM_expansion = {
 		cancel_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision cancel CRM_integrate_state_medium target: [From.GetName]"
 			add_political_power = 30
-			country_event = whrmisc.22
 		}
 
 		remove_effect = {
@@ -1059,13 +1316,295 @@ CRM_expansion = {
 		cancel_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision cancel CRM_integrate_state_hard target: [From.GetName]"
 			add_political_power = 50
-			country_event = whrmisc.22
 		}
 
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CRM_integrate_state_hard target: [From.GetName]"
 			hidden_effect = { remove_state_claim = FROM }
 			add_state_core = FROM
+		}
+	}
+}
+CRM_arms_trade = {
+	CRM_buy_infantry = {
+		name = KUB_buy_infantry
+		icon = generic_prepare_civil_war
+		allowed = { always = no }		
+		
+		available = {
+			FROM = { has_war = no }
+			NOT = { has_country_flag = CRM_arms_supplies }
+		}
+		visible = {
+			FROM = { is_subject = no }
+			NOT = { has_war_with = FROM }
+			if = {
+				limit = {
+					FROM = { tag = GER }
+				}
+				OR = {
+					CRM_can_ally_germany = yes
+					is_ally_with = GER
+				}
+			}
+			else_if = {
+				limit = {
+					FROM = { tag = RUS }
+				}
+				OR = {
+					CRM_can_ally_russia = yes
+					is_ally_with = RUS
+				}
+			}
+			else_if = {
+				limit = {
+					FROM = { tag = TUR }
+				}
+				OR = {
+					CRM_can_ally_turkey = yes
+					is_ally_with = TUR
+				}
+			}
+			else_if = {
+				limit = {
+					FROM = { tag = CAN }
+				}
+				CRM_karaites = yes
+				has_country_flag = CRM_entente_supported_us
+			}
+			else_if = {
+				limit = {
+					FROM = { tag = INT }
+				}
+				has_socialist_government = yes
+				CRM_lenin = no
+			}
+			else = {
+				is_subject = no			
+			}
+		}
+		
+		cancel_if_not_visible = yes
+		fire_only_once = no
+		days_remove = 20
+		days_re_enable = 90
+		
+		ai_will_do = {
+			factor = 0
+			modifier = {
+				# avoid division by zero
+				check_variable = { num_target_equipment_in_armies@infantry_equipment > 0 }
+
+				set_temp_variable = { CRM_infantry_equipment_ratio = num_equipment_in_armies@infantry_equipment }
+				divide_temp_variable = { CRM_infantry_equipment_ratio = num_target_equipment_in_armies@infantry_equipment }
+
+				set_temp_variable = { CRM_purchase_infantry_equipment_factor = 1 }
+				subtract_from_temp_variable = { CRM_purchase_infantry_equipment_factor = CRM_infantry_equipment_ratio }
+				multiply_temp_variable = { CRM_purchase_infantry_equipment_factor = 20 }
+
+				add = CRM_purchase_infantry_equipment_factor
+			}			
+		}
+		cost = 40
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel CRM_buy_infantry"
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CRM_buy_infantry"
+			add_equipment_to_stockpile = {
+				type = infantry_equipment_1
+				amount = 2500
+				producer = FROM
+			}
+		}
+	}
+	CRM_buy_support = { #purchase support equipment
+		name = KUB_buy_support
+		icon = GFX_decision_support_equipment
+		allowed = { always = no }
+		
+		available = {
+			FROM = { has_war = no }
+			NOT = { has_country_flag = CRM_arms_supplies }
+		}
+		visible = {
+			FROM = { is_subject = no }
+			NOT = { has_war_with = FROM }
+			if = {
+				limit = {
+					FROM = { tag = GER }
+				}
+				OR = {
+					CRM_can_ally_germany = yes
+					is_ally_with = GER
+				}
+			}
+			else_if = {
+				limit = {
+					FROM = { tag = RUS }
+				}
+				OR = {
+					CRM_can_ally_russia = yes
+					is_ally_with = RUS
+				}
+			}
+			else_if = {
+				limit = {
+					FROM = { tag = TUR }
+				}
+				OR = {
+					CRM_can_ally_turkey = yes
+					is_ally_with = TUR
+				}
+			}
+			else_if = {
+				limit = {
+					FROM = { tag = CAN }
+				}
+				CRM_karaites = yes
+				has_country_flag = CRM_entente_supported_us
+			}
+			else_if = {
+				limit = {
+					FROM = { tag = INT }
+				}
+				has_socialist_government = yes
+				CRM_lenin = no
+			}
+			else = {
+				is_subject = no			
+			}
+		}
+		
+		cancel_if_not_visible = yes
+		fire_only_once = no
+		days_remove = 30
+		days_re_enable = 90
+
+		ai_will_do = {
+			factor = 0
+			modifier = {
+				# avoid division by zero
+				check_variable = { num_target_equipment_in_armies@support_equipment > 0 }
+
+				set_temp_variable = { CRM_support_ratio = num_equipment_in_armies@support_equipment }
+				divide_temp_variable = { CRM_support_ratio = num_target_equipment_in_armies@support_equipment }
+
+				set_temp_variable = { CRM_purchase_support_factor = 1 }
+				subtract_from_temp_variable = { CRM_purchase_support_factor = CRM_support_ratio }
+				multiply_temp_variable = { CRM_purchase_support_factor = 20 }
+
+				add = CRM_purchase_support_factor
+			}
+		}
+
+		cost = 30
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel CRM_buy_support"
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CRM_buy_support"
+			add_equipment_to_stockpile = {
+				type = support_equipment_1
+				amount = 400
+				producer = FROM
+			}
+		}
+	}
+	CRM_buy_artillery = { #purchase artillery
+		name = KUB_buy_artillery
+		icon = GFX_decision_artillery
+		allowed = { always = no }
+		
+		available = {
+			FROM = { has_war = no }
+			NOT = { has_country_flag = CRM_arms_supplies }
+		}
+		visible = {
+			FROM = { is_subject = no }
+			NOT = { has_war_with = FROM }
+			if = {
+				limit = {
+					FROM = { tag = GER }
+				}
+				OR = {
+					CRM_can_ally_germany = yes
+					is_ally_with = GER
+				}
+			}
+			else_if = {
+				limit = {
+					FROM = { tag = RUS }
+				}
+				OR = {
+					CRM_can_ally_russia = yes
+					is_ally_with = RUS
+				}
+			}
+			else_if = {
+				limit = {
+					FROM = { tag = TUR }
+				}
+				OR = {
+					CRM_can_ally_turkey = yes
+					is_ally_with = TUR
+				}
+			}
+			else_if = {
+				limit = {
+					FROM = { tag = CAN }
+				}
+				CRM_karaites = yes
+				has_country_flag = CRM_entente_supported_us
+			}
+			else_if = {
+				limit = {
+					FROM = { tag = INT }
+				}
+				has_socialist_government = yes
+				CRM_lenin = no
+			}
+			else = {
+				is_subject = no			
+			}
+		}
+		
+		cancel_if_not_visible = yes
+		fire_only_once = no
+		days_remove = 30
+		days_re_enable = 120
+
+		ai_will_do = {
+			factor = 0
+			modifier = {
+				# avoid division by zero
+				check_variable = { num_target_equipment_in_armies@artillery_equipment > 0 }
+
+				set_temp_variable = { CRM_artillery_ratio = num_equipment_in_armies@artillery_equipment }
+				divide_temp_variable = { CRM_artillery_ratio = num_target_equipment_in_armies@artillery_equipment }
+
+				set_temp_variable = { CRM_purchase_artillery_factor = 1 }
+				subtract_from_temp_variable = { CRM_purchase_artillery_factor = CRM_artillery_ratio }
+				multiply_temp_variable = { CRM_purchase_artillery_factor = 20 }
+
+				add = CRM_purchase_artillery_factor
+			}
+		}
+
+		cost = 60
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel CRM_buy_artillery"
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CRM_buy_artillery"
+			add_equipment_to_stockpile = {
+				type = artillery_equipment_1
+				amount = 400
+				producer = FROM
+			}
 		}
 	}
 }
