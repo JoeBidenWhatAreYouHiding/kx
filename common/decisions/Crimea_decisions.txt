@@ -298,6 +298,9 @@ CRM_criman_rebellion = {
 		available = {
 			NOT = { has_country_flag = CRM_negotiations_with_country }
 		}
+		visible = {
+			NOT = { has_country_flag = CRM_RUS_refused_support }
+		}
 		cost = 0		
 		ai_will_do = {
 			factor = 100
@@ -321,10 +324,56 @@ CRM_criman_rebellion = {
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision CRM_Ask_For_Russian_Assistance target: [From.GetName]"
 			set_country_flag = { flag = CRM_negotiations_with_country days = 30 value = 1 }
-			FROM = { country_event = crm.34 }
+			RUS = { country_event = crm.34 }
 		}
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CRM_Ask_For_Russian_Assistance target: [From.GetName]"
+			clr_country_flag = CRM_negotiations_with_country			
+		}
+	}
+	CRM_Request_Ukrainian_Support = {
+		icon = GFX_decision_generic_flags
+		allowed = { always = no }
+		
+		available = {
+			NOT = { has_country_flag = CRM_negotiations_with_country }
+			UKR = { 
+				OR = {
+					has_socialist_government = yes
+					has_left_democratic_government = yes
+				}
+			}
+		}
+		visible = {
+			NOT = { has_country_flag = CRM_UKR_refused_support }
+		}
+		cost = 0		
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				has_game_rule = {
+					rule = CRM_foreign_path
+					option = CRM_OTTOMANS
+				}
+			}
+		}
+		fire_only_once = yes
+		
+		days_remove = 30
+		
+		cancel_if_not_visible = yes
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel CRM_Request_Ukrainian_Support target: [From.GetName]"
+			clr_country_flag = CRM_negotiations_with_country
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CRM_Request_Ukrainian_Support target: [From.GetName]"
+			set_country_flag = { flag = CRM_negotiations_with_country days = 30 value = 1 }
+			UKR = { country_event = crm.34 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CRM_Request_Ukrainian_Support target: [From.GetName]"
 			clr_country_flag = CRM_negotiations_with_country			
 		}
 	}
@@ -334,6 +383,9 @@ CRM_criman_rebellion = {
 		
 		available = {
 			NOT = { has_country_flag = CRM_negotiations_with_country }
+		}
+		visible = {
+			NOT = { has_country_flag = CRM_OTT_refused_support }
 		}
 		cost = 0		
 		ai_will_do = {
@@ -358,7 +410,7 @@ CRM_criman_rebellion = {
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision CRM_Request_Ottoman_Support target: [From.GetName]"
 			set_country_flag = { flag = CRM_negotiations_with_country days = 30 value = 1 }
-			FROM = { country_event = crm.34 }
+			TUR = { country_event = crm.34 }
 		}
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CRM_Request_Ottoman_Support target: [From.GetName]"
@@ -734,7 +786,8 @@ CRM_alliance = {
 			is_subject = no
 			is_in_faction = no
 		}
-
+		visible = { CRM_can_ally_germany = yes }
+		
 		fire_only_once = yes
 		cost = 0
 
@@ -761,6 +814,7 @@ CRM_alliance = {
 			is_subject = no
 			is_in_faction = no
 		}
+		visible = { CRM_can_ally_russia = yes }
 
 		fire_only_once = yes
 		cost = 0
@@ -776,6 +830,35 @@ CRM_alliance = {
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision CRM_join_russia target: [From.GetName]"
 			FROM = { country_event = crm.114 }
+		}
+	}
+	
+	CRM_join_ukraine = {
+		icon = generic_agreement
+
+		allowed = { always = no }
+
+		available = {
+			at_peace_or_same_enemies_as_FROM = yes
+			is_subject = no
+			is_in_faction = no
+		}
+		visible = { CRM_can_ally_ukraine = yes }
+
+		fire_only_once = yes
+		cost = 0
+
+		ai_will_do = {
+			factor = 25
+			modifier = {
+				factor = 0
+				FROM = { surrender_progress > 0.3 }
+			}
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CRM_join_ukraine target: [From.GetName]"
+			FROM = { country_event = crm.315 }
 		}
 	}
 	
@@ -863,7 +946,7 @@ CRM_offshore = {
 			controls_state = 137
 		}
 				
-		targets = { RUS UKR WHR EST LAT LIT GER POL ROM BUL TUR GRE AZE MTR KUB DKB AUS HUN CZE ITA SRI MLT EGY }
+		targets = { RUS WHR EST LAT LIT GER POL ROM BUL TUR GRE GEO AZE MTR KUB DKB AUS HUN CZE ITA SRI MLT EGY }
 		target_root_trigger = {
 			has_completed_focus = CRM_Establish_Offshore_Tax_Zone
 			is_subject = no
@@ -871,9 +954,10 @@ CRM_offshore = {
 		target_trigger = {
 			FROM = {
 				exists = yes
-				has_war = no
+				NOT = { has_war_with = ROOT }
 				is_subject = no
 				has_stability < 0.9
+				any_owned_state = { is_coastal = yes }
 				OR = {
 					has_government = social_liberal
 					has_right_democratic_government = yes
@@ -881,6 +965,7 @@ CRM_offshore = {
 				}
 			}
 		}
+		cancel_if_not_visible = yes
 		cost = 40
 		fire_only_once = no
 		days_remove = 30
@@ -901,6 +986,17 @@ CRM_offshore = {
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CRM_invite_companies target: [From.GetName]"
 			clr_country_flag = CRM_establishing_offshore
+			reverse_add_opinion_modifier = {
+				target = FROM
+				modifier = CRM_offshore_in_crimea
+			}
+			if = {
+				limit = { is_subject_of = UKR }
+				reverse_add_opinion_modifier = {
+					target = UKR
+					modifier = CRM_offshore_in_crimea
+				}
+			}
 			random_list = {
 				25 = { add_offsite_building = { type = arms_factory level = 1 } }
 				30 = { add_offsite_building = { type = industrial_complex level = 1 } }
@@ -1358,6 +1454,15 @@ CRM_arms_trade = {
 			}
 			else_if = {
 				limit = {
+					FROM = { tag = UKR }
+				}
+				OR = {
+					CRM_can_ally_ukraine = yes
+					is_ally_with = UKR
+				}
+			}
+			else_if = {
+				limit = {
 					FROM = { tag = TUR }
 				}
 				OR = {
@@ -1447,6 +1552,15 @@ CRM_arms_trade = {
 				OR = {
 					CRM_can_ally_russia = yes
 					is_ally_with = RUS
+				}
+			}
+			else_if = {
+				limit = {
+					FROM = { tag = UKR }
+				}
+				OR = {
+					CRM_can_ally_ukraine = yes
+					is_ally_with = UKR
 				}
 			}
 			else_if = {
@@ -1541,6 +1655,15 @@ CRM_arms_trade = {
 				OR = {
 					CRM_can_ally_russia = yes
 					is_ally_with = RUS
+				}
+			}
+			else_if = {
+				limit = {
+					FROM = { tag = UKR }
+				}
+				OR = {
+					CRM_can_ally_ukraine = yes
+					is_ally_with = UKR
 				}
 			}
 			else_if = {
