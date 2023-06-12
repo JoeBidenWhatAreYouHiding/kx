@@ -676,7 +676,7 @@ UKR_dyrektoria_uprising = {
 		
 		is_good = no
 		fire_only_once = yes
-		days_mission_timeout = 30
+		days_mission_timeout = 35
 		
 		cancel_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision UKR_deadline_rivne"
@@ -742,7 +742,7 @@ UKR_dyrektoria_uprising = {
 		
 		is_good = no
 		fire_only_once = yes
-		days_mission_timeout = 15
+		days_mission_timeout = 30
 		
 		cancel_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision UKR_deadline_rivne"
@@ -755,6 +755,7 @@ UKR_dyrektoria_uprising = {
 						state = 227
 						state = 1283
 						state = 200
+						state = 221
 					}
 					NOT = { has_state_flag = UKR_secured_state }
 				}
@@ -775,7 +776,7 @@ UKR_dyrektoria_uprising = {
 			if = {
 				limit = { 
 					OR = {
-						check_variable = { UKR_dyrektoria_strength_temp < 4 }
+						check_variable = { UKR_dyrektoria_strength_temp < 5 }
 						AND = {
 							is_ai = yes
 							has_game_rule = { rule = UKR_rivne_uprising option = UKR_RIVNE_UPRISING_HETMANATE_WINS }
@@ -2774,160 +2775,69 @@ UKR_seeking_allies = {
 		
 }
 UKR_foreign_policy = {
-	UKR_change_sides = {
-		icon = GFX_decision_hol_draw_up_staff_plans
+	UKR_revolution_within_a_revolution = {
+		icon = GFX_decision_freedom
+
 		allowed = { always = no }
-		
+
 		available = {
-			has_war_with = FRA
-			has_capitulated = no
-			if = {
-				limit = { is_in_faction_with = GER }
-				OR = {
-					NOT = { country_exists = GER }
-					GER = { surrender_progress > 0.2 }
-				}
-				GER = {
-					OR = {
-						has_war_with = FRA
-						has_war_with = RUS
-					}
-					surrender_progress > 0.2
-				}
-			}
-			else_if = {
-				limit = { is_in_faction_with = AUS }
-				OR = {
-					NOT = { country_exists = AUS }
-					AUS = { surrender_progress > 0.2 }
-				}
-				AUS = {
-					OR = {
-						has_war_with = FRA
-						has_war_with = RUS
-					}
-					surrender_progress > 0.2
-				}
-			}
-		}
-		visible = {
-			UKR_has_socialist_government = yes 
-			set_temp_variable = { coalition_target = token:radical_socialist }
-			has_coalition_with_target = yes
 			OR = {
-				is_subject = no
-				is_subject_of = GER
-				is_subject_of = AUS
+				soviets_exist = yes
+				GER = {
+					has_war_with = FRA
+					surrender_progress > 0.2
+				}
+				any_neighbor_country = { is_in_faction_with = INT }
+				RUS = { is_faction_leader = no }
+			}
+			OR = {
+				NOT = { country_exists = GER }
+				GER = { has_war_with = INT }
+				GER = { has_war_with = RUS }
 			}
 		}
-		
-		cost = 0
-		days_remove = 30
+
+		visible = {
+			OR = {
+				UKR_usdrp_in_power = yes
+				UKR_ukp_in_power = yes
+			}
+			has_war_with = INT
+			OR = {
+				is_in_faction_with = AUS
+				is_in_faction_with = GER
+			}
+		}
+
 		fire_only_once = yes
 
 		ai_will_do = {
-			factor = 100
+			base = 0
 			modifier = {
-				factor = 0
-				if = {
-					limit = { RUS = { has_war_with = FRA } }
-					faction_leader = {
-						strength_ratio = { tag = RUS ratio > 1 }
-					}
-				}
-				else = {
-					faction_leader = {
-						strength_ratio = { tag = INT ratio > 1 }
-					}
+				add = 500
+				RUS = { exists = no }
+				GER = {
+					has_war_with = INT
+					surrender_progress > 0.80
 				}
 			}
 			modifier = {
-				factor = 0
-				OR = {
-					has_game_rule = { rule = UKR_foreign_policy option = UKR_FOREIGN_POLICY_AUSTRIA }
-					has_game_rule = { rule = UKR_foreign_policy option = UKR_FOREIGN_POLICY_REICHSPAKT }
-				}
-			}
-		}
-
-		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision UKR_change_sides"
-			add_ai_strategy = {
-				type = spare_unit_factor
-				value = -100
-			}
-			for_each_scope_loop = {
-				array = ROOT.subjects
-				add_to_array = { ROOT.UKR_subjects = THIS }
-				add_ai_strategy = {
-					type = spare_unit_factor
-					value = -100
-				}
-			}
-			every_other_country = {
-				limit = {
-					is_in_faction_with = ROOT
-					NOT = { is_subject_of = ROOT }
-				}
-				set_country_flag = UKR_will_revolt_@ROOT
-				ROOT = {
-					add_ai_strategy = {
-						type = dont_defend_ally_borders
-						id = PREV
-						value = 1000
-					}
-				}
-				for_each_scope_loop = {
-					array = ROOT.subjects
-					PREV = { set_country_flag = UKR_will_revolt_@PREV }
-					add_ai_strategy = {
-						type = dont_defend_ally_borders
-						id = PREV
-						value = 1000
-					}
-				}
+				add = 500
+				RUS = { has_war_with = GER }
 			}
 		}
 
 		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_change_sides"
-			country_event = ukrfor.74
-			hidden_effect = {
-				add_ai_strategy = {
-					type = spare_unit_factor
-					value = 100
-				}
-				every_other_country = {
-					limit = { has_country_flag = UKR_will_revolt_@ROOT }
-					ROOT = {
-						clr_country_flag = UKR_will_revolt_@PREV
-						add_ai_strategy = {
-							type = dont_defend_ally_borders
-							id = PREV
-							value = -1000
-						}
-					}
-				}
-				for_each_scope_loop = {
-					array = ROOT.UKR_subjects
-					add_ai_strategy = {
-						type = spare_unit_factor
-						value = -100
-					}
-					every_other_country = {
-						limit = { has_country_flag = UKR_will_revolt_@PREV }
-						PREV = {
-							set_country_flag = UKR_will_revolt_@PREV
-							add_ai_strategy = {
-								type = dont_defend_ally_borders
-								id = PREV
-								value = -1000
-							}
-						}
-					}
-				}
-				clear_array = UKR_subjects
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_revolution_within_a_revolution"
+			remove_puppet_and_leave_faction = yes
+			peace_out_non_neighbours_after_leaving_faction = yes
+			UKR_remove_brotfrieden_without_events = yes
+			UKR_update_military = yes
+			if = {
+				limit = { country_exists = GER }
+				custom_effect_tooltip = UKR_revolution_within_revolution_tt
 			}
+			country_event = ukraine_republican.5
 		}
 	}
 	UKR_evacuate_industry = {
