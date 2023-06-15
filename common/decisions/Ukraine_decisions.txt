@@ -805,8 +805,11 @@ UKR_dyrektoria_uprising = {
 					add_claim_by = UKR
 				}
 				set_demilitarized_zone = yes
-				start_resistance = yes
-				set_resistance = 15
+				if = {
+					limit = { has_resistance = no }
+					start_resistance = yes
+					set_resistance = 15
+				}
 				add_dynamic_modifier = { modifier = UKR_rebel_state }
 				ROOT = { 
 					add_to_variable = { UKR_dyrektoria_strength_temp = 1 }
@@ -1207,6 +1210,97 @@ UKR_USDRP_party = {
 	}	
 }
 UKR_economy = {
+	UKR_Continue_The_Mechanisation_Efforts = {
+		icon = GFX_decision_generic_trucks
+		allowed = { always = no }
+		
+		cost = 20
+		fire_only_once = yes
+		days_remove = 14
+		
+		ai_will_do = {
+			base = 100
+		}
+		
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UKR_Continue_The_Mechanisation_Efforts target: [From.GetName]"
+			UKR_reduce_black_monday = yes
+			UKR_reduce_agricultural_crisis = yes
+			custom_effect_tooltip = UKR_breadbasket_of_europe_will_change
+			UKR_breadbasket_remove_consumer_goods = yes
+			UKR_breadbasket_add_production_growth = yes
+			add_tech_bonus = {
+				name = UKR_Continue_The_Mechanisation_Efforts
+				bonus = 1
+				uses = 1
+				category = industry
+			}
+			activate_targeted_decision = { target = 221 decision = UKR_Invest_In_KhTZ }
+		}
+	}
+	UKR_Invest_In_KhTZ = {
+		icon = GFX_decision_generic_merge_plant_tank
+		allowed = { always = no }
+		available = {
+			FROM = { is_owned_and_controlled_by = ROOT }
+			num_of_civilian_factories_available_for_projects > 0
+		}
+		modifier = { civilian_factory_use = 1 }
+		
+		state_target = yes
+		cost = 25
+		fire_only_once = yes
+		days_remove = 21
+		
+		ai_will_do = {
+			base = 100
+		}
+		
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UKR_Invest_In_KhTZ target: [From.GetName]"
+			UKR_reduce_agricultural_crisis = yes
+			FROM = {
+				add_extra_state_shared_building_slots = 1
+				add_building_construction = {
+					type = industrial_complex
+					level = 1
+					instant_build = yes
+				}
+			}
+			set_country_flag = UKR_has_completed_khtz
+			custom_effect_tooltip = tooltip_white_line
+			custom_effect_tooltip = available_designer
+			show_ideas_tooltip = kharkiv_tractor_factory
+			custom_effect_tooltip = tooltip_white_line
+			activate_targeted_decision = { target = ROOT decision = UKR_further_mechanization }
+		}
+	}
+	UKR_further_mechanization = {
+		icon = generic_agriculture
+		allowed = { always = no }
+		available = { 
+			num_of_civilian_factories_available_for_projects > 1 
+			NOT = { has_country_flag = UKR_agricultural_crisis }
+		}
+		cost = 35
+		fire_only_once = yes
+		days_remove = 90
+		
+		modifier = { civilian_factory_use = 2 }
+		
+		ai_will_do = {
+			base = 10
+		}
+		
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UKR_further_mechanization target: [From.GetName]"
+			add_ideas = UKR_mechanisation_of_countryside
+			set_temp_variable = { UKR_influence_change = 4 }
+			UKR_reform_score = yes
+			custom_effect_tooltip = UKR_breadbasket_of_europe_will_change
+			UKR_breadbasket_remove_consumer_goods = yes
+		}
+	}
 	UKR_kerch_bridge = {
 		icon = GFX_decision_train
 		allowed	= { always = no }
@@ -1303,7 +1397,6 @@ UKR_economy = {
 				start_province = 9680
 				target_province = 6741
 			}
-			clr_global_flag = KERCH_NO_LAND_PASS
 			if = {
 				limit = { country_exists = KUB }
 				KUB = { country_event = ukreco.31 }
@@ -2042,22 +2135,20 @@ political_actions = {
 							division_template = {
 								name = "Teroborona"
 								division_names_group = UKR_MIL_01
+								is_locked = yes
 								regiments = {
-									militia = { x = 0 y = 0 }
-									militia = { x = 0 y = 1 }
-									militia = { x = 0 y = 2 }
-									militia = { x = 1 y = 0 }
-									militia = { x = 1 y = 1 }
-									militia = { x = 1 y = 2 }
-									militia = { x = 2 y = 0 }
-									militia = { x = 2 y = 1 }
-									militia = { x = 2 y = 2 }
-								}
+									irregular_infantry = { x = 0 y = 0 }
+									irregular_infantry = { x = 0 y = 1 }
+									irregular_infantry = { x = 0 y = 2 }
+									irregular_infantry = { x = 1 y = 0 }
+									irregular_infantry = { x = 1 y = 1 }
+								}						
 								support = {
 									recon = { x = 0 y = 0 }
 									military_police = { x = 0 y = 1 }
 								}
 								priority = 0
+								template_counter = 68
 							}
 						}
 					}
@@ -2814,76 +2905,11 @@ UKR_seeking_allies = {
 	}	
 		
 }
-UKR_foreign_policy = {
-	UKR_revolution_within_a_revolution = {
-		icon = GFX_decision_freedom
-
-		allowed = { always = no }
-
-		available = {
-			OR = {
-				soviets_exist = yes
-				GER = {
-					has_war_with = FRA
-					surrender_progress > 0.2
-				}
-				any_neighbor_country = { is_in_faction_with = INT }
-				RUS = { is_faction_leader = no }
-			}
-			OR = {
-				NOT = { country_exists = GER }
-				GER = { has_war_with = INT }
-				GER = { has_war_with = RUS }
-			}
-		}
-
-		visible = {
-			OR = {
-				UKR_usdrp_in_power = yes
-				UKR_ukp_in_power = yes
-			}
-			has_war_with = INT
-			OR = {
-				is_in_faction_with = AUS
-				is_in_faction_with = GER
-			}
-		}
-
-		fire_only_once = yes
-
-		ai_will_do = {
-			base = 0
-			modifier = {
-				add = 500
-				RUS = { exists = no }
-				GER = {
-					has_war_with = INT
-					surrender_progress > 0.80
-				}
-			}
-			modifier = {
-				add = 500
-				RUS = { has_war_with = GER }
-			}
-		}
-
-		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_revolution_within_a_revolution"
-			remove_puppet_and_leave_faction = yes
-			peace_out_non_neighbours_after_leaving_faction = yes
-			UKR_remove_brotfrieden_without_events = yes
-			UKR_update_military = yes
-			if = {
-				limit = { country_exists = GER }
-				custom_effect_tooltip = UKR_revolution_within_revolution_tt
-			}
-			country_event = ukraine_republican.5
-		}
-	}
+UKR_eastern_threat = {
 	UKR_evacuate_industry = {
-		allowed = { is_ukrainian_tag = yes }
+		allowed = { always = no }
 		priority = 10
-		icon = generic_construction
+		icon = GFX_decision_factories
 		ai_will_do = {
 			factor = 200
 			modifier = {
@@ -2891,128 +2917,63 @@ UKR_foreign_policy = {
 				surrender_progress < 0.01
 			}
 		}
-		state_target = yes
-		on_map_mode = map_only
-		targets = { 221 227 228 200 1239 1283 1282 1284 1285 1286 }
-
-		target_trigger = {
+		visible = {
 			FROM = {
-				is_owned_by = ROOT
-				is_core_of = ROOT
-				is_fully_controlled_by = ROOT
-				OR = { #Has at least 2 factories
-					arms_factory > 1
-					industrial_complex > 1
-					AND = {
-						arms_factory > 0
-						industrial_complex > 0
-					}
-				}
-				infrastructure > 1
+				is_owned_and_controlled_by = ROOT				
+			}
+			has_civil_war = no
+			var:219.owner = {
+				is_subject = no
+				NOT = { is_in_faction_with = ROOT }
+				tag = RUS
 			}
 		}
-		target_root_trigger = {
-			has_civil_war = no
-			has_war_with = var:219.owner
-		}
+		state_target = yes
+		on_map_mode = map_only
+		#targets = { 221 227 228 200 1239 1283 1282 1284 1285 1286 }
 
 		available = {
 			FROM = {
-				is_fully_controlled_by = ROOT
-				infrastructure > 2
-			}
-			has_equipment = { train_equipment > 39 } #10 trains per factory
-		}		
-		cancel_if_not_visible = no
-		cost = 25
-		days_remove = 30
-		complete_effect = {  #Attempt to remove 2 CIVS & 2 MILS
-			log = "[GetDateText]: [Root.GetName]: Decision UKR_evacuate_industry target: [From.GetName]"
-			hidden_effect = {
-				add_equipment_to_stockpile = {
-					type = train_equipment
-					amount = -40
-					producer = UKR
+				is_owned_and_controlled_by = ROOT
+				OR = {
+					arms_factory > 0
+					industrial_complex > 0
 				}
 			}
-			custom_effect_tooltip = UKR_industry_relocation_trains_tt
-			custom_effect_tooltip = UKR_industry_relocation_complete_effect_tt
-			#REMOVE factories
-			FROM = {
-				hidden_effect = {
-					set_temp_variable = { UKR_factories_counter = 0 }
+			custom_trigger_tooltip = {
+				tooltip = UKR_holds_east_dnipro
+				any_of_scopes = {
+					array = UKR.UKR_states_east_of_dnieper_array
+					is_controlled_by = ROOT
+					is_in_home_area = yes
+				}
+			}
+		}				
+		
+		cancel_if_not_visible = no
+		days_remove = 30
+		cost = UKR_evacuation_cost
+		ai_will_do = { factor = 100 }
 
-					#Attempt to relocate 50%-50% of mils-civs
-					set_temp_variable = { UKR_half_the_factories_to_relocate = 4 }
-					divide_temp_variable = { UKR_half_the_factories_to_relocate = 2 }
-					while_loop_effect = {
-						limit = {
-							check_variable = { UKR_factories_counter = 4 compare = less_than }
-						}
-						if = { #GO MILS (if possible)
-							limit = {
-								check_variable = { UKR_factories_counter = UKR_half_the_factories_to_relocate compare = less_than }
-							}
-							if = {
-								limit = { arms_factory > 0 }
-								remove_building = {
-									type = arms_factory
-									level = 1
-								}
-								if = {
-									limit = { has_state_flag = UKR_mils_removed_flag }
-									modify_state_flag = { flag = UKR_mils_removed_flag value = 1 }
-								}
-								else = {
-									set_state_flag = UKR_mils_removed_flag
-								}
-							}
-							else_if = {
-								limit = { industrial_complex > 0 }
-								remove_building = {
-									type = industrial_complex
-									level = 1
-								}
-								if = {
-									limit = { has_state_flag = UKR_civs_removed_flag }
-									modify_state_flag = { flag = UKR_civs_removed_flag value = 1 }
-								}
-								else = {
-									set_state_flag = UKR_civs_removed_flag
-								}
-							}
-						}
-						else = { #GO CIVS (if possible)
-							if = {
-								limit = { industrial_complex > 0 }
-								remove_building = {
-									type = industrial_complex
-									level = 1
-								}
-								if = {
-									limit = { has_state_flag = UKR_civs_removed_flag }
-									modify_state_flag = { flag = UKR_civs_removed_flag value = 1 }
-								}
-								else = {
-									set_state_flag = UKR_civs_removed_flag
-								}
-							}
-							else_if = {
-								limit = { arms_factory > 0 }
-								remove_building = {
-									type = arms_factory
-									level = 1
-								}
-								if = {
-									limit = { has_state_flag = UKR_mils_removed_flag }
-									modify_state_flag = { flag = UKR_mils_removed_flag value = 1 }
-								}
-								else = {
-									set_state_flag = UKR_mils_removed_flag
-								}
-							}
-						}
-						add_to_temp_variable = { UKR_factories_counter = 1 }
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UKR_evacuate_industry target: [From.GetName]"
+			add_to_variable = { UKR_evacuation_cost = 5 }		
+			custom_effect_tooltip = UKR_industry_relocation_complete_effect_tt
+			FROM = {
+				if = {
+					limit = { arms_factory > 0 }
+					ROOT = { set_country_flag = UKR_relocated_arms }
+					remove_building = {
+						type = arms_factory
+						level = 1
+					}
+				}
+				else_if = {
+					limit = { industrial_complex > 0 }
+					ROOT = { set_country_flag = UKR_relocated_ind }
+					remove_building = {
+						type = industrial_complex
+						level = 1
 					}
 				}
 			}
@@ -3020,34 +2981,54 @@ UKR_foreign_policy = {
 
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_evacuate_industry target: [From.GetName]"
-			hidden_effect = {
-				add_equipment_to_stockpile = {
-					type = train_equipment
-					amount = 40
-					producer = UKR
-				}
-			}
 			custom_effect_tooltip = UKR_industry_relocation_remove_effect_tt
-			#RELOCATE FACTORIES
-			FROM = {
-				set_temp_variable = { UKR_factories_counter = 0 }
-				#Factories attempt to get relocated in 2 different states
-				set_temp_variable = { UKR_half_the_factories_to_relocate = 4 }
-				divide_temp_variable = { UKR_half_the_factories_to_relocate = 2 }
-				while_loop_effect = { #NOTE: Due to the seed not changing during the execution of this effect, the same state will always be chosen, UNLESS it runs out of slots -> That's the reason for this
-					limit = {
-						check_variable = { UKR_factories_counter = UKR_half_the_factories_to_relocate compare = less_than }
+			random_owned_controlled_state = {
+				limit = {
+					OR = {
+						is_west_ukrainian_state = yes
+						is_east_galicia = yes
 					}
-					UKR_relocate_industry_in_appropriate_state_effect = yes
-					add_to_temp_variable = { UKR_factories_counter = 1 }
+					is_controlled_by = ROOT
+					is_in_home_area = yes
+					if = {
+						limit = { ROOT = { has_country_flag = UKR_relocated_arms } }
+						free_building_slots = {
+							building = arms_factory
+							size > 0
+							include_locked = yes
+						}
+					}
+					else = {
+						free_building_slots = {
+							building = industrial_complex
+							size > 0
+							include_locked = yes
+						}
+					}
+				}
+				if = {
+					limit = { ROOT = { has_country_flag = UKR_relocated_arms } }
+					ROOT = { clr_country_flag = UKR_relocated_arms }
+					add_building_construction = {
+						type = arms_factory
+						level = 1
+						instant_build = yes
+					}
+				}
+				else = {
+					ROOT = { clr_country_flag = UKR_relocated_ind }
+					add_building_construction = {
+						type = industrial_complex
+						level = 1
+						instant_build = yes
+					}
 				}
 			}
-			custom_effect_tooltip = UKR_relocate_industry_repair_tt
-			custom_effect_tooltip = UKR_relocate_industry_lose_control_tt
 		}
 	}
 	UKR_move_khlf = {
 		icon = GFX_decision_train
+		allowed = { always = no }
 		
 		highlight_states = {
 			highlight_state_targets = {
@@ -3057,7 +3038,14 @@ UKR_foreign_policy = {
 
 		available = {
 			has_full_control_of_state = 221
-			has_equipment = { train_equipment > 9 } #10 trains per factory
+			custom_trigger_tooltip = {
+				tooltip = UKR_holds_east_dnipro
+				any_of_scopes = {
+					array = UKR.UKR_states_east_of_dnieper_array
+					is_controlled_by = ROOT
+					is_in_home_area = yes
+				}
+			}
 		}
 
 		ai_will_do = {
@@ -3069,12 +3057,19 @@ UKR_foreign_policy = {
 		}
 		visible = {
 			has_civil_war = no
-			has_war_with = var:219.owner
+			var:219.owner = {
+				is_subject = no
+				NOT = { is_in_faction_with = ROOT }
+				tag = RUS
+			}
 		}
 
 		fire_only_once = yes
 
-		cost = 25
+		custom_cost_text = UKR_train_equipment_10
+		custom_cost_trigger = {
+			has_equipment = { train_equipment > 9 } #10 trains per factory
+		}
 		days_remove = 25
 		
 		ai_will_do = {
@@ -3116,6 +3111,7 @@ UKR_foreign_policy = {
 	}
 	UKR_move_khtz = {
 		icon = GFX_decision_caravan
+		allowed = { always = no }
 		
 		highlight_states = {
 			highlight_state_targets = {
@@ -3125,7 +3121,14 @@ UKR_foreign_policy = {
 
 		available = {
 			has_full_control_of_state = 221
-			has_equipment = { train_equipment > 9 } #10 trains per factory
+			custom_trigger_tooltip = {
+				tooltip = UKR_holds_east_dnipro
+				any_of_scopes = {
+					array = UKR.UKR_states_east_of_dnieper_array
+					is_controlled_by = ROOT
+					is_in_home_area = yes
+				}
+			}
 		}
 
 		ai_will_do = {
@@ -3137,12 +3140,20 @@ UKR_foreign_policy = {
 		}
 		visible = {
 			has_civil_war = no
-			has_war_with = var:219.owner
+			has_country_flag = UKR_has_completed_khtz
+			var:219.owner = {
+				is_subject = no
+				NOT = { is_in_faction_with = ROOT }
+				tag = RUS
+			}
 		}
 
 		fire_only_once = yes
 
-		cost = 25
+		custom_cost_text = UKR_train_equipment_10
+		custom_cost_trigger = {
+			has_equipment = { train_equipment > 9 } #10 trains per factory
+		}
 		days_remove = 25
 		
 		ai_will_do = {
@@ -3184,6 +3195,7 @@ UKR_foreign_policy = {
 	}
 	UKR_move_azovstal = {
 		icon = GFX_decision_steel
+		allowed = { always = no }
 		
 		highlight_states = {
 			highlight_state_targets = {
@@ -3193,7 +3205,14 @@ UKR_foreign_policy = {
 
 		available = {
 			has_full_control_of_state = 228
-			has_equipment = { train_equipment > 9 } #10 trains per factory
+			custom_trigger_tooltip = {
+				tooltip = UKR_holds_east_dnipro
+				any_of_scopes = {
+					array = UKR.UKR_states_east_of_dnieper_array
+					is_controlled_by = ROOT
+					is_in_home_area = yes
+				}
+			}
 		}
 
 		ai_will_do = {
@@ -3205,12 +3224,19 @@ UKR_foreign_policy = {
 		}
 		visible = {
 			has_civil_war = no
-			has_war_with = var:219.owner
+			var:219.owner = {
+				is_subject = no
+				NOT = { is_in_faction_with = ROOT }
+				tag = RUS
+			}
 		}
 
 		fire_only_once = yes
 
-		cost = 25
+		custom_cost_text = UKR_train_equipment_10
+		custom_cost_trigger = {
+			has_equipment = { train_equipment > 9 } #10 trains per factory
+		}
 		days_remove = 25
 		
 		ai_will_do = {
@@ -3262,11 +3288,15 @@ UKR_foreign_policy = {
 	}
 	UKR_dnieper_line_of_defence = {
 		icon = GFX_decision_fortress
-		allowed = { is_ukrainian_tag = yes }
+		allowed = { always = no }
 		
 		visible = {
 			has_civil_war = no
-			has_war_with = var:219.owner
+			var:219.owner = {
+				is_subject = no
+				NOT = { is_in_faction_with = ROOT }
+				tag = RUS
+			}
 		}
 		cost = 30
 		days_remove = 30
@@ -3411,6 +3441,236 @@ UKR_foreign_policy = {
 					}
 				}				
 			}
+		}
+	}
+	UKR_emergency_recruitment = {
+		icon = GFX_decision_soldierly_discipline
+		
+		available = {
+			surrender_progress > 0.1
+			if = {
+				limit = { 
+					is_ai = yes
+					NOT = { has_game_rule = { rule = unit_limit_options option = NONE } } 
+				}
+				has_reached_maximum_divisions = no
+			}
+		}
+		visible = {
+			has_capitulated = no
+			if = {
+				limit = { has_idea = UKR_teroborona_idea }
+				has_defensive_war = no
+			}
+		}
+
+		days_remove = 21
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				OR = {
+					has_manpower < 20000
+					has_war_support < 0.4
+				}
+			}
+		}
+		cancel_if_not_visible = yes
+
+		custom_cost_trigger = {
+			has_manpower > 10000
+			has_war_support > 0.02
+		}
+		custom_cost_text = UKR_2_ws_10000_mp_tooltip
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete UKR_emergency_recruitment"
+			add_manpower = -10000
+			add_war_support = -0.02
+			add_to_variable = { UKR_militia_manpower = 10000 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_emergency_recruitment"
+			custom_effect_tooltip = UKR_volunteers_tt
+			hidden_effect = {
+				activate_targeted_decision = { decision = UKR_demobilize_volunteers target = ROOT }
+				if = {
+					limit = { NOT = { has_template = "Dobrovolchyi Zahin" } }
+					division_template = {
+						name = "Dobrovolchyi Zahin"
+						division_names_group = UKR_MIL_01
+						is_locked = yes
+						regiments = {
+							irregular_infantry = { x = 0 y = 0 }
+							irregular_infantry = { x = 0 y = 1 }
+							irregular_infantry = { x = 0 y = 2 }
+							irregular_infantry = { x = 1 y = 0 }
+							irregular_infantry = { x = 1 y = 1 }
+						}
+						template_counter = 68
+					}
+				}
+				random_owned_controlled_state = {
+					prioritize = { 202 }
+					create_unit = {
+						division = "division_template = \"Dobrovolchyi Zahin\" start_experience_factor = 0.3 start_equipment_factor = 1"
+						owner = ROOT
+						count = 2
+					}
+				}
+			}
+		}
+	}
+	UKR_demobilize_volunteers = {
+		icon = GFX_decision_peace_dove
+		allowed = { always = no }
+
+		visible = { has_template = "Dobrovolchyi Zahin" }
+		days_remove = 14
+		ai_will_do = {
+			base = 0
+			modifier = {
+				add = 1000
+				has_war = no
+			}
+		}
+		fire_only_once = yes
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete UKR_demobilize_volunteers"
+			remove_targeted_decision = { decision = UKR_emergency_recruitment target = ROOT }
+			custom_effect_tooltip = UKR_demobilize_volunteers_tt
+			hidden_effect = {
+				delete_units = {
+					division_template = "Dobrovolchyi Zahin"
+					disband = no
+				}
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_demobilize_volunteers"
+			add_manpower = UKR_militia_manpower
+		}
+	}
+	UKR_organise_partisan_cells = {
+		icon = GFX_decision_cavalry
+
+		available = {
+			surrender_progress > 0.2
+		}
+
+		days_remove = 120
+		ai_will_do = { factor = 10 }
+
+		custom_cost_trigger = {
+			command_power > 20
+			has_manpower > 1000
+		}
+		custom_cost_text = UKR_1000_manpower_20_cp_tooltip
+
+		modifier = {
+			resistance_growth_on_our_occupied_states = 0.33
+			resistance_target_on_our_occupied_states = 0.15
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete UKR_organise_partisan_cells"
+			add_command_power = -20
+			add_manpower = -1000
+			add_war_support = 0.03
+		}
+	}
+	UKR_not_step_back = {
+		icon = GFX_decision_generic_tank
+
+		available = {
+			surrender_progress > 0.3
+		}
+		days_remove = 180
+		remove_trigger = {
+			OR = {
+				has_war = no
+				controls_all_owned_states = yes
+			}
+		}
+		fire_only_once = no
+		ai_will_do = { factor = 100 }
+
+		modifier = {
+			war_support_factor = 0.15
+			army_core_defence_factor = 0.1
+			army_core_attack_factor = 0.1
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_not_step_back"
+		}
+	}	
+}
+UKR_foreign_policy = {
+	UKR_revolution_within_a_revolution = {
+		icon = GFX_decision_freedom
+
+		allowed = { always = no }
+
+		available = {
+			OR = {
+				soviets_exist = yes
+				GER = {
+					has_war_with = FRA
+					surrender_progress > 0.2
+				}
+				any_neighbor_country = { is_in_faction_with = INT }
+				RUS = { is_faction_leader = no }
+			}
+			OR = {
+				NOT = { country_exists = GER }
+				GER = { has_war_with = INT }
+				GER = { has_war_with = RUS }
+			}
+		}
+
+		visible = {
+			OR = {
+				UKR_usdrp_in_power = yes
+				UKR_ukp_in_power = yes
+			}
+			has_war_with = INT
+			OR = {
+				is_in_faction_with = AUS
+				is_in_faction_with = GER
+			}
+		}
+
+		fire_only_once = yes
+
+		ai_will_do = {
+			base = 0
+			modifier = {
+				add = 500
+				RUS = { exists = no }
+				GER = {
+					has_war_with = INT
+					surrender_progress > 0.80
+				}
+			}
+			modifier = {
+				add = 500
+				RUS = { has_war_with = GER }
+			}
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_revolution_within_a_revolution"
+			remove_puppet_and_leave_faction = yes
+			peace_out_non_neighbours_after_leaving_faction = yes
+			UKR_remove_brotfrieden_without_events = yes
+			UKR_update_military = yes
+			if = {
+				limit = { country_exists = GER }
+				custom_effect_tooltip = UKR_revolution_within_revolution_tt
+			}
+			country_event = ukraine_republican.5
 		}
 	}
 	UKR_resist_the_germans = {
@@ -8627,14 +8887,29 @@ UKR_red_prince_decisions = {
 UKR_land_reform = { #Land Reform time
 	UKR_allocate_funds_for_rural_infrastracture = {
 		icon = GFX_decision_road
-
-		cost = 20
-		days_remove = 14
-		days_re_enable = 90
+		available = {
+			custom_trigger_tooltip = { tooltip = UKR_reform_in_progress_tt }
+			check_variable = { UKR_reform_in_progress < 2 }
+		}
 		fire_only_once = no
+		cost = UKR_landreform_cost?40
+		days_remove = UKR_landreform_days_remove?90
+		days_re_enable = 150
 
 		ai_will_do = {
 			factor = 100
+			modifier = {
+				factor = 0
+				OR = {
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI }
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI_SOVIET }
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI_DICTATOR }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_GUARANTEED }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_CIVIL_WAR }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_COUP }
+					has_country_flag = UKR_ai_borotbysts
+				}			
+			}
 		}
 
 		complete_effect = {
@@ -8643,10 +8918,13 @@ UKR_land_reform = { #Land Reform time
 				mission = UKR_Land_Reform_Plan
 				days = -15
 			}
+			add_to_variable = { UKR_reform_in_progress = 1 }
 		}
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_allocate_funds_for_rural_infrastracture"
-			UKR_Mod_major_increase = yes
+			add_to_variable = { UKR_reform_in_progress = -1 }
+			set_temp_variable = { UKR_influence_change = 10 }
+			UKR_reform_score = yes
 			custom_effect_tooltip = tooltip_white_line
 			UKR_recalculate_land_reform = yes			
 			custom_effect_tooltip = UKR_breadbasket_of_europe_will_change
@@ -8657,13 +8935,29 @@ UKR_land_reform = { #Land Reform time
 	UKR_provide_technical_assistance_to_smallholders = {
 		icon = GFX_decision_generic_agriculture
 
-		cost = 20
-		days_remove = 14
-		days_re_enable = 90
+		available = {
+			custom_trigger_tooltip = { tooltip = UKR_reform_in_progress_tt }
+			check_variable = { UKR_reform_in_progress < 2 }
+		}
 		fire_only_once = no
+		cost = UKR_landreform_cost?40
+		days_remove = UKR_landreform_days_remove?90
+		days_re_enable = 120
 
 		ai_will_do = {
 			factor = 100
+			modifier = {
+				factor = 0
+				OR = {
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI }
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI_SOVIET }
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI_DICTATOR }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_GUARANTEED }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_CIVIL_WAR }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_COUP }
+					has_country_flag = UKR_ai_borotbysts
+				}			
+			}
 		}
 
 		complete_effect = {
@@ -8672,11 +8966,15 @@ UKR_land_reform = { #Land Reform time
 				mission = UKR_Land_Reform_Plan
 				days = -15
 			}
+			set_temp_variable = { ideology_change_var = -3 }
+			change_ruling_party_popularity = yes
+			add_to_variable = { UKR_reform_in_progress = 1 }
 		}
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_provide_technical_assistance_to_smallholders"
-			UKR_Mod_major_increase = yes
-			UKR_Rad_minor_increase = yes
+			add_to_variable = { UKR_reform_in_progress = -1 }
+			set_temp_variable = { UKR_influence_change = 7.5 }
+			UKR_reform_score = yes
 			custom_effect_tooltip = tooltip_white_line
 			UKR_recalculate_land_reform = yes			
 			custom_effect_tooltip = UKR_breadbasket_of_europe_will_change
@@ -8687,21 +8985,44 @@ UKR_land_reform = { #Land Reform time
 	UKR_develop_agricultural_value_chains = {
 		icon = GFX_decision_generic_civil_support
 
+		available = {
+			custom_trigger_tooltip = { tooltip = UKR_reform_in_progress_tt }
+			check_variable = { UKR_reform_in_progress < 2 }
+		}
 		visible = {
 			has_socialist_government = no
 			NOT = { has_government = social_democrat }
 		}
 		
-		cost = 30
 		fire_only_once = yes
+		cost = UKR_landreform_cost?40
+		days_remove = UKR_landreform_days_remove?90
 
 		ai_will_do = {
 			factor = 100
+			modifier = {
+				factor = 0
+				OR = {
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI }
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI_SOVIET }
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI_DICTATOR }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_GUARANTEED }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_CIVIL_WAR }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_COUP }
+					has_country_flag = UKR_ai_borotbysts
+				}			
+			}
 		}
 
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision UKR_develop_agricultural_value_chains"
-			UKR_Mod_minor_increase = yes
+			add_to_variable = { UKR_reform_in_progress = 1 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_develop_agricultural_value_chains"
+			add_to_variable = { UKR_reform_in_progress = -1 }
+			set_temp_variable = { UKR_influence_change = 5 }
+			UKR_reform_score = yes
 			custom_effect_tooltip = tooltip_white_line
 			UKR_recalculate_land_reform = yes			
 			custom_effect_tooltip = UKR_breadbasket_of_europe_will_change
@@ -8715,22 +9036,46 @@ UKR_land_reform = { #Land Reform time
 	UKR_encourage_business_investment_in_rural_areas = {
 		icon = GFX_decision_generic_agreement
 		
+		available = {
+			custom_trigger_tooltip = { tooltip = UKR_reform_in_progress_tt }
+			check_variable = { UKR_reform_in_progress < 2 }
+		}
 		visible = {
 			has_socialist_government = no
 			NOT = { has_government = social_democrat }
 		}
 
-		cost = 30
 		fire_only_once = yes
+		cost = UKR_landreform_cost?40
+		days_remove = UKR_landreform_days_remove?90
 
 		ai_will_do = {
 			factor = 100
+			modifier = {
+				factor = 0
+				OR = {
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI }
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI_SOVIET }
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI_DICTATOR }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_GUARANTEED }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_CIVIL_WAR }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_COUP }
+					has_country_flag = UKR_ai_borotbysts
+				}			
+			}
 		}
 
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision UKR_encourage_business_investment_in_rural_areas"
-			UKR_Mod_minor_increase = yes
-			UKR_Rad_major_decrease = yes
+			add_to_variable = { UKR_reform_in_progress = 1 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_encourage_business_investment_in_rural_areas"
+			add_to_variable = { UKR_reform_in_progress = -1 }
+			set_temp_variable = { UKR_influence_change = 5 }
+			UKR_reform_score = yes
+			set_temp_variable = { ideology_change_var = -5 }
+			change_ruling_party_popularity = yes
 			custom_effect_tooltip = tooltip_white_line
 			UKR_recalculate_land_reform = yes			
 			custom_effect_tooltip = UKR_breadbasket_of_europe_will_change
@@ -8745,6 +9090,10 @@ UKR_land_reform = { #Land Reform time
 	UKR_ensure_protection_measures = {
 		icon = GFX_decision_eng_trade_unions_support
 		
+		available = {
+			custom_trigger_tooltip = { tooltip = UKR_reform_in_progress_tt }
+			check_variable = { UKR_reform_in_progress < 2 }
+		}
 		visible = {
 			has_socialist_government = no
 			NOT = { has_government = social_democrat }
@@ -8754,17 +9103,37 @@ UKR_land_reform = { #Land Reform time
 			}
 		}
 
-		cost = 30
 		fire_only_once = yes
+		cost = UKR_landreform_cost?40
+		days_remove = UKR_landreform_days_remove?90
 
 		ai_will_do = {
 			factor = 100
+			modifier = {
+				factor = 0
+				OR = {
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI }
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI_SOVIET }
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI_DICTATOR }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_GUARANTEED }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_CIVIL_WAR }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_COUP }
+					has_country_flag = UKR_ai_borotbysts
+				}			
+			}
 		}
 
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision UKR_ensure_protection_measures"
-			UKR_Mod_major_decrease = yes
-			UKR_Rad_major_increase = yes
+			add_to_variable = { UKR_reform_in_progress = 1 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_ensure_protection_measures"
+			add_to_variable = { UKR_reform_in_progress = -1 }
+			set_temp_variable = { UKR_influence_change = 5 }
+			UKR_reform_score = yes
+			set_temp_variable = { ideology_change_var = -5 }
+			change_ruling_party_popularity = yes
 			UKR_land_reform_borotbysts_weaken = yes
 			custom_effect_tooltip = tooltip_white_line
 			UKR_recalculate_land_reform = yes			
@@ -8779,6 +9148,10 @@ UKR_land_reform = { #Land Reform time
 	UKR_provide_social_protection_programs = {
 		icon = GFX_decision_generic_healthcare
 
+		available = {
+			custom_trigger_tooltip = { tooltip = UKR_reform_in_progress_tt }
+			check_variable = { UKR_reform_in_progress < 2 }
+		}
 		visible = {
 			OR = {
 				has_socialist_government = yes
@@ -8788,17 +9161,35 @@ UKR_land_reform = { #Land Reform time
 			}
 		}
 
-		cost = 40
 		fire_only_once = yes
+		cost = UKR_landreform_cost?40
+		days_remove = UKR_landreform_days_remove?90
 
 		ai_will_do = {
 			factor = 100
+			modifier = {
+				factor = 0
+				OR = {
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI }
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI_SOVIET }
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI_DICTATOR }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_GUARANTEED }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_CIVIL_WAR }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_COUP }
+					has_country_flag = UKR_ai_borotbysts
+				}			
+			}
 		}
 
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision UKR_provide_social_protection_programs"
-			UKR_Rad_major_increase = yes
-			UKR_Mod_minor_decrease = yes
+			add_to_variable = { UKR_reform_in_progress = 1 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_provide_social_protection_programs"
+			add_to_variable = { UKR_reform_in_progress = -1 }
+			set_temp_variable = { UKR_influence_change = 5 }
+			UKR_reform_score = yes
 			custom_effect_tooltip = tooltip_white_line
 			UKR_recalculate_land_reform = yes			
 			custom_effect_tooltip = UKR_breadbasket_of_europe_will_change
@@ -8811,90 +9202,47 @@ UKR_land_reform = { #Land Reform time
 			}
 		}
 	}
-	UKR_Support_Productive_Classes_In_Village = {
-		icon = GFX_decision_eng_trade_unions_support
-
-		visible = {
-			OR = {
-				has_socialist_government = yes
-				has_government = social_democrat
-			}
-		}
-
-		cost = 10
-		fire_only_once = yes
-
-		ai_will_do = {
-			factor = 100
-		}
-
-		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision UKR_Support_Productive_Classes_In_Village"
-			UKR_Rad_extreme_increase = yes
-			UKR_Mod_major_decrease = yes
-			custom_effect_tooltip = tooltip_white_line
-			add_political_power = 30
-			UKR_recalculate_land_reform = yes			
-			custom_effect_tooltip = UKR_breadbasket_of_europe_will_change
-			UKR_breadbasket_remove_consumer_goods = yes
-		UKR_breadbasket_add_monthly_population = yes
-			add_days_mission_timeout = {
-				mission = UKR_Land_Reform_Plan
-				days = 15
-			}
-		}
-	}
-	UKR_Peasant_Farmer_Committees = {
-		icon = GFX_decision_eng_trade_unions_support
-
-		visible = {
-			OR = {
-				has_socialist_government = yes
-				has_government = social_democrat
-			}
-		}
-
-		cost = 10
-		fire_only_once = yes
-
-		ai_will_do = {
-			factor = 100
-		}
-
-		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision UKR_Peasant_Farmer_Committees"
-			UKR_Mod_extreme_increase = yes
-			UKR_Rad_major_decrease = yes
-			custom_effect_tooltip = tooltip_white_line
-			add_stability = -0.03
-			UKR_recalculate_land_reform = yes
-			custom_effect_tooltip = UKR_breadbasket_of_europe_will_change
-			UKR_breadbasket_remove_consumer_goods = yes
-			add_days_mission_timeout = {
-				mission = UKR_Land_Reform_Plan
-				days = 25
-			}
-		}
-	}
 	UKR_set_up_land_banks = {
 		icon = GFX_decision_eng_trade_unions_support
 
+		available = {
+			custom_trigger_tooltip = { tooltip = UKR_reform_in_progress_tt }
+			check_variable = { UKR_reform_in_progress < 2 }
+		}
 		cost = 10
 		fire_only_once = yes
+		days_remove = UKR_landreform_days_remove?90
 
 		ai_will_do = {
 			factor = 100
+			modifier = {
+				factor = 0
+				OR = {
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI }
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI_SOVIET }
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI_DICTATOR }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_GUARANTEED }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_CIVIL_WAR }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_COUP }
+					has_country_flag = UKR_ai_borotbysts
+				}			
+			}
 		}
 
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision UKR_set_up_land_banks"
-			UKR_Mod_minor_increase = yes
-			UKR_Rad_minor_increase = yes
+			add_to_variable = { UKR_reform_in_progress = 1 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_set_up_land_banks"
+			add_to_variable = { UKR_reform_in_progress = -1 }
+			set_temp_variable = { UKR_influence_change = 5 }
+			UKR_reform_score = yes
 			custom_effect_tooltip = tooltip_white_line
 			UKR_recalculate_land_reform = yes
 			custom_effect_tooltip = UKR_breadbasket_of_europe_will_change
-			UKR_breadbasket_remove_pp = yes
-			UKR_breadbasket_remove_resource_penalty = yes
+			UKR_breadbasket_add_monthly_population = yes
+			UKR_breadbasket_remove_consumer_goods = yes
 			add_days_mission_timeout = {
 				mission = UKR_Land_Reform_Plan
 				days = 25
@@ -8904,8 +9252,12 @@ UKR_land_reform = { #Land Reform time
 	UKR_tax_incentives_for_landowners = {
 		icon = GFX_decision_gre_investment_decisions
 		
+		available = {
+			custom_trigger_tooltip = { tooltip = UKR_reform_in_progress_tt }
+			check_variable = { UKR_reform_in_progress < 2 }
+		}
 		visible = {
-			has_socialist_government = no
+			UKR_has_socialist_government = no
 			NOT = { has_government = social_democrat }
 			NOT = { 
 				has_country_flag = UKR_Nationalization_Land
@@ -8913,17 +9265,37 @@ UKR_land_reform = { #Land Reform time
 			}
 		}
 		
-		cost = 40
 		fire_only_once = yes
+		cost = UKR_landreform_cost?40
+		days_remove = UKR_landreform_days_remove?90
 
 		ai_will_do = {
 			factor = 100
+			modifier = {
+				factor = 0
+				OR = {
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI }
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI_SOVIET }
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI_DICTATOR }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_GUARANTEED }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_CIVIL_WAR }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_COUP }
+					has_country_flag = UKR_ai_borotbysts
+				}			
+			}
 		}
 
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision UKR_tax_incentives_for_landowners"
-			UKR_Mod_major_increase = yes
-			UKR_Rad_major_decrease = yes
+			add_to_variable = { UKR_reform_in_progress = 1 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_tax_incentives_for_landowners"
+			add_to_variable = { UKR_reform_in_progress = -1 }
+			set_temp_variable = { UKR_influence_change = 5 }
+			UKR_reform_score = yes
+			set_temp_variable = { ideology_change_var = -7 }
+			change_ruling_party_popularity = yes
 			custom_effect_tooltip = tooltip_white_line
 			UKR_recalculate_land_reform = yes
 			custom_effect_tooltip = UKR_breadbasket_of_europe_will_change
@@ -8937,23 +9309,47 @@ UKR_land_reform = { #Land Reform time
 	UKR_Compulsory_Union_Membership = {
 		icon = GFX_decision_generic_civil_support
 
+		available = {
+			custom_trigger_tooltip = { tooltip = UKR_reform_in_progress_tt }
+			check_variable = { UKR_reform_in_progress < 2 }
+		}
 		visible = {
 			NOT = { has_country_flag = BSDP_Unions_Voluntary }
-			has_socialist_government = yes
+			UKR_has_socialist_government = yes
 		}
 
-		cost = 20
 		fire_only_once = yes
+		cost = UKR_landreform_cost?40
+		days_remove = UKR_landreform_days_remove?90
 
 		ai_will_do = {
 			factor = 100
+			modifier = {
+				factor = 0
+				OR = {
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI }
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI_SOVIET }
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI_DICTATOR }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_GUARANTEED }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_CIVIL_WAR }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_COUP }
+					has_country_flag = UKR_ai_borotbysts
+				}			
+			}
 		}
 
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision UKR_Compulsory_Union_Membership"
+			add_to_variable = { UKR_reform_in_progress = 1 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_Compulsory_Union_Membership"
+			add_to_variable = { UKR_reform_in_progress = -1 }
 			set_country_flag = BSDP_Unions_Compulsory
-			UKR_Mod_extreme_increase = yes
-			UKR_Rad_extreme_decrease = yes
+			set_temp_variable = { UKR_influence_change = 7 }
+			set_temp_variable = { ideology_change_var = 7 }
+			change_ruling_party_popularity = yes
+			UKR_reform_score = yes
 			custom_effect_tooltip = tooltip_white_line
 			add_political_power = 40
 			add_stability = -0.03
@@ -8969,22 +9365,45 @@ UKR_land_reform = { #Land Reform time
 	UKR_Voluntary_Union_Membership = {
 		icon = GFX_decision_generic_civil_support
 
+		available = {
+			custom_trigger_tooltip = { tooltip = UKR_reform_in_progress_tt }
+			check_variable = { UKR_reform_in_progress < 2 }
+		}
 		visible = {
 			NOT = { has_country_flag = BSDP_Unions_Compulsory }
 		}
 
-		cost = 20
 		fire_only_once = yes
+		cost = UKR_landreform_cost?40
+		days_remove = UKR_landreform_days_remove?90
 
 		ai_will_do = {
 			factor = 100
+			modifier = {
+				factor = 0
+				OR = {
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI }
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI_SOVIET }
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI_DICTATOR }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_GUARANTEED }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_CIVIL_WAR }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_COUP }
+					has_country_flag = UKR_ai_borotbysts
+				}			
+			}
 		}
 
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision UKR_Voluntary_Union_Membership"
+			add_to_variable = { UKR_reform_in_progress = 1 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_Voluntary_Union_Membership"
+			add_to_variable = { UKR_reform_in_progress = -1 }
 			set_country_flag = BSDP_Unions_Voluntary
-			UKR_Mod_extreme_decrease = yes
-			UKR_Rad_extreme_increase = yes
+			set_temp_variable = { UKR_influence_change = 2 }
+			UKR_reform_score = yes
+			UKR_land_reform_borotbysts_weaken = yes
 			custom_effect_tooltip = tooltip_white_line
 			add_political_power = -30
 			add_stability = 0.03
@@ -9000,6 +9419,10 @@ UKR_land_reform = { #Land Reform time
 	UKR_Integrate_the_Bunds = {
 		icon = GFX_decision_generic_speech
 
+		available = {
+			custom_trigger_tooltip = { tooltip = UKR_reform_in_progress_tt }
+			check_variable = { UKR_reform_in_progress < 2 }
+		}
 		visible = {
 			NOT = { has_government = social_democrat }
 			if = {
@@ -9009,18 +9432,38 @@ UKR_land_reform = { #Land Reform time
 			NOT = { has_country_flag = BSDP_Bunds_Cooperate }
 		}
 
-		cost = 50
 		fire_only_once = yes
+		cost = UKR_landreform_cost?40
+		days_remove = UKR_landreform_days_remove?90
 
 		ai_will_do = {
 			factor = 100
+			modifier = {
+				factor = 0
+				OR = {
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI }
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI_SOVIET }
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI_DICTATOR }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_GUARANTEED }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_CIVIL_WAR }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_COUP }
+					has_country_flag = UKR_ai_borotbysts
+				}			
+			}
 		}
 
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision UKR_Integrate_the_Bunds"
+			add_to_variable = { UKR_reform_in_progress = 1 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_Integrate_the_Bunds"
+			add_to_variable = { UKR_reform_in_progress = -1 }
 			set_country_flag = BSDP_Bunds_Integrate
-			UKR_Mod_extreme_increase = yes
-			UKR_Rad_extreme_decrease = yes
+			set_temp_variable = { UKR_influence_change = 5 }
+			set_temp_variable = { ideology_change_var = -7 }
+			change_ruling_party_popularity = yes
+			UKR_reform_score = yes
 			custom_effect_tooltip = tooltip_white_line
 			add_political_power = 100
 			add_stability = -0.05
@@ -9044,18 +9487,43 @@ UKR_land_reform = { #Land Reform time
 			NOT = { has_country_flag = BSDP_Bunds_Integrate }
 		}
 
-		cost = 50
 		fire_only_once = yes
+		cost = UKR_landreform_cost?40
+		days_remove = UKR_landreform_days_remove?90
 
+		available = {
+			custom_trigger_tooltip = { tooltip = UKR_reform_in_progress_tt }
+			check_variable = { UKR_reform_in_progress < 2 }
+		}
 		ai_will_do = {
 			factor = 100
+			modifier = {
+				factor = 0
+				OR = {
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI }
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI_SOVIET }
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI_DICTATOR }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_GUARANTEED }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_CIVIL_WAR }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_COUP }
+					has_country_flag = UKR_ai_borotbysts
+				}			
+			}
 		}
 
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision UKR_Work_with_the_Bunds"
+			add_to_variable = { UKR_reform_in_progress = 1 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_Work_with_the_Bunds"
+			add_to_variable = { UKR_reform_in_progress = -1 }
 			set_country_flag = BSDP_Bunds_Cooperate
-			UKR_Mod_major_decrease = yes
-			UKR_Rad_major_increase = yes
+			set_temp_variable = { UKR_influence_change = 5 }
+			UKR_reform_score = yes
+			set_temp_variable = { ideology_change_var = 3 }
+			change_ruling_party_popularity = yes
+			UKR_land_reform_borotbysts_weaken = yes
 			custom_effect_tooltip = tooltip_white_line
 			add_political_power = -50
 			add_stability = 0.05
@@ -9069,22 +9537,41 @@ UKR_land_reform = { #Land Reform time
 	UKR_Aid_Peasants = {
 		icon = GFX_decision_hol_exchange_intelligence_data
 		
-		cost = 40
-		days_re_enable = 49
-		days_remove = 14
+		available = {
+			custom_trigger_tooltip = { tooltip = UKR_reform_in_progress_tt }
+			check_variable = { UKR_reform_in_progress < 2 }
+		}
+		fire_only_once = no
+		cost = UKR_landreform_cost?40
+		days_remove = UKR_landreform_days_remove?90
+		days_re_enable = 270
 
 		ai_will_do = {
 			factor = 150
+			modifier = {
+				factor = 0
+				OR = {
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI }
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI_SOVIET }
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI_DICTATOR }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_GUARANTEED }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_CIVIL_WAR }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_COUP }
+					has_country_flag = UKR_ai_borotbysts
+				}			
+			}
 		}
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision UKR_Aid_Peasants"
-			custom_effect_tooltip = UKR_breadbasket_of_europe_will_change
-			UKR_breadbasket_remove_consumer_goods = yes
-			UKR_breadbasket_add_monthly_population = yes
+			set_temp_variable = { ideology_change_var = 5 }
+			change_ruling_party_popularity = yes			
+			add_to_variable = { UKR_reform_in_progress = 1 }
 		}
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_Aid_Peasants"
-			UKR_Rad_major_increase = yes
+			add_to_variable = { UKR_reform_in_progress = -1 }
+			set_temp_variable = { UKR_influence_change = 5 }
+			UKR_reform_score = yes
 			UKR_land_reform_borotbysts_weaken = yes
 			custom_effect_tooltip = tooltip_white_line
 			UKR_recalculate_land_reform = yes
@@ -9092,56 +9579,47 @@ UKR_land_reform = { #Land Reform time
 			UKR_breadbasket_add_consumer_goods = yes
 			UKR_breadbasket_remove_monthly_population = yes
 		}
-	}
-	UKR_Seize_Large_Estates = {
-		icon = GFX_decision_eng_propaganda_campaigns
-
-		visible = {
-			OR = {
-				has_country_flag = UKR_Nationalization_Land
-				has_country_flag = UKR_Socialization_Land
-			}
-		}
-
-		cost = 40
-		days_re_enable = 39
-		days_remove = 14
-
-		ai_will_do = {
-			factor = 150
-		}
-
-		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_Seize_Large_Estates"
-			UKR_Mod_major_decrease = yes
-			UKR_Rad_major_increase = yes
-			custom_effect_tooltip = tooltip_white_line
-			UKR_recalculate_land_reform = yes
-			add_days_mission_timeout = {
-				mission = UKR_Land_Reform_Plan
-				days = 40
-			}
-		}
-	}
+	}	
 
 	UKR_facilitate_access_to_markets = {
 		icon = GFX_decision_gre_investment_decisions
 
+		available = {
+			custom_trigger_tooltip = { tooltip = UKR_reform_in_progress_tt }
+			check_variable = { UKR_reform_in_progress < 2 }
+		}
 		visible = {
-			has_socialist_government = no
+			UKR_has_socialist_government = no
 		}
 
-		cost = 40
-		days_re_enable = 39
-		days_remove = 14
-
+		fire_only_once = yes
+		cost = UKR_landreform_cost?40
+		days_remove = UKR_landreform_days_remove?90
 		ai_will_do = {
 			factor = 150
+			modifier = {
+				factor = 0
+				OR = {
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI }
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI_SOVIET }
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI_DICTATOR }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_GUARANTEED }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_CIVIL_WAR }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_COUP }
+					has_country_flag = UKR_ai_borotbysts
+				}			
+			}
 		}
 
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UKR_facilitate_access_to_markets"
+			add_to_variable = { UKR_reform_in_progress = 1 }
+		}
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_facilitate_access_to_markets"
-			UKR_Rad_major_increase = yes
+			add_to_variable = { UKR_reform_in_progress = -1 }
+			set_temp_variable = { UKR_influence_change = 5 }
+			UKR_reform_score = yes
 			custom_effect_tooltip = tooltip_white_line
 			UKR_recalculate_land_reform = yes
 			add_days_mission_timeout = {
@@ -9154,17 +9632,38 @@ UKR_land_reform = { #Land Reform time
 	UKR_offer_educational_programs = {
 		icon = GFX_decision_generic_research
 
-		cost = 40
-		days_re_enable = 39
-		days_remove = 14
+		available = {
+			custom_trigger_tooltip = { tooltip = UKR_reform_in_progress_tt }
+			check_variable = { UKR_reform_in_progress < 2 }
+		}
+		fire_only_once = yes
+		cost = UKR_landreform_cost?40
+		days_remove = UKR_landreform_days_remove?90
 
 		ai_will_do = {
 			factor = 150
+			modifier = {
+				factor = 0
+				OR = {
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI }
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI_SOVIET }
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI_DICTATOR }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_GUARANTEED }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_CIVIL_WAR }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_COUP }
+					has_country_flag = UKR_ai_borotbysts
+				}			
+			}
 		}
-
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UKR_offer_educational_programs"
+			add_to_variable = { UKR_reform_in_progress = 1 }
+		}
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_offer_educational_programs"
-			UKR_Rad_minor_increase = yes
+			add_to_variable = { UKR_reform_in_progress = -1 }
+			set_temp_variable = { UKR_influence_change = 5 }
+			UKR_reform_score = yes
 			custom_effect_tooltip = tooltip_white_line
 			UKR_recalculate_land_reform = yes
 			add_days_mission_timeout = {
@@ -9190,6 +9689,18 @@ UKR_land_reform = { #Land Reform time
 		fire_only_once = yes
 		ai_will_do = {
 			factor = 150
+			modifier = {
+				factor = 0
+				OR = {
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI }
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI_SOVIET }
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI_DICTATOR }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_GUARANTEED }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_CIVIL_WAR }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_COUP }
+					has_country_flag = UKR_ai_borotbysts
+				}			
+			}
 		}
 		cancel_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision cancel UKR_deal_with_borotbyst_riot target: [From.GetName]"
@@ -9227,49 +9738,23 @@ UKR_land_reform = { #Land Reform time
 					modifier = UKR_borotbyst_uprising_state
 				}
 			}
-			UKR_Mod_major_increase = yes
-			UKR_Rad_minor_decrease = yes
+			UKR_reform_score = yes
 			UKR_land_reform_borotbysts_weaken = yes
 			UKR_recalculate_land_reform = yes				
 		}
 	}
 
 	UKR_Land_Reform_Plan = {
-		icon = GFX_decision_category_generic
-
-		allowed = { always = no } #manually activated
-
-		
-		days_mission_timeout = 600
-		cost = 0
+		icon = GFX_decision_hol_draw_up_staff_plans
+		available = { always = no }
+		allowed = { always = no } #manually activated by ukraine_landreform.1
+		selectable_mission = no
 		is_good = yes
-		selectable_mission = yes
-		fire_only_once = yes
-		
-		ai_will_do = {
-			factor = 0
-			modifier = {
-				add = 1000
-				OR = {
-					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI }
-					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI_SOVIET }
-					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI_DICTATOR }
-					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_GUARANTEED }
-					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_CIVIL_WAR }
-					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_COUP }
-				}
-			}
-		}
-
-		cancel_trigger = {
-			hidden_trigger = { always = no }
-		}
+		days_mission_timeout = UKR_landreform_time
+		priority = 100
 		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision UKR_Land_Reform_Plan"
-			add_political_power = -100
-			country_event =  ukreco.25
+			log = "[GetDateText]: [Root.GetName]: Decision complete UKR_landreform_mission"
 		}
-		
 		timeout_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision timeout UKR_Land_Reform_Plan"
 			country_event =  ukreco.25
@@ -9316,15 +9801,12 @@ UKR_land_reform = { #Land Reform time
 	}
 	UKR_Land_Reform_Plan_Danger = {
 		icon = GFX_decision_revolt
-
+		
 		allowed = { always = no } #manually activated
 
 		available = {
 			hidden_trigger = {
-				OR = {
-					check_variable = { UKR_Land_Reform_Popularity < 10 }
-					check_variable = { UKR_Land_Reform_Success < 10 }
-				}
+				check_variable = { UKR_Land_Reform_Success < 10 }
 			}
 		}
 
@@ -9333,10 +9815,7 @@ UKR_land_reform = { #Land Reform time
 		fire_only_once = yes
 
 		cancel_trigger = {
-			AND = {
-				check_variable = { UKR_Land_Reform_Popularity > 24 }
-				check_variable = { UKR_Land_Reform_Success > 24 }
-			}
+			check_variable = { UKR_Land_Reform_Success > 24 }
 		}
 
 		timeout_effect = {
@@ -11560,7 +12039,7 @@ UKR_breadbasket_decision_cat = {
 				remove_ideas = UKR_brotfrieden_idea_GER
 				GER = {
 					country_event = {
-						id = ukreco.6
+						id = ukreco.52
 						days = 2
 						random_days = 5
 					}
@@ -11571,7 +12050,7 @@ UKR_breadbasket_decision_cat = {
 				remove_ideas = UKR_brotfrieden_idea_AUS
 				AUS = {
 					country_event = {
-						id = ukreco.6
+						id = ukreco.52
 						days = 3
 						random_days = 5
 					}
@@ -11581,14 +12060,14 @@ UKR_breadbasket_decision_cat = {
 				remove_ideas = UKR_brotfrieden_idea
 				GER = {
 					country_event = {
-						id = ukreco.6
+						id = ukreco.52
 						days = 2
 						random_days = 5
 					}
 				}
 				AUS = {
 					country_event = {
-						id = ukreco.6
+						id = ukreco.52
 						days = 3
 						random_days = 5
 					}
@@ -11623,119 +12102,6 @@ UKR_breadbasket_decision_cat = {
 			GER = { country_event = ukrfor.268 }			
 		}
 	}
-	UKR_Continue_The_Mechanisation_Efforts = {
-		icon = GFX_decision_generic_trucks
-		allowed = { always = no }
-		
-		cost = 20
-		fire_only_once = yes
-		days_remove = 14
-		
-		ai_will_do = {
-			base = 100
-		}
-		
-		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision UKR_Continue_The_Mechanisation_Efforts target: [From.GetName]"
-			UKR_reduce_black_monday = yes
-			UKR_reduce_agricultural_crisis = yes
-			custom_effect_tooltip = UKR_breadbasket_of_europe_will_change
-			UKR_breadbasket_remove_consumer_goods = yes
-			UKR_breadbasket_add_production_growth = yes
-			add_tech_bonus = {
-				name = UKR_Continue_The_Mechanisation_Efforts
-				bonus = 1
-				uses = 1
-				category = industry
-			}
-			activate_targeted_decision = { target = 221 decision = UKR_Invest_In_KhTZ }
-		}
-	}
-	UKR_Resume_Cash_Crop_Exportation = {
-		icon = GFX_decision_generic_merge_plant_tank
-		allowed = { always = no }
-				
-		cost = 30
-		fire_only_once = yes
-		days_remove = 7
-		
-		ai_will_do = {
-			base = 100
-		}
-		
-		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision UKR_Resume_Cash_Crop_Exportation target: [From.GetName]"
-			hidden_effect = { UKR_reduce_agricultural_crisis = yes }
-			custom_effect_tooltip = UKR_Resume_Cash_Crop_Exportation_tt
-			add_to_variable = { UKR_breadbasket_of_europe_trade_opinion = 0.25 } 
-			UKR_breadbasket_remove_consumer_goods = yes
-			UKR_reduce_black_monday = yes
-		}
-	}
-	UKR_Invest_In_KhTZ = {
-		icon = GFX_decision_generic_merge_plant_tank
-		allowed = { always = no }
-		available = {
-			FROM = { is_owned_and_controlled_by = ROOT }
-			num_of_civilian_factories_available_for_projects > 0
-		}
-		modifier = { civilian_factory_use = 1 }
-		
-		state_target = yes
-		cost = 25
-		fire_only_once = yes
-		days_remove = 21
-		
-		ai_will_do = {
-			base = 100
-		}
-		
-		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision UKR_Invest_In_KhTZ target: [From.GetName]"
-			UKR_reduce_agricultural_crisis = yes
-			FROM = {
-				add_extra_state_shared_building_slots = 1
-				add_building_construction = {
-					type = industrial_complex
-					level = 1
-					instant_build = yes
-				}
-			}
-			set_country_flag = UKR_has_completed_khtz
-			custom_effect_tooltip = tooltip_white_line
-			custom_effect_tooltip = available_designer
-			show_ideas_tooltip = kharkiv_tractor_factory
-			custom_effect_tooltip = tooltip_white_line
-			activate_targeted_decision = { target = ROOT decision = UKR_further_mechanization }
-		}
-	}
-	UKR_compensation_for_losses = {
-		icon = GFX_decision_POL_looming_peasants_strike
-		allowed = { always = no }
-		
-		cost = 35
-		fire_only_once = yes
-		days_remove = 14
-		
-		ai_will_do = {
-			base = 100
-		}
-		
-		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision UKR_compensation_for_losses target: [From.GetName]"
-			UKR_reduce_agricultural_crisis = yes
-			custom_effect_tooltip = UKR_breadbasket_of_europe_will_change
-			UKR_breadbasket_remove_consumer_goods = yes
-			UKR_breadbasket_remove_pp = yes
-			UKR_breadbasket_add_monthly_population = yes
-			if = {
-				limit = { UKR_pavlo_skoropadsky_in_power = yes }
-				UKR_increase_farmers_opinion_hetman = yes
-				UKR_increase_peasants_opinion_hetman = yes
-				UKR_increase_landowners_opinion_hetman = yes
-			}
-		}
-	}
 	UKR_grassland_inventory_stocktaking = {
 		icon = GFX_decision_generic_agriculture
 		allowed = { always = no }
@@ -11754,29 +12120,6 @@ UKR_breadbasket_decision_cat = {
 			custom_effect_tooltip = UKR_breadbasket_of_europe_will_change
 			UKR_breadbasket_remove_consumer_goods = yes
 			UKR_breadbasket_add_pp = yes
-		}
-	}
-	UKR_further_mechanization = {
-		icon = generic_agriculture
-		allowed = { always = no }
-		available = { 
-			num_of_civilian_factories_available_for_projects > 1 
-			NOT = { has_country_flag = UKR_agricultural_crisis }
-		}
-		cost = 35
-		fire_only_once = yes
-		days_remove = 90
-		
-		modifier = { civilian_factory_use = 2 }
-		
-		ai_will_do = {
-			base = 10
-		}
-		
-		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision UKR_further_mechanization target: [From.GetName]"
-			custom_effect_tooltip = UKR_breadbasket_of_europe_will_change
-			UKR_breadbasket_remove_consumer_goods = yes
 		}
 	}
 	UKR_subsidize_farmers = {
@@ -11826,6 +12169,16 @@ UKR_breadbasket_decision_cat = {
 		
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision UKR_diversify_crop_production target: [From.GetName]"
+			if = {
+				limit = {
+					NOT = { has_country_flag = LandReformBegunUKR }
+				}
+				add_political_power = 50
+			}
+			else = {
+				set_temp_variable = { UKR_influence_change = 5 }
+				UKR_reform_score = yes
+			}
 			custom_effect_tooltip = UKR_breadbasket_of_europe_will_change
 			UKR_breadbasket_add_monthly_population = yes
 			UKR_breadbasket_add_trade_opinion = yes
@@ -14714,14 +15067,8 @@ UKR_nationalist_state = {
 			clr_country_flag = UKR_sun_taken_decision
 			custom_effect_tooltip = UKR_sun_integralists_10
 			add_to_variable = { UKR_sun_integralists = 0.1 }
-			if = {
-				limit = { UKR_dmytro_dontsov_in_power = yes }
-				add_to_variable = { UKR_sun_old_guard = -0.05 }
-				add_to_variable = { UKR_sun_nrm = -5 }
-			}
-			else = {
-				add_to_variable = { UKR_sun_old_guard = -0.1 }
-			}
+			add_to_variable = { UKR_sun_old_guard = -0.05 }
+			add_to_variable = { UKR_sun_nrm = -0.05 }
 			UKR_clamp_sun_variables = yes
 			increase_ruling_party_popularity_by_5 = yes			
 			add_to_variable = { UKR_sun_decisions = 1 }
@@ -14732,16 +15079,13 @@ UKR_nationalist_state = {
 		available = {
 			NOT = { has_country_flag = UKR_sun_taken_decision }
 		}
+		visible = { UKR_dmytro_dontsov_in_power = no }
 		
 		cost = 40
 		fire_only_once = yes
 		days_remove = 30
 		ai_will_do = { 
 			base = 100 
-			modifier = {
-				factor = 0
-				UKR_dmytro_dontsov_in_power = no
-			}
 		}
 		modifier = {
 			stability_weekly = -0.03
