@@ -10619,6 +10619,70 @@ CAN_Leauge_of_Nations_decisions = {
 		}
 		
 	}
+	LON_apply_sanctions_against_country = {
+		icon = GFX_decision_generic_political_discourse
+		allowed = { original_tag = CAN } #manually activated
+		available = {
+			has_completed_focus = CAN_form_leauge_of_nations
+			NOT = {
+				has_global_flag = lon_vote_ongoing
+			}
+			NOT = { has_country_flag = LON_inviting_country }
+		}
+		visible = {
+			original_tag = CAN
+		}
+		target_array = global.LON_potential_lon_members
+		target_root_trigger = {
+			has_completed_focus = CAN_form_leauge_of_nations			
+		}
+		target_trigger = {
+			FROM = {
+				exists = yes
+				is_a_potential_leauge_of_nationsmember = yes
+				has_country_flag = lon_council_vote
+				OR = {
+					#is_ally_of_major = yes
+					any_enemy_country = {
+						has_country_flag = lon_council_vote
+						has_defensive_war_with = FROM
+					}
+					has_offensive_war = yes
+					has_added_tension_amount > 7
+				}
+			}
+		}
+		cost = 0
+		fire_only_once = yes
+		ai_will_do = {
+			factor = 1000
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete LON_apply_sanctions_against_country [FROM.GetName]"
+			FROM = { 
+				save_global_event_target_as = LON_sanctioned_country
+				country_event = leauge_of_nations.93
+			}
+			set_global_flag = lon_vote_ongoing
+			set_global_flag = LON_sanctions_vote
+			activate_mission = LON_vote_timer
+			effect_tooltip = {
+				every_other_country = {
+					limit = { has_country_flag = lon_council_vote }
+					country_event = leauge_of_nations.92
+				}
+			}
+			hidden_effect = {
+				set_temp_variable = { LON_vote_delay = 2 }
+				for_each_scope_loop = {
+					array = global.LON_voters
+					country_event = { id = leauge_of_nations.92 hours = LON_vote_delay }
+					add_to_temp_variable = { LON_vote_delay = 6 }
+				}
+			}
+		}
+		
+	}
 	LON_send_aid = {
 		icon = GFX_decision_generic_political_discourse
 		available = {
@@ -10662,6 +10726,10 @@ CAN_Leauge_of_Nations_decisions = {
 					days = 2
 					random_days = 4
 				}
+				save_global_event_target_as = helping_tag
+			}
+			FROM = {
+				save_global_event_target_as = receiving_tag
 			}
 		}
 		remove_effect = {
@@ -10702,7 +10770,7 @@ CAN_Leauge_of_Nations_decisions = {
 
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision LON_promote_democracy target: [From.GetName]"
-		
+			add_ideas = LON_democracy_promoted_idea
 		}
 	}
 	LON_demilitarize = {
@@ -10738,7 +10806,7 @@ CAN_Leauge_of_Nations_decisions = {
 
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision LON_demilitarize target: [From.GetName]"
-			
+			add_ideas = LON_demilitarization_idea
 		}
 	}
 	LON_vote_timer = {
@@ -10790,11 +10858,17 @@ CAN_Leauge_of_Nations_decisions = {
 					clr_global_flag = LON_candidate_membership_revoke
 					CAN = { country_event = leauge_of_nations.87 }
 				}
+				else_if = {
+					limit = { has_global_flag = LON_sanctions_vote }
+					clr_global_flag = LON_sanctions_vote
+					CAN = { country_event = leauge_of_nations.94 }
+				}
 			}
 			else = {
 				country_event = leauge_of_nations.91
 				clr_global_flag = LON_promotion_of_democracy_cooperation_vote
 				clr_global_flag = LON_candidate_membership_revoke
+				clr_global_flag = LON_sanctions_vote
 				clr_global_flag = LON_demilitarization_vote
 				clr_global_flag = LON_promotion_of_democracy_cooperation_vote
 			}
