@@ -1992,38 +1992,6 @@ UKR_economy = {
 			
 		}
 	}
-	UKR_Continue_The_Mechanisation_Efforts = {
-		icon = GFX_decision_generic_trucks
-		allowed = { always = no }
-		
-		cost = 20
-		fire_only_once = yes
-		days_remove = 14
-		
-		ai_will_do = {
-			base = 100
-		}
-		
-		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision UKR_Continue_The_Mechanisation_Efforts target: [From.GetName]"
-			UKR_reduce_black_monday = yes
-			UKR_reduce_agricultural_crisis = yes
-			custom_effect_tooltip = UKR_breadbasket_of_europe_will_change
-			UKR_breadbasket_remove_consumer_goods = yes
-			UKR_breadbasket_add_production_growth = yes
-			set_temp_variable = { UKR_influence_change = 1 }
-			UKR_industrial_score = yes
-			set_temp_variable = { UKR_influence_change = 2 }
-			UKR_reform_score = yes
-			add_tech_bonus = {
-				name = UKR_Continue_The_Mechanisation_Efforts
-				bonus = 1
-				uses = 1
-				category = industry
-			}
-			activate_targeted_decision = { target = 221 decision = UKR_Invest_In_KhTZ }
-		}
-	}
 	UKR_Invest_In_KhTZ = {
 		icon = GFX_decision_generic_merge_plant_tank
 		allowed = { always = no }
@@ -2044,7 +2012,6 @@ UKR_economy = {
 		
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision UKR_Invest_In_KhTZ target: [From.GetName]"
-			UKR_reduce_agricultural_crisis = yes
 			set_temp_variable = { UKR_influence_change = 2 }
 			UKR_reform_score = yes
 			FROM = {
@@ -4553,9 +4520,11 @@ UKR_foreign_policy = {
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_all_russian_ambitions"
 			set_country_flag = { flag = imminent_war days = 35 value = 1 }
-			setup_decision_attack_AI = yes
-			FROM = { country_event = kr.political.30 } #warning event
-			clear_all_relations = yes
+			if = {
+				limit = { is_ai = yes } #XD fanservice give a nice attack
+				setup_decision_attack_AI = yes
+				FROM = { country_event = kr.political.30 } #warning event
+			}
 			for_each_scope_loop = {
 				array = RUS.RUS_starting_states_array
 				add_claim_by = ROOT
@@ -4564,6 +4533,34 @@ UKR_foreign_policy = {
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_all_russian_ambitions"
 			clear_decision_attack_AI = yes
+			hidden_effect = {
+				every_state = {
+					limit = {
+						NOT = {
+							is_owned_by = ROOT
+							is_controlled_by = ROOT
+						}
+						ROOT = { divisions_in_state = { state = PREV size > 0 } }
+					}
+					teleport_armies = {
+						limit = { tag = ROOT }
+						to_state_array = owned_controlled_states
+					}
+				}
+				every_owned_state = {
+					teleport_armies = {
+						limit = {
+							NOT = {
+								tag = ROOT
+								has_war_with = ROOT
+							}
+						}
+						to_state_array = owned_controlled_states
+					}
+				}
+			}
+			remove_puppet_and_leave_faction = yes
+			peace_out_non_neighbours_after_leaving_faction = yes
 			declare_war_on = {
 				target = FROM
 				type = annex_everything
@@ -5023,6 +5020,11 @@ UKR_foreign_policy = {
 		available = {
 			is_subject = no
 			can_declare_war_on = 194.owner
+			NOT = {
+				is_in_faction_with = 194.owner
+				has_non_aggression_pact_with = 194.owner
+				has_guaranteed = 194.owner
+			}
 			if = {
 				limit = { has_completed_focus = UKR_Ensure_Neutrality_In_Weltkrieg }
 				FROM = { 
@@ -5077,8 +5079,6 @@ UKR_foreign_policy = {
 
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision UKR_belarus_claims target: [From.GetName]"
-			add_state_claim = 95 #Pinsk
-			add_state_claim = 194 #Mozyr
 			set_country_flag = { flag = imminent_war days = 20 value = 1 }
 			setup_decision_attack_AI = yes
 			if = {
@@ -5278,12 +5278,6 @@ UKR_foreign_policy = {
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_galicia_claims"
 			setup_decision_attack_AI = yes
-			add_state_claim = 91
-			add_state_claim = 89
-			add_state_claim = 80
-            add_state_claim = 1140
-            add_state_claim = 1127
-            add_state_claim = 1126
 			if = {
 				limit = {
 					OR = {
@@ -5347,6 +5341,152 @@ UKR_foreign_policy = {
 		}
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_galicia_claims"
+			clear_decision_attack_AI = yes			
+		}
+	}
+	UKR_zakarpattia_claims = {
+		icon = generic_civil_support
+		
+		available = {
+			is_subject = no
+			can_declare_war_on = FROM
+			if = {
+				limit = { has_completed_focus = UKR_Ensure_Neutrality_In_Weltkrieg }
+				FROM = { 
+					is_in_faction = no
+					is_subject = no
+					has_guarantor = no
+				}
+			}
+		}
+		visible = {
+			FROM = {
+				NOT = { has_war_with = ROOT }
+			}
+		}
+		targets = { 73.OWNER 1119.OWNER }
+		target_root_trigger =  {
+			is_subject = no
+			has_completed_focus = UKR_Transcarpathia
+		}
+		target_trigger = {
+			can_declare_war_on = FROM
+			FROM = { 
+				OR = {
+					owns_state = 73 
+					owns_state = 1119 
+				}
+			}
+		}
+		ai_will_do = {
+			base = 200
+			modifier = {
+				factor = 0
+				OR = {
+					dont_start_major_faction_wars = yes
+					ROOT_is_threatened_cautious = yes
+					FROM = { default_attack_AI_trigger_FROM = yes }
+				}
+			}
+		}
+
+		cost = 10
+		days_remove = 14
+		fire_only_once = yes
+		war_with_target_on_remove = yes
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_zakarpattia_claims"
+			setup_decision_attack_AI = yes
+			if = {
+				limit = {
+					FROM = { is_subject = yes }
+				}
+				custom_effect_tooltip = RUS_may_lead_to_war_with_FROM_overlord
+				FROM = {
+					overlord = {
+						country_event = {
+							id = ukrfor.235
+							days = 2
+							random = 48
+						}
+					}
+				}
+			}
+			else = {
+				custom_effect_tooltip = RUS_may_lead_to_war_with_FROM
+				FROM = {
+					country_event = {
+						id = ukrfor.235
+						days = 2
+						random = 48
+					}
+				}
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_zakarpattia_claims"
+			clear_decision_attack_AI = yes			
+		}
+	}
+	UKR_lemko_claims = {
+		icon = generic_civil_support
+		
+		available = {
+			is_subject = no
+			can_declare_war_on = FROM
+			if = {
+				limit = { has_completed_focus = UKR_Ensure_Neutrality_In_Weltkrieg }
+				FROM = { 
+					is_in_faction = no
+					is_subject = no
+					has_guarantor = no
+				}
+			}
+		}
+		visible = {
+			FROM = {
+				NOT = { has_war_with = ROOT }
+			}
+		}
+		targets = { 1314.OWNER 1319.OWNER }
+		target_root_trigger =  {
+			is_subject = no
+			has_completed_focus = UKR_Transcarpathia
+		}
+		target_trigger = {
+			can_declare_war_on = FROM
+			FROM = { 
+				OR = {
+					owns_state = 1314 
+					owns_state = 1319 
+				}
+			}
+		}
+		ai_will_do = {
+			base = 200
+			modifier = {
+				factor = 0
+				OR = {
+					dont_start_major_faction_wars = yes
+					ROOT_is_threatened_cautious = yes
+					FROM = { default_attack_AI_trigger_FROM = yes }
+				}
+			}
+		}
+
+		cost = 10
+		days_remove = 14
+		fire_only_once = yes
+		war_with_target_on_remove = yes
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_lemko_claims"
+			setup_decision_attack_AI = yes
+			country_event = ukrfor.240
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_lemko_claims"
 			clear_decision_attack_AI = yes			
 		}
 	}
@@ -9715,7 +9855,6 @@ UKR_land_reform = { #Land Reform time
 			set_temp_variable = { UKR_influence_change = 10 }
 			UKR_reform_score = yes
 			custom_effect_tooltip = tooltip_white_line
-			UKR_recalculate_land_reform = yes			
 			custom_effect_tooltip = UKR_breadbasket_of_europe_will_change
 			UKR_breadbasket_remove_pp = yes
 			UKR_breadbasket_remove_consumer_goods = yes
@@ -9764,6 +9903,8 @@ UKR_land_reform = { #Land Reform time
 			add_to_variable = { UKR_reform_in_progress = -1 }
 			set_temp_variable = { UKR_influence_change = 7.5 }
 			UKR_reform_score = yes
+			set_temp_variable = { UKR_popularity_change = 4 }
+			UKR_reform_pop_score = yes
 			custom_effect_tooltip = tooltip_white_line
 			UKR_recalculate_land_reform = yes			
 			custom_effect_tooltip = UKR_breadbasket_of_europe_will_change
@@ -9861,10 +10002,10 @@ UKR_land_reform = { #Land Reform time
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_encourage_business_investment_in_rural_areas"
 			add_to_variable = { UKR_reform_in_progress = -1 }
-			set_temp_variable = { UKR_influence_change = 5 }
+			set_temp_variable = { UKR_influence_change = 6 }
 			UKR_reform_score = yes
-			set_temp_variable = { ideology_change_var = -5 }
-			change_ruling_party_popularity = yes
+			set_temp_variable = { UKR_popularity_change = -3 }
+			UKR_reform_pop_score = yes
 			custom_effect_tooltip = tooltip_white_line
 			UKR_recalculate_land_reform = yes			
 			custom_effect_tooltip = UKR_breadbasket_of_europe_will_change
@@ -9921,8 +10062,9 @@ UKR_land_reform = { #Land Reform time
 			add_to_variable = { UKR_reform_in_progress = -1 }
 			set_temp_variable = { UKR_influence_change = 5 }
 			UKR_reform_score = yes
-			set_temp_variable = { ideology_change_var = -5 }
-			change_ruling_party_popularity = yes
+			set_temp_variable = { UKR_popularity_change = -3 }
+			UKR_reform_pop_score = yes
+			set_temp_variable = { UKR_resistance_change = -3 }
 			UKR_land_reform_borotbysts_weaken = yes
 			custom_effect_tooltip = tooltip_white_line
 			UKR_recalculate_land_reform = yes			
@@ -9977,8 +10119,8 @@ UKR_land_reform = { #Land Reform time
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_provide_social_protection_programs"
 			add_to_variable = { UKR_reform_in_progress = -1 }
-			set_temp_variable = { UKR_influence_change = 5 }
-			UKR_reform_score = yes
+			set_temp_variable = { UKR_popularity_change = 8 }
+			UKR_reform_pop_score = yes
 			custom_effect_tooltip = tooltip_white_line
 			UKR_recalculate_land_reform = yes			
 			custom_effect_tooltip = UKR_breadbasket_of_europe_will_change
@@ -10027,8 +10169,9 @@ UKR_land_reform = { #Land Reform time
 			add_to_variable = { UKR_reform_in_progress = -1 }
 			set_temp_variable = { UKR_influence_change = 5 }
 			UKR_reform_score = yes
+			set_temp_variable = { UKR_popularity_change = 2 }
+			UKR_reform_pop_score = yes
 			custom_effect_tooltip = tooltip_white_line
-			UKR_recalculate_land_reform = yes
 			custom_effect_tooltip = UKR_breadbasket_of_europe_will_change
 			UKR_breadbasket_add_monthly_population = yes
 			UKR_breadbasket_remove_consumer_goods = yes
@@ -10081,12 +10224,11 @@ UKR_land_reform = { #Land Reform time
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_tax_incentives_for_landowners"
 			add_to_variable = { UKR_reform_in_progress = -1 }
-			set_temp_variable = { UKR_influence_change = 5 }
+			set_temp_variable = { UKR_influence_change = 8 }
 			UKR_reform_score = yes
-			set_temp_variable = { ideology_change_var = -7 }
-			change_ruling_party_popularity = yes
+			set_temp_variable = { UKR_popularity_change = -7 }
+			UKR_reform_pop_score = yes
 			custom_effect_tooltip = tooltip_white_line
-			UKR_recalculate_land_reform = yes
 			custom_effect_tooltip = UKR_breadbasket_of_europe_will_change
 			UKR_breadbasket_add_pp = yes
 			add_days_mission_timeout = {
@@ -10135,14 +10277,13 @@ UKR_land_reform = { #Land Reform time
 			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_Compulsory_Union_Membership"
 			add_to_variable = { UKR_reform_in_progress = -1 }
 			set_country_flag = BSDP_Unions_Compulsory
-			set_temp_variable = { UKR_influence_change = 7 }
-			set_temp_variable = { ideology_change_var = 7 }
-			change_ruling_party_popularity = yes
+			set_temp_variable = { UKR_influence_change = 12 }
+			set_temp_variable = { UKR_popularity_change = -7 }
+			UKR_reform_pop_score = yes
 			UKR_reform_score = yes
 			custom_effect_tooltip = tooltip_white_line
 			add_political_power = 40
 			add_stability = -0.03
-			UKR_recalculate_land_reform = yes
 			custom_effect_tooltip = UKR_breadbasket_of_europe_will_change
 			UKR_breadbasket_add_production_growth = yes
 			add_days_mission_timeout = {
@@ -10192,11 +10333,13 @@ UKR_land_reform = { #Land Reform time
 			set_country_flag = BSDP_Unions_Voluntary
 			set_temp_variable = { UKR_influence_change = 2 }
 			UKR_reform_score = yes
+			set_temp_variable = { UKR_popularity_change = 8 }
+			UKR_reform_pop_score = yes
+			set_temp_variable = { UKR_resistance_change = -3 }
 			UKR_land_reform_borotbysts_weaken = yes
 			custom_effect_tooltip = tooltip_white_line
 			add_political_power = -30
 			add_stability = 0.03
-			UKR_recalculate_land_reform = yes
 			custom_effect_tooltip = UKR_breadbasket_of_europe_will_change
 			UKR_breadbasket_add_pp = yes
 			add_days_mission_timeout = {
@@ -10249,14 +10392,13 @@ UKR_land_reform = { #Land Reform time
 			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_Integrate_the_Bunds"
 			add_to_variable = { UKR_reform_in_progress = -1 }
 			set_country_flag = BSDP_Bunds_Integrate
-			set_temp_variable = { UKR_influence_change = 5 }
-			set_temp_variable = { ideology_change_var = -7 }
-			change_ruling_party_popularity = yes
+			set_temp_variable = { UKR_influence_change = 6 }
+			set_temp_variable = { UKR_popularity_change = -3 }
+			UKR_reform_pop_score = yes
 			UKR_reform_score = yes
 			custom_effect_tooltip = tooltip_white_line
 			add_political_power = 100
 			add_stability = -0.05
-			UKR_recalculate_land_reform = yes
 			custom_effect_tooltip = UKR_breadbasket_of_europe_will_change
 			UKR_breadbasket_add_consumer_goods = yes
 			add_days_mission_timeout = {
@@ -10308,15 +10450,15 @@ UKR_land_reform = { #Land Reform time
 			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_Work_with_the_Bunds"
 			add_to_variable = { UKR_reform_in_progress = -1 }
 			set_country_flag = BSDP_Bunds_Cooperate
-			set_temp_variable = { UKR_influence_change = 5 }
+			set_temp_variable = { UKR_influence_change = 3 }
 			UKR_reform_score = yes
-			set_temp_variable = { ideology_change_var = 3 }
-			change_ruling_party_popularity = yes
+			set_temp_variable = { UKR_popularity_change = 5 }
+			UKR_reform_pop_score = yes
+			set_temp_variable = { UKR_resistance_change = -3 }
 			UKR_land_reform_borotbysts_weaken = yes
 			custom_effect_tooltip = tooltip_white_line
 			add_political_power = -50
 			add_stability = 0.05
-			UKR_recalculate_land_reform = yes
 			add_days_mission_timeout = {
 				mission = UKR_Land_Reform_Plan
 				days = 15
@@ -10359,11 +10501,13 @@ UKR_land_reform = { #Land Reform time
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_Aid_Peasants"
 			add_to_variable = { UKR_reform_in_progress = -1 }
-			set_temp_variable = { UKR_influence_change = 5 }
+			set_temp_variable = { UKR_influence_change = 4 }
 			UKR_reform_score = yes
+			set_temp_variable = { UKR_popularity_change = 9 }
+			UKR_reform_pop_score = yes
+			set_temp_variable = { UKR_resistance_change = -3 }
 			UKR_land_reform_borotbysts_weaken = yes
 			custom_effect_tooltip = tooltip_white_line
-			UKR_recalculate_land_reform = yes
 			custom_effect_tooltip = UKR_breadbasket_of_europe_will_change
 			UKR_breadbasket_add_consumer_goods = yes
 			UKR_breadbasket_remove_monthly_population = yes
@@ -10409,8 +10553,9 @@ UKR_land_reform = { #Land Reform time
 			add_to_variable = { UKR_reform_in_progress = -1 }
 			set_temp_variable = { UKR_influence_change = 5 }
 			UKR_reform_score = yes
+			set_temp_variable = { UKR_popularity_change = -2 }
+			UKR_reform_pop_score = yes
 			custom_effect_tooltip = tooltip_white_line
-			UKR_recalculate_land_reform = yes
 			add_days_mission_timeout = {
 				mission = UKR_Land_Reform_Plan
 				days = 40
@@ -10451,10 +10596,11 @@ UKR_land_reform = { #Land Reform time
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_offer_educational_programs"
 			add_to_variable = { UKR_reform_in_progress = -1 }
-			set_temp_variable = { UKR_influence_change = 5 }
+			set_temp_variable = { UKR_influence_change = 4 }
 			UKR_reform_score = yes
+			set_temp_variable = { UKR_popularity_change = 6 }
+			UKR_reform_pop_score = yes
 			custom_effect_tooltip = tooltip_white_line
-			UKR_recalculate_land_reform = yes
 			add_days_mission_timeout = {
 				mission = UKR_Land_Reform_Plan
 				days = 40
@@ -10527,7 +10673,9 @@ UKR_land_reform = { #Land Reform time
 					modifier = UKR_borotbyst_uprising_state
 				}
 			}
-			UKR_reform_score = yes
+			set_temp_variable = { UKR_popularity_change = -2 }
+			UKR_reform_pop_score = yes
+			set_temp_variable = { UKR_resistance_change = -4 }
 			UKR_land_reform_borotbysts_weaken = yes
 			UKR_recalculate_land_reform = yes				
 		}
@@ -10537,12 +10685,30 @@ UKR_land_reform = { #Land Reform time
 		icon = GFX_decision_hol_draw_up_staff_plans
 		available = { always = no }
 		allowed = { always = no } #manually activated by ukraine_landreform.1
-		selectable_mission = no
+		selectable_mission = yes
+		fire_only_once = yes
 		is_good = yes
 		days_mission_timeout = UKR_landreform_time
 		priority = 100
+		ai_will_do = {
+			factor = 0
+			modifier = {
+				add = 1000
+				OR = {
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI }
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI_SOVIET }
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_SHUMSKYI_DICTATOR }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_GUARANTEED }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_CIVIL_WAR }
+					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_COUP }
+				}
+				check_variable = { UKR_Land_Reform_Borotbysts < 30 }
+			}
+		}
 		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision complete UKR_landreform_mission"
+			log = "[GetDateText]: [Root.GetName]: Decision UKR_Land_Reform_Plan"
+			add_political_power = -100
+			country_event =  ukreco.25
 		}
 		timeout_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision timeout UKR_Land_Reform_Plan"
@@ -10572,7 +10738,6 @@ UKR_land_reform = { #Land Reform time
 		timeout_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision timeout UKR_Land_Reform_Plan"
 			UKR_land_reform_initiate_borotbyst_riot = yes
-			UKR_recalculate_land_reform = yes
 			add_days_mission_timeout = {
 				mission = UKR_Land_Reform_Plan
 				days = -25
@@ -11108,6 +11273,8 @@ UKR_Red_Kyiv_category = {
 			add_to_variable = { UKR_red_kyiv_pp = 0.02 }
 			add_to_variable = { UKR_red_kyiv_stability = 0.04 }
 			increase_ruling_party_popularity_by_5 = yes
+			set_temp_variable = { UKR_influence_change = 4 }
+			UKR_industrial_score = yes
 			202 = {
 				add_building_construction = {
 					type = bunker
@@ -12868,6 +13035,38 @@ UKR_breadbasket_decision_cat = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_terminate_the_brotfrieden target: [From.GetName]"
 		}
 	}
+	UKR_Continue_The_Mechanisation_Efforts = {
+		icon = GFX_decision_generic_trucks
+		allowed = { always = no }
+		
+		cost = 20
+		fire_only_once = yes
+		days_remove = 14
+		
+		ai_will_do = {
+			base = 100
+		}
+		
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UKR_Continue_The_Mechanisation_Efforts target: [From.GetName]"
+			UKR_reduce_black_monday = yes
+			UKR_reduce_agricultural_crisis = yes
+			custom_effect_tooltip = UKR_breadbasket_of_europe_will_change
+			UKR_breadbasket_remove_consumer_goods = yes
+			UKR_breadbasket_add_production_growth = yes
+			set_temp_variable = { UKR_influence_change = 1 }
+			UKR_industrial_score = yes
+			set_temp_variable = { UKR_influence_change = 2 }
+			UKR_reform_score = yes
+			add_tech_bonus = {
+				name = UKR_Continue_The_Mechanisation_Efforts
+				bonus = 1
+				uses = 1
+				category = industry
+			}
+			activate_targeted_decision = { target = 221 decision = UKR_Invest_In_KhTZ }
+		}
+	}
 	UKR_Nationalize_NUSK = {
 		icon = GFX_decision_train
 		allowed = { always = no }
@@ -13058,7 +13257,127 @@ UKR_breadbasket_decision_cat = {
 			}
 		}
 	}
-	
+	UKR_build_up_odessa_port = {
+		icon = GFX_decision_generic_naval_base
+		allowed = { always = no }
+		available = { has_country_flag = completed_great_odesa }
+		cost = 50
+		fire_only_once = yes
+		state_target = yes
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete UKR_build_up_odessa_port"
+			set_temp_variable = { UKR_influence_change = 3 }
+			UKR_industrial_score = yes
+			custom_effect_tooltip = UKR_build_up_odessa_port_tt
+			add_to_variable = { UKR_beyond_mitteleuropa_industrial_capacity_dockyard = 0.1 }
+			add_to_variable = { UKR_breadbasket_of_europe_trade_opinion = 0.1 }
+
+			192 = {
+				add_building_construction = {
+					type = dockyard
+					level = 2
+				}
+			}
+
+		}
+
+		ai_will_do = { factor = 100 }
+	}
+	UKR_trade_with_ottomans = {
+		icon = GFX_decision_global_trade
+		allowed = { always = no }		
+		cost = 75
+		fire_only_once = yes
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete UKR_trade_with_ottomans"
+			custom_effect_tooltip = UKR_trade_with_ottomans_tt
+			TUR = {
+				add_opinion_modifier = {
+					modifier = KR_trade_agreement
+					target = ROOT
+				}
+			}
+			add_to_variable = { UKR_breadbasket_of_europe_pp = 0.03 }
+			add_to_variable = { UKR_beyond_mitteleuropa_production_speed_buildings_factor = 0.03 }
+			add_to_variable = { UKR_breadbasket_of_europe_consumer_goods = -0.01 }
+			add_to_variable = { UKR_breadbasket_of_europe_trade_opinion = 0.03 }
+		}
+
+		ai_will_do = { factor = 100 }
+	}
+	UKR_trade_with_iran = {
+		icon = GFX_decision_global_trade
+		allowed = { always = no }		
+		cost = 75
+		fire_only_once = yes
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete UKR_trade_with_iran"
+			custom_effect_tooltip = UKR_trade_with_iran_tt
+			PER = {
+				add_opinion_modifier = {
+					modifier = KR_trade_agreement
+					target = ROOT
+				}
+			}
+			add_to_variable = { UKR_breadbasket_of_europe_pp = 0.03 }
+			add_to_variable = { UKR_beyond_mitteleuropa_production_speed_buildings_factor = 0.03 }
+			add_to_variable = { UKR_breadbasket_of_europe_consumer_goods = -0.01 }
+			add_to_variable = { UKR_breadbasket_of_europe_trade_opinion = 0.03 }
+		}
+
+		ai_will_do = { factor = 100 }
+	}
+	UKR_trade_with_egypt = {
+		icon = GFX_decision_global_trade
+		allowed = { always = no }
+		
+		cost = 75
+		fire_only_once = yes
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete UKR_trade_with_egypt"
+			custom_effect_tooltip = UKR_trade_with_iran_tt
+			EGY = {
+				add_opinion_modifier = {
+					modifier = KR_trade_agreement
+					target = ROOT
+				}
+			}
+			add_to_variable = { UKR_breadbasket_of_europe_pp = 0.03 }
+			add_to_variable = { UKR_beyond_mitteleuropa_production_speed_buildings_factor = 0.03 }
+			add_to_variable = { UKR_breadbasket_of_europe_consumer_goods = -0.01 }
+			add_to_variable = { UKR_breadbasket_of_europe_trade_opinion = 0.03 }
+		}
+
+		ai_will_do = { factor = 100 }
+	}
+	UKR_trade_with_nfa = {
+		icon = GFX_decision_global_trade
+		allowed = { always = no }
+		
+		cost = 75
+		fire_only_once = yes
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete UKR_trade_with_nfa"
+			custom_effect_tooltip = UKR_trade_with_iran_tt
+			NFA = {
+				add_opinion_modifier = {
+					modifier = KR_trade_agreement
+					target = ROOT
+				}
+			}
+			add_to_variable = { UKR_breadbasket_of_europe_pp = 0.03 }
+			add_to_variable = { UKR_beyond_mitteleuropa_production_speed_buildings_factor = 0.03 }
+			add_to_variable = { UKR_breadbasket_of_europe_consumer_goods = -0.01 }
+			add_to_variable = { UKR_breadbasket_of_europe_trade_opinion = 0.03 }
+		}
+
+		ai_will_do = { factor = 100 }
+	}
 }		
 UKR_Ukrainian_Switzerland_decisions = {
 	UKR_build_roads = {
@@ -16262,7 +16581,7 @@ UKR_cooperative_movement_decisions = {
 			NOT = { has_country_flag = UKR_cooperatives_increasing_limit_forced }
 		}
 		visible = {
-			check_variable = { cooperatives_upper_limit < 81 }
+			check_variable = { UKR_cooperatives_upper_limit < 81 }
 		}
 		cost = cooperatives_cost_decision1
 		fire_only_once = no
@@ -16272,15 +16591,15 @@ UKR_cooperative_movement_decisions = {
 			base = 100 
 			modifier = {
 				factor = 0
-				check_variable = { cooperatives_upper_limit > 53 }
+				check_variable = { UKR_cooperatives_upper_limit > 53 }
 			}
 			modifier = {
 				add = 0
 				OR = {
-					check_variable = { cooperatives_workers_level > cooperatives_upper_limit }
-					check_variable = { cooperatives_agrarian_level > cooperatives_upper_limit }
-					check_variable = { cooperatives_consumer_level > cooperatives_upper_limit }
-					check_variable = { cooperatives_credit_level > cooperatives_upper_limit }
+					check_variable = { UKR_cooperatives_workers_level > UKR_cooperatives_upper_limit }
+					check_variable = { UKR_cooperatives_agrarian_level > UKR_cooperatives_upper_limit }
+					check_variable = { UKR_cooperatives_consumer_level > UKR_cooperatives_upper_limit }
+					check_variable = { UKR_cooperatives_credit_level > UKR_cooperatives_upper_limit }
 				}
 			}
 		}
@@ -16296,7 +16615,7 @@ UKR_cooperative_movement_decisions = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_reduce_corporate_taxes"
 			add_to_variable = { UKR_cooperatives_taken_decision = -1 }
 			set_temp_variable = { change_state_capacity = 7 }
-			cooperatives_change_state_capacity = yes
+			UKR_cooperatives_change_state_capacity = yes
 			custom_effect_tooltip = UKR_reduce_corporate_taxes_tt
 			add_to_variable = { cooperatives_cost_decision = 10 }
 			add_to_variable = { cooperatives_cost_decision1 = 10 }
@@ -16316,7 +16635,7 @@ UKR_cooperative_movement_decisions = {
 			NOT = { has_country_flag = UKR_cooperatives_increasing_limit_forced }
 		}
 		visible = {
-			check_variable = { cooperatives_upper_limit < 81 }
+			check_variable = { UKR_cooperatives_upper_limit < 81 }
 		}
 		cost = cooperatives_cost_decision
 		fire_only_once = no
@@ -16326,15 +16645,15 @@ UKR_cooperative_movement_decisions = {
 			base = 0 
 			modifier = {
 				add = 100
-				check_variable = { cooperatives_upper_limit < 53 }
+				check_variable = { UKR_cooperatives_upper_limit < 53 }
 			}
 			modifier = {
 				add = 100
 				OR = {
-					check_variable = { cooperatives_workers_level > cooperatives_upper_limit }
-					check_variable = { cooperatives_agrarian_level > cooperatives_upper_limit }
-					check_variable = { cooperatives_consumer_level > cooperatives_upper_limit }
-					check_variable = { cooperatives_credit_level > cooperatives_upper_limit }
+					check_variable = { UKR_cooperatives_workers_level > UKR_cooperatives_upper_limit }
+					check_variable = { UKR_cooperatives_agrarian_level > UKR_cooperatives_upper_limit }
+					check_variable = { UKR_cooperatives_consumer_level > UKR_cooperatives_upper_limit }
+					check_variable = { UKR_cooperatives_credit_level > UKR_cooperatives_upper_limit }
 				}
 			}
 		}
@@ -16350,7 +16669,7 @@ UKR_cooperative_movement_decisions = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_increase_taxes"
 			add_to_variable = { UKR_cooperatives_taken_decision = -1 }
 			set_temp_variable = { change_state_capacity = -7 }
-			cooperatives_change_state_capacity = yes
+			UKR_cooperatives_change_state_capacity = yes
 			recalculate_cooperatives = yes
 			custom_effect_tooltip = UKR_increase_taxes_tt
 			add_to_variable = { cooperatives_cost_days_remove = 15 }
@@ -16368,7 +16687,7 @@ UKR_cooperative_movement_decisions = {
 			NOT = { has_country_flag = UKR_cooperatives_increasing_limit_forced }
 		}
 		visible = {
-			check_variable = { cooperatives_upper_limit < 81 }
+			check_variable = { UKR_cooperatives_upper_limit < 81 }
 			has_completed_focus = UKR_Primacy_Of_Rada
 		}
 		cost = cooperatives_cost_decision
@@ -16378,15 +16697,15 @@ UKR_cooperative_movement_decisions = {
 			base = 0 
 			modifier = {
 				add = 100
-				check_variable = { cooperatives_upper_limit < 53 }
+				check_variable = { UKR_cooperatives_upper_limit < 53 }
 			}
 			modifier = {
 				add = 100
 				OR = {
-					check_variable = { cooperatives_workers_level > cooperatives_upper_limit }
-					check_variable = { cooperatives_agrarian_level > cooperatives_upper_limit }
-					check_variable = { cooperatives_consumer_level > cooperatives_upper_limit }
-					check_variable = { cooperatives_credit_level > cooperatives_upper_limit }
+					check_variable = { UKR_cooperatives_workers_level > UKR_cooperatives_upper_limit }
+					check_variable = { UKR_cooperatives_agrarian_level > UKR_cooperatives_upper_limit }
+					check_variable = { UKR_cooperatives_consumer_level > UKR_cooperatives_upper_limit }
+					check_variable = { UKR_cooperatives_credit_level > UKR_cooperatives_upper_limit }
 				}
 			}
 		}
@@ -16402,17 +16721,17 @@ UKR_cooperative_movement_decisions = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_promote_privatization"
 			add_to_variable = { UKR_cooperatives_taken_decision = -1 }
 			set_temp_variable = { change_state_capacity = -5 }
-			cooperatives_change_state_capacity = yes
+			UKR_cooperatives_change_state_capacity = yes
 			recalculate_cooperatives = yes
 			custom_effect_tooltip = UKR_promote_privatization_tt
 			set_temp_variable = { change_agrarian_coop = -1 }
-			cooperatives_change_agrarian_coop = yes
+			UKR_cooperatives_change_agrarian_coop = yes
 			set_temp_variable = { change_workers_coop = -1 }
-			cooperatives_change_agrarian_coop = yes
+			UKR_cooperatives_change_agrarian_coop = yes
 			set_temp_variable = { change_consumer_coop = -1 }
-			cooperatives_change_consumer_coop = yes
+			UKR_cooperatives_change_consumer_coop = yes
 			set_temp_variable = { change_credit_coop = -1 }
-			cooperatives_change_credit_coop = yes
+			UKR_cooperatives_change_credit_coop = yes
 			hidden_effect = { country_event = { id = ukrsoc.1647 days = 60 } }
 		}	
 	}
@@ -16425,7 +16744,7 @@ UKR_cooperative_movement_decisions = {
 			NOT = { has_country_flag = UKR_cooperatives_increasing_limit_forced }
 		}
 		visible = {
-			check_variable = { cooperatives_upper_limit < 81 }
+			check_variable = { UKR_cooperatives_upper_limit < 81 }
 			NOT = { has_country_flag = UKR_block_labour_cooperatives }
 		}
 		cancel_trigger = {
@@ -16438,11 +16757,11 @@ UKR_cooperative_movement_decisions = {
 			base = 0 
 			modifier = {
 				add = 100
-				check_variable = { cooperatives_workers_level < 40 }
+				check_variable = { UKR_cooperatives_workers_level < 40 }
 			}
 			modifier = {
 				factor = 0
-				check_variable = { cooperatives_workers_level > cooperatives_upper_limit }
+				check_variable = { UKR_cooperatives_workers_level > UKR_cooperatives_upper_limit }
 			}
 		}
 		modifier = {
@@ -16459,8 +16778,8 @@ UKR_cooperative_movement_decisions = {
 			custom_effect_tooltip = UKR_modify_cooperatives
 			custom_effect_tooltip = UKR_modify_cooperatives_factory_efficiency_gain_3
 			custom_effect_tooltip = UKR_modify_cooperatives_factory_max_efficiency_3
-			add_to_variable = { cooperatives_production_factory_efficiency_gain_factor = 0.03 }
-			add_to_variable = { cooperatives_production_factory_max_efficiency_factor = 0.03 }
+			add_to_variable = { UKR_cooperatives_production_factory_efficiency_gain_factor = 0.03 }
+			add_to_variable = { UKR_cooperatives_production_factory_max_efficiency_factor = 0.03 }
 			recalculate_cooperatives = yes
 		}	
 	}
@@ -16473,7 +16792,7 @@ UKR_cooperative_movement_decisions = {
 			NOT = { has_country_flag = UKR_cooperatives_increasing_limit_forced }
 		}
 		visible = {
-			check_variable = { cooperatives_upper_limit < 81 }
+			check_variable = { UKR_cooperatives_upper_limit < 81 }
 			NOT = { has_country_flag = UKR_block_labour_cooperatives }
 		}
 		cancel_trigger = {
@@ -16487,11 +16806,11 @@ UKR_cooperative_movement_decisions = {
 			base = 0 
 			modifier = {
 				add = 100
-				check_variable = { cooperatives_workers_level < 40 }
+				check_variable = { UKR_cooperatives_workers_level < 40 }
 			}
 			modifier = {
 				factor = 0
-				check_variable = { cooperatives_workers_level > cooperatives_upper_limit }
+				check_variable = { UKR_cooperatives_workers_level > UKR_cooperatives_upper_limit }
 			}
 		}
 		modifier = {
@@ -16506,7 +16825,7 @@ UKR_cooperative_movement_decisions = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_encourage_worker_cooperatives_networks"
 			add_to_variable = { UKR_cooperatives_taken_decision = -1 }
 			set_temp_variable = { change_workers_coop = 7 }
-			cooperatives_change_workers_coop = yes
+			UKR_cooperatives_change_workers_coop = yes
 			recalculate_cooperatives = yes
 		}	
 	}
@@ -16519,7 +16838,7 @@ UKR_cooperative_movement_decisions = {
 			NOT = { has_country_flag = UKR_cooperatives_increasing_limit_forced }
 		}
 		visible = {
-			check_variable = { cooperatives_upper_limit < 81 }
+			check_variable = { UKR_cooperatives_upper_limit < 81 }
 			NOT = { has_country_flag = UKR_block_labour_cooperatives }
 		}
 		cancel_trigger = {
@@ -16533,11 +16852,11 @@ UKR_cooperative_movement_decisions = {
 			base = 0 
 			modifier = {
 				add = 100
-				check_variable = { cooperatives_workers_level < 40 }
+				check_variable = { UKR_cooperatives_workers_level < 40 }
 			}
 			modifier = {
 				factor = 0
-				check_variable = { cooperatives_workers_level > cooperatives_upper_limit }
+				check_variable = { UKR_cooperatives_workers_level > UKR_cooperatives_upper_limit }
 			}
 		}
 		modifier = {
@@ -16552,7 +16871,7 @@ UKR_cooperative_movement_decisions = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_facilitate_conversion"
 			add_to_variable = { UKR_cooperatives_taken_decision = -1 }
 			set_temp_variable = { change_workers_coop = 7 }
-			cooperatives_change_workers_coop = yes
+			UKR_cooperatives_change_workers_coop = yes
 			custom_effect_tooltip = UKR_modify_cooperatives
 			custom_effect_tooltip = UKR_modify_cooperatives_factory_efficiency_gain_minus_2
 			custom_effect_tooltip = UKR_modify_cooperatives_factory_max_efficiency_4
@@ -16569,11 +16888,11 @@ UKR_cooperative_movement_decisions = {
 			custom_trigger_tooltip = { tooltip = UKR_coop_in_progress_tt }
 			check_variable = { UKR_cooperatives_taken_decision < 2 }		
 			custom_trigger_tooltip = { tooltip = UKR_cooperatives_agrarian_above_40_percent }
-			check_variable = { cooperatives_agrarian_level > 40 }
+			check_variable = { UKR_cooperatives_agrarian_level > 40 }
 			NOT = { has_country_flag = UKR_cooperatives_increasing_limit_forced }
 		}
 		visible = {
-			check_variable = { cooperatives_upper_limit < 81 }
+			check_variable = { UKR_cooperatives_upper_limit < 81 }
 			check_variable = { UKR_promote_effective_agricultural_practices_tries < 2 }
 		}
 		cost = cooperatives_cost_decision1
@@ -16584,11 +16903,11 @@ UKR_cooperative_movement_decisions = {
 			base = 0 
 			modifier = {
 				add = 100
-				check_variable = { cooperatives_agrarian_level < 50 }
+				check_variable = { UKR_cooperatives_agrarian_level < 50 }
 			}
 			modifier = {
 				factor = 0
-				check_variable = { cooperatives_agrarian_level > cooperatives_upper_limit }
+				check_variable = { UKR_cooperatives_agrarian_level > UKR_cooperatives_upper_limit }
 			}
 		}
 		modifier = {
@@ -16604,10 +16923,10 @@ UKR_cooperative_movement_decisions = {
 			add_to_variable = { UKR_promote_effective_agricultural_practices_tries = 1 }
 			add_to_variable = { UKR_cooperatives_taken_decision = -1 }
 			set_temp_variable = { change_agrarian_coop = 3 }
-			cooperatives_change_agrarian_coop = yes
+			UKR_cooperatives_change_agrarian_coop = yes
 			recalculate_cooperatives = yes
 			custom_effect_tooltip = UKR_promote_effective_agricultural_practices_tt
-			add_to_variable = { cooperatives_global_building_slots_factor = 0.1 }
+			add_to_variable = { UKR_cooperatives_global_building_slots_factor = 0.1 }
 		}
 	}
 	UKR_foster_partnerships_agrarian = {
@@ -16619,7 +16938,7 @@ UKR_cooperative_movement_decisions = {
 			NOT = { has_country_flag = UKR_cooperatives_increasing_limit_forced }
 		}
 		visible = {
-			check_variable = { cooperatives_upper_limit < 81 }
+			check_variable = { UKR_cooperatives_upper_limit < 81 }
 		}
 		cost = UKR_foster_partnerships_agrarian_cost?100
 		fire_only_once = no
@@ -16630,15 +16949,15 @@ UKR_cooperative_movement_decisions = {
 			modifier = {
 				add = 100
 				OR = {
-					check_variable = { cooperatives_agrarian_level < 50 }
-					check_variable = { cooperatives_consumer_level < 30 }
+					check_variable = { UKR_cooperatives_agrarian_level < 50 }
+					check_variable = { UKR_cooperatives_consumer_level < 30 }
 				}	
 			}
 			modifier = {
 				factor = 0
 				OR = {
-					check_variable = { cooperatives_agrarian_level > cooperatives_upper_limit }
-					check_variable = { cooperatives_consumer_level > cooperatives_upper_limit }
+					check_variable = { UKR_cooperatives_agrarian_level > UKR_cooperatives_upper_limit }
+					check_variable = { UKR_cooperatives_consumer_level > UKR_cooperatives_upper_limit }
 				}
 			}
 		}
@@ -16658,18 +16977,18 @@ UKR_cooperative_movement_decisions = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_foster_partnerships_agrarian"
 			add_to_variable = { UKR_cooperatives_taken_decision = -1 }
 			set_temp_variable = { change_state_capacity = -4 }
-			cooperatives_change_state_capacity = yes
+			UKR_cooperatives_change_state_capacity = yes
 			set_temp_variable = { change_agrarian_coop = 5 }
-			cooperatives_change_agrarian_coop = yes
+			UKR_cooperatives_change_agrarian_coop = yes
 			if = {
 				limit = {
 					NOT = { has_country_flag = UKR_block_labour_cooperatives }
 				}
 				set_temp_variable = { change_workers_coop = 1 }
-				cooperatives_change_workers_coop = yes
+				UKR_cooperatives_change_workers_coop = yes
 			}
 			set_temp_variable = { change_consumer_coop = 2 }
-			cooperatives_change_consumer_coop = yes			
+			UKR_cooperatives_change_consumer_coop = yes			
 			recalculate_cooperatives = yes
 			custom_effect_tooltip = UKR_breadbasket_of_europe_will_change
 			random_list = {
@@ -16687,7 +17006,7 @@ UKR_cooperative_movement_decisions = {
 			NOT = { has_country_flag = UKR_cooperatives_increasing_limit_forced }
 		}
 		visible = {
-			check_variable = { cooperatives_upper_limit < 81 }
+			check_variable = { UKR_cooperatives_upper_limit < 81 }
 		}
 		cost = cooperatives_cost_decision1
 		fire_only_once = no
@@ -16697,11 +17016,11 @@ UKR_cooperative_movement_decisions = {
 			base = 0 
 			modifier = {
 				add = 100
-				check_variable = { cooperatives_consumer_level < 30 }
+				check_variable = { UKR_cooperatives_consumer_level < 30 }
 			}
 			modifier = {
 				factor = 0
-				check_variable = { cooperatives_consumer_level > cooperatives_upper_limit }
+				check_variable = { UKR_cooperatives_consumer_level > UKR_cooperatives_upper_limit }
 			}
 		}
 		modifier = {
@@ -16716,9 +17035,9 @@ UKR_cooperative_movement_decisions = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_ensure_fair_pricing"
 			add_to_variable = { UKR_cooperatives_taken_decision = -1 }
 			set_temp_variable = { change_consumer_coop = 5 }
-			cooperatives_change_consumer_coop = yes			
+			UKR_cooperatives_change_consumer_coop = yes			
 			set_temp_variable = { change_credit_coop = -6 }
-			cooperatives_change_consumer_coop = yes			
+			UKR_cooperatives_change_consumer_coop = yes			
 			recalculate_cooperatives = yes
 		}
 	}
@@ -16731,7 +17050,7 @@ UKR_cooperative_movement_decisions = {
 			NOT = { has_country_flag = UKR_cooperatives_increasing_limit_forced }
 		}
 		visible = {
-			check_variable = { cooperatives_upper_limit < 81 }
+			check_variable = { UKR_cooperatives_upper_limit < 81 }
 			OR = {
 				has_completed_focus = UKR_Primacy_Of_Rada
 				UKR_has_socialist_government = no
@@ -16745,11 +17064,11 @@ UKR_cooperative_movement_decisions = {
 			base = 0 
 			modifier = {
 				add = 100
-				check_variable = { cooperatives_consumer_level < 30 }
+				check_variable = { UKR_cooperatives_consumer_level < 30 }
 			}
 			modifier = {
 				factor = 0
-				check_variable = { cooperatives_consumer_level > cooperatives_upper_limit }
+				check_variable = { UKR_cooperatives_consumer_level > UKR_cooperatives_upper_limit }
 			}
 		}
 		modifier = {
@@ -16765,7 +17084,7 @@ UKR_cooperative_movement_decisions = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_incentives_for_market_entry"
 			add_to_variable = { UKR_cooperatives_taken_decision = -1 }
 			set_temp_variable = { change_consumer_coop = 7 }
-			cooperatives_change_consumer_coop = yes			
+			UKR_cooperatives_change_consumer_coop = yes			
 			recalculate_cooperatives = yes
 			custom_effect_tooltip = UKR_incentives_for_market_entry_tt
 			add_to_variable = { UKR_prioritize_lending_cost = 15 }
@@ -16781,7 +17100,7 @@ UKR_cooperative_movement_decisions = {
 			NOT = { has_country_flag = UKR_cooperatives_increasing_limit_forced }
 		}
 		visible = {
-			check_variable = { cooperatives_upper_limit < 81 }
+			check_variable = { UKR_cooperatives_upper_limit < 81 }
 		}
 		cost = cooperatives_cost_decision
 		fire_only_once = no
@@ -16791,11 +17110,11 @@ UKR_cooperative_movement_decisions = {
 			base = 0 
 			modifier = {
 				add = 100
-				check_variable = { cooperatives_consumer_level < 30 }
+				check_variable = { UKR_cooperatives_consumer_level < 30 }
 			}
 			modifier = {
 				factor = 0
-				check_variable = { cooperatives_consumer_level > cooperatives_upper_limit }
+				check_variable = { UKR_cooperatives_consumer_level > UKR_cooperatives_upper_limit }
 			}
 		}
 		modifier = {
@@ -16810,15 +17129,15 @@ UKR_cooperative_movement_decisions = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_consumer_cooperation_federations"
 			add_to_variable = { UKR_cooperatives_taken_decision = -1 }
 			set_temp_variable = { change_consumer_coop = 3 }
-			cooperatives_change_consumer_coop = yes
+			UKR_cooperatives_change_consumer_coop = yes
 			random_list = {
 				50 = {
 					set_temp_variable = { change_agrarian_coop = -5 }
-					cooperatives_change_agrarian_coop = yes
+					UKR_cooperatives_change_agrarian_coop = yes
 				}
 				50 = {
 					set_temp_variable = { change_workers_coop = -5 }
-					cooperatives_change_workers_coop = yes
+					UKR_cooperatives_change_workers_coop = yes
 				}
 			}
 			recalculate_cooperatives = yes
@@ -16833,7 +17152,7 @@ UKR_cooperative_movement_decisions = {
 			NOT = { has_country_flag = UKR_cooperatives_increasing_limit_forced }
 		}
 		visible = {
-			check_variable = { cooperatives_upper_limit < 81 }
+			check_variable = { UKR_cooperatives_upper_limit < 81 }
 		}
 		cost = UKR_prioritize_lending_cost?50
 		fire_only_once = no
@@ -16843,11 +17162,11 @@ UKR_cooperative_movement_decisions = {
 			base = 0 
 			modifier = {
 				add = 100
-				check_variable = { cooperatives_credit_level < 35 }
+				check_variable = { UKR_cooperatives_credit_level < 35 }
 			}
 			modifier = {
 				factor = 0
-				check_variable = { cooperatives_credit_level > cooperatives_upper_limit }
+				check_variable = { UKR_cooperatives_credit_level > UKR_cooperatives_upper_limit }
 			}
 		}
 		modifier = {
@@ -16870,7 +17189,7 @@ UKR_cooperative_movement_decisions = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_prioritize_lending"
 			add_to_variable = { UKR_cooperatives_taken_decision = -1 }
 			set_temp_variable = { change_credit_coop = 7 }
-			cooperatives_change_credit_coop = yes		
+			UKR_cooperatives_change_credit_coop = yes		
 			custom_effect_tooltip = UKR_prioritize_lending_tt2
 			add_to_variable = { cooperatives_cost_decision = -10 }
 			add_to_variable = { cooperatives_cost_decision1 = -10 }
@@ -16891,7 +17210,7 @@ UKR_cooperative_movement_decisions = {
 			NOT = { has_country_flag = UKR_cooperatives_increasing_limit_forced }
 		}
 		visible = {
-			check_variable = { cooperatives_upper_limit < 81 }
+			check_variable = { UKR_cooperatives_upper_limit < 81 }
 		}
 		cost = UKR_community_outreach_cost?70
 		fire_only_once = no
@@ -16901,11 +17220,11 @@ UKR_cooperative_movement_decisions = {
 			base = 0 
 			modifier = {
 				add = 100
-				check_variable = { cooperatives_credit_level < 35 }
+				check_variable = { UKR_cooperatives_credit_level < 35 }
 			}
 			modifier = {
 				factor = 0
-				check_variable = { cooperatives_credit_level > cooperatives_upper_limit }
+				check_variable = { UKR_cooperatives_credit_level > UKR_cooperatives_upper_limit }
 			}
 		}
 		modifier = {
@@ -16926,7 +17245,7 @@ UKR_cooperative_movement_decisions = {
 			add_to_variable = { UKR_cooperatives_taken_decision = -1 }
 			clr_country_flag = UKR_cooperatives_taken_decision
 			set_temp_variable = { change_credit_coop = 12 }
-			cooperatives_change_credit_coop = yes	
+			UKR_cooperatives_change_credit_coop = yes	
 			add_to_variable = { cooperatives_cost_decision = 20 }
 			add_to_variable = { cooperatives_cost_decision1 = 20 }
 			add_to_variable = { UKR_foster_partnerships_agrarian_cost = 20 }

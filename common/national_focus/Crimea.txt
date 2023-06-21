@@ -105,9 +105,14 @@ focus_tree = {
 			}
 			modifier = {
 				factor = 0
-				has_game_rule = {
-					rule = CRM_foreign_path
-					option = CRM_RUSSIA
+				OR = {
+					has_game_rule = { rule = CRM_foreign_path option = CRM_OTTOMANS }
+					has_game_rule = { rule = CRM_foreign_path option = CRM_RUSSIA }
+					has_game_rule = { rule = CRM_foreign_path option = CRM_UKRAINE }
+					AND = {
+						has_game_rule = { rule = CRM_path option = CRM_KHANATE }
+						CRM_crimean_khanate = no
+					}
 				}
 			}
 		}
@@ -271,6 +276,7 @@ focus_tree = {
 		prerequisite = { focus = CRM_Move_Into_Tauria }
 		available = { 
 			CRM_has_tatar_resistance = no
+			CRM_german_colonial_administration_in_power = yes
 		}
 		completion_reward = {
 			log = "[GetDateText]: [Root.GetName]: Focus CRM_Fate_Of_Administration"
@@ -307,6 +313,23 @@ focus_tree = {
 			log = "[GetDateText]: [Root.GetName]: Focus GER_Consolidate_Power"
 			increase_ruling_party_popularity_by_10 = yes
 			add_stability = 0.05
+			if = {
+				limit = { has_idea = CRM_german_treaty }
+				swap_ideas = {
+					remove_idea = CRM_german_treaty
+					add_idea = CRM_colonisation_1
+				}
+			}
+			else = {
+				add_ideas = CRM_colonisation_1
+			}
+			if = {
+				limit = { 
+					is_subject_of = GER 
+					owns_state = 196
+				}
+				country_event = crm.103
+			}
 		}
 	}
 	focus = {
@@ -318,11 +341,15 @@ focus_tree = {
 		y = 2
 		prerequisite = { focus = GER_Consolidate_Power }
 		available = {
-			has_government = authoritarian_democrat
+			CRM_german_colonial_administration_in_power = yes
+		}
+		bypass = {
+			NOT = { is_subject_of = GER }
 		}
 		completion_reward = {
 			log = "[GetDateText]: [Root.GetName]: Focus GER_Request_Arms_From_Berlin"
-			custom_effect_tooltip = unlock_focuses
+			custom_effect_tooltip = GER_Request_Arms_From_Berlin_tt
+			activate_targeted_decision = { target = GER decision = CRM_buy_trucks }
 		}
 	}
 	focus = {
@@ -334,11 +361,27 @@ focus_tree = {
 		y = 2
 		prerequisite = { focus = GER_Consolidate_Power }
 		available = {
-			has_government = authoritarian_democrat
+			CRM_german_colonial_administration_in_power = yes
 		}
 		completion_reward = {
 			log = "[GetDateText]: [Root.GetName]: Focus GER_Change_Hryvnia_With_Mark"
-			custom_effect_tooltip = unlock_focuses
+			GER_add_to_mitteleuropa = yes
+			swap_ideas = {
+				remove_idea = CRM_colonisation_1
+				add_idea = CRM_colonisation_2
+			}
+			add_timed_idea = {
+				idea = CRM_new_currency
+				days = 365
+			}
+			custom_effect_tooltip = tooltip_white_line
+			custom_effect_tooltip = after_idea_expires
+			effect_tooltip = {
+				swap_ideas = {
+					remove_idea = CRM_new_currency
+					add_idea = CRM_new_currency_solidified
+				}
+			}
 		}
 	}
 	focus = {
@@ -354,7 +397,8 @@ focus_tree = {
 		}
 		completion_reward = {
 			log = "[GetDateText]: [Root.GetName]: Focus GER_Cooperate_With_Natives"
-			custom_effect_tooltip = unlock_focuses
+			increase_ruling_party_popularity_by_5 = yes
+			add_stability = CRM_local_tatar_representation
 		}
 	}
 	focus = {
@@ -372,7 +416,7 @@ focus_tree = {
 		}
 		completion_reward = {
 			log = "[GetDateText]: [Root.GetName]: Focus GER_Revert_1915_Land_Law_Russia"
-			custom_effect_tooltip = unlock_focuses
+			country_event = crm.98			
 		}
 	}
 	focus = {
@@ -381,16 +425,56 @@ focus_tree = {
 		cost = 4
 		relative_position_id = CRM_Die_Kronkolonie
 		x = 0
-		y = 6
-		prerequisite = { focus = GER_Schwarzmeerdeutsche }
-		prerequisite = { focus = GER_Invest_In_Colonialism }
-		prerequisite = { focus = GER_Modernize_Ukrainian_Fleet }
+		y = 4
+		prerequisite = { focus = GER_Revert_1915_Land_Law_Russia }
 		available = {
 			CRM_german_colonial_administration_in_power = yes		
 		}
 		completion_reward = {
 			log = "[GetDateText]: [Root.GetName]: Focus GER_A_Base_To_Guard_Allies"
-			custom_effect_tooltip = unlock_focuses
+			if = {
+				limit = { 
+					1221 = { is_owned_and_controlled_by = ROOT }
+				}
+				1221 = {
+					add_building_construction = {
+						type = coastal_bunker
+						level = 1
+						province = 957
+						instant_build = yes
+					}
+					add_building_construction = {
+						type = naval_base
+						level = 1
+						province = 957
+						instant_build = yes
+					}
+					add_building_construction = {
+						type = infrastructure
+						level = 2
+						instant_build = yes
+					}
+					increase_state_category_by_two_levels = yes
+					add_building_construction = {
+						type = dockyard
+						level = 1
+						instant_build = yes
+					}
+				}
+			}
+			if = {
+				limit = { has_dlc = "Man the Guns" }
+				add_mines = { region = 30 amount = 120 }
+			}
+			random_owned_controlled_state = {
+				prioritize = { 1221 }
+				add_extra_state_shared_building_slots = 2
+				add_building_construction = {
+					type = arms_factory
+					level = 2
+					instant_build = yes
+				}				
+			}
 		}
 	}
 	focus = {
@@ -406,7 +490,16 @@ focus_tree = {
 		}
 		completion_reward = {
 			log = "[GetDateText]: [Root.GetName]: Focus GER_Develop_Colonial_Settlements"
-			custom_effect_tooltip = unlock_focuses
+			random_owned_controlled_state = {
+				prioritize = { 137 }
+				increase_state_category_by_two_levels = yes 
+				add_building_construction = {
+					type = industrial_complex
+					level = 1
+					instant_build = yes
+				}
+			}
+			country_event = crm.187
 		}
 	}
 	focus = {
@@ -420,9 +513,18 @@ focus_tree = {
 		available = {
 			CRM_german_colonial_administration_in_power = yes		
 		}
+		bypass = {
+			NOT = { is_subject_of = GER }
+		}
 		completion_reward = {
 			log = "[GetDateText]: [Root.GetName]: Focus GER_Request_Kaiserliche_Marine"
-			custom_effect_tooltip = unlock_focuses
+			add_doctrine_cost_reduction = {
+				name = GER_Request_Kaiserliche_Marine
+				cost_reduction = 0.5
+				uses = 2
+				category = naval_doctrine
+			}
+			add_ideas = CRM_german_naval_attache
 		}
 	}
 	focus = {
@@ -438,7 +540,10 @@ focus_tree = {
 		}
 		completion_reward = {
 			log = "[GetDateText]: [Root.GetName]: Focus GER_Invest_In_Colonialism"
-			custom_effect_tooltip = unlock_focuses
+			swap_ideas = {
+				remove_idea = CRM_colonisation_3
+				add_idea = CRM_colonisation_4
+			}
 		}
 	}
 	focus = {
@@ -454,7 +559,27 @@ focus_tree = {
 		}
 		completion_reward = {
 			log = "[GetDateText]: [Root.GetName]: Focus GER_Modernize_Ukrainian_Fleet"
-			custom_effect_tooltip = unlock_focuses
+			if = {
+				limit = {
+					UKR = {
+						NOT = { has_country_flag = UKR_transfered_our_fleet_to_CRM }
+					}
+				}
+				CRM_start_naval_variant = yes
+				hidden_effect = { load_oob = "CRM_naval" }
+			}
+			add_tech_bonus = {
+				name = GER_Modernize_Ukrainian_Fleet
+				bonus = 1
+				uses = 3
+				category = dd_tech
+			}
+			add_tech_bonus = {
+				name = GER_Modernize_Ukrainian_Fleet
+				bonus = 1
+				uses = 3
+				category = ss_tech
+			}
 		}
 	}
 	focus = {
@@ -463,14 +588,16 @@ focus_tree = {
 		cost = 4
 		relative_position_id = CRM_Die_Kronkolonie
 		x = 0
-		y = 4
-		prerequisite = { focus = GER_Revert_1915_Land_Law_Russia }
+		y = 6
+		prerequisite = { focus = GER_A_Base_To_Guard_Allies }
+		prerequisite = { focus = GER_Invest_In_Colonialism }
+		prerequisite = { focus = GER_Modernize_Ukrainian_Fleet }
 		available = {
 			CRM_german_colonial_administration_in_power = yes		
 		}
 		completion_reward = {
 			log = "[GetDateText]: [Root.GetName]: Focus GER_Schwarzmeerdeutsche"
-			custom_effect_tooltip = unlock_focuses
+			country_event = crm.99
 		}
 	}
 	focus = {
@@ -972,10 +1099,7 @@ focus_tree = {
 		}
 		select_effect = {
 			if = {
-				limit = { 
-					CRM_crimean_khanate = no 
-					NOT = { is_subject_of = UKR }
-				}
+				limit = { CRM_crimean_khanate = no }
 				country_event = {
 					id = crm.1050
 					days = 5
@@ -1982,7 +2106,6 @@ focus_tree = {
 		prerequisite = {
 			focus = CRM_Join_The_Russian_Sphere
 			focus = CRM_German_Assistance
-			focus = CRM_Join_Ukraine
 		}
 		available = {
 			CRM_lenin = no
@@ -2076,6 +2199,7 @@ focus_tree = {
 		relative_position_id = CRM_Join_The_Russian_Sphere
 		x = -5
 		y = 3
+		ai_will_do = { factor = 100 }
 		available = {
 			OR = {
 				has_completed_focus = CRM_Draft_Constitution
@@ -2095,9 +2219,7 @@ focus_tree = {
 		relative_position_id = CRM_Directorate_Of_Economy_And_Military
 		x = 1
 		y = 2
-		ai_will_do = {
-			base = 1
-		}
+		ai_will_do = { factor = 100 }
 		available = {
 			OR = {
 				has_idea = CRM_water_shortage
@@ -2120,7 +2242,7 @@ focus_tree = {
 			custom_effect_tooltip = "We will start our efforts to eradicate water shortage"
 			activate_targeted_decision = { target = 137 decision = CRM_Build_Alminsk_Reservoir }
 			activate_targeted_decision = { target = 137 decision = CRM_Build_Ayan_Reservoir }
-			activate_targeted_decision = { targe = 196.owner decision = CRM_northern_crimean_canal }
+			activate_targeted_decision = { target = 196.owner decision = CRM_northern_crimean_canal }
 			activate_targeted_decision = { target = UKR decision = CRM_crimean_ukrainian_treaty }
 			unlock_decision_tooltip = CRM_import_water
 		}
@@ -2315,9 +2437,10 @@ focus_tree = {
 		}
 		available = {
 			OR = {
-				CRM_milliy_firqa = yes
 				is_subject_of = TUR
+				is_subject = no
 			}
+			has_socialist_government = no
 		}
 		mutually_exclusive = {
 			focus = CRM_Legacy_Of_Ukrainian_Army
@@ -2341,7 +2464,7 @@ focus_tree = {
 		icon = GFX_goal_generic_drafted_army
 		cost = 2
 		relative_position_id = CRM_The_Crimean_Army
-		x = -1
+		x = 0
 		y = 2
 		prerequisite = {
 			focus = CRM_Ottoman_Advisors
@@ -2416,6 +2539,7 @@ focus_tree = {
 							tag = TUR
 							tag = RUS
 							tag = CAN
+							tag = UKR
 						}
 					}
 					ROOT = {
@@ -2715,12 +2839,31 @@ focus_tree = {
 		}
 	}
 	focus = {
+		id = CRM_The_Crimean_Black_Fleet
+		icon = GFX_goal_generic_black_sea
+		cost = 2
+		relative_position_id = CRM_The_Crimean_Army
+		x = 3
+		y = 2
+		available = {
+			1221 = { is_owned_and_controlled_by = ROOT }
+			OR = {
+				has_completed_focus = CRM_Draft_Constitution
+				CRM_karaites = yes
+			}
+		}
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus CRM_The_Crimean_Black_Fleet"
+			add_ideas = CRM_legacy_of_black_sea_fleet
+		}
+	}
+	focus = {
 		id = CRM_Revive_Sevastopol_Shipyards
 		icon = GFX_goal_generic_naval_base
 		cost = 4
-		relative_position_id = CRM_The_Crimean_Army
-		x = 2
-		y = 4
+		relative_position_id = CRM_The_Crimean_Black_Fleet
+		x = 0
+		y = 2
 		prerequisite = { focus = CRM_The_Crimean_Black_Fleet }
 		available = {
 			1221 = { is_owned_and_controlled_by = ROOT }
@@ -2737,26 +2880,6 @@ focus_tree = {
 			}
 			CRM_start_naval_variant = yes
 			hidden_effect = { load_oob = "CRM_naval" }
-		}
-	}
-	focus = {
-		id = CRM_The_Crimean_Black_Fleet
-		icon = GFX_goal_generic_black_sea
-		cost = 2
-		relative_position_id = CRM_The_Crimean_Army
-		x = 1
-		y = 2
-		available = {
-			1221 = { is_owned_and_controlled_by = ROOT }
-		}
-		prerequisite = {
-			focus = CRM_Ottoman_Advisors
-			focus = CRM_German_Advisors
-			focus = CRM_Legacy_Of_Ukrainian_Army
-		}
-		completion_reward = {
-			log = "[GetDateText]: [Root.GetName]: Focus CRM_The_Crimean_Black_Fleet"
-			add_ideas = CRM_legacy_of_black_sea_fleet
 		}
 	}
 	focus = {

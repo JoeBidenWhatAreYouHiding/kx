@@ -30,7 +30,16 @@ CRM_criman_rebellion = {
 		}
 		timeout_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision timeout CRM_the_uprising_succeeds"
-			country_event = crm.23
+			if = {
+				limit = { 
+					is_ai = yes 
+					has_game_rule = { rule = CRM_path option = CRM_GERMAN_PUPPET }
+				}
+				country_event = crm.26
+			}
+			else = {
+				country_event = crm.23
+			}
 		}
 	}
 	CRM_use_military_force = {
@@ -244,7 +253,23 @@ CRM_criman_rebellion = {
 		}
 		timeout_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision timeout CRM_the_uprising_fails"
-			country_event = crm.26
+			if = {
+				limit = { 
+					is_ai = yes 
+					OR = {
+						has_game_rule = { rule = CRM_path option = CRM_LENINIST }
+						has_game_rule = { rule = CRM_path option = CRM_LIBSOC_REPUBLIC }
+						has_game_rule = { rule = CRM_path option = CRM_MARLIB_REPUBLIC }
+						has_game_rule = { rule = CRM_path option = CRM_AUTHDEM_REPUBLIC }
+						has_game_rule = { rule = CRM_path option = CRM_KHANATE }
+						has_game_rule = { rule = CRM_path option = CRM_KHAZARS }
+					}
+				}
+				country_event = crm.23
+			}
+			else = {
+				country_event = crm.26
+			}
 		}
 	}
 	CRM_attack_infrastructure = {
@@ -1521,10 +1546,23 @@ CRM_arms_trade = {
 		}
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CRM_buy_infantry"
-			add_equipment_to_stockpile = {
-				type = infantry_equipment_1
-				amount = 2500
-				producer = FROM
+			if = {
+				limit = {
+					has_completed_focus = GER_Request_Arms_From_Berlin
+					FROM = { tag = GER }
+				}
+				add_equipment_to_stockpile = {
+					type = infantry_equipment_1
+					amount = 5000
+					producer = FROM
+				}
+			}
+			else = {
+				add_equipment_to_stockpile = {
+					type = infantry_equipment_1
+					amount = 2500
+					producer = FROM
+				}
 			}
 		}
 	}
@@ -1624,10 +1662,23 @@ CRM_arms_trade = {
 		}
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CRM_buy_support"
-			add_equipment_to_stockpile = {
-				type = support_equipment_1
-				amount = 400
-				producer = FROM
+			if = {
+				limit = {
+					has_completed_focus = GER_Request_Arms_From_Berlin
+					FROM = { tag = GER }
+				}
+				add_equipment_to_stockpile = {
+					type = support_equipment_1
+					amount = 800
+					producer = FROM
+				}
+			}
+			else = {
+				add_equipment_to_stockpile = {
+					type = support_equipment_1
+					amount = 400
+					producer = FROM
+				}
 			}
 		}
 	}
@@ -1727,11 +1778,69 @@ CRM_arms_trade = {
 		}
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove CRM_buy_artillery"
-			add_equipment_to_stockpile = {
-				type = artillery_equipment_1
-				amount = 400
-				producer = FROM
+			if = {
+				limit = {
+					has_completed_focus = GER_Request_Arms_From_Berlin
+					FROM = { tag = GER }
+				}
+				add_equipment_to_stockpile = {
+					type = artillery_equipment_1
+					amount = 800
+					producer = FROM
+				}
+			}
+			else = {
+				add_equipment_to_stockpile = {
+					type = artillery_equipment_1
+					amount = 400
+					producer = FROM
+				}
 			}
 		}
 	}
+	CRM_buy_trucks = { #purchase German motorized
+		name = KUB_buy_motorized
+		icon = GFX_decision_generic_motorized
+		allowed = { always = no }
+		visible = {
+			FROM = { is_subject = no }
+			is_subject = no
+			NOT = { has_war_with = FROM }
+		}
+		cancel_if_not_visible = yes
+		fire_only_once = no
+		days_remove = 40
+		days_re_enable = 150
+
+		ai_will_do = {
+			factor = 0
+			modifier = {
+				# avoid division by zero
+				check_variable = { num_target_equipment_in_armies@motorized_equipment > 0 }
+
+				set_temp_variable = { CRM_motorised_ratio = num_equipment_in_armies@motorized_equipment }
+				divide_temp_variable = { CRM_motorised_ratio = num_target_equipment_in_armies@motorized_equipment }
+
+				set_temp_variable = { CRM_purchase_motorised_factor = 1 }
+				subtract_from_temp_variable = { CRM_purchase_motorised_factor = CRM_motorised_ratio }
+				multiply_temp_variable = { CRM_purchase_motorised_factor = 20 }
+
+				add = CRM_purchase_motorised_factor
+			}
+		}
+
+		cost = 80
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel CRM_buy_trucks"
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CRM_buy_trucks"
+			add_equipment_to_stockpile = {
+				type = motorized_equipment_1
+				amount = 100
+				producer = FROM
+			}
+		}
+	}	
 }
