@@ -574,7 +574,14 @@ UKR_industrial_score = {
 	custom_effect_tooltip = UKR_add_industrial_score_tt
 	add_to_variable = { UKR_industrial_score = UKR_influence_change }
 }
-
+UKR_industrial_score_bonuses = {
+	if = {
+		limit = {
+			has_country_flag = UKR_socialist_nationalization
+		}
+		add_stability = -0.02
+	}
+}
 UKR_land_reform_borotbysts_weaken = {
 	if = {
 		limit = { 
@@ -649,19 +656,22 @@ UKR_recalculate_land_reform = {
 	add_to_variable = { UKR_Land_Reform_Borotbysts = UKR_Land_Reform_Borotbysts_extra }
 			
 	if = {
-		limit = {
-			check_variable = { UKR_Land_Reform_Borotbysts > 90 }
+		limit = { has_active_mission = UKR_Land_Reform_Plan }
+		if = {
+			limit = {
+				check_variable = { UKR_Land_Reform_Borotbysts > 90 }
+			}
+			country_event = ukrsoc.200
 		}
-		country_event = ukrsoc.200
-	}
-	if = {
-		limit = {
-			set_temp_variable = { UKR_reform_suc = UKR_Land_Reform_Success }
-			add_to_temp_variable = { UKR_reform_suc = UKR_Land_Reform_Popularity }
-			divide_temp_variable = { UKR_reform_suc = 2 }
-			check_variable = { UKR_reform_suc < 10 }
+		if = {
+			limit = {
+				set_temp_variable = { UKR_reform_suc = UKR_Land_Reform_Success }
+				add_to_temp_variable = { UKR_reform_suc = UKR_Land_Reform_Popularity }
+				divide_temp_variable = { UKR_reform_suc = 2 }
+				check_variable = { UKR_reform_suc < 10 }
+			}
+			activate_mission = UKR_Land_Reform_Plan_Danger
 		}
-		activate_mission = UKR_Land_Reform_Plan_Danger
 	}
 }
 UKR_land_reform_initiate_borotbyst_riot = {
@@ -778,6 +788,7 @@ UKR_land_reform_events = {
 		country_event = { id = ukreco.4 days = 25 random_days = 15 }
 		country_event = { id = ukreco.5 days = 50 random_days = 15  }
 		country_event = { id = ukreco.8 days = 70 random_days = 15  }
+		country_event = { id = ukreco.9 days = 10 random_days = 15  }
 		country_event = { id = ukreco.11 days = 80 random_days = 15  }
 		country_event = { id = ukreco.8 days = 95 random_days = 15  }
 		country_event = { id = ukreco.14 days = 20 random_days = 15  }
@@ -792,7 +803,172 @@ UKR_land_reform_events = {
 		country_event = { id = ukreco.22 days = 80 random_days = 15  }
 	}
 }
-
+UKR_activate_investigation_decisions = {
+	unlock_decision_category_tooltip = UKR_explosion_investigation
+	activate_targeted_decision = { decision = UKR_interview_survivors target = ROOT }
+	activate_targeted_decision = { decision = UKR_examine_intelligence target = ROOT }
+	activate_targeted_decision = { decision = UKR_trace_explosive_device target = ROOT }
+	activate_targeted_decision = { decision = UKR_scrutinize_domestic_rivals target = ROOT }
+	activate_targeted_decision = { decision = UKR_finalize_investigation target = ROOT }
+}
+UKR_teardown_investigation_decisions = {
+	remove_targeted_decision = { decision = UKR_interview_survivors target = ROOT }
+	remove_targeted_decision = { decision = UKR_examine_intelligence target = ROOT }
+	remove_targeted_decision = { decision = UKR_trace_explosive_device target = ROOT }
+	remove_targeted_decision = { decision = UKR_scrutinize_domestic_rivals target = ROOT }
+	remove_targeted_decision = { decision = UKR_finalize_investigation target = ROOT }
+}
+UKR_determine_the_killer = {
+	if = {
+		limit = {
+			check_variable = { UKR_inv_derzhvarta > UKR_inv_borotbysts }
+			check_variable = { UKR_inv_derzhvarta > UKR_inv_dyrektoria }
+			check_variable = { UKR_inv_derzhvarta > UKR_inv_uvo }
+			check_variable = { UKR_inv_derzhvarta > UKR_inv_upss }
+		}
+		set_country_flag = UKR_assassin_derzhvarta
+	}
+	else_if = {
+		limit = {
+			check_variable = { UKR_inv_dyrektoria > UKR_inv_borotbysts }
+			check_variable = { UKR_inv_dyrektoria > UKR_inv_derzhvarta }
+			check_variable = { UKR_inv_dyrektoria > UKR_inv_uvo }
+			check_variable = { UKR_inv_dyrektoria > UKR_inv_upss }
+			UKR_ukp_in_power = no
+			has_left_democratic_government = no
+		}
+		set_country_flag = UKR_assassin_dyrektoria
+	}
+	else_if = {
+		limit = {
+			check_variable = { UKR_inv_uvo > UKR_inv_borotbysts }
+			check_variable = { UKR_inv_uvo > UKR_inv_derzhvarta }
+			check_variable = { UKR_inv_uvo > UKR_inv_dyrektoria }
+			check_variable = { UKR_inv_uvo > UKR_inv_upss }
+			NOT = { has_government = national_populist }
+			UKR_andriy_melnyk_in_power = no
+		}
+		set_country_flag = UKR_assassin_uvo
+	}
+	else_if = {
+		limit = {
+			check_variable = { UKR_inv_upss > UKR_inv_borotbysts }
+			check_variable = { UKR_inv_upss > UKR_inv_derzhvarta }
+			check_variable = { UKR_inv_upss > UKR_inv_dyrektoria }
+			check_variable = { UKR_inv_upss > UKR_inv_uvo }
+		}
+		set_country_flag = UKR_assassin_upss
+	}
+	else = {
+		set_country_flag = UKR_assassin_borotbysts
+	}
+}
+UKR_assasin_debuffs = {
+	if = {
+		limit = { has_country_flag = UKR_assassin_derzhvarta }
+		custom_effect_tooltip = UKR_assassin_derzhvarta_tt
+		if = {
+			limit = { UKR_is_hetmanate_or_monarchy = yes }
+			add_stability = -0.2
+			decrease_ruling_party_popularity_by_10 = yes
+		}
+		else = {
+			add_stability = -0.1
+		}
+		if = {
+			limit = { has_dlc = "La Resistance" }
+			add_timed_idea = {
+				idea = UKR_derzhvarta_fallout_lar
+				days = 400
+			}
+		}
+		else = {
+			add_timed_idea = {
+				idea = UKR_derzhvarta_fallout
+				days = 400
+			}
+		}
+	}
+	else_if = {
+		limit = { has_country_flag = UKR_assassin_dyrektoria }
+		custom_effect_tooltip = UKR_assassin_dyrektoria_tt
+		increase_ruling_party_popularity_by_10 = yes
+		add_popularity = {
+			ideology = social_democrat
+			popularity = -0.1
+		}
+	}
+	else_if = {
+		limit = { has_country_flag = UKR_assassin_uvo }
+		custom_effect_tooltip = UKR_assassin_uvo_tt
+		add_popularity = {
+			ideology = national_populist
+			popularity = -0.1
+		}
+		hidden_effect = {
+			add_timed_idea = { idea = UKR_nationalist_resistance days = 365 }
+			country_event = {
+				id = ukrpol.268
+				days = 3
+			}
+		}
+	}
+	else_if = {
+		limit = { has_country_flag = UKR_assassin_upss }
+		custom_effect_tooltip = UKR_assassin_upss_tt
+		if = {
+			limit = { has_country_flag = ukr_switched_uskhd_upss }
+			add_popularity = {
+				ideology = authoritarian_democrat
+				popularity = -0.1
+			}
+		}
+		else = {
+			add_popularity = {
+				ideology = social_conservative
+				popularity = -0.1
+			}
+		}
+		random_unit_leader = {
+			limit = { has_id = 17986 }
+			retire = yes 
+		}
+		random_unit_leader = {
+			limit = { has_id = 17942 }
+			retire = yes 
+		}
+		random_unit_leader = {
+			limit = { has_id = 17943 }
+			retire = yes 
+		}
+	}
+	else_if = {
+		limit = { has_country_flag = UKR_assassin_borotbysts }
+		custom_effect_tooltip = UKR_assassin_borotbysts_tt
+		set_temp_variable = { UKR_resistance_change = -10 }
+		UKR_land_reform_borotbysts_weaken = yes 			
+		set_variable = { UKR_Borotbyst_Riot_timeout = 60 }
+		if = {
+			limit = { has_active_mission = UKR_Borotbyst_Riot }
+			add_days_mission_timeout = {
+				mission = UKR_Borotbyst_Riot
+				days = 18
+			}
+		}
+		effect_tooltip = {
+			every_unit_leader = {
+				limit = { has_unit_leader_flag = UKR_borotbyst_loyalist }
+				retire = yes
+			}
+		}
+		hidden_effect = {
+			every_unit_leader = {
+				limit = { has_unit_leader_flag = UKR_borotbyst_loyalist }
+				set_nationality = USR
+			}
+		}
+	}
+}
 UKR_merge_corn_ingridients = {
 	set_country_flag = { flag = UKR_merging_corn_ingridients_flag days = 12 value = 1 }
 	activate_mission = UKR_merging_corn_ingridients
@@ -824,227 +1000,159 @@ UKR_fire_agricultural_crisis = {
 	
 	activate_mission = UKR_Agricultural_Crisis_deadline
 }
-UKR_recalculate_breadbasket = {
-	set_temp_variable = { UKR_positive_factor_from_austria = AUS.breadbasket_supply_fulfilment }
-	multiply_temp_variable = { UKR_positive_factor_from_austria = AUS.breadbasket_supply_reliability }
-	multiply_temp_variable = { UKR_positive_factor_from_austria = 3.4 }
-	set_variable = { UKR_breadbasket_of_europe_factories = UKR_positive_factor_from_austria }
-	
-	set_temp_variable = { UKR_positive_factor_from_germany = GER.breadbasket_supply_fulfilment }
-	multiply_temp_variable = { UKR_positive_factor_from_germany = GER.breadbasket_supply_reliability }
-	multiply_temp_variable = { UKR_positive_factor_from_germany = 3.4 }
-	add_to_variable = { UKR_breadbasket_of_europe_factories = UKR_positive_factor_from_germany }
-	
-	round_variable = UKR_breadbasket_of_europe_factories
-}
 
+UKR_breadbasket_add_global_building_slots = {
+	custom_effect_tooltip = UKR_breadbasket_add_global_building_slots
+	add_to_variable = { UKR_breadbasket_of_europe_global_building_slots = 0.1 } }
+	force_update_dynamic_modifier = yes	
+}
 UKR_breadbasket_add_pp = {
-	if = {
-		limit = {
-			NOT = { check_variable = { UKR_breadbasket_of_europe_pp = 0.15 } }
+	custom_effect_tooltip = UKR_breadbasket_add_pp
+	hidden_effect = {
+		random_list = {
+			10 = { add_to_variable = { UKR_breadbasket_of_europe_pp = 0.02 } }
+			15 = { add_to_variable = { UKR_breadbasket_of_europe_pp = 0.03 } }
+			25 = { add_to_variable = { UKR_breadbasket_of_europe_pp = 0.04 } }
+			25 = { add_to_variable = { UKR_breadbasket_of_europe_pp = 0.05 } }
+			15 = { add_to_variable = { UKR_breadbasket_of_europe_pp = 0.06 } }
 		}
-		custom_effect_tooltip = UKR_breadbasket_add_pp
-		hidden_effect = {
-			random_list = {
-				10 = { add_to_variable = { UKR_breadbasket_of_europe_pp = 0.02 } }
-				15 = { add_to_variable = { UKR_breadbasket_of_europe_pp = 0.03 } }
-				25 = { add_to_variable = { UKR_breadbasket_of_europe_pp = 0.04 } }
-				25 = { add_to_variable = { UKR_breadbasket_of_europe_pp = 0.05 } }
-				15 = { add_to_variable = { UKR_breadbasket_of_europe_pp = 0.06 } }
-			}
-			force_update_dynamic_modifier = yes
-		}
+		force_update_dynamic_modifier = yes
 	}
 }
 UKR_breadbasket_remove_pp = {
-	if = {
-		limit = {
-			NOT = { check_variable = { UKR_breadbasket_of_europe_pp = -0.05 } }
+	custom_effect_tooltip = UKR_breadbasket_remove_pp
+	hidden_effect = {
+		random_list = {
+			15 = { add_to_variable = { UKR_breadbasket_of_europe_pp = -0.02 } }
+			25 = { add_to_variable = { UKR_breadbasket_of_europe_pp = -0.03 } }
+			25 = { add_to_variable = { UKR_breadbasket_of_europe_pp = -0.04 } }
+			15 = { add_to_variable = { UKR_breadbasket_of_europe_pp = -0.05 } }
+			10 = { add_to_variable = { UKR_breadbasket_of_europe_pp = -0.06 } }
 		}
-		custom_effect_tooltip = UKR_breadbasket_remove_pp
-		hidden_effect = {
-			random_list = {
-				15 = { add_to_variable = { UKR_breadbasket_of_europe_pp = -0.02 } }
-				25 = { add_to_variable = { UKR_breadbasket_of_europe_pp = -0.03 } }
-				25 = { add_to_variable = { UKR_breadbasket_of_europe_pp = -0.04 } }
-				15 = { add_to_variable = { UKR_breadbasket_of_europe_pp = -0.05 } }
-				10 = { add_to_variable = { UKR_breadbasket_of_europe_pp = -0.06 } }
-			}
-			force_update_dynamic_modifier = yes
-		}
+		force_update_dynamic_modifier = yes
 	}
 }
 UKR_breadbasket_add_monthly_population = {
-	if = {
-		limit = {
-			NOT = { check_variable = { UKR_breadbasket_of_europe_monthly_pop = 0.25 } }
+	custom_effect_tooltip = UKR_breadbasket_add_monthly_population
+	hidden_effect = {
+		random_list = {
+			10 = { add_to_variable = { UKR_breadbasket_of_europe_monthly_pop = 0.04 } }
+			15 = { add_to_variable = { UKR_breadbasket_of_europe_monthly_pop = 0.05 } }
+			25 = { add_to_variable = { UKR_breadbasket_of_europe_monthly_pop = 0.06 } }
+			25 = { add_to_variable = { UKR_breadbasket_of_europe_monthly_pop = 0.07 } }
+			15 = { add_to_variable = { UKR_breadbasket_of_europe_monthly_pop = 0.08 } }
 		}
-		custom_effect_tooltip = UKR_breadbasket_add_monthly_population
-		hidden_effect = {
-			random_list = {
-				10 = { add_to_variable = { UKR_breadbasket_of_europe_monthly_pop = 0.04 } }
-				15 = { add_to_variable = { UKR_breadbasket_of_europe_monthly_pop = 0.05 } }
-				25 = { add_to_variable = { UKR_breadbasket_of_europe_monthly_pop = 0.06 } }
-				25 = { add_to_variable = { UKR_breadbasket_of_europe_monthly_pop = 0.07 } }
-				15 = { add_to_variable = { UKR_breadbasket_of_europe_monthly_pop = 0.08 } }
-			}
-			force_update_dynamic_modifier = yes
-		}
+		force_update_dynamic_modifier = yes
 	}
 }
 UKR_breadbasket_remove_monthly_population = {
-	if = {
-		limit = {
-			NOT = { check_variable = { UKR_breadbasket_of_europe_monthly_pop = 0 } }
+	custom_effect_tooltip = UKR_breadbasket_remove_monthly_population
+	hidden_effect = {
+		random_list = {
+			15 = { add_to_variable = { UKR_breadbasket_of_europe_monthly_pop = -0.04 } }
+			25 = { add_to_variable = { UKR_breadbasket_of_europe_monthly_pop = -0.05 } }
+			25 = { add_to_variable = { UKR_breadbasket_of_europe_monthly_pop = -0.06 } }
+			15 = { add_to_variable = { UKR_breadbasket_of_europe_monthly_pop = -0.07 } }
+			10 = { add_to_variable = { UKR_breadbasket_of_europe_monthly_pop = -0.08 } }
 		}
-		custom_effect_tooltip = UKR_breadbasket_remove_monthly_population
-		hidden_effect = {
-			random_list = {
-				15 = { add_to_variable = { UKR_breadbasket_of_europe_monthly_pop = -0.04 } }
-				25 = { add_to_variable = { UKR_breadbasket_of_europe_monthly_pop = -0.05 } }
-				25 = { add_to_variable = { UKR_breadbasket_of_europe_monthly_pop = -0.06 } }
-				15 = { add_to_variable = { UKR_breadbasket_of_europe_monthly_pop = -0.07 } }
-				10 = { add_to_variable = { UKR_breadbasket_of_europe_monthly_pop = -0.08 } }
-			}
-			force_update_dynamic_modifier = yes
-		}
+		force_update_dynamic_modifier = yes
 	}
 }
 UKR_breadbasket_add_trade_opinion = {
-	if = {
-		limit = {
-			NOT = { check_variable = { UKR_breadbasket_of_europe_trade_opinion = 0.35 } }
+	custom_effect_tooltip = UKR_breadbasket_add_trade_opinion
+	hidden_effect = {
+		random_list = {
+			10 = { add_to_variable = { UKR_breadbasket_of_europe_trade_opinion = 0.04 } }
+			15 = { add_to_variable = { UKR_breadbasket_of_europe_trade_opinion = 0.05 } }
+			25 = { add_to_variable = { UKR_breadbasket_of_europe_trade_opinion = 0.06 } }
+			25 = { add_to_variable = { UKR_breadbasket_of_europe_trade_opinion = 0.07 } }
+			15 = { add_to_variable = { UKR_breadbasket_of_europe_trade_opinion = 0.08 } }
 		}
-		custom_effect_tooltip = UKR_breadbasket_add_trade_opinion
-		hidden_effect = {
-			random_list = {
-				10 = { add_to_variable = { UKR_breadbasket_of_europe_trade_opinion = 0.04 } }
-				15 = { add_to_variable = { UKR_breadbasket_of_europe_trade_opinion = 0.05 } }
-				25 = { add_to_variable = { UKR_breadbasket_of_europe_trade_opinion = 0.06 } }
-				25 = { add_to_variable = { UKR_breadbasket_of_europe_trade_opinion = 0.07 } }
-				15 = { add_to_variable = { UKR_breadbasket_of_europe_trade_opinion = 0.08 } }
-			}
-			force_update_dynamic_modifier = yes
-		}
-	}
+		force_update_dynamic_modifier = yes
+	}	
 }
 UKR_breadbasket_remove_trade_opinion = {
-	if = {
-		limit = {
-			NOT = { check_variable = { UKR_breadbasket_of_europe_trade_opinion = -0.15 } }
+	custom_effect_tooltip = UKR_breadbasket_remove_trade_opinion
+	hidden_effect = {
+		random_list = {
+			15 = { add_to_variable = { UKR_breadbasket_of_europe_trade_opinion = -0.04 } }
+			25 = { add_to_variable = { UKR_breadbasket_of_europe_trade_opinion = -0.05 } }
+			25 = { add_to_variable = { UKR_breadbasket_of_europe_trade_opinion = -0.06 } }
+			15 = { add_to_variable = { UKR_breadbasket_of_europe_trade_opinion = -0.07 } }
+			10 = { add_to_variable = { UKR_breadbasket_of_europe_trade_opinion = -0.08 } }
 		}
-		custom_effect_tooltip = UKR_breadbasket_remove_trade_opinion
-		hidden_effect = {
-			random_list = {
-				15 = { add_to_variable = { UKR_breadbasket_of_europe_trade_opinion = -0.04 } }
-				25 = { add_to_variable = { UKR_breadbasket_of_europe_trade_opinion = -0.05 } }
-				25 = { add_to_variable = { UKR_breadbasket_of_europe_trade_opinion = -0.06 } }
-				15 = { add_to_variable = { UKR_breadbasket_of_europe_trade_opinion = -0.07 } }
-				10 = { add_to_variable = { UKR_breadbasket_of_europe_trade_opinion = -0.08 } }
-			}
-			force_update_dynamic_modifier = yes
-		}
+		force_update_dynamic_modifier = yes
 	}
 }
 UKR_breadbasket_add_resource_penalty = {
-	if = {
-		limit = {
-			NOT = { check_variable = { UKR_breadbasket_of_europe_resource_penalty = 0.1 } }
-		}
-		custom_effect_tooltip = UKR_breadbasket_add_resource_penalty
-		hidden_effect = {
-			add_to_variable = { UKR_breadbasket_of_europe_resource_penalty = 0.05 }
-			force_update_dynamic_modifier = yes
-		}
-	}
+	custom_effect_tooltip = UKR_breadbasket_add_resource_penalty
+	hidden_effect = {
+		add_to_variable = { UKR_breadbasket_of_europe_resource_penalty = 0.05 }
+		force_update_dynamic_modifier = yes
+	}	
 }
 UKR_breadbasket_remove_resource_penalty = {
-	if = {
-		limit = {
-			NOT = { check_variable = { UKR_breadbasket_of_europe_resource_penalty = -0.25 } }
+	custom_effect_tooltip = UKR_breadbasket_remove_resource_penalty
+	hidden_effect = {
+		random_list = {
+			15 = { add_to_variable = { UKR_breadbasket_of_europe_resource_penalty = -0.02 } }
+			25 = { add_to_variable = { UKR_breadbasket_of_europe_resource_penalty = -0.03 } }
+			25 = { add_to_variable = { UKR_breadbasket_of_europe_resource_penalty = -0.04 } }
+			15 = { add_to_variable = { UKR_breadbasket_of_europe_resource_penalty = -0.05 } }
+			10 = { add_to_variable = { UKR_breadbasket_of_europe_resource_penalty = -0.06 } }
 		}
-		custom_effect_tooltip = UKR_breadbasket_remove_resource_penalty
-		hidden_effect = {
-			random_list = {
-				15 = { add_to_variable = { UKR_breadbasket_of_europe_resource_penalty = -0.02 } }
-				25 = { add_to_variable = { UKR_breadbasket_of_europe_resource_penalty = -0.03 } }
-				25 = { add_to_variable = { UKR_breadbasket_of_europe_resource_penalty = -0.04 } }
-				15 = { add_to_variable = { UKR_breadbasket_of_europe_resource_penalty = -0.05 } }
-				10 = { add_to_variable = { UKR_breadbasket_of_europe_resource_penalty = -0.06 } }
-			}
-			force_update_dynamic_modifier = yes
-		}
-	}
+		force_update_dynamic_modifier = yes
+	}	
 }
 UKR_breadbasket_add_consumer_goods = {
-	if = {
-		limit = {
-			NOT = { check_variable = { UKR_breadbasket_of_europe_consumer_goods = 0.15 } }
+	custom_effect_tooltip = UKR_breadbasket_add_consumer_goods
+	hidden_effect = {
+		random_list = {
+			30 = { add_to_variable = { UKR_breadbasket_of_europe_consumer_goods = 0.02 } }
+			35 = { add_to_variable = { UKR_breadbasket_of_europe_consumer_goods = 0.03 } }
+			35 = { add_to_variable = { UKR_breadbasket_of_europe_consumer_goods = 0.04 } }
 		}
-		custom_effect_tooltip = UKR_breadbasket_add_consumer_goods
-		hidden_effect = {
-			random_list = {
-				30 = { add_to_variable = { UKR_breadbasket_of_europe_consumer_goods = 0.02 } }
-				35 = { add_to_variable = { UKR_breadbasket_of_europe_consumer_goods = 0.03 } }
-				35 = { add_to_variable = { UKR_breadbasket_of_europe_consumer_goods = 0.04 } }
-			}
-			force_update_dynamic_modifier = yes
-		}
-	}
+		force_update_dynamic_modifier = yes
+	}	
 }
 UKR_breadbasket_remove_consumer_goods = {
-	if = {
-		limit = {
-			NOT = { check_variable = { UKR_breadbasket_of_europe_consumer_goods = -0.1 } }
+	custom_effect_tooltip = UKR_breadbasket_remove_consumer_goods
+	hidden_effect = {
+		random_list = {
+			35 = { add_to_variable = { UKR_breadbasket_of_europe_consumer_goods = -0.02 } }
+			35 = { add_to_variable = { UKR_breadbasket_of_europe_consumer_goods = -0.03 } }
+			30 = { add_to_variable = { UKR_breadbasket_of_europe_consumer_goods = -0.04 } }
 		}
-		custom_effect_tooltip = UKR_breadbasket_remove_consumer_goods
-		hidden_effect = {
-			random_list = {
-				35 = { add_to_variable = { UKR_breadbasket_of_europe_consumer_goods = -0.02 } }
-				35 = { add_to_variable = { UKR_breadbasket_of_europe_consumer_goods = -0.03 } }
-				30 = { add_to_variable = { UKR_breadbasket_of_europe_consumer_goods = -0.04 } }
-			}
-			force_update_dynamic_modifier = yes
-		}
+		force_update_dynamic_modifier = yes
 	}
 }
 UKR_breadbasket_add_production_growth = {
-	if = {
-		limit = {
-			NOT = { check_variable = { UKR_breadbasket_of_europe_production_growth = 0.05 } }
+	custom_effect_tooltip = UKR_breadbasket_add_production_growth
+	hidden_effect = {
+		random_list = {
+			5 = { add_to_variable = { UKR_breadbasket_of_europe_production_growth = 0.02 } }
+			10 = { add_to_variable = { UKR_breadbasket_of_europe_production_growth = 0.03 } }
+			20 = { add_to_variable = { UKR_breadbasket_of_europe_production_growth = 0.04 } }
+			25 = { add_to_variable = { UKR_breadbasket_of_europe_production_growth = 0.05 } }
+			25 = { add_to_variable = { UKR_breadbasket_of_europe_production_growth = 0.06 } }
+			15 = { add_to_variable = { UKR_breadbasket_of_europe_production_growth = 0.07 } }
 		}
-		custom_effect_tooltip = UKR_breadbasket_add_production_growth
-		hidden_effect = {
-			random_list = {
-				5 = { add_to_variable = { UKR_breadbasket_of_europe_production_growth = 0.02 } }
-				10 = { add_to_variable = { UKR_breadbasket_of_europe_production_growth = 0.03 } }
-				20 = { add_to_variable = { UKR_breadbasket_of_europe_production_growth = 0.04 } }
-				25 = { add_to_variable = { UKR_breadbasket_of_europe_production_growth = 0.05 } }
-				25 = { add_to_variable = { UKR_breadbasket_of_europe_production_growth = 0.06 } }
-				15 = { add_to_variable = { UKR_breadbasket_of_europe_production_growth = 0.07 } }
-			}
-			force_update_dynamic_modifier = yes
-		}
-	}
+		force_update_dynamic_modifier = yes
+	}	
 }
 UKR_breadbasket_remove_production_growth = {
-	if = {
-		limit = {
-			NOT = { check_variable = { UKR_breadbasket_of_europe_production_growth = -0.15 } }
+	custom_effect_tooltip = UKR_breadbasket_remove_production_growth
+	hidden_effect = {
+		random_list = {
+			15 = { add_to_variable = { UKR_breadbasket_of_europe_production_growth = -0.02 } }
+			25 = { add_to_variable = { UKR_breadbasket_of_europe_production_growth = -0.03 } }
+			25 = { add_to_variable = { UKR_breadbasket_of_europe_production_growth = -0.04 } }
+			20 = { add_to_variable = { UKR_breadbasket_of_europe_production_growth = -0.05 } }
+			10 = { add_to_variable = { UKR_breadbasket_of_europe_production_growth = -0.06 } }
+			5 = { add_to_variable = { UKR_breadbasket_of_europe_production_growth = -0.07 } }
 		}
-		custom_effect_tooltip = UKR_breadbasket_remove_production_growth
-		hidden_effect = {
-			random_list = {
-				15 = { add_to_variable = { UKR_breadbasket_of_europe_production_growth = -0.02 } }
-				25 = { add_to_variable = { UKR_breadbasket_of_europe_production_growth = -0.03 } }
-				25 = { add_to_variable = { UKR_breadbasket_of_europe_production_growth = -0.04 } }
-				20 = { add_to_variable = { UKR_breadbasket_of_europe_production_growth = -0.05 } }
-				10 = { add_to_variable = { UKR_breadbasket_of_europe_production_growth = -0.06 } }
-				5 = { add_to_variable = { UKR_breadbasket_of_europe_production_growth = -0.07 } }
-			}
-			force_update_dynamic_modifier = yes
-		}
-	}
+		force_update_dynamic_modifier = yes
+	}	
 }
 
 UKR_setup_political_variables = {
@@ -1274,10 +1382,6 @@ UKR_decrease_direktoria = {
 			popularity = -0.02
 		}
 		add_popularity = {
-			ideology = syndicalist
-			popularity = -0.02
-		}
-		add_popularity = {
 			ideology = radical_socialist
 			popularity = -0.02
 		}
@@ -1419,20 +1523,29 @@ UKR_improve_ukrainisation = {
 UKR_reduce_black_monday = {
 	if = {
 		limit = {
-			has_idea = UKR_black_monday_2
+			has_idea = UKR_black_monday_2-5
 		}
 		effect_tooltip = {
 			swap_ideas = {
-				remove_idea = UKR_black_monday_2
+				remove_idea = UKR_black_monday_2-5
 				add_idea = UKR_black_monday_3
 			}
 		}
 		hidden_effect = {
-			remove_ideas = UKR_black_monday_2
+			remove_ideas = UKR_black_monday_2-5
 			add_timed_idea = {
 				idea = UKR_black_monday_3
 				days = 180
 			}
+		}
+	}
+	else_if = {
+		limit = {
+			has_idea = UKR_black_monday_2
+		}
+		swap_ideas = {
+			remove_idea = UKR_black_monday_2
+			add_idea = UKR_black_monday_2-5
 		}
 	}
 	else_if = {
@@ -1705,9 +1818,9 @@ UKR_remove_king = {
 			if = {
 				limit = { UKR_vasyl_in_power = yes }
 				create_country_leader = {
-					name = "Mykola Mikhnovskyi"
-					desc = "POLITICS_MYKOLA_MIKHHNOVSKY_DESC"
-					picture = "gfx/leaders/UKR/Portrait_UKR_Mykola_Mikhnovsky.png"
+					name = "Dmytro Levytskyi"
+					desc = "POLITICS_DMYTRO_LEVYTSKYI_DESC"
+					picture = "gfx/leaders/UKR/Portrait_UKR_Dmytro_Levytsky.png"
 					expire = "1965.1.1"
 					ideology = marlib_national_liberalism_subtype
 				}
@@ -2071,8 +2184,8 @@ UKR_copy_leaders_of_ROOT = {
 			}
 			set_party_name = {
 				ideology = social_democrat
-				name = UKR_social_democrat_party4
-				long_name = UKR_social_democrat_party4_long
+				name = UKR_social_democrat_party6
+				long_name = UKR_social_democrat_party6_long
 			}				
 		}
 		else = {
@@ -2610,6 +2723,7 @@ UPR_setup_ROOT_borotbyst_uprising = {
 			set_capital = { state = 202 }	
 		}
 		set_cosmetic_tag = UKR_borotbyst
+		UKR_teardown_investigation_decisions = yes
 		create_country_leader = {
 			name = "Oleksandr Shumskyi"
 			desc = "POLITICS_OLEKSANDER_SHUMSKYI_DESC"
@@ -2851,7 +2965,7 @@ UPR_setup_borotbyst_uprising = {
 				ideology = radical_socialist
 				popularity = 0.25
 			}
-			load_focus_tree = { tree = UKR_focus keep_completed = yes }
+			#load_focus_tree = { tree = UKR_focus keep_completed = yes }
 			mark_focus_tree_layout_dirty = yes
 			remove_all_ministers = yes		
 			add_ideas = {
@@ -3727,6 +3841,7 @@ UKR_setup_borotbyst_victory_no_war = {
 	clr_country_flag = UKR_agricultural_crisis
 	decrease_ruling_party_popularity_by_10 = yes
 	UKR_remove_brotfrieden_without_events = yes
+	UKR_teardown_investigation_decisions = yes
 	remove_ideas = {
 		UKR_derzhavna_varta
 		UKR_borotbyst_uprising
@@ -4107,6 +4222,7 @@ UKR_setup_borotbyst_victory = {
 				UKR_Hryhorii_Hrynko_sec_rso
 			}
 			mark_focus_tree_layout_dirty = yes
+			UKR_teardown_investigation_decisions = yes
 		}							
 	}
 	UKR = {
@@ -6495,12 +6611,9 @@ UKR_setup_petliura_shumskyi_duumvirat = {
 	add_dynamic_modifier = {
 		modifier = UKR_petliura_modifier
 	}
-	add_ideas = UKR_duumvirat_idea
+	USR = { add_ideas = UKR_duumvirat_idea }
 	UKR_create_petliura_progress_bar = yes
 	UKR_update_petliura_progress_bar = yes	
-	
-	activate_mission = UKR_petliura_resistance_mission
-	activate_mission = UKR_shumskyi_resistance_mission
 }
 UKR_setup_petliura_national_union = {
 	set_country_flag = UKR_petliura_national_union
@@ -6518,119 +6631,123 @@ UKR_setup_petliura_national_union = {
 	UKR_create_petliura_progress_bar = yes
 	UKR_update_petliura_progress_bar = yes	
 }
-UKR_increase_duumvirate_ideas = {
-	if = {
-		limit = { has_idea = UKR_duumvirat_idea_7 }
-		swap_ideas = {
-			remove_idea = UKR_duumvirat_idea_7
-			add_idea = UKR_duumvirat_idea_8
+UKR_decrease_duumvirate_ideas = {
+	USR = {
+		if = {
+			limit = { has_idea = UKR_duumvirat_idea_7 }
+			swap_ideas = {
+				remove_idea = UKR_duumvirat_idea_7
+				add_idea = UKR_duumvirat_idea_8
+			}
 		}
-	}
-	else_if = {
-		limit = { has_idea = UKR_duumvirat_idea_6 }
-		swap_ideas = {
-			remove_idea = UKR_duumvirat_idea_6
-			add_idea = UKR_duumvirat_idea_7
+		else_if = {
+			limit = { has_idea = UKR_duumvirat_idea_6 }
+			swap_ideas = {
+				remove_idea = UKR_duumvirat_idea_6
+				add_idea = UKR_duumvirat_idea_7
+			}
 		}
-	}
-	else_if = {
-		limit = { has_idea = UKR_duumvirat_idea_5 }
-		swap_ideas = {
-			remove_idea = UKR_duumvirat_idea_5
-			add_idea = UKR_duumvirat_idea_6
+		else_if = {
+			limit = { has_idea = UKR_duumvirat_idea_5 }
+			swap_ideas = {
+				remove_idea = UKR_duumvirat_idea_5
+				add_idea = UKR_duumvirat_idea_6
+			}
 		}
-	}
-	else_if = {
-		limit = { has_idea = UKR_duumvirat_idea_4 }
-		swap_ideas = {
-			remove_idea = UKR_duumvirat_idea_4
-			add_idea = UKR_duumvirat_idea_5
+		else_if = {
+			limit = { has_idea = UKR_duumvirat_idea_4 }
+			swap_ideas = {
+				remove_idea = UKR_duumvirat_idea_4
+				add_idea = UKR_duumvirat_idea_5
+			}
 		}
-	}
-	else_if = {
-		limit = { has_idea = UKR_duumvirat_idea_3 }
-		swap_ideas = {
-			remove_idea = UKR_duumvirat_idea_3
-			add_idea = UKR_duumvirat_idea_4
+		else_if = {
+			limit = { has_idea = UKR_duumvirat_idea_3 }
+			swap_ideas = {
+				remove_idea = UKR_duumvirat_idea_3
+				add_idea = UKR_duumvirat_idea_4
+			}
 		}
-	}
-	else_if = {
-		limit = { has_idea = UKR_duumvirat_idea_2 }
-		swap_ideas = {
-			remove_idea = UKR_duumvirat_idea_2
-			add_idea = UKR_duumvirat_idea_3
+		else_if = {
+			limit = { has_idea = UKR_duumvirat_idea_2 }
+			swap_ideas = {
+				remove_idea = UKR_duumvirat_idea_2
+				add_idea = UKR_duumvirat_idea_3
+			}
 		}
-	}
-	else_if = {
-		limit = { has_idea = UKR_duumvirat_idea_1 }
-		swap_ideas = {
-			remove_idea = UKR_duumvirat_idea_1
-			add_idea = UKR_duumvirat_idea_2
+		else_if = {
+			limit = { has_idea = UKR_duumvirat_idea_1 }
+			swap_ideas = {
+				remove_idea = UKR_duumvirat_idea_1
+				add_idea = UKR_duumvirat_idea_2
+			}
 		}
-	}
-	else_if = {
-		limit = { has_idea = UKR_duumvirat_idea }
-		swap_ideas = {
-			remove_idea = UKR_duumvirat_idea
-			add_idea = UKR_duumvirat_idea_1
+		else_if = {
+			limit = { has_idea = UKR_duumvirat_idea }
+			swap_ideas = {
+				remove_idea = UKR_duumvirat_idea
+				add_idea = UKR_duumvirat_idea_1
+			}
 		}
 	}
 }
-UKR_decrease_duumvirate_ideas = {
-	if = {
-		limit = { has_idea = UKR_duumvirat_idea_8 }
-		swap_ideas = {
-			remove_idea = UKR_duumvirat_idea_8
-			add_idea = UKR_duumvirat_idea_7
+UKR_increase_duumvirate_ideas = {
+	USR = {
+		if = {
+			limit = { has_idea = UKR_duumvirat_idea_8 }
+			swap_ideas = {
+				remove_idea = UKR_duumvirat_idea_8
+				add_idea = UKR_duumvirat_idea_7
+			}
 		}
-	}
-	else_if = {
-		limit = { has_idea = UKR_duumvirat_idea_7 }
-		swap_ideas = {
-			remove_idea = UKR_duumvirat_idea_7
-			add_idea = UKR_duumvirat_idea_6
+		else_if = {
+			limit = { has_idea = UKR_duumvirat_idea_7 }
+			swap_ideas = {
+				remove_idea = UKR_duumvirat_idea_7
+				add_idea = UKR_duumvirat_idea_6
+			}
 		}
-	}
-	else_if = {
-		limit = { has_idea = UKR_duumvirat_idea_6 }
-		swap_ideas = {
-			remove_idea = UKR_duumvirat_idea_6
-			add_idea = UKR_duumvirat_idea_5
+		else_if = {
+			limit = { has_idea = UKR_duumvirat_idea_6 }
+			swap_ideas = {
+				remove_idea = UKR_duumvirat_idea_6
+				add_idea = UKR_duumvirat_idea_5
+			}
 		}
-	}
-	else_if = {
-		limit = { has_idea = UKR_duumvirat_idea_5 }
-		swap_ideas = {
-			remove_idea = UKR_duumvirat_idea_5
-			add_idea = UKR_duumvirat_idea_4
+		else_if = {
+			limit = { has_idea = UKR_duumvirat_idea_5 }
+			swap_ideas = {
+				remove_idea = UKR_duumvirat_idea_5
+				add_idea = UKR_duumvirat_idea_4
+			}
 		}
-	}
-	else_if = {
-		limit = { has_idea = UKR_duumvirat_idea_4 }
-		swap_ideas = {
-			remove_idea = UKR_duumvirat_idea_4
-			add_idea = UKR_duumvirat_idea_3
+		else_if = {
+			limit = { has_idea = UKR_duumvirat_idea_4 }
+			swap_ideas = {
+				remove_idea = UKR_duumvirat_idea_4
+				add_idea = UKR_duumvirat_idea_3
+			}
 		}
-	}
-	else_if = {
-		limit = { has_idea = UKR_duumvirat_idea_3 }
-		swap_ideas = {
-			remove_idea = UKR_duumvirat_idea_3
-			add_idea = UKR_duumvirat_idea_2
+		else_if = {
+			limit = { has_idea = UKR_duumvirat_idea_3 }
+			swap_ideas = {
+				remove_idea = UKR_duumvirat_idea_3
+				add_idea = UKR_duumvirat_idea_2
+			}
 		}
-	}
-	else_if = {
-		limit = { has_idea = UKR_duumvirat_idea_2 }
-		swap_ideas = {
-			remove_idea = UKR_duumvirat_idea_2
-			add_idea = UKR_duumvirat_idea_1
+		else_if = {
+			limit = { has_idea = UKR_duumvirat_idea_2 }
+			swap_ideas = {
+				remove_idea = UKR_duumvirat_idea_2
+				add_idea = UKR_duumvirat_idea_1
+			}
 		}
-	}
-	else_if = {
-		limit = { has_idea = UKR_duumvirat_idea_1 }
-		swap_ideas = {
-			remove_idea = UKR_duumvirat_idea_1
-			add_idea = UKR_duumvirat_idea
+		else_if = {
+			limit = { has_idea = UKR_duumvirat_idea_1 }
+			swap_ideas = {
+				remove_idea = UKR_duumvirat_idea_1
+				add_idea = UKR_duumvirat_idea
+			}
 		}
 	}
 }
@@ -6646,6 +6763,22 @@ UKR_increase_petliura_influence = {
 			}
 		}
 		custom_effect_tooltip = UKR_cannot_change_petliura_influence
+		if = {
+			limit = { has_country_flag = UKR_petliura_shumskyi }
+			UKR_decrease_duumvirate_ideas = yes
+		}
+	}
+	else_if = {
+		limit = { 
+			OR = {
+				has_country_flag = UKR_shumskyi_influence_blocked 
+				AND = {
+					is_ai = yes
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_PETLIURA_SHUMSKYI }
+				}
+			}
+		}
+		custom_effect_tooltip = UKR_cannot_change_shumskyi_influence
 		if = {
 			limit = { has_country_flag = UKR_petliura_shumskyi }
 			UKR_decrease_duumvirate_ideas = yes
@@ -6748,6 +6881,22 @@ UKR_decrease_petliura_influence = {
 			}
 		}
 		custom_effect_tooltip = UKR_cannot_change_petliura_influence
+		if = {
+			limit = { has_country_flag = UKR_petliura_shumskyi }
+			UKR_increase_duumvirate_ideas = yes
+		}
+	}
+	else_if = {
+		limit = { 
+			OR = {
+				has_country_flag = UKR_shumskyi_influence_blocked 
+				AND = {
+					is_ai = yes
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_PETLIURA_SHUMSKYI }
+				}
+			}
+		}
+		custom_effect_tooltip = UKR_cannot_change_shumskyi_influence
 		if = {
 			limit = { has_country_flag = UKR_petliura_shumskyi }
 			UKR_increase_duumvirate_ideas = yes
@@ -6957,6 +7106,19 @@ UKR_increase_shumskyi_influence = {
 		custom_effect_tooltip = UKR_cannot_change_shumskyi_influence
 		UKR_increase_duumvirate_ideas = yes
 	}
+	else_if = {
+		limit = { 
+			OR = {
+				has_country_flag = UKR_petliura_influence_blocked 
+				AND = {
+					is_ai = yes
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_PETLIURA_SHUMSKYI }
+				}
+			}
+		}
+		custom_effect_tooltip = UKR_cannot_change_petliura_influence
+		UKR_increase_duumvirate_ideas = yes
+	}
 	else = {
 		custom_effect_tooltip = UKR_increase_shumskyi_influence
 		hidden_effect = {
@@ -7012,6 +7174,19 @@ UKR_decrease_shumskyi_influence = {
 			}
 		}
 		custom_effect_tooltip = UKR_cannot_change_shumskyi_influence
+		UKR_decrease_duumvirate_ideas = yes
+	}
+	else_if = {
+		limit = { 
+			OR = {
+				has_country_flag = UKR_petliura_influence_blocked 
+				AND = {
+					is_ai = yes
+					has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_PETLIURA_SHUMSKYI }
+				}
+			}
+		}
+		custom_effect_tooltip = UKR_cannot_change_petliura_influence
 		UKR_decrease_duumvirate_ideas = yes
 	}
 	else = {
@@ -7087,9 +7262,11 @@ UKR_collapse_duumvirate = {
 				}
 			}
 		}		
-		unlock_national_focus = UKR_Borotbyst_Petliura_Withstand
-		unlock_national_focus = UKR_Meet_Shumskyi_Petliura
-		unlock_national_focus = UKR_Call_Tiutiunnyk
+		hidden_effect = {
+			unlock_national_focus = UKR_Borotbyst_Petliura_Withstand
+			unlock_national_focus = UKR_Meet_Shumskyi_Petliura
+			unlock_national_focus = UKR_Call_Tiutiunnyk
+		}
 		complete_national_focus = UKR_The_Great_Tragedy
 	}
 	else_if = {
@@ -7100,9 +7277,11 @@ UKR_collapse_duumvirate = {
 			}
 			NOT = { has_completed_focus = UKR_Vague_Balance_Holds }
 		}				
-		unlock_national_focus = UKR_Committees_Ukrainisation
-		unlock_national_focus = UKR_Land_Reform
-		unlock_national_focus = UKR_Socialization_Of_Factories
+		hidden_effect = {
+			unlock_national_focus = UKR_Committees_Ukrainisation
+			unlock_national_focus = UKR_Land_Reform
+			unlock_national_focus = UKR_Socialization_Of_Factories
+		}
 		complete_national_focus = UKR_Duumvirate_Breaks			
 	}			
 	clr_country_flag = UKR_petliura_shumskyi		
@@ -7237,8 +7416,10 @@ UKR_increase_left_uns_influence = {
 	}
 	if = {
 		limit = {
-			has_completed_focus = UKR_Apolitical_Army
+			has_completed_focus = UKR_Stop_Radical_Left_Reforms
+			has_completed_focus = UKR_Work_With_Bouregoisie
 			has_completed_focus = UKR_Moderate_Taxation
+			NOT = { country_exists = USR }
 		}
 		if = {
 			limit = {
@@ -7355,8 +7536,10 @@ UKR_increase_right_uns_influence = {
 	}
 	if = {
 		limit = {
-			has_completed_focus = UKR_Apolitical_Army
+			has_completed_focus = UKR_Stop_Radical_Left_Reforms
+			has_completed_focus = UKR_Work_With_Bouregoisie
 			has_completed_focus = UKR_Moderate_Taxation
+			NOT = { country_exists = USR }
 		}
 		if = {
 			limit = {
@@ -7364,9 +7547,8 @@ UKR_increase_right_uns_influence = {
 				has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_PETLIURA }
 			}
 			complete_national_focus = UKR_National_Union_Holds
-			add_stability = 0.1
-			increase_ruling_party_popularity_by_10 = yes
-		}
+			country_event = ukrsoc.290
+	}
 		else_if = {
 			limit = {
 				OR = {
@@ -7378,17 +7560,7 @@ UKR_increase_right_uns_influence = {
 				}
 			}
 			complete_national_focus = UKR_Left_Wing_Splits
-			add_stability = -0.1
-			set_variable = { coalition_partner_var = token:social_liberal }
-			remove_from_coalition = yes
-			set_variable = { coalition_partner_var = token:market_liberal }
-			remove_from_coalition = yes
-			remove_all_ministers_but_hog = yes
-			add_ideas = {
-				UKR_Dmytro_Isaievych_for_sde
-				UKR_Mykola_Porsh_eco_sde
-				UKR_Isaak_Mazepa_sec_sde
-			}
+			country_event = ukrsoc.294
 		}
 		else_if = {
 			limit = {
@@ -7401,17 +7573,7 @@ UKR_increase_right_uns_influence = {
 				}
 			}
 			complete_national_focus = UKR_Right_Wing_Splits
-			add_stability = -0.1
-			set_variable = { coalition_partner_var = token:radical_socialist }
-			remove_from_coalition = yes
-			set_variable = { coalition_partner_var = token:social_democrat}
-			remove_from_coalition = yes
-			remove_all_ministers_but_hog = yes
-			add_ideas = {
-				UKR_Alexander_Shulgin_for_sli
-				UKR_Mykhailo_Korchinskyi_eco_sli
-				UKR_Oleksandr_Lototskyi_sec_sli
-			}
+			country_event = ukrsoc.297
 		}
 		else = {
 			complete_national_focus = UKR_National_Union_Holds
@@ -8764,12 +8926,6 @@ UKR_setup_donbas = {
 				expire = "1965.1.1"
 				ideology = centralized_syndicalism_subtype
 			}
-			create_country_leader = {
-				name = "Oleksandr Parkhomenko"
-				picture = "gfx/leaders/UKR/Portrait_UKR_Oleksandr_Parkhomenko.png"
-				expire = "1965.1.1"
-				ideology = red_junta_subtype
-			}
 			division_template = {
 				name = "Chervona Hvardiia"
 				division_names_group = UKR_MIL_01
@@ -9851,7 +10007,6 @@ UKR_setup_eastern_threat_decisions = {
 		activate_targeted_decision = { target = 221 decision = UKR_move_khlf }
 		activate_targeted_decision = { target = 221 decision = UKR_move_khtz }
 		activate_targeted_decision = { target = 228 decision = UKR_move_azovstal }
-		activate_targeted_decision = { decision = UKR_dnieper_line_of_defence target = THIS }
 		activate_targeted_decision = { decision = UKR_organise_partisan_cells target = THIS }
 		activate_targeted_decision = { decision = UKR_not_step_back target = THIS }
 		activate_targeted_decision = { decision = UKR_not_step_back target = THIS }
@@ -10284,5 +10439,297 @@ UKR_update_military = {
 				uncomplete_children = yes
 			}
 		}		
+	}
+}
+UKR_clear_all_flags = {
+	clr_country_flag = UKR_agriculture_crisis
+	clr_country_flag = UKR_joined_DA
+	clr_country_flag = UKR_dyrektoria_tree_unlocked
+	clr_country_flag = UKR_dyrektoria_uprising_active
+	clr_country_flag = UKR_petliura_shumskyi		
+	clr_country_flag = UKR_petliura_shumskyi_success
+	clr_country_flag = UKR_petliura_national_union
+	clr_country_flag = UKR_petliura_shumskyi
+	clr_country_flag = UKR_petliura_melnyk
+	clr_country_flag = UKR_petliura_not_in_power_wait_elections
+	clr_country_flag = UKR_borotbyst_against_petliura
+	clr_country_flag = UKR_borotbyst_against_skrypnyk
+	clr_country_flag = UKR_petliura_category_unlocked
+	clr_country_flag = UKR_can_do_foreign_policy
+	clr_country_flag = UKR_ai_borotbysts
+	clr_country_flag = UKR_preparing_for_galicia_attack
+	clr_country_flag = UKR_unlock_mie_decisions_to_topple_germany
+	clr_country_flag = UKR_petliura_shumskyi_united_front
+	set_country_flag = UKR_disable_borotbist_uprisings
+	set_country_flag = UKR_congress_begins
+	set_country_flag = UKR_congress_ended
+}
+UKR_clear_all_decisions = {
+	UKR_teardown_investigation_decisions = yes
+}
+UKR_setup_puppet = {
+	if = {
+		limit = { tag = GER }
+		UKR = {
+			UKR_clear_all_flags = yes
+			UKR_clear_all_decisions = yes
+			hidden_effect = {
+				set_party_name = {
+					ideology = paternal_autocrat
+					name = UKR_paternal_autocrat_party
+					long_name = UKR_paternal_autocrat_party_long
+				}
+				set_party_name = {
+					ideology = social_liberal
+					name = UKR_social_liberal_party
+					long_name = UKR_social_liberal_party_long
+				}
+			}
+			if = {
+				limit = { has_country_flag = Pavlo_Skoropadskyi_dead }
+				UKR_create_danylo = yes
+			}
+			else = {
+				create_country_leader = {
+					name = "Pavlo Skoropadskyi"
+					desc = "POLITICS_PAVLO_SKOROPADSKYI_DESC"
+					picture = "gfx/leaders/UKR/Portrait_UKR_Pavlo_Skoropadsky.png"
+					expire = "1965.1.1"
+					ideology = pataut_ukrainian_conservatism_subtype
+				}
+			}
+			if = {
+				limit = { 
+					ROOT = { has_left_democratic_government = yes }
+				}
+				set_politics = {
+					ruling_party = social_liberal
+					elections_allowed = no
+				}
+			}
+			else = {
+				set_politics = {
+					ruling_party = paternal_autocrat
+					elections_allowed = no
+				}
+			}
+			UKR_update_military = yes
+			mark_focus_tree_layout_dirty = yes
+		}
+	}
+	else_if = {
+		limit = { tag = AUS }
+		UKR = {
+			UKR_clear_all_flags = yes
+			UKR_clear_all_decisions = yes
+			hidden_effect = {
+				set_party_name = {
+					ideology = paternal_autocrat
+					name = UKR_paternal_autocrat_party
+					long_name = UKR_paternal_autocrat_party_long
+				}
+				set_party_name = {
+					ideology = social_liberal
+					name = UKR_social_liberal_party
+					long_name = UKR_social_liberal_party_long
+				}
+			}
+			set_country_flag = UKR_joined_DA
+			if = {
+				limit = { has_country_flag = UKR_DAN }
+				UKR_create_danylo = yes
+			}
+			else = {
+				UKR_create_leo_stefan = yes
+				country_event = {
+					id = ukrpol.122
+					days = 5
+				}
+			}
+			if = {
+				limit = { 
+					ROOT = { has_left_democratic_government = yes }
+				}
+				set_politics = {
+					ruling_party = social_liberal
+					elections_allowed = no
+				}
+			}
+			else = {
+				set_politics = {
+					ruling_party = authoritarian_democrat
+					elections_allowed = no
+				}
+			}
+			UKR_update_military = yes
+			mark_focus_tree_layout_dirty = yes
+		}
+	}
+	else_if = {
+		limit = { is_russian_tag_that_can_integrate = yes }		
+		if = {
+			limit = {
+				ROOT = { 
+					RUS_russian_monarch = yes 
+					RUS_is_constitutional_monarchy = yes 
+					is_ai = no
+				}
+			}
+			set_autonomy = {
+				target = UKR
+				autonomous_state = kr_integrated_puppet
+				freedom_level = 0.75
+			}
+			UKR = {
+				UKR_clear_all_flags = yes
+				UKR_clear_all_decisions = yes
+				set_cosmetic_tag = UKR_RUS_monarchy
+				RUS_install_puppet_monarchy = yes
+			}
+		}
+		else_if = {
+			limit = { soviets_exist = yes }
+			set_autonomy = {
+				target = UKR
+				autonomous_state = kr_autonomous_soviet_republic
+				freedom_level = 0.75
+			}
+			UKR = {
+				UKR_clear_all_flags = yes
+				UKR_clear_all_decisions = yes
+				UKR_remove_king = yes
+				if = {
+					limit = {
+						ROOT = { has_completed_focus = RUS_Bolsheviks_In_Power }
+					}
+					set_cosmetic_tag = UKR_bolshevist
+					set_politics = {
+						ruling_party = totalist
+						elections_allowed = no
+					}
+					hidden_effect = {
+						set_party_name = {
+							ideology = totalist
+							name = UKR_totalist_party2
+							long_name = UKR_totalist_party2_long
+						}
+					}
+					if = {
+						limit = {
+							NOT = { has_country_flag = Yevhenia_Bosh_dead }
+						}
+						create_country_leader = {
+							name = "Yevhenia Bosh"
+							desc = "POLITICS_YEVHENIYA_BOSCH_DESC"
+							picture = "gfx/leaders/UKR/Portrait_UKR_Evheniya_Bosch.png"
+							expire = "1965.1.1"
+							ideology = authcom_subtype
+						}
+					}
+					else_if = {
+						limit = {
+							NOT = { has_country_flag = UKR_no_khruschev_for_puppet }
+						}
+						create_country_leader = {
+							name = "Nikita Khrushchev"
+							desc = "POLITICS_NIKITA_KRUSCHEV_DESC"
+							picture = "gfx/leaders/UKR/Portrait_UKR_Nikita_Kruschev.png"
+							expire = "1965.1.1"
+							ideology = authcom_subtype
+						}
+					}
+					else = {
+						create_country_leader = {
+							name = "Yefim Shchadenko"
+							picture = "gfx/leaders/UKR/Portrait_UKR_Yefim_Shchadenko.png"
+							expire = "1965.1.1"
+							ideology = red_junta_subtype
+						}						
+					}
+				}
+				else = {						
+					set_cosmetic_tag = UKR_SOV
+					hidden_effect = {
+						set_party_name = {
+							ideology = totalist
+							name = UKR_radical_socialist_party
+							long_name = UKR_radical_socialist_party_long
+						}
+						set_party_name = {
+							ideology = syndicalist
+							name = UKR_syndicalist_party2
+							long_name = UKR_syndicalist_party2_long
+						}
+						set_party_name = {
+							ideology = radical_socialist
+							name = UKR_radical_socialist_party
+							long_name = UKR_radical_socialist_party_long
+						}
+					}
+					create_country_leader = {
+						name = "Mykola Skrypnyk"
+						desc = "POLITICS_MYKOLA_SKRYPNYK_DESC"
+						picture = "gfx/leaders/UKR/Portrait_UKR_Mykola_Skrypnyk.png"
+						expire = "1965.1.1"
+						ideology = national_communism_subtype
+					}
+					create_country_leader = {
+						name = "Yakiv Braun"
+						desc = "POLITICS_YAKIV_BRAUN_DESC"
+						picture = "gfx/leaders/UKR/Portrait_UKR_Yakov_Braun.png" 
+						expire = "1965.1.1"
+						ideology = anarcho_syndicalist_subtype
+						traits = { UKR_national_nihilist }
+					}
+					create_country_leader = {
+						name = "Mykola Skrypnyk"
+						desc = "POLITICS_MYKOLA_SKRYPNYK_DESC"
+						picture = "gfx/leaders/UKR/Portrait_UKR_Mykola_Skrypnyk.png"
+						expire = "1965.1.1"
+						ideology = radsoc_communism_subtype
+					}
+				}
+			}
+		}
+		else = {
+			UKR = {
+				drop_cosmetic_tag = yes
+				UKR_clear_all_flags = yes
+				UKR_clear_all_decisions = yes
+				clr_global_flag = UKR_konovalets_counet_coup
+				set_country_flag = Pavlo_Skoropadskyi_dead
+				UKR_remove_king = yes
+				hidden_effect = {
+					set_party_name = {
+						ideology = paternal_autocrat
+						name = UKR_market_liberal_party2
+						long_name = UKR_market_liberal_party2_long
+					}
+				}
+				if = {
+					limit = { 
+						ROOT = { has_government = national_populist }
+					}
+					set_politics = {
+						ruling_party = paternal_autocrat
+						elections_allowed = no
+					}
+				}
+				UKR_update_military = yes
+				mark_focus_tree_layout_dirty = yes
+			}
+		}
+	}
+	else = {
+		UKR = {
+			drop_cosmetic_tag = yes
+			UKR_clear_all_flags = yes
+			UKR_clear_all_decisions = yes
+			clr_global_flag = UKR_konovalets_counet_coup
+			set_country_flag = Pavlo_Skoropadskyi_dead
+			UKR_remove_king = yes
+			UKR_update_military = yes
+			mark_focus_tree_layout_dirty = yes	
+		}
 	}
 }

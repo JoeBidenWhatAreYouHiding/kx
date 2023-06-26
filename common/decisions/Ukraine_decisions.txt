@@ -235,7 +235,7 @@ UKR_dualism_category = {
 		
 		cancel_if_not_visible = yes
 		ai_will_do = {
-			factor = 1000
+			factor = 200
 			modifier = {
 				factor = 0
 				has_country_flag = UKR_king_path
@@ -302,7 +302,7 @@ UKR_dualism_category = {
 		
 		cancel_if_not_visible = yes
 		ai_will_do = {
-			factor = 1000
+			factor = 200
 			modifier = {
 				factor = 0
 				has_country_flag = UKR_hetman_path
@@ -348,11 +348,11 @@ UKR_pacification = {
 			}
 		}
 		visible = { FROM = { has_dynamic_modifier = { modifier = UKR_rebel_state } } }
-		custom_cost_text = CP_5
+		custom_cost_text = UKR_CP_pacification
 		custom_cost_trigger = {
-			check_variable = { command_power > 4.99 }
+			check_variable = { command_power > UKR_pacification_cost }
 		}
-		days_remove = 20
+		days_remove = UKR_pacification_decision_time
 		fire_only_once = yes
 		ai_will_do = { factor = 100 }
 		state_target = yes
@@ -488,7 +488,7 @@ UKR_dyrektoria_uprising = {
 			}
 		}
 		ai_will_do = {
-			factor = 1000
+			factor = 200
 			modifier = {
 				factor = 0
 				OR = {
@@ -543,7 +543,7 @@ UKR_dyrektoria_uprising = {
 		
 		cancel_if_not_visible = yes
 		ai_will_do = {
-			factor = 1000
+			factor = 200
 			modifier = {
 				factor = 0
 				OR = {
@@ -618,7 +618,7 @@ UKR_dyrektoria_uprising = {
 		
 		cancel_if_not_visible = yes
 		ai_will_do = {
-			factor = 1000
+			factor = 200
 			modifier = {
 				factor = 0
 				OR = {
@@ -683,18 +683,28 @@ UKR_dyrektoria_uprising = {
 		
 		cancel_if_not_visible = yes
 		ai_will_do = {
-			factor = 1000
+			factor = 10
 			modifier = {
-				factor = 0
+				add = 100
 				OR = {
-					has_game_rule = { rule = UKR_RIVNE_UPRISING option = UKR_RIVNE_UPRISING_DYREKTORIA_GUARANTEED }
-					check_variable = { UKR_Direktoriia_Strength_real < 0.041 } # Ai dont waste your pp
+					has_country_flag = UKR_hetman_side_ai
+					has_game_rule = { rule = UKR_RIVNE_UPRISING option = UKR_RIVNE_UPRISING_HETMANATE_WINS }
 				}
 			}
+			modifier = {
+				factor = 0
+				has_game_rule = { rule = UKR_RIVNE_UPRISING option = UKR_RIVNE_UPRISING_DYREKTORIA_GUARANTEED }
+			}
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel UKR_Impose_Martial_Law target: [From.GetName]"
+			UKR_decrease_direktoria = yes
+			army_experience = 30
+			custom_effect_tooltip = UKR_lower_pacification_cost_tt
 		}
 		cancel_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision cancel UKR_Impose_Martial_Law target: [From.GetName]"
-			add_political_power = 25
+			hidden_effect = { add_political_power = 25 }
 		}
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_Impose_Martial_Law target: [From.GetName]"
@@ -717,55 +727,52 @@ UKR_dyrektoria_uprising = {
 		is_good = no
 		fire_only_once = yes
 		days_mission_timeout = 35
-		
+		priority = 100
 		cancel_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision UKR_deadline_rivne"
 		}
 		timeout_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision timeout UKR_deadline_rivne"
 			set_variable = { UKR_dyrektoria_strength_temp = 0 }
-			every_owned_state = {
-				limit = {
-					OR = {
-						state = 201
-						state = 199
-						state = 1240
-					}
-					NOT = { has_state_flag = UKR_secured_state }
+			hidden_effect = { country_event = ukrpol.41 }
+			activate_mission = UKR_deadline_rivne_2
+			if = {
+				limit = { 
+					NOT = { has_country_flag = UKR_Secured_Kyiv_Suburbs }
 				}
-				hidden_effect = { 
-					add_core_of = UPR
-					remove_core_of = UKR
-					add_claim_by = UKR
-				}
-				set_demilitarized_zone = yes
-				start_resistance = yes
-				set_resistance = 15
-				add_dynamic_modifier = { modifier = UKR_rebel_state }
-				ROOT = { 
-					add_to_variable = { UKR_dyrektoria_strength_temp = 1 }
-					UKR_increase_direktoria = yes
-				}
+				UKR_increase_direktoria = yes
+				country_event = ukrpol.89				
 			}
 			if = {
 				limit = { 
-					check_variable = { UKR_dyrektoria_strength_temp > 1 }					
+					NOT = { has_country_flag = UKR_Secured_The_Rear }
 				}
-				if = {
-					limit = { 
-						is_ai = yes
-						has_game_rule = { rule = UKR_rivne_uprising option = UKR_RIVNE_UPRISING_HETMANATE_WINS }
-					}
+				UKR_increase_direktoria = yes
+			}
+			if = {
+				limit = { 
+					NOT = { has_country_flag = UKR_Secured_South }
 				}
-				else = {
-					country_event = {
-						id = ukrpol.55
-						days = 2
-					}
+				UKR_increase_direktoria = yes
+				country_event = {
+					id = ukrpol.56
+					days = 1
+					random = 24
 				}
 			}
-			activate_mission = UKR_deadline_rivne_2
-			country_event = ukrpol.89
+			if = {
+				limit = { has_country_flag = UKR_Secured_Kyiv_Suburbs }
+				set_country_flag = UKR_Defended_Kyiv
+			}
+			if = {
+				limit = { has_country_flag = UKR_Secured_South }
+				set_country_flag = UKR_Recaptured_South
+			}
+			country_event = {
+				id = ukrpol.55
+				days = 1
+				random = 12
+			}			
 		}
 	}
 	UKR_deadline_rivne_2 = {
@@ -779,7 +786,7 @@ UKR_dyrektoria_uprising = {
 		available = {
 			has_government = social_democrat
 		}
-		
+		priority = 100
 		is_good = no
 		fire_only_once = yes
 		days_mission_timeout = 30
@@ -789,63 +796,89 @@ UKR_dyrektoria_uprising = {
 		}
 		timeout_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision timeout UKR_deadline_rivne"
-			every_owned_state = {
-				limit = {
-					OR = {
-						state = 227
-						state = 1283
-						state = 200
-						state = 221
-					}
-					NOT = { has_state_flag = UKR_secured_state }
-				}
-				hidden_effect = { 
-					add_core_of = UPR
-					remove_core_of = UKR
-					add_claim_by = UKR
-				}
-				set_demilitarized_zone = yes
-				if = {
-					limit = { has_resistance = no }
-					start_resistance = yes
-					set_resistance = 15
-				}
-				add_dynamic_modifier = { modifier = UKR_rebel_state }
-				ROOT = { 
-					add_to_variable = { UKR_dyrektoria_strength_temp = 1 }
-					UKR_increase_direktoria = yes
-				}
-			}
 			if = {
 				limit = { 
-					OR = {
-						check_variable = { UKR_dyrektoria_strength_temp < 5 }
-						AND = {
-							is_ai = yes
-							has_game_rule = { rule = UKR_rivne_uprising option = UKR_RIVNE_UPRISING_HETMANATE_WINS }
-						}
-					}
+					NOT = { has_country_flag = UKR_Defended_Kyiv }
 				}
-				country_event = ukrpol.61
-			}
-			else = {
-				country_event = ukrpol.41
-				country_event = ukrpol.56
-				country_event = ukrpol.66
-				hidden_effect = {
-					country_event = {
-						id = ukrpol.63
-						days = 3
-					}
+				remove_targeted_decision = { target = 202 decision = UKR_Secure_Kyiv_Suburbs }
+				country_event = ukrpol.63
+				hidden_effect = {					
 					country_event = {
 						id = ukrpol.64
-						days = 5
+						days = 3
 					}	
 				}
 			}
+			else = {
+				if = {
+					limit = {
+						NOT = { has_country_flag = UKR_Recaptured_South }
+					}
+					UKR_increase_direktoria = yes
+					remove_targeted_decision = { target = 192 decision = UKR_Recapture_South }
+					every_owned_state = {
+						limit = {
+							OR = {
+								state = 791
+								state = 1241
+								state = 1233
+								state = 226
+								state = 203
+							}
+						}
+						hidden_effect = { 
+							add_core_of = UPR
+							remove_core_of = UKR
+							add_claim_by = UKR
+						}
+						set_demilitarized_zone = yes
+						if = {
+							limit = { has_resistance = no }
+							start_resistance = yes
+							set_resistance = 15
+						}
+						add_dynamic_modifier = { modifier = UKR_rebel_state }
+					}
+				}
+				if = {
+					limit = {
+						NOT = { has_country_flag = UKR_Recaptured_Donbas }
+					}
+					UKR_increase_direktoria = yes
+					remove_targeted_decision = { target = 221 decision = UKR_Recapture_Donbas }
+					every_owned_state = {
+						limit = {
+							OR = {
+								state = 200
+								state = 1239
+								state = 1285
+								state = 1286
+								state = 228
+								state = 1282
+								state = 1284
+								state = 259
+								state = 1238
+							}
+							NOT = { has_dynamic_modifier = { modifier = UKR_rebel_state } }
+						}
+						hidden_effect = { 
+							add_core_of = UPR
+							remove_core_of = UKR
+							add_claim_by = UKR
+						}
+						set_demilitarized_zone = yes
+						if = {
+							limit = { has_resistance = no }
+							start_resistance = yes
+							set_resistance = 15
+						}
+						add_dynamic_modifier = { modifier = UKR_rebel_state }
+					}
+				}				
+			}
 		}
 	}
-	UKR_Secure_state = {
+	UKR_Secure_Kyiv_Suburbs = {
 		icon = GFX_decision_infiltrate_state
 		allowed = { always = no } #manually activated
 		cancel_trigger = {
@@ -869,8 +902,11 @@ UKR_dyrektoria_uprising = {
 		ai_will_do = {
 			factor = 10
 			modifier = {
-				factor = 10
-				has_country_flag = UKR_hetman_side_ai
+				add = 100
+				OR = {
+					has_country_flag = UKR_hetman_side_ai
+					has_game_rule = { rule = UKR_RIVNE_UPRISING option = UKR_RIVNE_UPRISING_HETMANATE_WINS }
+				}
 			}
 			modifier = {
 				factor = 0
@@ -878,31 +914,70 @@ UKR_dyrektoria_uprising = {
 			}
 		}
 		cancel_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision cancel UKR_Secure_state target: [From.GetName]"
+			log = "[GetDateText]: [Root.GetName]: Decision cancel UKR_Secure_Kyiv_Suburbs target: [From.GetName]"
 			hidden_effect = { add_command_power = 15 }
 		}
 		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision UKR_Secure_state target: [From.GetName]"
+			log = "[GetDateText]: [Root.GetName]: Decision UKR_Secure_Kyiv_Suburbs target: [From.GetName]"
 			hidden_effect = {
 				add_command_power = -15
 			}
 			add_war_support = 0.02
-			UKR_decrease_direktoria = yes
-			FROM = {
-				set_state_flag = UKR_secured_state
-				remove_dynamic_modifier = { modifier = UKR_rebel_state }
-				if = {
-					limit = { is_demilitarized_zone = yes }
-					set_demilitarized_zone = no
-				}
-			}
 		}
 		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_Secure_state target: [From.GetName]"
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_Secure_Kyiv_Suburbs target: [From.GetName]"
 			UKR_decrease_direktoria = yes
 			UPR = {
 				add_stability = -0.02
 			}
+			set_country_flag = UKR_Secured_Kyiv_Suburbs
+		}
+	}	
+	UKR_Secure_South = {
+		icon = GFX_decision_infiltrate_state
+		allowed = { always = no } #manually activated
+		cancel_trigger = {
+			has_government = social_democrat
+		}
+		highlight_states = {
+			highlight_state_targets = {
+				state = FROM
+			}
+		}
+		state_target = yes
+		fire_only_once = yes
+		custom_cost_trigger = {
+			command_power > 14.99
+		}
+		custom_cost_text = CP_15
+		
+		days_remove = 7
+		
+		cancel_if_not_visible = yes
+		ai_will_do = {
+			factor = 10
+			modifier = {
+				factor = 0
+				has_game_rule = { rule = UKR_RIVNE_UPRISING option = UKR_RIVNE_UPRISING_DYREKTORIA_GUARANTEED }
+			}
+		}
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel UKR_Secure_South target: [From.GetName]"
+			hidden_effect = { add_command_power = 15 }
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UKR_Secure_South target: [From.GetName]"
+			hidden_effect = { add_command_power = -15 }
+			custom_effect_tooltip = UKR_if_demilitarized_2_tt
+			add_war_support = 0.02
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_Secure_South target: [From.GetName]"
+			UKR_decrease_direktoria = yes
+			UPR = {
+				add_stability = -0.02
+			}
+			set_country_flag = UKR_Secured_South
 		}
 	}	
 	UKR_Secure_The_Rear = {
@@ -923,14 +998,11 @@ UKR_dyrektoria_uprising = {
 			command_power > 29.99
 		}
 		custom_cost_text = CP_30
+		days_remove = 14
 		
 		cancel_if_not_visible = yes
 		ai_will_do = {
 			factor = 10
-			modifier = {
-				factor = 10
-				has_country_flag = UKR_hetman_side_ai
-			}
 			modifier = {
 				factor = 0
 				has_game_rule = { rule = UKR_RIVNE_UPRISING option = UKR_RIVNE_UPRISING_DYREKTORIA_GUARANTEED }
@@ -944,7 +1016,6 @@ UKR_dyrektoria_uprising = {
 			log = "[GetDateText]: [Root.GetName]: Decision UKR_Secure_The_Rear target: [From.GetName]"
 			hidden_effect = { add_command_power = -30 }
 			custom_effect_tooltip = UKR_if_demilitarized_tt
-			set_country_flag = UKR_has_secured_rear
 		}
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_Secure_The_Rear target: [From.GetName]"
@@ -952,7 +1023,369 @@ UKR_dyrektoria_uprising = {
 			UPR = {
 				add_stability = -0.05
 			}
-			FROM = { set_border_war = no }
+			set_country_flag = UKR_Secured_The_Rear
+		}
+	}	
+	UKR_Counter_Attack = {
+		icon = GFX_decision_binoculars
+		allowed = { always = no } #manually activated
+		available = {
+			OR = {
+				has_country_flag = UKR_Defended_Kyiv
+				has_country_flag = UKR_Secured_Kyiv_Suburbs
+			}
+		}
+		cancel_trigger = {
+			has_government = social_democrat
+		}
+		target_non_existing = yes
+		fire_only_once = yes
+		priority = 80
+		days_remove = 17
+		
+		custom_cost_trigger = {
+			command_power > 29.99
+		}
+		custom_cost_text = CP_30
+		
+		cancel_if_not_visible = yes
+		ai_will_do = {
+			factor = 100
+		}
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel UKR_Counter_Attack target: [From.GetName]"
+			hidden_effect = { add_command_power = 30 }
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UKR_Counter_Attack target: [From.GetName]"
+			hidden_effect = { add_command_power = -30 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_Counter_Attack target: [From.GetName]"
+			UKR_decrease_direktoria = yes
+			country_event = ukrpol.61
+		}
+	}	
+	UKR_Defend_Kyiv = {
+		icon = GFX_decision_infiltrate_state
+		allowed = { always = no } #manually activated
+		cancel_trigger = {
+			has_government = social_democrat
+		}
+		highlight_states = {
+			highlight_state_targets = {
+				state = FROM
+			}
+		}
+		state_target = yes
+		fire_only_once = yes
+		custom_cost_trigger = {
+			command_power > 29.99
+		}
+		custom_cost_text = CP_30
+		
+		days_remove = 14
+		
+		cancel_if_not_visible = yes
+		ai_will_do = {
+			factor = 10
+			modifier = {
+				add = 100
+				OR = {
+					has_country_flag = UKR_hetman_side_ai
+					has_game_rule = { rule = UKR_RIVNE_UPRISING option = UKR_RIVNE_UPRISING_HETMANATE_WINS }
+				}
+			}
+			modifier = {
+				factor = 0
+				has_game_rule = { rule = UKR_RIVNE_UPRISING option = UKR_RIVNE_UPRISING_DYREKTORIA_GUARANTEED }
+			}
+		}
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel UKR_Defend_Kyiv target: [From.GetName]"
+			hidden_effect = { add_command_power = 30 }
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UKR_Defend_Kyiv target: [From.GetName]"
+			hidden_effect = {
+				add_command_power = -30
+			}
+			add_war_support = 0.02
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_Defend_Kyiv target: [From.GetName]"
+			UKR_decrease_direktoria = yes
+			UPR = {
+				add_stability = -0.02
+			}
+			every_owned_state = {
+				limit = {
+					OR = {
+						state = 1240
+						state = 1244
+					}
+					has_dynamic_modifier = { modifier = UKR_rebel_state }
+				}
+				remove_core_of = UPR
+				cancel_resistance = yes
+				force_disable_resistance = { clear = yes }
+				if = {
+					limit = {
+						NOT = { is_core_of = ROOT }
+					}
+					remove_claim_by = ROOT
+					add_core_of = ROOT
+				}
+				remove_dynamic_modifier = { modifier = UKR_rebel_state }
+				if = {
+					limit = { is_demilitarized_zone = yes }
+					set_demilitarized_zone = no
+				}
+			}
+			set_country_flag = UKR_Defended_Kyiv
+		}
+	}	
+	UKR_Recapture_South = {
+		icon = GFX_decision_infiltrate_state
+		allowed = { always = no } #manually activated
+		cancel_trigger = {
+			has_government = social_democrat
+		}
+		highlight_states = {
+			highlight_state_targets = {
+				state = FROM
+			}
+		}
+		state_target = yes
+		fire_only_once = yes
+		custom_cost_trigger = {
+			command_power > 14.99
+		}
+		custom_cost_text = CP_15
+		
+		days_remove = 14
+		
+		cancel_if_not_visible = yes
+		ai_will_do = {
+			factor = 10
+			modifier = {
+				add = 100
+				OR = {
+					has_country_flag = UKR_hetman_side_ai
+					has_game_rule = { rule = UKR_RIVNE_UPRISING option = UKR_RIVNE_UPRISING_HETMANATE_WINS }
+				}
+			}
+			modifier = {
+				factor = 0
+				has_game_rule = { rule = UKR_RIVNE_UPRISING option = UKR_RIVNE_UPRISING_DYREKTORIA_GUARANTEED }
+			}
+		}
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel UKR_Recapture_South target: [From.GetName]"
+			hidden_effect = { add_command_power = 15 }
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UKR_Recapture_South target: [From.GetName]"
+			hidden_effect = {
+				add_command_power = -15
+			}
+			add_war_support = 0.02
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_Recapture_South target: [From.GetName]"
+			UKR_decrease_direktoria = yes
+			UPR = {
+				add_stability = -0.02
+			}
+			every_owned_state = {
+				limit = {
+					OR = {
+						state = 1232
+						state = 197
+						state = 192
+					}
+					has_dynamic_modifier = { modifier = UKR_rebel_state }
+				}
+				remove_core_of = UPR
+				cancel_resistance = yes
+				force_disable_resistance = { clear = yes }
+				if = {
+					limit = {
+						NOT = { is_core_of = ROOT }
+					}
+					remove_claim_by = ROOT
+					add_core_of = ROOT
+				}
+				remove_dynamic_modifier = { modifier = UKR_rebel_state }
+				if = {
+					limit = { is_demilitarized_zone = yes }
+					set_demilitarized_zone = no
+				}
+			}
+			set_country_flag = UKR_Recaptured_South
+		}
+	}	
+	UKR_Recapture_Donbas2 = {
+		icon = GFX_decision_binoculars
+		name = UKR_Recaptured_Donbas
+		allowed = { always = no } #manually activated
+		cancel_trigger = {
+			has_government = social_democrat
+		}
+		highlight_states = {
+			highlight_state_targets = {
+				state = FROM
+			}
+		}
+		state_target = yes
+		fire_only_once = yes
+		days_remove = 14
+		
+		custom_cost_trigger = {
+			command_power > 14.99
+		}
+		custom_cost_text = CP_15
+		
+		cancel_if_not_visible = yes
+		ai_will_do = {
+			factor = 10
+			modifier = {
+				add = 100
+				OR = {
+					has_country_flag = UKR_hetman_side_ai
+					has_game_rule = { rule = UKR_RIVNE_UPRISING option = UKR_RIVNE_UPRISING_HETMANATE_WINS }
+				}
+			}
+			modifier = {
+				factor = 0
+				has_game_rule = { rule = UKR_RIVNE_UPRISING option = UKR_RIVNE_UPRISING_DYREKTORIA_GUARANTEED }
+			}
+		}
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel UKR_Recapture_Donbas2 target: [From.GetName]"
+			hidden_effect = { add_command_power = 15 }
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UKR_Recapture_Donbas2 target: [From.GetName]"
+			hidden_effect = { add_command_power = -15 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_Recapture_Donbas2 target: [From.GetName]"
+			UKR_decrease_direktoria = yes
+			UPR = {
+				add_stability = -0.05
+			}
+			every_owned_state = {
+				limit = {
+					OR = {
+						state = 227
+						state = 1283
+						state = 200
+						state = 221
+						state = 1239
+						state = 1285
+						state = 1286
+					}
+					has_dynamic_modifier = { modifier = UKR_rebel_state }
+				}
+				remove_core_of = UPR
+				cancel_resistance = yes
+				force_disable_resistance = { clear = yes }
+				if = {
+					limit = {
+						NOT = { is_core_of = ROOT }
+					}
+					remove_claim_by = ROOT
+					add_core_of = ROOT
+				}
+				remove_dynamic_modifier = { modifier = UKR_rebel_state }
+				if = {
+					limit = { is_demilitarized_zone = yes }
+					set_demilitarized_zone = no
+				}
+			}
+			set_country_flag = UKR_Recaptured_Donbas
+		}
+	}	
+	UKR_Recapture_Donbas = {
+		icon = GFX_decision_binoculars
+		allowed = { always = no } #manually activated
+		cancel_trigger = {
+			has_government = social_democrat
+		}
+		highlight_states = {
+			highlight_state_targets = {
+				state = FROM
+			}
+		}
+		state_target = yes
+		fire_only_once = yes
+		days_remove = 21
+		
+		custom_cost_trigger = {
+			command_power > 29.99
+		}
+		custom_cost_text = CP_30
+		
+		cancel_if_not_visible = yes
+		ai_will_do = {
+			factor = 10
+			modifier = {
+				add = 100
+				OR = {
+					has_country_flag = UKR_hetman_side_ai
+					has_game_rule = { rule = UKR_RIVNE_UPRISING option = UKR_RIVNE_UPRISING_HETMANATE_WINS }
+				}
+			}
+			modifier = {
+				factor = 0
+				has_game_rule = { rule = UKR_RIVNE_UPRISING option = UKR_RIVNE_UPRISING_DYREKTORIA_GUARANTEED }
+			}
+		}
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel UKR_Recapture_Donbas target: [From.GetName]"
+			hidden_effect = { add_command_power = 30 }
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UKR_Recapture_Donbas target: [From.GetName]"
+			hidden_effect = { add_command_power = -30 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_Recapture_Donbas target: [From.GetName]"
+			UKR_decrease_direktoria = yes
+			UPR = {
+				add_stability = -0.05
+			}
+			every_owned_state = {
+				limit = {
+					OR = {
+						state = 227
+						state = 1283
+						state = 200
+						state = 221
+						state = 1239
+						state = 1285
+						state = 1286
+					}
+					has_dynamic_modifier = { modifier = UKR_rebel_state }
+				}
+				remove_core_of = UPR
+				cancel_resistance = yes
+				force_disable_resistance = { clear = yes }
+				if = {
+					limit = {
+						NOT = { is_core_of = ROOT }
+					}
+					remove_claim_by = ROOT
+					add_core_of = ROOT
+				}
+				remove_dynamic_modifier = { modifier = UKR_rebel_state }
+				if = {
+					limit = { is_demilitarized_zone = yes }
+					set_demilitarized_zone = no
+				}
+			}
+			set_country_flag = UKR_Recaptured_Donbas
 		}
 	}	
 	UKR_Secure_Black_Sea = {
@@ -961,15 +1394,11 @@ UKR_dyrektoria_uprising = {
 		available = {
 			NOT = {
 				has_government = social_democrat
-				has_country_flag = UKR_has_secured_rear
 			}
 		}
 		
 		cancel_trigger = {
-			OR = {
-				has_government = social_democrat
-				has_country_flag = UKR_has_secured_rear
-			}
+			has_government = social_democrat
 		}
 		fire_only_once = yes
 		
@@ -986,10 +1415,13 @@ UKR_dyrektoria_uprising = {
 		ai_will_do = {
 			factor = 10 
 			modifier = {
-				factor = 10
-				has_country_flag = UKR_hetman_side_ai
+				add = 100
+				OR = {
+					has_country_flag = UKR_hetman_side_ai
+					has_game_rule = { rule = UKR_RIVNE_UPRISING option = UKR_RIVNE_UPRISING_HETMANATE_WINS }
+				}
 			}
-			modifier = { #dont take the fleet if dyrektoria is supposed to win
+			modifier = {
 				factor = 0
 				has_game_rule = { rule = UKR_RIVNE_UPRISING option = UKR_RIVNE_UPRISING_DYREKTORIA_GUARANTEED }
 			}
@@ -1002,7 +1434,6 @@ UKR_dyrektoria_uprising = {
 			log = "[GetDateText]: [Root.GetName]: Decision UKR_Secure_Black_Sea target: [From.GetName]"
 			hidden_effect = { 
 				add_command_power = -30
-				remove_targeted_decision = { target = ROOT decision = UKR_Secure_The_Rear } 
 			}
 		}
 		timeout_effect = {
@@ -1453,6 +1884,7 @@ UKR_economy = {
 			add_research_slot_until_five = yes
 			set_temp_variable = { UKR_influence_change = 4 }
 			UKR_industrial_score = yes		
+			UKR_industrial_score_bonuses = yes
 		}
 	}
 
@@ -1473,8 +1905,8 @@ UKR_economy = {
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_industry_subsidies"
 			set_temp_variable = { UKR_influence_change = 3 }
-			UKR_industrial_score = yes
-			
+			UKR_industrial_score = yes		
+			UKR_industrial_score_bonuses = yes			
 		}
 	}
 
@@ -1500,8 +1932,8 @@ UKR_economy = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_slash_regulations"
 			add_stability = -0.02
 			set_temp_variable = { UKR_influence_change = 4 }
-			UKR_industrial_score = yes
-			
+			UKR_industrial_score = yes		
+			UKR_industrial_score_bonuses = yes			
 		}
 	}
 	UKR_great_western = {
@@ -1544,8 +1976,8 @@ UKR_economy = {
 				target_province = 3392
 			}
 			set_temp_variable = { UKR_influence_change = 5 }
-			UKR_industrial_score = yes
-			
+			UKR_industrial_score = yes		
+			UKR_industrial_score_bonuses = yes			
 		}
 	}
 	UKR_great_eastern = {
@@ -1590,8 +2022,8 @@ UKR_economy = {
 				target_province = 6474
 			}
 			set_temp_variable = { UKR_influence_change = 5 }
-			UKR_industrial_score = yes
-			
+			UKR_industrial_score = yes		
+			UKR_industrial_score_bonuses = yes			
 		}
 	}
 	UKR_odesa_hub = {
@@ -1653,8 +2085,8 @@ UKR_economy = {
 				}
 			}
 			set_temp_variable = { UKR_influence_change = 5 }
-			UKR_industrial_score = yes
-			
+			UKR_industrial_score = yes		
+			UKR_industrial_score_bonuses = yes			
 		}
 	}
 
@@ -1694,8 +2126,8 @@ UKR_economy = {
 				}
 			}
 			set_temp_variable = { UKR_influence_change = 4 }
-			UKR_industrial_score = yes
-			
+			UKR_industrial_score = yes		
+			UKR_industrial_score_bonuses = yes			
 		}
 	}
 	UKR_kherson-crimea_development = {
@@ -1755,8 +2187,8 @@ UKR_economy = {
 				}
 			}
 			set_temp_variable = { UKR_influence_change = 6 }
-			UKR_industrial_score = yes
-			
+			UKR_industrial_score = yes		
+			UKR_industrial_score_bonuses = yes			
 		}
 	}
 	UKR_donbass_development = {
@@ -1816,8 +2248,8 @@ UKR_economy = {
 				}
 			}
 			set_temp_variable = { UKR_influence_change = 6 }
-			UKR_industrial_score = yes
-			
+			UKR_industrial_score = yes		
+			UKR_industrial_score_bonuses = yes			
 		}
 	}
 	UKR_new_mining_projects = {
@@ -1859,8 +2291,8 @@ UKR_economy = {
 				state = FROM
 			}
 			set_temp_variable = { UKR_influence_change = 4 }
-			UKR_industrial_score = yes
-			
+			UKR_industrial_score = yes		
+			UKR_industrial_score_bonuses = yes			
 		}
 	}
 	UKR_odessa_dockyards = {
@@ -1904,8 +2336,8 @@ UKR_economy = {
 				}
 			}
 			set_temp_variable = { UKR_influence_change = 3 }
-			UKR_industrial_score = yes
-			
+			UKR_industrial_score = yes		
+			UKR_industrial_score_bonuses = yes			
 		}
 	}
 	UKR_odesa_radio = {
@@ -1950,6 +2382,7 @@ UKR_economy = {
 			}
 			set_temp_variable = { UKR_influence_change = 2 }
 			UKR_industrial_score = yes			
+			UKR_industrial_score_bonuses = yes	
 		}
 	}
 	UKR_basf = {
@@ -1988,8 +2421,8 @@ UKR_economy = {
 				}
 			}
 			set_temp_variable = { UKR_influence_change = 3 }
-			UKR_industrial_score = yes
-			
+			UKR_industrial_score = yes		
+			UKR_industrial_score_bonuses = yes			
 		}
 	}
 	UKR_Invest_In_KhTZ = {
@@ -2051,7 +2484,8 @@ UKR_economy = {
 			log = "[GetDateText]: [Root.GetName]: Decision UKR_further_mechanization target: [From.GetName]"
 			add_ideas = UKR_mechanisation_of_countryside
 			set_temp_variable = { UKR_influence_change = 4 }
-			UKR_industrial_score = yes
+			UKR_industrial_score = yes		
+			UKR_industrial_score_bonuses = yes
 			set_temp_variable = { UKR_influence_change = 2 }
 			UKR_reform_score = yes
 			custom_effect_tooltip = UKR_breadbasket_of_europe_will_change
@@ -2063,7 +2497,7 @@ UKR_economy = {
 		allowed	= { always = no }
 		fire_only_once = yes
 		available = { 
-			has_full_control_of_state = FROM 
+			FROM = { is_controlled_by_ROOT_or_ally = yes }
 			234 = { 
 				OR = {
 					is_controlled_by = ROOT
@@ -2151,8 +2585,8 @@ UKR_economy = {
 			KUB_change_integration_process = yes			
 			increase_ruling_party_popularity_by_5 = yes
 			set_temp_variable = { UKR_influence_change = 7 }
-			UKR_industrial_score = yes
-			
+			UKR_industrial_score = yes		
+			UKR_industrial_score_bonuses = yes			
 			build_railway = {
 				level = 2
 				fallback = yes
@@ -2230,8 +2664,8 @@ UKR_economy = {
 		timeout_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision timeout UKR_finish_dnipro"
 			set_temp_variable = { UKR_influence_change = 7 }
-			UKR_industrial_score = yes
-			
+			UKR_industrial_score = yes		
+			UKR_industrial_score_bonuses = yes			
 			200 = {
 				add_extra_state_shared_building_slots = 3
 				add_building_construction = {
@@ -2279,8 +2713,8 @@ UKR_economy = {
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_kakhovka_dam"
 			set_temp_variable = { UKR_influence_change = 4 }
-			UKR_industrial_score = yes
-			
+			UKR_industrial_score = yes		
+			UKR_industrial_score_bonuses = yes			
 			FROM = {
 				increase_state_category_by_two_levels = yes
 				add_building_construction = {
@@ -2331,7 +2765,8 @@ UKR_economy = {
 			set_temp_variable = { UKR_influence_change = 2 }
 			UKR_reform_score = yes
 			set_temp_variable = { UKR_influence_change = 2 }
-			UKR_industrial_score = yes
+			UKR_industrial_score = yes		
+			UKR_industrial_score_bonuses = yes
 			FROM = {
 				increase_state_category_by_two_levels = yes
 				add_building_construction = {
@@ -2407,7 +2842,8 @@ UKR_economy = {
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_north_crimea_channel"
 			set_temp_variable = { UKR_influence_change = 5 }
-			UKR_industrial_score = yes
+			UKR_industrial_score = yes		
+			UKR_industrial_score_bonuses = yes
 			FROM = {
 				increase_state_category_by_two_levels = yes
 				add_building_construction = {
@@ -2455,7 +2891,8 @@ UKR_economy = {
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_develop_rural_infrastructure"
 			set_temp_variable = { UKR_influence_change = 1 }
-			UKR_industrial_score = yes
+			UKR_industrial_score = yes		
+			UKR_industrial_score_bonuses = yes
 			set_temp_variable = { UKR_influence_change = 1 }
 			UKR_reform_score = yes
 			FROM = {
@@ -2544,7 +2981,8 @@ UKR_economy = {
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_develop_civilian_industry_in_state"
 			set_temp_variable = { UKR_influence_change = 2 }
-			UKR_industrial_score = yes
+			UKR_industrial_score = yes		
+			UKR_industrial_score_bonuses = yes
 			FROM = {
 				add_extra_state_shared_building_slots = 1
 				add_building_construction = {
@@ -2583,7 +3021,8 @@ UKR_economy = {
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_Develop_Military_Industry_In_State"
 			set_temp_variable = { UKR_influence_change = 2 }
-			UKR_industrial_score = yes
+			UKR_industrial_score = yes		
+			UKR_industrial_score_bonuses = yes
 			FROM = {
 				add_extra_state_shared_building_slots = 1
 				add_building_construction = {
@@ -2609,9 +3048,7 @@ UKR_economy = {
 		is_good = no
 		selectable_mission = yes
 		days_mission_timeout = 730
-
-		ai_will_do = { factor = 1000 }
-
+		
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision UKR_two_year_plan"
 			add_political_power = 50
@@ -2621,8 +3058,8 @@ UKR_economy = {
 		timeout_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision timeout UKR_two_year_plan"
 			set_temp_variable = { UKR_influence_change = 8 }
-			UKR_industrial_score = yes
-			
+			UKR_industrial_score = yes		
+			UKR_industrial_score_bonuses = yes			
 			add_political_power = -50
 			add_stability = -0.30
 		}
@@ -2633,21 +3070,19 @@ UKR_economy = {
 		allowed = { always = no } #manually activated
 
 		available = {
-			num_of_factories > 100
+			num_of_factories > UKR_semiletka_mission_factories
 			if = {
 				limit = { has_country_flag = UKR_semiletka_military }
-				num_of_military_factories > 50
+				num_of_military_factories > UKR_semiletka_mission_factories_half
 			}
 			else = {
-				num_of_civilian_factories > 50
+				num_of_civilian_factories > UKR_semiletka_mission_factories_half
 			}
 		}
 
 		is_good = no
 		selectable_mission = yes
 		days_mission_timeout = 2555
-
-		ai_will_do = { factor = 1000 }
 
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision UKR_semiletka_mission"
@@ -2680,8 +3115,6 @@ UKR_economy = {
 		is_good = no
 		selectable_mission = yes
 		days_mission_timeout = 2555
-
-		ai_will_do = { factor = 1000 }
 
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision UKR_second_semiletka_mission"
@@ -2931,7 +3364,7 @@ political_actions = {
 		fire_only_once = yes
 		
 		ai_will_do = {
-			factor = 1000
+			factor = 200
 		}
 
 		complete_effect = {
@@ -2978,7 +3411,7 @@ political_actions = {
 		fire_only_once = yes
 		
 		ai_will_do = {
-			factor = 1000
+			factor = 200
 		}
 
 		complete_effect = {
@@ -3038,7 +3471,7 @@ political_actions = {
 		fire_only_once = yes
 		
 		ai_will_do = {
-			factor = 1000
+			factor = 200
 		}
 
 		complete_effect = {
@@ -3341,7 +3774,7 @@ UKR_seeking_allies = {
 			log = "[GetDateText]: [Root.GetName]: Decision UKR_join_internationale target: [From.GetName]"
 			set_country_flag = { flag = UKR_joining_faction days = 15 value = 1 }
 			FROM = { country_event = ukraine.37  }
-			activate_targeted_decision = { target = GER decision = UKR_terminate_the_brotfrieden }
+			UKR_remove_brotfrieden_without_events = yes
 		}
 	}	
 	UKR_stay_with_germany = {
@@ -3496,170 +3929,438 @@ UKR_seeking_allies = {
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_rus_friendship target: [From.GetName]"
 			FROM = { country_event = ukraine.71 }
-			activate_targeted_decision = { target = GER decision = UKR_terminate_the_brotfrieden }
+			UKR_remove_brotfrieden_without_events = yes
 		}
 	}	
 		
 }
 UKR_eastern_threat = {
-	UKR_ostwall = {
+	UKR_fortify_sumy = {
 		icon = GFX_decision_fortress
-		allowed = { always = no }
-		available = { has_full_control_of_state = FROM }
-		
-		targets = { 241 225 1284 1239 1283 221 228 }
-		target_trigger = { 
-			FROM = { is_owned_by = ROOT }
-		}
-		target_root_trigger = {
-			has_completed_focus = UKR_ostwall_focus
-		}
-		
-		cost = 30
-		days_remove = 50
-		fire_only_once = yes
+		allowed = { always = no } # activated by UKR_fortifications
 		state_target = yes
-		on_map_mode = map_only
+		ai_will_do = { factor = 1 }
 
-		ai_will_do = {
-			factor = 10
+		available = {
+			225 = { is_controlled_by = ROOT }
+			221 = { is_controlled_by = ROOT }
+			1242 = { is_controlled_by = ROOT }
 		}
 
+		cancel_trigger = {
+			OR = {
+				NOT = { 225 = { is_controlled_by = ROOT } }
+				NOT = { 221 = { is_controlled_by = ROOT } }
+				NOT = { 1242 = { is_controlled_by = ROOT } }
+			}
+		}
+
+		custom_cost_trigger = {
+			has_equipment = { infantry_equipment > 499 }
+			has_equipment = { support_equipment > 99 }
+		}
+		custom_cost_text = UKR_forts_expansion
+		days_remove = 30
+
+		modifier = { consumer_goods_factor = 0.05 }
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete UKR_fortify_sumy target: [From.GetName]"
+			add_equipment_to_stockpile = {
+				type = infantry_equipment
+				amount = -500
+			}
+			add_equipment_to_stockpile = {
+				type = support_equipment
+				amount = -100
+			}
+		}
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel UKR_fortify_sumy target: [From.GetName]"
+			add_equipment_to_stockpile = {
+				type = infantry_equipment
+				amount = 500
+			}
+			add_equipment_to_stockpile = {
+				type = support_equipment
+				amount = 100
+			}
+		}
 		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_ostwall target: [From.GetName]"
-			if = {
-				limit = {
-					FROM = { state = 241 }
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_fortify_sumy target: [From.GetName]"
+			225 = {
+				add_building_construction = {
+					type = bunker
+					province = 501
+					level = 2
+					instant_build = yes
 				}
-				FROM = {
-					add_building_construction = {
-						type = bunker
-						province = 9288
-						level = 2
-						instant_build = yes
-					}
-					add_building_construction = {
-						type = bunker
-						province = 9342
-						level = 2
-						instant_build = yes
-					}
+				add_building_construction = {
+					type = bunker
+					province = 3520
+					level = 2
+					instant_build = yes
+				}
+				add_building_construction = {
+					type = bunker
+					province = 522
+					level = 2
+					instant_build = yes
+				}
+				add_building_construction = {
+					type = bunker
+					province = 11397
+					level = 2
+					instant_build = yes
+				}				
+			}
+			221 = {
+				add_building_construction = {
+					type = bunker
+					province = 418
+					level = 2
+					instant_build = yes
+				}
+				add_building_construction = {
+					type = bunker
+					province = 9556
+					level = 2
+					instant_build = yes
+				}
+				add_building_construction = {
+					type = bunker
+					province = 14710
+					level = 2
+					instant_build = yes
 				}
 			}
-			else_if = {
-				limit = {
-					FROM = { state = 225 }
-				}
-				FROM = {
-					add_building_construction = {
-						type = bunker
-						province = 501
-						level = 2
-						instant_build = yes
-					}
-					add_building_construction = {
-						type = bunker
-						province = 3520
-						level = 2
-						instant_build = yes
-					}
+			1242 = {
+				add_building_construction = {
+					type = bunker
+					province = 6508
+					level = 2
+					instant_build = yes
 				}
 			}
-			else_if = {
-				limit = {
-					FROM = { state = 1284 }
+			remove_targeted_decision = { decision = UKR_fortify_sumy target = 225 }
+		}
+	}
+	UKR_fortify_homel = {
+		icon = GFX_decision_fortress
+		allowed = { always = no } # activated by UKR_fortifications
+		ai_will_do = { factor = 1 }
+		state_target = yes
+
+		available = {
+			241 = { is_controlled_by = ROOT }
+			1230 = { is_controlled_by = ROOT }
+			193 = { is_controlled_by = ROOT }
+			1242 = { is_controlled_by = ROOT }
+		}
+
+		cancel_trigger = {
+			OR = {
+				NOT = { 241 = { is_controlled_by = ROOT } }
+				NOT = { 1230 = { is_controlled_by = ROOT } }
+				NOT = { 193 = { is_controlled_by = ROOT } }
+				NOT = { 1242 = { is_controlled_by = ROOT } }
+			}
+		}
+
+		custom_cost_trigger = {
+			has_equipment = { infantry_equipment > 499 }
+			has_equipment = { support_equipment > 99 }
+		}
+		custom_cost_text = UKR_forts_expansion
+		days_remove = 30
+
+		modifier = { consumer_goods_factor = 0.05 }
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete UKR_fortify_homel target: [From.GetName]"
+			add_equipment_to_stockpile = {
+				type = infantry_equipment
+				amount = -500
+			}
+			add_equipment_to_stockpile = {
+				type = support_equipment
+				amount = -100
+			}
+		}
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel UKR_fortify_homel target: [From.GetName]"
+			add_equipment_to_stockpile = {
+				type = infantry_equipment
+				amount = 500
+			}
+			add_equipment_to_stockpile = {
+				type = support_equipment
+				amount = 100
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_fortify_homel target: [From.GetName]"
+			241 = {
+				add_building_construction = {
+					type = bunker
+					province = 9342
+					level = 2
+					instant_build = yes
 				}
-				FROM = {
-					add_building_construction = {
-						type = bunker
-						province = 9461
-						level = 2
-						instant_build = yes
-					}
-					add_building_construction = {
-						type = bunker
-						province = 4703
-						level = 2
-						instant_build = yes
-					}
+				add_building_construction = {
+					type = bunker
+					province = 9288
+					level = 2
+					instant_build = yes
 				}
 			}
-			else_if = {
-				limit = {
-					FROM = { state = 1239 }
+			1230 = {
+				add_building_construction = {
+					type = bunker
+					province = 11229
+					level = 2
+					instant_build = yes
 				}
-				FROM = {
-					add_building_construction = {
-						type = bunker
-						province = 3531
-						level = 2
-						instant_build = yes
-					}
-					add_building_construction = {
-						type = bunker
-						province = 14709
-						level = 2
-						instant_build = yes
-					}
-					add_building_construction = {
-						type = bunker
-						province = 502
-						level = 2
-						instant_build = yes
-					}
+				add_building_construction = {
+					type = bunker
+					province = 315
+					level = 2
+					instant_build = yes
 				}
 			}
-			else_if = {
-				limit = {
-					FROM = { state = 1283 }
+			193 = {
+				add_building_construction = {
+					type = bunker
+					province = 238
+					level = 2
+					instant_build = yes
 				}
-				FROM = {
-					add_building_construction = {
-						type = bunker
-						province = 14708
-						level = 2
-						instant_build = yes
-					}
-					add_building_construction = {
-						type = bunker
-						province = 3479
-						level = 2
-						instant_build = yes
-					}
+				add_building_construction = {
+					type = bunker
+					province = 9477
+					level = 2
+					instant_build = yes
 				}
 			}
-			else_if = {
-				limit = {
-					FROM = { state = 221 }
-				}
-				FROM = {
-					add_building_construction = {
-						type = bunker
-						province = 14710
-						level = 2
-						instant_build = yes
-					}
-					add_building_construction = {
-						type = bunker
-						province = 9556
-						level = 2
-						instant_build = yes
-					}
+			1242 = {
+				add_building_construction = {
+					type = bunker
+					province = 9566
+					level = 2
+					instant_build = yes
 				}
 			}
-			else_if = {
-				limit = {
-					FROM = { state = 228 }
+			remove_targeted_decision = { decision = UKR_fortify_homel target = 241 }
+		}
+	}
+	UKR_fortify_donets = {
+		icon = GFX_decision_fortress
+		allowed = { always = no } # activated by UKR_fortifications
+		ai_will_do = { factor = 1 }
+		state_target = yes
+
+		available = {
+			1284 = { is_controlled_by = ROOT }
+			1239 = { is_controlled_by = ROOT }
+			1283 = { is_controlled_by = ROOT }
+		}
+
+		cancel_trigger = {
+			OR = {
+				NOT = { 1284 = { is_controlled_by = ROOT } }
+				NOT = { 1239 = { is_controlled_by = ROOT } }
+				NOT = { 1283 = { is_controlled_by = ROOT } }
+			}
+		}
+
+		custom_cost_trigger = {
+			has_equipment = { infantry_equipment > 499 }
+			has_equipment = { support_equipment > 99 }
+		}
+		custom_cost_text = UKR_forts_expansion
+		days_remove = 30
+
+		modifier = { consumer_goods_factor = 0.05 }
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete UKR_fortify_donets target: [From.GetName]"
+			add_equipment_to_stockpile = {
+				type = infantry_equipment
+				amount = -500
+			}
+			add_equipment_to_stockpile = {
+				type = support_equipment
+				amount = -100
+			}
+		}
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel UKR_fortify_donets target: [From.GetName]"
+			add_equipment_to_stockpile = {
+				type = infantry_equipment
+				amount = 500
+			}
+			add_equipment_to_stockpile = {
+				type = support_equipment
+				amount = 100
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_fortify_donets target: [From.GetName]"
+			1284 = {
+				add_building_construction = {
+					type = bunker
+					province = 9461
+					level = 2
+					instant_build = yes
 				}
-				FROM = {
-					add_building_construction = {
-						type = bunker
-						province = 6420
-						level = 2
-						instant_build = yes
-					}
+				add_building_construction = {
+					type = bunker
+					province = 14703
+					level = 2
+					instant_build = yes
+				}
+				add_building_construction = {
+					type = bunker
+					province = 14704
+					level = 2
+					instant_build = yes
 				}
 			}
+			1239 = {
+				add_building_construction = {
+					type = bunker
+					province = 6530
+					level = 2
+					instant_build = yes
+				}
+				add_building_construction = {
+					type = bunker
+					province = 3531
+					level = 2
+					instant_build = yes
+				}
+				add_building_construction = {
+					type = bunker
+					province = 14709
+					level = 2
+					instant_build = yes
+				}
+				add_building_construction = {
+					type = bunker
+					province = 502
+					level = 2
+					instant_build = yes
+				}
+			}
+			1283 = {
+				add_building_construction = {
+					type = bunker
+					province = 14708
+					level = 2
+					instant_build = yes
+				}
+				add_building_construction = {
+					type = bunker
+					province = 3479
+					level = 2
+					instant_build = yes
+				}
+			}
+			remove_targeted_decision = { decision = UKR_fortify_donets target = 1283 }
+		}
+	}
+	UKR_fortify_yuzivka = {
+		icon = GFX_decision_fortress
+		allowed = { always = no } # activated by UKR_fortifications
+		ai_will_do = { factor = 1 }
+		state_target = yes
+
+		available = {
+			227 = { is_controlled_by = ROOT }
+			228 = { is_controlled_by = ROOT }
+		}
+
+		cancel_trigger = {
+			OR = {
+				NOT = { 227 = { is_controlled_by = ROOT } }
+				NOT = { 228 = { is_controlled_by = ROOT } }
+			}
+		}
+
+		custom_cost_trigger = {
+			has_equipment = { infantry_equipment > 499 }
+			has_equipment = { support_equipment > 99 }
+		}
+		custom_cost_text = UKR_forts_expansion
+		days_remove = 30
+
+		modifier = { consumer_goods_factor = 0.05 }
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete UKR_fortify_yuzivka target: [From.GetName]"
+			add_equipment_to_stockpile = {
+				type = infantry_equipment
+				amount = -500
+			}
+			add_equipment_to_stockpile = {
+				type = support_equipment
+				amount = -100
+			}
+		}
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel UKR_fortify_yuzivka target: [From.GetName]"
+			add_equipment_to_stockpile = {
+				type = infantry_equipment
+				amount = 500
+			}
+			add_equipment_to_stockpile = {
+				type = support_equipment
+				amount = 100
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_fortify_yuzivka target: [From.GetName]"
+			227 = {
+				add_building_construction = {
+					type = bunker
+					province = 6505
+					level = 2
+					instant_build = yes
+				}
+				add_building_construction = {
+					type = bunker
+					province = 14702
+					level = 2
+					instant_build = yes
+				}
+				add_building_construction = {
+					type = bunker
+					province = 14705
+					level = 2
+					instant_build = yes
+				}
+				add_building_construction = {
+					type = bunker
+					province = 6474
+					level = 2
+					instant_build = yes
+				}
+			}
+			228 = {
+				add_building_construction = {
+					type = bunker
+					province = 3421
+					level = 2
+					instant_build = yes
+				}
+				add_building_construction = {
+					type = bunker
+					province = 6420
+					level = 2
+					instant_build = yes
+				}
+			}
+			remove_targeted_decision = { decision = UKR_fortify_yuzivka target = 227 }
 		}
 	}
 	UKR_evacuate_industry = {
@@ -3675,7 +4376,11 @@ UKR_eastern_threat = {
 		}
 		visible = {
 			FROM = {
-				is_owned_and_controlled_by = ROOT				
+				is_owned_and_controlled_by = ROOT
+				OR = {
+					arms_factory > 0
+					industrial_complex > 0
+				}
 			}
 			has_civil_war = no
 			var:219.owner = {
@@ -3984,7 +4689,7 @@ UKR_eastern_threat = {
 				is_subject = no
 				NOT = { is_in_faction_with = ROOT }
 				tag = RUS
-			}
+			}			
 		}
 
 		fire_only_once = yes
@@ -4046,6 +4751,18 @@ UKR_eastern_threat = {
 		icon = GFX_decision_fortress
 		allowed = { always = no }
 		
+		available = {
+			count_triggers = {
+				amount > 2
+				1244 = { is_fully_controlled_by = ROOT }
+				202 = { is_fully_controlled_by = ROOT }
+				1240 = { is_fully_controlled_by = ROOT }
+				203 = { is_fully_controlled_by = ROOT }
+				1233 = { is_fully_controlled_by = ROOT }
+				226 = { is_fully_controlled_by = ROOT }
+				197 = { is_fully_controlled_by = ROOT }
+			}
+		}
 		visible = {
 			has_civil_war = no
 			var:219.owner = {
@@ -4054,7 +4771,11 @@ UKR_eastern_threat = {
 				tag = RUS
 			}
 		}
-		cost = 30
+		custom_cost_trigger = {
+			has_equipment = { infantry_equipment > 999 }
+			has_equipment = { support_equipment > 129 }
+		}
+		custom_cost_text = UKR_forts_expansion_large
 		days_remove = 30
 		fire_only_once = yes
 		
@@ -4529,6 +5250,7 @@ UKR_foreign_policy = {
 				array = RUS.RUS_starting_states_array
 				add_claim_by = ROOT
 			}
+			set_country_flag = UKR_no_khruschev_for_puppet
 		}
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_all_russian_ambitions"
@@ -5724,7 +6446,7 @@ UKR_Kyiv_Conference_decisions = {
 		cost = 0
 		fire_only_once = yes
 		ai_will_do = {
-			factor = 1000
+			factor = 200
 		}
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision complete KCN_economic_cooperation"
@@ -5765,7 +6487,7 @@ UKR_Kyiv_Conference_decisions = {
 		cost = 0
 		fire_only_once = yes
 		ai_will_do = {
-			factor = 1000
+			factor = 200
 		}
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision complete KCN_cultural_research_cooperation"
@@ -5823,7 +6545,7 @@ UKR_Kyiv_Conference_decisions = {
 		fire_only_once = yes
 		days_remove = 14
 		ai_will_do = {
-			factor = 1000
+			factor = 200
 		}
 		
 		cancel_effect = {
@@ -5862,7 +6584,7 @@ UKR_Kyiv_Conference_decisions = {
 		cost = 0
 		fire_only_once = yes
 		ai_will_do = {
-			factor = 1000
+			factor = 200
 		}
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision complete KCN_initialize_country_accept [FROM.GetName]"
@@ -5925,7 +6647,7 @@ UKR_Kyiv_Conference_decisions = {
 		cost = 0
 		fire_only_once = yes
 		ai_will_do = {
-			factor = 1000
+			factor = 200
 		}
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision complete KCN_kick_out_country [FROM.GetName]"
@@ -5980,7 +6702,7 @@ UKR_Kyiv_Conference_decisions = {
 		fire_only_once = yes
 		days_remove = 14
 		ai_will_do = {
-			factor = 1000
+			factor = 200
 			modifier = {
 				factor = 0
 				has_equipment = {
@@ -6036,7 +6758,7 @@ UKR_Kyiv_Conference_decisions = {
 		cost = 0
 
 		ai_will_do = {
-			factor = 1000
+			factor = 200
 			modifier = {
 				factor = 0
 				has_socialist_government = no
@@ -6076,7 +6798,7 @@ UKR_Kyiv_Conference_decisions = {
 		cost = 0
 
 		ai_will_do = {
-			factor = 1000
+			factor = 200
 		}
 
 		complete_effect = {
@@ -11273,8 +11995,9 @@ UKR_Red_Kyiv_category = {
 			add_to_variable = { UKR_red_kyiv_pp = 0.02 }
 			add_to_variable = { UKR_red_kyiv_stability = 0.04 }
 			increase_ruling_party_popularity_by_5 = yes
-			set_temp_variable = { UKR_influence_change = 4 }
-			UKR_industrial_score = yes
+			set_temp_variable = { UKR_influence_change = 2 }
+			UKR_industrial_score = yes		
+			UKR_industrial_score_bonuses = yes
 			202 = {
 				add_building_construction = {
 					type = bunker
@@ -11794,16 +12517,22 @@ UKR_petliura_category = {
 		
 		allowed = { always = no } #manually activated
 		
-		available = {
+		cancel_trigger = {
 			OR = {
 				has_completed_focus = UKR_Impossible_Became_Reality
 				NOT = { has_country_flag = UKR_petliura_shumskyi }
 			}
 		}
 		is_good = no
-		selectable_mission = no
+		selectable_mission = yes
+		cost = UKR_petliura_resistance_mission_cost
 		fixed_random_seed = no
 		days_mission_timeout = 35
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete UKR_petliura_resistance_mission"
+			activate_mission = UKR_petliura_resistance_mission
+		}
 		
 		timeout_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision timeout UKR_petliura_resistance_mission"
@@ -11837,16 +12566,23 @@ UKR_petliura_category = {
 		
 		allowed = { always = no } #manually activated
 		
-		available = {
+		cancel_trigger = {
 			OR = {
 				has_completed_focus = UKR_Power_At_The_Barrel_Of_The_Gun
 				NOT = { has_country_flag = UKR_petliura_melnyk }
 			}
 		}
 		is_good = no
-		selectable_mission = no
+		selectable_mission = yes
+		cost = UKR_petliura_resistance_mission_cost
+		
 		fixed_random_seed = no
 		days_mission_timeout = 60
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete UKR_petliura_resistance_mission_melnyk"
+			activate_mission = UKR_petliura_resistance_mission_melnyk
+		}
 		
 		timeout_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision timeout UKR_petliura_resistance_mission_melnyk"
@@ -11898,16 +12634,22 @@ UKR_petliura_category = {
 		
 		allowed = { always = no } #manually activated
 		
-		available = {
+		cancel_trigger = {
 			OR = {
 				has_completed_focus = UKR_Power_At_The_Barrel_Of_The_Gun
 				NOT = { has_country_flag = UKR_petliura_melnyk }
 			}
 		}
 		is_good = no
-		selectable_mission = no
+		selectable_mission = yes
+		cost = UKR_melnyk_resistance_mission_cost
 		fixed_random_seed = no
 		days_mission_timeout = UKR_melnyk_resistance_timeout?60
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete UKR_melnyk_resistance_mission"
+			activate_mission = UKR_melnyk_resistance_mission
+		}
 		
 		timeout_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision timeout UKR_melnyk_resistance_mission"
@@ -11949,16 +12691,22 @@ UKR_petliura_category = {
 		
 		allowed = { always = no } #manually activated
 		
-		available = {
+		cancel_trigger = {
 			OR = {
 				has_completed_focus = UKR_Power_At_The_Barrel_Of_The_Gun
 				NOT = { has_country_flag = UKR_petliura_melnyk }
 			}
 		}
 		is_good = no
-		selectable_mission = no
+		selectable_mission = yes
+		cost = UKR_usdrp_resistance_mission_cost
 		days_mission_timeout = 75
 		fixed_random_seed = no
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete UKR_usdrp_resistance_mission"
+			activate_mission = UKR_usdrp_resistance_mission
+		}
 		
 		timeout_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision timeout UKR_usdrp_resistance_mission"
@@ -11987,12 +12735,22 @@ UKR_petliura_category = {
 		
 		allowed = { always = no } #manually activated
 		
-		available = {
-			hidden_trigger = { always = no }
+		cancel_trigger = {
+			OR = {
+				has_completed_focus = UKR_National_Union_Holds
+				has_completed_focus = UKR_Left_Wing_Splits
+				has_completed_focus = UKR_Right_Wing_Splits
+			}
 		}
 		is_good = no
-		selectable_mission = no
+		selectable_mission = yes
+		cost = UKR_uns_leftwing_resistance_mission_cost
 		days_mission_timeout = 35
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete UKR_uns_leftwing_resistance_mission"
+			activate_mission = UKR_uns_leftwing_resistance_mission
+		}
 		
 		timeout_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision timeout UKR_uns_leftwing_resistance_mission"
@@ -12005,12 +12763,22 @@ UKR_petliura_category = {
 		
 		allowed = { always = no } #manually activated
 		
-		available = {
-			hidden_trigger = { always = no }
+		cancel_trigger = {
+			OR = {
+				has_completed_focus = UKR_National_Union_Holds
+				has_completed_focus = UKR_Left_Wing_Splits
+				has_completed_focus = UKR_Right_Wing_Splits
+			}
 		}
 		is_good = no
-		selectable_mission = no
+		selectable_mission = yes
+		cost = UKR_uns_rightwing_resistance_mission_cost
 		days_mission_timeout = 35
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete UKR_uns_rightwing_resistance_mission"
+			activate_mission = UKR_uns_rightwing_resistance_mission
+		}
 		
 		timeout_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision timeout UKR_uns_rightwing_resistance_mission"
@@ -12023,16 +12791,21 @@ UKR_petliura_category = {
 		
 		allowed = { always = no } #manually activated
 		
-		available = {
+		cancel_trigger = {
 			OR = {
 				has_completed_focus = UKR_Impossible_Became_Reality
 				NOT = { has_country_flag = UKR_petliura_shumskyi }
 			}
 		}
 		is_good = no
-		selectable_mission = no
-		days_mission_timeout = 35
-		fire_only_once = yes
+		selectable_mission = yes
+		cost = UKR_shumskyi_resistance_mission_cost
+		days_mission_timeout = UKR_shumskyi_resistance_mission_days
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete UKR_shumskyi_resistance_mission"
+			activate_mission = UKR_shumskyi_resistance_mission
+		}
 		
 		timeout_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision timeout UKR_shumskyi_resistance_mission"
@@ -12968,16 +13741,27 @@ UKR_breadbasket_decision_cat = {
 		icon = GFX_decision_generic_break_treaty
 		allowed = { always = no }
 		available = {
-			OR = {
+			NOT = {
 				is_subject_of = GER
 				is_subject_of = AUS
 			}
+			NOT = { has_country_flag = UKR_terminating_brotfrieden }
 		}
 		visible = {
-			OR = {
-				has_idea = UKR_brotfrieden_idea
-				has_idea = UKR_brotfrieden_idea_AUS
-				has_idea = UKR_brotfrieden_idea_GER
+			if = {
+				limit = {
+					FROM = { tag = AUS }
+				}
+				OR = {
+					has_idea = UKR_brotfrieden_idea
+					has_idea = UKR_brotfrieden_idea_AUS
+				}
+			}
+			else = {
+				OR = {
+					has_idea = UKR_brotfrieden_idea
+					has_idea = UKR_brotfrieden_idea_GER
+				}
 			}
 		}
 		cost = 0
@@ -12990,43 +13774,44 @@ UKR_breadbasket_decision_cat = {
 		}
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision UKR_terminate_the_brotfrieden target: [From.GetName]"
+			set_country_flag = { flag = UKR_terminating_brotfrieden days = 30 value = 1 }
 			if = {
-				limit = { has_idea = UKR_brotfrieden_idea_GER }
-				remove_ideas = UKR_brotfrieden_idea_GER
-				GER = {
-					country_event = {
-						id = ukreco.42
-						days = 2
-						random_days = 5
+				limit = {
+					FROM = { tag = AUS }
+				}
+				if = {
+					limit = { has_idea = UKR_brotfrieden_idea_AUS }
+					remove_ideas = UKR_brotfrieden_idea_AUS
+				}
+				else_if = {
+					limit = { has_idea = UKR_brotfrieden_idea }
+					swap_ideas = {
+						remove_idea = UKR_brotfrieden_idea
+						add_idea = UKR_brotfrieden_idea_GER
 					}
 				}
 			}
 			else_if = {
-				limit = { has_idea = UKR_brotfrieden_idea_AUS }
-				remove_ideas = UKR_brotfrieden_idea_AUS
-				AUS = {
-					country_event = {
-						id = ukreco.42
-						days = 3
-						random_days = 5
+				limit = {
+					FROM = { tag = GER }
+				}
+				if = {
+					limit = { has_idea = UKR_brotfrieden_idea_GER }
+					remove_ideas = UKR_brotfrieden_idea_GER
+				}
+				else_if = {
+					limit = { has_idea = UKR_brotfrieden_idea }
+					swap_ideas = {
+						remove_idea = UKR_brotfrieden_idea
+						add_idea = UKR_brotfrieden_idea_AUS
 					}
 				}
 			}
-			else = {
-				remove_ideas = UKR_brotfrieden_idea
-				GER = {
-					country_event = {
-						id = ukreco.42
-						days = 2
-						random_days = 5
-					}
-				}
-				AUS = {
-					country_event = {
-						id = ukreco.42
-						days = 3
-						random_days = 5
-					}
+			FROM = {
+				country_event = {
+					id = ukreco.42
+					days = 2
+					random_days = 5
 				}
 			}
 		}
@@ -13049,13 +13834,13 @@ UKR_breadbasket_decision_cat = {
 		
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision UKR_Continue_The_Mechanisation_Efforts target: [From.GetName]"
-			UKR_reduce_black_monday = yes
 			UKR_reduce_agricultural_crisis = yes
 			custom_effect_tooltip = UKR_breadbasket_of_europe_will_change
 			UKR_breadbasket_remove_consumer_goods = yes
 			UKR_breadbasket_add_production_growth = yes
 			set_temp_variable = { UKR_influence_change = 1 }
-			UKR_industrial_score = yes
+			UKR_industrial_score = yes		
+			UKR_industrial_score_bonuses = yes
 			set_temp_variable = { UKR_influence_change = 2 }
 			UKR_reform_score = yes
 			add_tech_bonus = {
@@ -13268,7 +14053,8 @@ UKR_breadbasket_decision_cat = {
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision complete UKR_build_up_odessa_port"
 			set_temp_variable = { UKR_influence_change = 3 }
-			UKR_industrial_score = yes
+			UKR_industrial_score = yes		
+			UKR_industrial_score_bonuses = yes
 			custom_effect_tooltip = UKR_build_up_odessa_port_tt
 			add_to_variable = { UKR_beyond_mitteleuropa_industrial_capacity_dockyard = 0.1 }
 			add_to_variable = { UKR_breadbasket_of_europe_trade_opinion = 0.1 }
@@ -13913,7 +14699,7 @@ UKR_mizhmoria_alliance = {
 		fire_only_once = yes
 
 		ai_will_do = {
-			factor = 1000
+			factor = 200
 		}
 
 		cancel_effect = {
@@ -13970,7 +14756,7 @@ UKR_mizhmoria_alliance = {
 		fire_only_once = yes
 
 		ai_will_do = {
-			factor = 1000
+			factor = 200
 		}
 
 		complete_effect = {
@@ -14190,7 +14976,7 @@ UKR_mizhmoria_alliance = {
 		fire_only_once = yes
 
 		ai_will_do = {
-			factor = 1000
+			factor = 200
 		}
 
 		complete_effect = {
@@ -14264,7 +15050,7 @@ UKR_mizhmoria_alliance = {
 		fire_only_once = yes
 
 		ai_will_do = {
-			factor = 1000
+			factor = 200
 		}
 
 		complete_effect = {
@@ -14333,7 +15119,7 @@ UKR_mizhmoria_alliance = {
 		fire_only_once = yes
 
 		ai_will_do = {
-			factor = 1000
+			factor = 200
 		}
 
 		complete_effect = {
@@ -14486,7 +15272,7 @@ UKR_mizhmoria_alliance = {
 		fire_only_once = yes
 
 		ai_will_do = {
-			factor = 1000
+			factor = 200
 		}
 
 		complete_effect = {
@@ -14554,7 +15340,7 @@ UKR_mizhmoria_alliance = {
 		fire_only_once = yes
 
 		ai_will_do = {
-			factor = 1000
+			factor = 200
 		}
 
 		complete_effect = {
@@ -14617,7 +15403,7 @@ UKR_mizhmoria_alliance = {
 		fire_only_once = yes
 
 		ai_will_do = {
-			factor = 1000
+			factor = 200
 		}
 
 		complete_effect = {
@@ -14753,7 +15539,7 @@ UKR_mizhmoria_alliance = {
 		fire_only_once = yes
 
 		ai_will_do = {
-			factor = 1000
+			factor = 200
 			modifier = {
 				factor = 0
 				has_authoritarian_government = yes
@@ -14835,7 +15621,7 @@ UKR_mizhmoria_alliance = {
 		fire_only_once = yes
 
 		ai_will_do = {
-			factor = 1000
+			factor = 200
 			modifier = {
 				factor = 0.05
 				has_intelligence_agency = yes
@@ -14927,7 +15713,7 @@ UKR_mizhmoria_alliance = {
 		fire_only_once = yes
 
 		ai_will_do = {
-			factor = 1000
+			factor = 200
 			modifier = {
 				factor = 0.05
 				has_authoritarian_government = yes
@@ -15258,7 +16044,7 @@ UKR_galicia_partisans_category = {
 		fire_only_once = yes
 
 		ai_will_do = {
-			factor = 1000
+			factor = 200
 			modifier = {
 				factor = 0
 				OR = {
@@ -17253,4 +18039,97 @@ UKR_cooperative_movement_decisions = {
 			recalculate_cooperatives = yes
 		}
 	}	
+}
+UKR_explosion_investigation = {
+	UKR_interview_survivors = {
+		icon = GFX_decision_eng_trade_unions_support
+		cost = 0
+		available = {
+			OR = {
+				has_global_flag = UPR_dyrektoria_become_exiled_in_WSU
+				has_global_flag = UPR_ukrainian_civil_war_ended
+				has_global_flag = UPR_dyrektoria_joined_peacefully
+			}
+			has_civil_war = no
+		}
+		fire_only_once = yes
+		days_remove = 15
+		
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_interview_survivors"
+			set_country_flag = UKR_interviewed_survivors
+			unlock_decision_tooltip = UKR_examine_intelligence
+			country_event = ukrpol_explosion.12
+		}
+	}
+	UKR_examine_intelligence = {
+		icon = GFX_decision_SWI_expand_covert_operations
+		cost = 0
+		available = {
+			has_country_flag = UKR_interviewed_survivors
+			has_civil_war = no
+		}
+		fire_only_once = yes
+		days_remove = 15
+		
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_examine_intelligence"
+			set_country_flag = UKR_examined_intelligence
+			unlock_decision_tooltip = UKR_trace_explosive_device
+			country_event = ukrpol_explosion.13
+		}
+	}
+	UKR_trace_explosive_device = {
+		icon = GFX_decision_generic_ignite_civil_war
+		cost = 0
+		available = {
+			has_country_flag = UKR_examined_intelligence
+			has_civil_war = no
+		}
+		fire_only_once = yes
+		days_remove = 15
+		
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_trace_explosive_device"
+			set_country_flag = UKR_traced_explosive_device
+			unlock_decision_tooltip = UKR_scrutinize_domestic_rivals
+			country_event = ukrpol_explosion.14
+		}
+	}
+	UKR_scrutinize_domestic_rivals = {
+		icon = GFX_decision_generic_political_discourse
+		cost = 0
+		available = {
+			has_country_flag = UKR_traced_explosive_device
+			has_civil_war = no
+		}
+		fire_only_once = yes
+		days_remove = 15
+		
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_scrutinize_domestic_rivals"
+			set_country_flag = UKR_scrutinized_domestic_rivals
+			unlock_decision_tooltip = UKR_finalize_investigation
+			country_event = ukrpol_explosion.15
+		}
+	}
+	UKR_finalize_investigation = {
+		icon = GFX_decision_SWI_elect_confederation_president
+		cost = 0
+		available = {
+			has_country_flag = UKR_interviewed_survivors
+			has_country_flag = UKR_examined_intelligence
+			has_country_flag = UKR_traced_explosive_device
+			has_country_flag = UKR_scrutinized_domestic_rivals
+			has_civil_war = no
+		}
+		fire_only_once = yes
+		days_remove = 30
+		
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_finalize_investigation"
+			UKR_determine_the_killer = yes
+			country_event = ukrpol_explosion.16
+		}
+	}
 }
