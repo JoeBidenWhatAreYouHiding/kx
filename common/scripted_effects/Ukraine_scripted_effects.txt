@@ -654,6 +654,19 @@ UKR_recalculate_land_reform = {
 	divide_variable = { UKR_Land_Reform_Borotbysts = -2 }
 	
 	add_to_variable = { UKR_Land_Reform_Borotbysts = UKR_Land_Reform_Borotbysts_extra }
+	clamp_variable = {
+		var = UKR_Land_Reform_Borotbysts
+		min = 0
+		max = 100
+	}
+	clamp_variable = {
+		var = UKR_Land_Reform_Popularity
+		min = 0
+	}
+	clamp_variable = {
+		var = UKR_Land_Reform_Success
+		min = 0
+	}
 			
 	if = {
 		limit = { has_active_mission = UKR_Land_Reform_Plan }
@@ -2756,10 +2769,10 @@ UPR_setup_ROOT_borotbyst_uprising = {
 		transfer_units_fraction = {
 			target = USR
 			size = 0.5
-			army_ratio = 0.5
+			army_ratio = 0
 			navy_ratio = 0
-			air_ratio = 0.5
-			stockpile_ratio = 0.5
+			air_ratio = 0.2
+			stockpile_ratio = 0.2
 			keep_unit_leaders_trigger = { always = yes }
 		}
 		delete_unit_template_and_units = {
@@ -3052,13 +3065,13 @@ UPR_setup_borotbyst_uprising = {
 		}		
 		transfer_units_fraction = {
 			target = USR
-			size = 0.2
-			army_ratio = 0.2
+			size = 0.5
+			army_ratio = 0
 			navy_ratio = 0
 			air_ratio = 0.2
 			stockpile_ratio = 0.2
 			keep_unit_leaders_trigger = { always = yes }
-		}	
+		}
 		add_popularity = {
 			ideology = syndicalist
 			popularity = -0.15
@@ -3243,6 +3256,7 @@ UKR_setup_dyrektoria_divisions = {
 		if = {
 			limit = {
 				NOT = { has_government = national_populist }
+				NOT = { has_country_flag = UKR_compromises_with_nationalists }
 			}
 			set_country_flag = UPR_uvo_openly_joins_dyrektoria
 			create_country_leader = {
@@ -3452,6 +3466,7 @@ UKR_setup_dyrektoria_government = {
 	set_temp_variable = { coalition_partner_var = token:social_liberal }
 	add_to_coalition = yes
 	hidden_effect = {
+		clr_country_flag = UKR_triumvirs_power_struggle
 		set_party_name = {
 			ideology = social_democrat
 			name = UKR_social_democrat_party4
@@ -4443,6 +4458,8 @@ UKR_setup_borotbyst_victory_over_petliura = {
 }
 UKR_setup_not_borotbyst_victory = {
 	clr_global_flag = UKR_borotbyst_civil_war
+	set_country_flag = UKR_disable_borotbist_uprisings
+	add_to_variable = { UKR_Land_Reform_Borotbysts_extra = -15 }
 	if = {
 		limit = { has_idea = UKR_borotbyst_uprising }
 		remove_ideas = UKR_borotbyst_uprising
@@ -6619,11 +6636,12 @@ UKR_setup_petliura_national_union = {
 	set_country_flag = UKR_petliura_national_union
 	clr_country_flag = UKR_petliura_shumskyi
 	clr_country_flag = UKR_petliura_melnyk
-	set_variable = { UKR_uns_left_authority = party_popularity@social_democrat }
-	add_to_variable = { UKR_uns_left_authority = party_popularity@radical_socialist }
-	add_to_variable = { UKR_uns_left_authority = party_popularity@totalist }
-	multiply_variable = { UKR_uns_left_authority = 100 }
-	add_to_variable = { UKR_uns_left_authority = UKR_petliura_authority }
+	set_temp_variable = { sum = party_popularity_100@social_democrat }
+	add_to_temp_variable = { sum = party_popularity_100@social_liberal }
+	set_temp_variable = { UKR_uns_left_authority_temp = party_popularity_100@social_democrat }
+	divide_temp_variable = { UKR_uns_left_authority_temp = sum }
+	multiply_temp_variable = { UKR_uns_left_authority_temp = 100 }
+	round_variable = UKR_uns_left_authority_temp
 	
 	set_variable = { UKR_uns_right_authority = 100 }
 	subtract_from_variable = { UKR_uns_right_authority = UKR_uns_left_authority }
@@ -7382,10 +7400,6 @@ UKR_increase_left_uns_influence = {
 					ideology = social_democrat
 					popularity = 0.02
 				}
-				add_popularity = {
-					ideology = radical_socialist
-					popularity = 0.01
-				}
 			}
 			25 = {
 				add_to_variable = { UKR_uns_left_authority = 15 }
@@ -7394,10 +7408,6 @@ UKR_increase_left_uns_influence = {
 					ideology = social_democrat
 					popularity = 0.03
 				}
-				add_popularity = {
-					ideology = radical_socialist
-					popularity = 0.02
-				}
 			}
 			25 = {
 				add_to_variable = { UKR_uns_left_authority = 17 }
@@ -7405,10 +7415,6 @@ UKR_increase_left_uns_influence = {
 				add_popularity = {
 					ideology = social_democrat
 					popularity = 0.04
-				}
-				add_popularity = {
-					ideology = radical_socialist
-					popularity = 0.03
 				}
 			}
 		}	
@@ -7427,128 +7433,8 @@ UKR_increase_left_uns_influence = {
 				has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_PETLIURA }
 			}
 			complete_national_focus = UKR_National_Union_Holds
-			add_stability = 0.1
-			increase_ruling_party_popularity_by_10 = yes
-		}
-		else_if = {
-			limit = {
-				OR = {
-					check_variable = { UKR_uns_right_authority > 65 }
-					AND = {
-						is_ai = yes
-						has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_PETLIURA_FAILS_USDRP }
-					}
-				}
-			}
-			complete_national_focus = UKR_Left_Wing_Splits
-			add_stability = -0.1
-			set_variable = { coalition_partner_var = token:social_liberal }
-			remove_from_coalition = yes
-			set_variable = { coalition_partner_var = token:market_liberal }
-			remove_from_coalition = yes
-			remove_all_ministers_but_hog = yes
-			add_ideas = {
-				UKR_Dmytro_Isaievych_for_sde
-				UKR_Mykola_Porsh_eco_sde
-				UKR_Isaak_Mazepa_sec_sde
-			}
-		}
-		else_if = {
-			limit = {
-				OR = {
-					check_variable = { UKR_uns_left_authority > 65 }
-					AND = {
-						is_ai = yes
-						has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_PETLIURA_FAILS_UPSF }
-					}
-				}
-			}
-			complete_national_focus = UKR_Right_Wing_Splits
-			add_stability = -0.1
-			set_variable = { coalition_partner_var = token:radical_socialist }
-			remove_from_coalition = yes
-			set_variable = { coalition_partner_var = token:social_democrat}
-			remove_from_coalition = yes
-			remove_all_ministers_but_hog = yes
-			add_ideas = {
-				UKR_Alexander_Shulgin_for_sli
-				UKR_Mykhailo_Korchinskyi_eco_sli
-				UKR_Oleksandr_Lototskyi_sec_sli
-			}
-		}
-		else = {
-			complete_national_focus = UKR_National_Union_Holds
-			add_stability = 0.1
-			increase_ruling_party_popularity_by_10 = yes
-		}
-	}
-}
-UKR_increase_right_uns_influence = {
-	custom_effect_tooltip = UKR_increase_right_uns_influence
-	hidden_effect = {
-		random_list = {
-			25 = {
-				add_to_variable = { UKR_uns_left_authority = -10 }
-				add_to_variable = { UKR_uns_right_authority = 10 }					
-				add_popularity = {
-					ideology = social_liberal
-					popularity = 0.01
-				}
-			}
-			25 = {
-				add_to_variable = { UKR_uns_left_authority = -12 }
-				add_to_variable = { UKR_uns_right_authority = 12 }					
-				add_popularity = {
-					ideology = social_liberal
-					popularity = 0.02
-				}
-				add_popularity = {
-					ideology = market_liberal
-					popularity = 0.01
-				}
-			}
-			25 = {
-				add_to_variable = { UKR_uns_left_authority = -15 }
-				add_to_variable = { UKR_uns_right_authority = 15 }					
-				add_popularity = {
-					ideology = social_liberal
-					popularity = 0.03
-				}
-				add_popularity = {
-					ideology = market_liberal
-					popularity = 0.02
-				}
-			}
-			25 = {
-				add_to_variable = { UKR_uns_left_authority = -17 }
-				add_to_variable = { UKR_uns_right_authority = 17 }					
-				add_popularity = {
-					ideology = social_liberal
-					popularity = 0.04
-				}
-				add_popularity = {
-					ideology = market_liberal
-					popularity = 0.02
-				}
-			}
-		}	
-		UKR_update_petliura_progress_bar = yes		
-	}
-	if = {
-		limit = {
-			has_completed_focus = UKR_Stop_Radical_Left_Reforms
-			has_completed_focus = UKR_Work_With_Bouregoisie
-			has_completed_focus = UKR_Moderate_Taxation
-			NOT = { country_exists = USR }
-		}
-		if = {
-			limit = {
-				is_ai = yes
-				has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_PETLIURA }
-			}
-			complete_national_focus = UKR_National_Union_Holds
 			country_event = ukrsoc.290
-	}
+		}
 		else_if = {
 			limit = {
 				OR = {
@@ -7577,8 +7463,93 @@ UKR_increase_right_uns_influence = {
 		}
 		else = {
 			complete_national_focus = UKR_National_Union_Holds
-			add_stability = 0.1
-			increase_ruling_party_popularity_by_10 = yes
+			country_event = ukrsoc.290
+		}
+	}
+}
+UKR_increase_right_uns_influence = {
+	custom_effect_tooltip = UKR_increase_right_uns_influence
+	hidden_effect = {
+		random_list = {
+			25 = {
+				add_to_variable = { UKR_uns_left_authority = -10 }
+				add_to_variable = { UKR_uns_right_authority = 10 }					
+				add_popularity = {
+					ideology = social_liberal
+					popularity = 0.01
+				}
+			}
+			25 = {
+				add_to_variable = { UKR_uns_left_authority = -12 }
+				add_to_variable = { UKR_uns_right_authority = 12 }					
+				add_popularity = {
+					ideology = social_liberal
+					popularity = 0.02
+				}
+			}
+			25 = {
+				add_to_variable = { UKR_uns_left_authority = -15 }
+				add_to_variable = { UKR_uns_right_authority = 15 }					
+				add_popularity = {
+					ideology = social_liberal
+					popularity = 0.03
+				}
+			}
+			25 = {
+				add_to_variable = { UKR_uns_left_authority = -17 }
+				add_to_variable = { UKR_uns_right_authority = 17 }					
+				add_popularity = {
+					ideology = social_liberal
+					popularity = 0.04
+				}
+			}
+		}	
+		UKR_update_petliura_progress_bar = yes		
+	}
+	if = {
+		limit = {
+			has_completed_focus = UKR_Stop_Radical_Left_Reforms
+			has_completed_focus = UKR_Work_With_Bouregoisie
+			has_completed_focus = UKR_Moderate_Taxation
+			NOT = { country_exists = USR }
+		}
+		if = {
+			limit = {
+				is_ai = yes
+				has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_PETLIURA }
+			}
+			complete_national_focus = UKR_National_Union_Holds
+			country_event = ukrsoc.290
+		}
+		else_if = {
+			limit = {
+				OR = {
+					check_variable = { UKR_uns_right_authority > 65 }
+					AND = {
+						is_ai = yes
+						has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_PETLIURA_FAILS_USDRP }
+					}
+				}
+			}
+			complete_national_focus = UKR_Left_Wing_Splits
+			country_event = ukrsoc.294
+		}
+		else_if = {
+			limit = {
+				OR = {
+					check_variable = { UKR_uns_left_authority > 65 }
+					AND = {
+						is_ai = yes
+						has_game_rule = { rule = UKR_PEOPLES_REPUBLIC option = UKR_FUTURE_PETLIURA_FAILS_UPSF }
+					}
+				}
+			}
+			complete_national_focus = UKR_Right_Wing_Splits
+			country_event = ukrsoc.297
+		}
+		else = {
+			complete_national_focus = UKR_National_Union_Holds
+			country_event = ukrsoc.290
 		}
 	}
 }
