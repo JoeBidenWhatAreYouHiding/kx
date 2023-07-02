@@ -648,8 +648,8 @@ country_event = { # Peasant Discontent
 		name = ukrpol.17.king
 		trigger = {	has_completed_focus = UKR_King_Path }
 		add_stability = -0.02
-		UKR_decrease_king_strength = yes
-		UKR_increase_king = yes
+		UKR_decrease_hetman_strength = yes
+		UKR_decrease_king = yes
 		add_timed_idea = {
 			idea = UKR_peasant_unrest
 			days = 30
@@ -659,8 +659,8 @@ country_event = { # Peasant Discontent
 		name = ukrpol.17.hetman
 		trigger = {	NOT = { has_completed_focus = UKR_King_Path } }
 		add_stability = 0.02
-		UKR_increase_hetman_strength = yes
-		UKR_decrease_hetman = yes
+		UKR_decrease_king_strength = yes
+		UKR_increase_hetman = yes
 		add_timed_idea = {
 			idea = UKR_negot_peasants
 			days = 90
@@ -6396,7 +6396,7 @@ country_event = { #
 			long_name = UKR_paternal_autocrat_party2_long
 		}
 		if = {
-			limit = { country_exists = UPR }
+			limit = { NOT = { has_global_flag = UPR_dyrektoria_become_exiled_in_WSU } }
 			set_political_party = {
 				ideology = paternal_autocrat
 				popularity = UPR.party_popularity_100@paternal_autocrat 
@@ -7480,6 +7480,7 @@ country_event = { # UPSS
 		name = ukrpol.221.a	
 		set_global_flag = UKR_hetmanate_is_over
 		clr_country_flag = UPR_uvo_openly_joins_dyrektoria
+		add_to_variable = { dyrektoria_dirty = 1 }
 		set_country_flag = UKR_compromises_with_nationalists
 		UKR_triumvirs_increase_nationalism = yes
 		remove_ideas_with_trait = security_minister
@@ -7501,7 +7502,9 @@ country_event = { # UPSS
 		set_temp_variable = { coalition_partner_var = token:national_populist }
 		add_to_coalition = yes
 		if = {
-			limit = { country_exists = UPR }
+			limit = { 
+				NOT = { has_global_flag = UPR_dyrektoria_become_exiled_in_WSU }
+			}
 			set_political_party = {
 				ideology = paternal_autocrat
 				popularity = UPR.party_popularity_100@paternal_autocrat 
@@ -17804,22 +17807,74 @@ country_event = { # UPSR
 	option = {
 		name = ukrsoc.179.a
 		set_country_flag = UKR_upsr_is_radsoc
+		UKR_move_upsr_leader_to_radsoc = yes
 		set_politics = {
 			ruling_party = radical_socialist
 			elections_allowed = yes
 		}
-		UKR_move_upsr_leader_to_radsoc = yes
-		set_temp_variable = { UKR_socdem_half_pop = party_popularity@social_democrat }
-		multiply_temp_variable = { UKR_socdem_half_pop = 50 }
-		set_temp_variable = { UKR_socdem_to_radsoc_value = party_popularity@social_democrat }
-		set_temp_variable = { UKR_socdem_to_radsoc_value_reverse = 0 }
-		subtract_from_temp_variable = { var = UKR_socdem_to_radsoc_value_reverse value = party_popularity@social_democrat }
-		add_popularity = { ideology = social_democrat popularity = UKR_socdem_to_radsoc_value_reverse }
-		add_popularity = { ideology = radical_socialist popularity = UKR_socdem_to_radsoc_value }
-		set_political_party = {
-			ideology = social_democrat
-			popularity = UKR_socdem_half_pop
+		hidden_effect = {
+			set_temp_variable = { UKR_new_totalist = party_popularity_100@totalist }
+			add_to_temp_variable = { UKR_new_totalist = party_popularity_100@radical_socialist  }
+
+			set_temp_variable = { sum = 100 }
+			subtract_from_temp_variable = { sum = party_popularity_100@syndicalist }
+			subtract_from_temp_variable = { sum = UKR_new_totalist }
+			subtract_from_temp_variable = { sum = party_popularity_100@social_democrat }
+			subtract_from_temp_variable = { sum = party_popularity_100@social_liberal }
+			subtract_from_temp_variable = { sum = party_popularity_100@market_liberal }
+			subtract_from_temp_variable = { sum = party_popularity_100@social_conservative }
+			subtract_from_temp_variable = { sum = party_popularity_100@authoritarian_democrat }
+			subtract_from_temp_variable = { sum = party_popularity_100@paternal_autocrat }
+			subtract_from_temp_variable = { sum = party_popularity_100@national_populist }
+
+			add_to_temp_variable = { UKR_new_totalist = sum } #avoid rounding errors
+
+			set_popularities = {
+				totalist = UKR_new_totalist
+				syndicalist = party_popularity_100@syndicalist
+				radical_socialist = 0
+				social_democrat = party_popularity_100@social_democrat
+				social_liberal = party_popularity_100@social_liberal
+				market_liberal = party_popularity_100@market_liberal
+				social_conservative = party_popularity_100@social_conservative
+				authoritarian_democrat = party_popularity_100@authoritarian_democrat
+				paternal_autocrat = party_popularity_100@paternal_autocrat
+				national_populist = party_popularity_100@national_populist
+			}
+			set_temp_variable = { UKR_new_socdem = UKR.party_popularity_100@social_democrat }
+			divide_temp_variable = { UKR_new_socdem = 2 }
+
+			set_temp_variable = { UKR_new_radsoc = UKR.party_popularity_100@radical_socialist }
+			add_to_temp_variable = { UKR_new_radsoc = UKR_new_socdem }
+
+			set_temp_variable = { sum = 100 }
+			subtract_from_temp_variable = { sum = party_popularity_100@radical_socialist }
+			subtract_from_temp_variable = { sum = UKR_new_radsoc }
+			subtract_from_temp_variable = { sum = party_popularity_100@syndicalist }
+			subtract_from_temp_variable = { sum = UKR_new_socdem }
+			subtract_from_temp_variable = { sum = party_popularity_100@social_liberal }
+			subtract_from_temp_variable = { sum = party_popularity_100@market_liberal }
+			subtract_from_temp_variable = { sum = party_popularity_100@social_conservative }
+			subtract_from_temp_variable = { sum = party_popularity_100@authoritarian_democrat }
+			subtract_from_temp_variable = { sum = party_popularity_100@paternal_autocrat }
+			subtract_from_temp_variable = { sum = party_popularity_100@national_populist }
+
+			add_to_temp_variable = { UKR_new_radsoc = sum } #avoid rounding errors
+
+			set_popularities = {
+				totalist = party_popularity_100@totalist
+				syndicalist = party_popularity_100@syndicalist
+				radical_socialist = UKR_new_radsoc
+				social_democrat = UKR_new_socdem
+				social_liberal = party_popularity_100@social_liberal
+				market_liberal = party_popularity_100@market_liberal
+				social_conservative = party_popularity_100@social_conservative
+				authoritarian_democrat = party_popularity_100@authoritarian_democrat
+				paternal_autocrat = party_popularity_100@paternal_autocrat
+				national_populist = party_popularity_100@national_populist
+			}
 		}
+		
 		
 		set_temp_variable = { coalition_partner_var = token:syndicalist }
 		add_to_coalition = yes
@@ -17879,6 +17934,37 @@ country_event = { # UPSR
 		}
 		else = {
 			GER = { country_event = ukrfor.50 }
+		}
+		delete_unit_template_and_units = {
+			division_template = "Petliurivtsi"
+			disband = yes #will refund equipment and manpower
+		}
+		hidden_effect = {
+			if = {
+				limit = {
+					NOT = { has_completed_focus = UKR_Elect_New_Ataman }
+				}
+				unlock_national_focus = UKR_Elect_New_Ataman
+				hidden_effect = {
+					country_event = {
+						id = ukrsoc.273
+						days = 25
+						random_days = 15
+					}
+				}	
+				country_event = ukrsoc.283		
+				random_unit_leader = {
+					limit = {
+						is_field_marshal = yes
+						has_id = 17908
+					}
+					demote_leader = yes
+				}
+				if = {
+					limit = { has_idea = UKR_Symon_Petliura_carm }
+					remove_ideas = UKR_Symon_Petliura_carm
+				}
+			}
 		}
 	}	
 }
@@ -23108,7 +23194,7 @@ country_event = { #Land reform event 2, decision 4
 		set_temp_variable = { UKR_influence_change = 5 }
 		UKR_industrial_score = yes
 		UKR_industrial_score_bonuses = yes
-		set_temp_variable = { UKR_reform_pop_score = -2 }
+		set_temp_variable = { UKR_popularity_change = -2 }
 		UKR_reform_pop_score = yes
 		add_stability = -0.02
 	}
@@ -23975,7 +24061,10 @@ country_event = { # Kerch Bridge
 
 	option = {
 		name = ukreco.30.a
-		KUB_increase_chernomortsy = yes
+		if = {
+			limit = { tag = KUB }
+			KUB_increase_chernomortsy = yes
+		}
 		add_political_power = 25
 	}
 }
@@ -24008,10 +24097,9 @@ country_event = { # Industrialisation
 		UKR_has_black_monday = no
 	}
 	fire_only_once = yes
-	picture = GFX_report_event_KUB_bridge
-
+	
 	option = {
-		name = ukreco.31.a
+		name = ukreco.32.a
 		set_country_flag = UKR_industrialisation_in_progress
 		unlock_decision_category_tooltip = UKR_economy
 		activate_mission = UKR_industrialisation_mission			
@@ -24235,6 +24323,7 @@ country_event = { # Renaming Stanislav
 	option = {
 		name = ukrmisc.14.c
 		ai_chance = { base = 10 }	
+		add_popularity = { ideology = social_democrat popularity = 0.02 }
 		set_global_flag = renamed_stanislawow_to_kobrynsk
 		set_province_name = { id = 11411 name = VICTORY_POINTS_11411_KOBRYNSK }
 		89 = { set_state_name = STATE_89_KOBRYNSK }
@@ -29876,6 +29965,11 @@ country_event = { #AUS-GER-UKR deal
 			id = ukrsoc.1
 			days = 5
 		}
+		country_event = {
+			id = ukrfor.111
+			days = 2
+			random_days = 20
+		}
 	}
 	option = {
 		name = ukrfor.109.b
@@ -29922,6 +30016,28 @@ country_event = { #GER-UKR deal
 			limit = { has_country_flag = UKR_GER_compromise } #Most lenient deal
 			add_ideas = UKR_ger_some_concessions
 			GER = { give_guarantee = UKR }
+			hidden_effect = {
+				every_country = {
+					limit = {
+						OR = {
+							tag = GER
+							is_in_faction_with = GER
+						}
+					}
+					UKR = { give_military_access = PREV }
+				}
+			}
+			effect_tooltip = {
+				every_country = {
+					limit = {
+						OR = {
+							tag = GER
+							is_in_faction_with = GER
+						}
+					}
+					PREV = { give_military_access = UKR }
+				}
+			}
 		}
 		else_if = {
 			limit = { has_country_flag = UKR_GER_harsh } #Strictest deal
@@ -29932,7 +30048,29 @@ country_event = { #GER-UKR deal
 		}
 		else = { #Moderate deal
 			add_ideas = UKR_ger_all_concessions
-			GER = { add_to_faction = UKR }
+			GER = { give_guarantee = UKR }
+			hidden_effect = {
+				every_country = {
+					limit = {
+						OR = {
+							tag = GER
+							is_in_faction_with = GER
+						}
+					}
+					UKR = { give_military_access = PREV }
+				}
+			}
+			effect_tooltip = {
+				every_country = {
+					limit = {
+						OR = {
+							tag = GER
+							is_in_faction_with = GER
+						}
+					}
+					PREV = { give_military_access = UKR }
+				}
+			}
 			add_to_variable = { UKR_landreform_cost = 10 }
 			custom_effect_tooltip = UKR_increase_reform_cost_10
 		}
@@ -29952,6 +30090,11 @@ country_event = { #GER-UKR deal
 			id = ukrsoc.1
 			days = 5
 		}
+		country_event = {
+			id = ukrfor.111
+			days = 2
+			random_days = 20
+		}
 	}
 	option = {
 		name = ukrfor.110.a
@@ -29961,7 +30104,6 @@ country_event = { #GER-UKR deal
 			UKR = {
 				GER_add_to_mitteleuropa = yes
 				add_to_tech_sharing_group = german_research
-				GER = { add_to_faction = UKR }
 				if = {
 					limit = { has_country_flag = UKR_GER_compromise } #Most lenient deal
 					add_ideas = UKR_ger_some_concessions
@@ -29969,6 +30111,7 @@ country_event = { #GER-UKR deal
 				else_if = {
 					limit = { has_country_flag = UKR_GER_harsh } #Strictest deal
 					add_ideas = UKR_ger_all_concessions_harsh
+					GER = { add_to_faction = UKR }
 				}
 				else = { #Moderate deal
 					add_ideas = UKR_ger_all_concessions
@@ -30078,6 +30221,10 @@ country_event = { #Trial of the Hetman
 		name = ukrfor.115.a
 		add_political_power = 25
 		add_popularity = {
+			ideology = totalist
+			popularity = 0.03
+		}
+		add_popularity = {
 			ideology = radical_socialist
 			popularity = 0.03
 		}
@@ -30091,8 +30238,16 @@ country_event = { #Trial of the Hetman
 		name = ukrfor.115.b
 		add_stability = 0.06
 		add_popularity = {
-			ideology = authoritarian_democrat
-			popularity = 0.03
+			ideology = totalist
+			popularity = -0.03
+		}
+		add_popularity = {
+			ideology = radical_socialist
+			popularity = -0.03
+		}
+		add_popularity = {
+			ideology = syndicalist
+			popularity = -0.03
 		}
 	}
 }
@@ -34501,14 +34656,13 @@ country_event = { #Ultimatum for Belarus
 	is_triggered_only = yes
 	
 	option = {
-		name = ukrfor.240.a
+		name = ukrfor.240.b
 		ai_chance = { base = 50 }
 		add_state_claim = 1319
 		if = {
 			limit = {
 				var:1319.owner = { is_subject = yes }
 			}
-			custom_effect_tooltip = RUS_may_lead_to_war_with_FROM_overlord
 			var:1319.owner = {
 				overlord = {
 					country_event = {
@@ -34520,7 +34674,6 @@ country_event = { #Ultimatum for Belarus
 			}
 		}
 		else = {
-			custom_effect_tooltip = RUS_may_lead_to_war_with_FROM
 			var:1319.owner = {
 				country_event = {
 					id = ukrfor.241
@@ -34531,7 +34684,7 @@ country_event = { #Ultimatum for Belarus
 		}
 	}
 	option = {
-		name = ukrfor.240.b
+		name = ukrfor.240.c
 		ai_chance = { base = 30 }
 		add_state_claim = 1319
 		add_state_claim = 1314
@@ -34564,7 +34717,7 @@ country_event = { #Ultimatum for Belarus
 		}
 	}
 	option = {
-		name = ukrfor.240.c
+		name = ukrfor.240.e
 		trigger = {
 			has_government = national_populist
 		}
