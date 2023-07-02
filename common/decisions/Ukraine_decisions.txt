@@ -368,8 +368,11 @@ UKR_pacification = {
 			army_experience = 2
 			FROM = {
 				remove_core_of = UPR
-				cancel_resistance = yes
-				force_disable_resistance = { clear = yes }
+				if = {
+					limit = { has_resistance = yes }
+					cancel_resistance = yes
+					force_disable_resistance = { clear = yes }
+				}
 				if = {
 					limit = {
 						NOT = { is_core_of = ROOT }
@@ -1041,8 +1044,7 @@ UKR_dyrektoria_uprising = {
 		target_non_existing = yes
 		fire_only_once = yes
 		priority = 80
-		days_remove = 17
-		
+				
 		custom_cost_trigger = {
 			command_power > 29.99
 		}
@@ -1059,9 +1061,6 @@ UKR_dyrektoria_uprising = {
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision UKR_Counter_Attack target: [From.GetName]"
 			hidden_effect = { add_command_power = -30 }
-		}
-		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_Counter_Attack target: [From.GetName]"
 			UKR_decrease_direktoria = yes
 			country_event = ukrpol.61
 		}
@@ -3358,6 +3357,7 @@ political_actions = {
 		custom_cost_trigger = { command_power > 49.99 }
 		days_remove = 90
 		fire_only_once = yes
+		cancel_if_not_visible = yes
 		
 		ai_will_do = {
 			factor = 200
@@ -3405,11 +3405,12 @@ political_actions = {
 		custom_cost_trigger = { command_power > 49.99 }
 		days_remove = 90
 		fire_only_once = yes
+		cancel_if_not_visible = yes
 		
 		ai_will_do = {
 			factor = 200
 		}
-
+		
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision UKR_deal_with_nationalist_resistance target: [From.GetName]"
 			hidden_effect = { add_command_power = -50 }
@@ -7139,6 +7140,20 @@ UKR_Kyiv_Conference_decisions = {
 	}
 }
 UKR_red_prince_decisions = {
+	UKR_resume_the_tour = {
+		icon = GFX_decision_caravan
+		available = { has_war = no }
+		visible = { UKR_vasyl_in_power = yes }
+		allowed = { always = no }
+		
+		cost = 0
+		fire_only_once = yes
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UKR_resume_the_tour"
+			activate_mission = UKR_king_tours
+		}
+	}
+	
 	UKR_king_tours = {
 		icon = eng_abdication_crisis
 		
@@ -7148,12 +7163,24 @@ UKR_red_prince_decisions = {
 			hidden_trigger = { always = no }
 		}
 		cancel_trigger = {
-			UKR_vasyl_in_power = no
+			OR = {
+				UKR_vasyl_in_power = no
+				has_war = yes
+			}
 		}
 		is_good = yes
 		days_mission_timeout = 14
 		
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel UKR_king_tours"
+			if = {
+				limit = { has_war = yes }
+				activate_targeted_decision = { target = ROOT decision = UKR_resume_the_tour }
+			}
+		}
+		
 		timeout_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision timeout UKR_king_tours"
 			if = {
 				limit = {
 					NOT = { has_country_flag = king_has_visited_kyiv }
@@ -7328,12 +7355,31 @@ UKR_red_prince_decisions = {
 			hidden_trigger = { always = no }
 		}
 		cancel_trigger = {
-			UKR_vasyl_in_power = no
+			OR = { 
+				UKR_vasyl_in_power = no
+				has_war = yes
+			}
 		}
 		is_good = yes
 		days_mission_timeout = 14
 		
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel UKR_king_stays"
+			hidden_effect = {
+				every_owned_state = {
+					limit = { has_state_flag = king_stays_here }
+					clr_state_flag = king_stays_here
+				}
+				set_variable = { UKR_selected_decisions = 0 }
+			}
+			if = {
+				limit = { has_war = yes }
+				activate_targeted_decision = { target = ROOT decision = UKR_resume_the_tour }
+			}
+		}
+		
 		timeout_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision timeout UKR_king_stays"
 			every_owned_state = {
 				limit = { has_state_flag = king_stays_here }
 				clr_state_flag = king_stays_here
@@ -11457,9 +11503,9 @@ UKR_land_reform = { #Land Reform time
 					modifier = UKR_borotbyst_uprising_state
 				}
 			}
-			set_temp_variable = { UKR_popularity_change = -2 }
+			set_temp_variable = { UKR_popularity_change = 2 }
 			UKR_reform_pop_score = yes
-			set_temp_variable = { UKR_resistance_change = -4 }
+			set_temp_variable = { UKR_resistance_change = -2 }
 			UKR_land_reform_borotbysts_weaken = yes
 			UKR_recalculate_land_reform = yes				
 		}
@@ -16763,6 +16809,15 @@ UKR_uskhd_category = {
 			log = "[GetDateText]: [Root.GetName]: Decision cancel UKR_impending_failure_mission"
 			add_stability = 0.1
 			add_war_support = 0.1
+			hidden_effect = {
+				remove_ideas = {
+					UKR_impending_failure
+					UKR_impending_failure_1
+					UKR_impending_failure_2
+					UKR_impending_failure_3
+					UKR_impending_failure_4
+				}
+			}
 		}
 		timeout_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision timeout UKR_impending_failure_mission"
