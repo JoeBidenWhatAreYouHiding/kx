@@ -3,6 +3,57 @@
 ###########################
 
 CAN_political_decisions = {
+	CAN_hold_snap_election = {
+		icon = GFX_decision_decision_election
+		available = {
+			has_elected_government = yes
+			has_war = no
+			custom_trigger_tooltip = {
+				tooltip = CAN_less_than_half_support_tt
+				check_variable = { ROOT.party_popularity@ruling_party < 0.5 }
+			}
+		}
+		visible = {
+			has_country_flag = CAN_had_1936_election
+			date > 1939.6.6
+		}
+		cost = 350
+		modifier = {
+			political_power_gain = -0.02
+			stability_factor = -0.02
+		}
+		days_remove = 30
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_hold_snap_election"
+			country_event = canada.768
+		}
+		
+		days_re_enable = 400
+			
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	CAN_canadian_referendum = {
+		icon = GFX_decision_decision_election
+		activation = { #manually activated
+			always = no 
+		}
+		available = {
+			hidden_trigger = {
+				always = no
+			}
+		}
+		is_good = yes
+		selectable_mission = no
+		days_mission_timeout = 45
+		fire_only_once = no
+		timeout_effect = {
+			country_event = canada.315	
+		}
+	}
+	
 	CAN_bring_king_home = {
 		icon = eng_abdication_crisis
 		allowed = {
@@ -42,7 +93,12 @@ CAN_political_decisions = {
 				GBR = {
 					OR = {
 						exists = no
-						is_subject = yes
+						AND = {
+							is_subject = yes
+							NOT = {
+								is_subject_of = CAN
+							}
+						}
 						has_socialist_government = yes
 						NOT = { is_in_faction_with = ENT }
 					}
@@ -66,18 +122,149 @@ CAN_political_decisions = {
 		}
 	}
 
+	CAN_mobilize_reserves = {
+		icon = GFX_decision_soldierly_discipline
+		allowed = { tag = CAN }
+
+		available = {
+			has_war = yes
+			OR = {
+				has_war_with = ENG
+				enemies_strength_ratio > 0.80
+			}
+			NOT = { has_capitulated = yes }
+		}
+
+		visible = {
+			has_war = yes
+			has_idea = CAN_expanded_training
+		}
+		
+		days_remove = 64
+
+		cost = 0
+		fire_only_once = yes
+
+		ai_will_do = {
+			factor = 0
+			modifier = {
+				add = 200
+				OR = {
+					has_war_with = ENG
+					has_war_with = GER
+					NOT = { controls_all_owned_states = yes }
+				}
+			}
+			modifier = {
+				add = 10
+				any_enemy_country = { is_actual_major = yes }
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_enact_limited_conscription"
+			CAN_add_units = yes
+			remove_ideas = CAN_expanded_training
+			custom_effect_tooltip = CAN_spawn_units_tt
+		}
+	}
+	CAN_enact_limited_conscription = {
+		icon = GFX_decision_soldierly_discipline
+		allowed = { tag = CAN }
+
+		available = {
+			has_war = yes
+			has_war_support > 0.50
+			enemies_strength_ratio > 0.50
+			NOT = { has_capitulated = yes }
+			NOT = {
+				has_country_flag = CAN_C7_training_no_cons
+			}
+		}
+
+		visible = {
+			has_country_flag = cannot_have_conscription
+			OR = {
+				has_country_flag = CAN_C7_passed
+				has_completed_focus = CAN_kingly_prerogative
+			}
+			has_idea = volunteer_only
+		}
+
+		cost = 0
+		fire_only_once = yes
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_enact_limited_conscription"
+			clr_country_flag = cannot_have_conscription
+			set_country_flag = cannot_have_extensive_conscription
+			set_country_flag = limited_conscription_decision_taken
+			if = {
+				limit = {
+					OR = {
+						has_country_flag = CAN_C7_no_cons
+						has_country_flag = CAN_C7_training_no_cons
+					}
+				}
+				decrease_ruling_party_popularity_by_5 = yes
+				add_stability = -0.1
+				add_political_power = -100
+			}
+			else_if = {
+				limit = {
+					has_country_flag = CAN_C7_better_conditions
+				}
+				decrease_ruling_party_popularity_by_2 = yes
+				add_stability = -0.05
+				add_political_power = -50
+			}
+			else = {
+				decrease_ruling_party_popularity_by_5 = yes
+			}
+			add_ideas = limited_conscription
+			hidden_effect = {
+				country_event = { id = canada.60 days = 3 }
+			}
+		}
+
+		ai_will_do = {
+			factor = 0
+			modifier = {
+				add = 200
+				OR = {
+					has_war_with = ENG
+					has_war_with = GER
+					NOT = { controls_all_owned_states = yes }
+				}
+			}
+			modifier = {
+				add = 10
+				any_enemy_country = { is_actual_major = yes }
+			}
+		}
+	}
+
 	CAN_enact_full_conscription = {
 		icon = GFX_decision_soldierly_discipline
 		allowed = { tag = CAN }
 
 		available = {
 			has_war = yes
+			has_war_support > 0.75
 			enemies_strength_ratio > 0.75
 			NOT = { has_capitulated = yes }
+			NOT = {
+				has_country_flag = CAN_C7_training_no_cons
+			}
 		}
 
 		visible = {
-			has_country_flag = CAN_C7_passed
+			OR = {
+				has_country_flag = cannot_have_conscription
+				has_country_flag = cannot_have_extensive_conscription
+			}
+			OR = {
+				has_country_flag = CAN_C7_passed
+				has_completed_focus = CAN_kingly_prerogative
+			}
 			OR = {
 				has_idea = volunteer_only
 				has_idea = limited_conscription
@@ -91,15 +278,42 @@ CAN_political_decisions = {
 			clr_country_flag = cannot_have_conscription
 			clr_country_flag = cannot_have_extensive_conscription
 			if = {
-				limit = { has_idea = volunteer_only }
+				limit = { 
+					has_idea = volunteer_only 
+					NOT = {
+						has_country_flag = CAN_C7_better_conditions
+					}
+				}
 				decrease_ruling_party_popularity_by_10 = yes
 			}
 			else = {
 				decrease_ruling_party_popularity_by_5 = yes
 			}
+			
+			if = {
+				limit = {
+					OR = {
+						has_country_flag = CAN_C7_no_cons
+						has_country_flag = CAN_C7_training_no_cons
+					}
+				}
+				add_stability = -0.1
+				add_political_power = -100
+			}
+			else_if = {
+				limit = {
+					has_country_flag = CAN_C7_better_conditions
+				}
+				add_stability = -0.05
+				add_political_power = -50
+			}
+			else = {
+				add_stability = -0.1
+				add_political_power = -100
+			}
 			add_ideas = extensive_conscription
 			hidden_effect = {
-				country_event = { id = canada.100 days = 3 }
+				country_event = { id = canada.117 days = 3 }
 			}
 		}
 
@@ -830,7 +1044,7 @@ CAN_political_decisions = {
 
 		visible = {
 			is_ai = no
-			has_completed_focus = CAN_new_path
+			has_country_flag = CAN_canadian_expansionism_flag
 			is_in_faction_with = ENT
 			is_subject = no
 		}
@@ -883,14 +1097,14 @@ highlight_state_targets = {
 		available = {
 			owns_state = 471 #Yukon
 			controls_all_owned_states = yes
-			is_in_faction = no
+			
 		}
 
 		visible = {
 			463 = {
 				is_not_claim_or_core_of_ROOT = yes
 			}
-			has_completed_focus = CAN_new_path
+			has_country_flag = CAN_canadian_expansionism_flag
 			is_subject = no
 		}
 
@@ -961,7 +1175,7 @@ highlight_state_targets = {
 		}
 
 		visible = {
-			has_completed_focus = CAN_new_path
+			has_country_flag = CAN_canadian_expansionism_flag
 			is_subject = no
 			463 = {
 				is_owned_by = ROOT
@@ -1005,7 +1219,7 @@ highlight_state_targets = {
 		available = {
 			owns_state = 473 #British Columbia
 			controls_all_owned_states = yes
-			is_in_faction = no
+		
 		}
 
 		visible = {
@@ -1013,7 +1227,7 @@ highlight_state_targets = {
 			386 = {
 				is_not_claim_or_core_of_ROOT = yes
 			}
-			has_completed_focus = CAN_new_path
+			has_country_flag = CAN_canadian_expansionism_flag
 			is_subject = no
 		}
 
@@ -1082,14 +1296,14 @@ highlight_state_targets = {
 		available = {
 			owns_state = 465 #New Brunswick
 			controls_all_owned_states = yes
-			is_in_faction = no
+	
 		}
 
 		visible = {
 			357 = {
 				is_not_claim_or_core_of_ROOT = yes
 			}
-			has_completed_focus = CAN_new_path
+			has_country_flag = CAN_canadian_expansionism_flag
 			is_subject = no
 		}
 
@@ -1756,6 +1970,148 @@ economy_decisions = {
 			}
 		}
 	}
+	
+	### Great Lakes Crown Corporations ###
+	
+	CAN_civ_in_michigan = {
+		icon = generic_industry
+		allowed = { tag = CAN }
+		highlight_states = { highlight_state_targets = { state = 393 } }
+		available = {
+			num_of_civilian_factories_available_for_projects > 2
+			controls_state = 393
+		}
+		visible = {
+			has_completed_focus = CAN_new_crown_corporations
+			owns_state = 393
+		}
+		modifier = {
+			civilian_factory_use = 3
+		}
+		fire_only_once = yes
+		cost = 25
+		days_remove = 90
+		ai_will_do = { factor = 50 }
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_civ_in_michigan"
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_civ_in_michigan"
+			393 = {
+				add_extra_state_shared_building_slots = 1
+				add_building_construction = {
+					type = industrial_complex
+					level = 1
+					instant_build = yes
+				}
+			}
+		}
+	}
+
+	CAN_civ_in_chicago = {
+		icon = generic_industry
+		allowed = { tag = CAN }
+		highlight_states = { highlight_state_targets = { state = 395 } }
+		available = {
+			num_of_civilian_factories_available_for_projects > 2
+			controls_state = 395
+		}
+		visible = {
+			has_completed_focus = CAN_new_crown_corporations
+			owns_state = 395
+		}
+		modifier = {
+			civilian_factory_use = 3
+		}
+		fire_only_once = yes
+		cost = 25
+		days_remove = 90
+		ai_will_do = { factor = 50 }
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_civ_in_chicago"
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_civ_in_chicago"
+			395 = {
+				add_extra_state_shared_building_slots = 1
+				add_building_construction = {
+					type = industrial_complex
+					level = 1
+					instant_build = yes
+				}
+			}
+		}
+	}
+
+	CAN_mil_in_ohio = {
+		icon = ger_military_buildup
+		allowed = { tag = CAN }
+		highlight_states = { highlight_state_targets = { state = 261 } }
+		available = {
+			num_of_civilian_factories_available_for_projects > 2
+			controls_state = 261
+		}
+		visible = {
+			has_completed_focus = CAN_crown_corporations
+			owns_state = 261
+		}
+		modifier = {
+			civilian_factory_use = 3
+		}
+		fire_only_once = yes
+		cost = 25
+		days_remove = 90
+		ai_will_do = { factor = 50 }
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_mil_in_ohio"
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_mil_in_ohio"
+			261 = {
+				add_extra_state_shared_building_slots = 1
+				add_building_construction = {
+					type = arms_factory
+					level = 1
+					instant_build = yes
+				}
+			}
+		}
+	}
+	
+	CAN_mil_in_indiana = {
+		icon = ger_military_buildup
+		allowed = { tag = CAN }
+		highlight_states = { highlight_state_targets = { state = 396 } }
+		available = {
+			num_of_civilian_factories_available_for_projects > 2
+			controls_state = 396
+		}
+		visible = {
+			has_completed_focus = CAN_crown_corporations
+			owns_state = 396
+		}
+		modifier = {
+			civilian_factory_use = 3
+		}
+		fire_only_once = yes
+		cost = 25
+		days_remove = 90
+		ai_will_do = { factor = 50 }
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_mil_in_indiana"
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_mil_in_indiana"
+			396 = {
+				add_extra_state_shared_building_slots = 1
+				add_building_construction = {
+					type = arms_factory
+					level = 1
+					instant_build = yes
+				}
+			}
+		}
+	}
 }
 
 KR_foreign_support = {
@@ -1795,6 +2151,7 @@ KR_foreign_support = {
 				has_global_flag = CAN_met_with_germany
 				has_war_with = FROM
 			}
+			has_completed_focus = CAN_german_treaty
 		}
 
 		priority = 10
@@ -2375,75 +2732,6 @@ CAN_returning_home_decisions = {
 		}
 	}
 
-	CAN_seize_greenland = {
-		icon = generic_tank
-
-		allowed = { tag = CAN }
-
-		available = {
-			ROOT = {
-				controls_all_owned_states = yes
-			}
-			FROM = {
-				OR = {
-					has_socialist_government = yes
-					has_war_with = GER
-					has_capitulated = yes
-				}
-			}
-		}
-
-		visible = {
-			is_faction_leader = yes
-			can_declare_war_on = FROM
-			FROM = {
-				owns_state = 101 #Coastal Greenland
-				OR = {
-					has_socialist_government = yes
-					has_war_with = GER
-					has_capitulated = yes
-				}
-			}
-		}
-
-		cost = 0
-		fire_only_once = yes
-
-		targets = { DEN }
-		target_trigger = {
-			can_declare_war_on = FROM
-			FROM = {
-				owns_state = 101 #Coastal Greenland
-				OR = {
-					has_socialist_government = yes
-					has_war_with = GER
-					has_capitulated = yes
-				}
-			}
-		}
-
-		ai_will_do = {
-			factor = 100
-		}
-
-		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision CAN_seize_greenland target: [From.GetName]"
-			transfer_state = 101 #Coastal Greenland
-			transfer_state = 926 #Humboldt Glacier
-			if = {
-				limit = { 337 = { is_owned_by = FROM } }
-				transfer_state = 337 #Faeroe Islands
-			}
-			if = {
-				limit = { 100 = { is_owned_by = FROM } }
-				transfer_state = 100 #Iceland (just in case)
-			}
-			FROM = {
-				country_event = canada.231
-			}
-		}
-	}
-
 	CAN_build_base_greenland = {
 		icon = generic_naval
 		allowed = { tag = CAN }
@@ -2461,6 +2749,7 @@ CAN_returning_home_decisions = {
 			NOT = {
 				country_exists = GBR
 			}
+			has_completed_focus = CAN_develop_greenland
 		}
 
 		fire_only_once = yes
@@ -2494,6 +2783,36 @@ CAN_returning_home_decisions = {
 					IRE = { is_in_faction_with = ROOT }
 				}
 			}
+		}
+	}
+	
+	CAN_habakkuk_project = {
+		icon = generic_naval
+		allowed = { tag = CAN }
+
+		available = {
+			has_completed_focus = CAN_canadian_carriers
+		}
+
+		visible = {
+			has_completed_focus = CAN_canadian_carriers
+		}
+
+		fire_only_once = yes
+		days_remove = 10
+		cost = 40
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_habakkuk_project"
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_habakkuk_project"
+			country_event = canada.120
+		}
+
+		ai_will_do = {
+			factor = 10
+			
 		}
 	}
 }
@@ -2638,165 +2957,6 @@ CAN_kings_influence_decisions = {
 						NOT = { has_country_flag = CAN_speech_acw_begins }
 					}
 				}
-			}
-		}
-	}
-
-	CAN_direct_exiles = {
-		icon = eng_support_imperialist_coup
-
-		available = {
-			if = {
-				limit = { has_war = yes }
-				surrender_progress < 0.40
-			}
-		}
-
-		visible = {
-			NOT = { tag = GBR }
-			has_country_flag = KR_british_king_base
-			check_variable = { king_influence > 0 }
-			is_subject = no
-			OR = {
-				is_faction_leader = yes
-				is_in_faction_with = ENT
-			}
-		}
-
-		cancel_trigger = {
-			NOT = { tag = event_target:KR_king_base }
-		}
-
-		cost = 0
-		fire_only_once = no
-		days_remove = 365
-
-		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision CAN_direct_exiles"
-			custom_effect_tooltip = CAN_direct_exiles_tt
-			hidden_effect = {
-				country_event = entente.30
-			}
-		}
-		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_direct_exiles"
-			if = {
-				limit = { NOT = { tag = event_target:KR_king_base } }
-				clr_country_flag = CAN_exile_inc_influence
-				clr_country_flag = CAN_exile_inc_industry
-				clr_country_flag = CAN_exile_inc_popularity
-				#break = yes
-			}
-			if = {
-				limit = { has_country_flag = CAN_exile_inc_influence }
-				clr_country_flag = CAN_exile_inc_influence
-				custom_effect_tooltip = CAN_exile_influence_increase
-				add_to_variable = { king_influence = 1 }
-				CAN_calc_exile_influence_effects = yes
-			}
-			else_if = {
-				limit = { has_country_flag = CAN_exile_inc_popularity }
-				clr_country_flag = CAN_exile_inc_popularity
-				custom_effect_tooltip = CAN_exile_influence_decrease
-				custom_effect_tooltip = CAN_king_popularity_increase
-				add_to_variable = { king_popularity = 1 }
-				subtract_from_variable = { king_influence = 1 }
-				CAN_calc_exile_influence_effects = yes
-				CAN_calc_royal_visit_effects = yes
-			}
-			else_if = {
-				limit = { has_country_flag = CAN_exile_inc_industry }
-				clr_country_flag = CAN_exile_inc_industry
-				custom_effect_tooltip = CAN_exile_influence_decrease
-				subtract_from_variable = { king_influence = 1 }
-				CAN_calc_exile_influence_effects = yes
-				country_event = entente.31
-			}
-			else = {
-				custom_effect_tooltip = CAN_exile_influence_decrease
-				subtract_from_variable = { king_influence = 1 }
-				CAN_calc_exile_influence_effects = yes
-			}
-		}
-
-		ai_will_do = {
-			factor = 50
-		}
-	}
-
-	CAN_suppress_exiles = {
-		icon = oppression
-
-		available = {
-			custom_trigger_tooltip = {
-				tooltip = CAN_suppress_exiles_one_year
-				OR = {
-					NOT = { has_country_flag = CAN_suppressed_exiles }
-					has_country_flag = { flag = CAN_suppressed_exiles days > 364 }
-				}
-			}
-			if = {
-				limit = { has_war = yes }
-				surrender_progress < 0.40
-			}
-		}
-
-		visible = {
-			NOT = {
-				tag = GBR
-				has_government = authoritarian_democrat
-				has_government = paternal_autocrat
-			}
-			has_country_flag = KR_british_king_base
-			check_variable = { king_influence > 0 }
-			is_subject = no
-			OR = {
-				is_faction_leader = yes
-				is_in_faction_with = ENT
-			}
-		}
-
-		cost = 50
-		fire_only_once = no
-		days_remove = 180
-
-		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision CAN_suppress_exiles"
-			add_war_support = -0.05
-		}
-		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_suppress_exiles"
-			if = {
-				limit = {
-					has_country_flag = KR_british_king_base
-					check_variable = { king_influence > 0 }
-				}
-				clr_country_flag = CAN_suppressed_exiles
-				set_country_flag = CAN_suppressed_exiles
-				custom_effect_tooltip = CAN_exile_influence_decrease
-				subtract_from_variable = { king_influence = 1 }
-				CAN_calc_exile_influence_effects = yes
-			}
-		}
-
-		ai_will_do = {
-			factor = 10
-			modifier = {
-				factor = 0
-				NOT = {
-					has_government = social_democrat
-					has_government = social_liberal
-					has_government = national_populist
-				}
-			}
-			modifier = {
-				factor = 0
-				check_variable = { king_influence < 2 }
-			}
-			modifier = {
-				factor = 0
-				has_political_power < 101
-				check_variable = { king_influence < 4 }
 			}
 		}
 	}
@@ -3153,6 +3313,579 @@ CAN_kings_influence_decisions = {
 
 }
 
+CAN_exile_govt_decisions = {
+	CAN_suppress_exiles = {
+		icon = oppression
+
+		available = {
+			custom_trigger_tooltip = {
+				tooltip = CAN_suppress_exiles_one_year
+				OR = {
+					NOT = { has_country_flag = CAN_suppressed_exiles }
+					has_country_flag = { flag = CAN_suppressed_exiles days > 364 }
+				}
+			}
+			if = {
+				limit = { has_war = yes }
+				surrender_progress < 0.40
+			}
+		}
+
+		visible = {
+			NOT = {
+				tag = GBR
+				has_government = authoritarian_democrat
+				has_government = paternal_autocrat
+			}
+			has_country_flag = KR_british_king_base
+			check_variable = { king_influence > 0 }
+			is_subject = no
+			OR = {
+				is_faction_leader = yes
+				is_in_faction_with = ENT
+			}
+		}
+
+		cost = 50
+		fire_only_once = no
+		days_remove = 70
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_suppress_exiles"
+			add_war_support = -0.05
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_suppress_exiles"
+			if = {
+				limit = {
+					has_country_flag = KR_british_king_base
+					check_variable = { king_influence > 0 }
+				}
+				clr_country_flag = CAN_suppressed_exiles
+				set_country_flag = CAN_suppressed_exiles
+				custom_effect_tooltip = CAN_exile_influence_decrease
+				subtract_from_variable = { king_influence = 1 }
+				CAN_calc_exile_influence_effects = yes
+			}
+			CAN_improve_canadian_influence_small_bop = yes
+		}
+
+		ai_will_do = {
+			factor = 10
+			modifier = {
+				factor = 0
+				NOT = {
+					has_government = social_democrat
+					has_government = social_liberal
+					has_government = national_populist
+				}
+			}
+			modifier = {
+				factor = 0
+				check_variable = { king_influence < 2 }
+			}
+			modifier = {
+				factor = 0
+				has_political_power < 101
+				check_variable = { king_influence < 4 }
+			}
+		}
+	}
+	
+	CAN_direct_exiles = {
+		icon = eng_support_imperialist_coup
+
+		available = {
+			if = {
+				limit = { has_war = yes }
+				surrender_progress < 0.40
+			}
+		}
+
+		visible = {
+			NOT = { tag = GBR }
+			has_country_flag = KR_british_king_base
+			check_variable = { king_influence > 0 }
+			is_subject = no
+			OR = {
+				is_faction_leader = yes
+				is_in_faction_with = ENT
+			}
+		}
+
+		cancel_trigger = {
+			NOT = { tag = event_target:KR_king_base }
+		}
+
+		cost = 0
+		fire_only_once = no
+		days_remove = 70
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_direct_exiles"
+			custom_effect_tooltip = CAN_direct_exiles_tt
+			hidden_effect = {
+				country_event = entente.30
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_direct_exiles"
+			if = {
+				limit = { NOT = { tag = event_target:KR_king_base } }
+				clr_country_flag = CAN_exile_inc_influence
+				clr_country_flag = CAN_exile_inc_industry
+				clr_country_flag = CAN_exile_inc_popularity
+				#break = yes
+				CAN_improve_canadian_influence_small_bop = yes
+			}
+			if = {
+				limit = { has_country_flag = CAN_exile_inc_influence }
+				clr_country_flag = CAN_exile_inc_influence
+				custom_effect_tooltip = CAN_exile_influence_increase
+				add_to_variable = { king_influence = 1 }
+				CAN_calc_exile_influence_effects = yes
+			}
+			else_if = {
+				limit = { has_country_flag = CAN_exile_inc_popularity }
+				clr_country_flag = CAN_exile_inc_popularity
+				custom_effect_tooltip = CAN_exile_influence_decrease
+				custom_effect_tooltip = CAN_king_popularity_increase
+				add_to_variable = { king_popularity = 1 }
+				subtract_from_variable = { king_influence = 1 }
+				CAN_calc_exile_influence_effects = yes
+				CAN_calc_royal_visit_effects = yes
+				CAN_improve_canadian_influence_small_bop = yes
+			}
+			else_if = {
+				limit = { has_country_flag = CAN_exile_inc_industry }
+				clr_country_flag = CAN_exile_inc_industry
+				custom_effect_tooltip = CAN_exile_influence_decrease
+				subtract_from_variable = { king_influence = 1 }
+				CAN_calc_exile_influence_effects = yes
+				country_event = entente.31
+				CAN_improve_canadian_influence_small_bop = yes
+			}
+			else = {
+				custom_effect_tooltip = CAN_exile_influence_decrease
+				subtract_from_variable = { king_influence = 1 }
+				CAN_calc_exile_influence_effects = yes
+				CAN_improve_canadian_influence_small_bop = yes
+			}
+		}
+
+		ai_will_do = {
+			factor = 50
+		}
+	}
+	
+	CAN_appoint_exiles = {
+		icon = GFX_decision_eng_ally_imperialist_coup
+
+		available = {
+			
+		}
+
+		visible = {
+			NOT = { tag = GBR }
+			has_country_flag = KR_british_king_base
+			check_variable = { king_influence > 0 }
+			is_subject = no
+			OR = {
+				is_faction_leader = yes
+				is_in_faction_with = ENT
+			}
+		}
+		
+		ai_will_do = {
+			factor = 0
+			modifier = {
+				factor = 40
+				OR = {
+					has_government = social_conservative
+					has_government = national_populist
+					has_government = authoritarian_democrat
+					has_government = paternal_autocrat
+				}
+			}
+		}
+
+		cancel_trigger = {
+			NOT = { tag = event_target:KR_king_base }
+		}
+
+		cost = 50
+		days_re_enable = 50
+		fire_only_once = no
+		days_remove = 70
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_appoint_exiles"
+			set_country_flag = CAN_doing_decision
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_appoint_exiles"
+			clr_country_flag = CAN_doing_decision
+			CAN_improve_exile_influence_small_bop = yes
+			custom_effect_tooltip = CAN_exile_influence_increase
+			add_to_variable = { king_influence = 1 }
+			CAN_calc_exile_influence_effects = yes
+		}
+
+		ai_will_do = {
+			factor = 50
+		}
+	}
+	
+	CAN_supress_canadian_nationalist_groups = {
+		icon = GFX_decision_generic_arrest
+
+		available = {
+			has_elected_government = yes
+		}
+
+		visible = {
+			NOT = { tag = GBR }
+			has_country_flag = KR_british_king_base
+			check_variable = { king_influence > 0 }
+			is_subject = no
+			OR = {
+				is_faction_leader = yes
+				is_in_faction_with = ENT
+			}
+		}
+		
+		ai_will_do = {
+			factor = 0
+			modifier = {
+				factor = 40
+				OR = {
+					has_government = social_conservative
+					has_government = national_populist
+					has_government = authoritarian_democrat
+					has_government = paternal_autocrat
+				}
+			}
+		}
+
+		cancel_trigger = {
+			NOT = { tag = event_target:KR_king_base }
+		}
+
+		cost = 50
+		days_re_enable = 50
+		fire_only_once = no
+		days_remove = 70
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_supress_canadian_nationalist_groups"
+			set_country_flag = CAN_doing_decision
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_supress_canadian_nationalist_groups"
+			clr_country_flag = CAN_doing_decision
+			CAN_improve_exile_influence_small_bop = yes
+			custom_effect_tooltip = CAN_exile_influence_increase
+			add_to_variable = { king_influence = 1 }
+			CAN_calc_exile_influence_effects = yes
+		}
+
+		ai_will_do = {
+			factor = 50
+		}
+	}
+	
+	CAN_supress_canadian_nationalism = {
+		icon = GFX_decision_generic_arrest
+
+		available = {
+			has_elected_government = no
+		}
+
+		visible = {
+			NOT = { tag = GBR }
+			has_country_flag = KR_british_king_base
+			check_variable = { king_influence > 0 }
+			is_subject = no
+			OR = {
+				is_faction_leader = yes
+				is_in_faction_with = ENT
+			}
+			has_cosmetic_tag = CAN_UK_CAN
+		}
+		
+		ai_will_do = {
+			factor = 0
+			modifier = {
+				factor = 40
+				OR = {
+					has_government = social_conservative
+					has_government = national_populist
+					has_government = authoritarian_democrat
+					has_government = paternal_autocrat
+				}
+			}
+		}
+
+		cancel_trigger = {
+			NOT = { tag = event_target:KR_king_base }
+		}
+
+		cost = 50
+		days_re_enable = 50
+		fire_only_once = no
+		days_remove = 70
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_supress_canadian_nationalism"
+			set_country_flag = CAN_doing_decision
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_supress_canadian_nationalism"
+			clr_country_flag = CAN_doing_decision
+			CAN_improve_exile_influence_small_bop = yes
+			custom_effect_tooltip = CAN_exile_influence_increase
+			add_to_variable = { king_influence = 1 }
+			CAN_calc_exile_influence_effects = yes
+		}
+
+		ai_will_do = {
+			factor = 50
+		}
+	}
+	
+	CAN_showcase_british_culture = {
+		icon = GFX_decision_generic_monarchy
+
+		available = {
+			
+		}
+
+		visible = {
+			NOT = { tag = GBR }
+			has_country_flag = KR_british_king_base
+			check_variable = { king_influence > 0 }
+			is_subject = no
+			OR = {
+				is_faction_leader = yes
+				is_in_faction_with = ENT
+			}
+		}
+		
+		ai_will_do = {
+			factor = 0
+			modifier = {
+				factor = 40
+				OR = {
+					has_government = social_conservative
+					has_government = national_populist
+					has_government = authoritarian_democrat
+					has_government = paternal_autocrat
+				}
+			}
+		}
+
+		cancel_trigger = {
+			NOT = { tag = event_target:KR_king_base }
+		}
+
+		cost = 50
+		days_re_enable = 50
+		fire_only_once = no
+		days_remove = 70
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_showcase_british_culture"
+			set_country_flag = CAN_doing_decision
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_showcase_british_culture"
+			clr_country_flag = CAN_doing_decision
+			CAN_improve_exile_influence_small_bop = yes
+			custom_effect_tooltip = CAN_exile_influence_increase
+			add_to_variable = { king_influence = 1 }
+			CAN_calc_exile_influence_effects = yes
+		}
+
+		ai_will_do = {
+			factor = 50
+		}
+	}
+	
+	CAN_appoint_canadians = {
+		icon = GFX_decision_generic_civil_support
+
+		available = {
+			
+		}
+
+		visible = {
+			NOT = { tag = GBR }
+			has_country_flag = KR_british_king_base
+			check_variable = { king_influence > 0 }
+			is_subject = no
+			OR = {
+				is_faction_leader = yes
+				is_in_faction_with = ENT
+			}
+		}
+		
+		ai_will_do = {
+			factor = 0
+			modifier = {
+				factor = 40
+				OR = {
+					has_government = social_liberal
+					has_government = social_democrat
+					has_government = market_liberal
+					has_government = authoritarian_democrat
+				}
+			}
+		}
+
+		cancel_trigger = {
+			NOT = { tag = event_target:KR_king_base }
+		}
+
+		cost = 50
+		days_re_enable = 50
+		fire_only_once = no
+		days_remove = 70
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_appoint_canadians"
+			set_country_flag = CAN_doing_decision
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_appoint_canadians"
+			clr_country_flag = CAN_doing_decision
+			CAN_improve_canadian_influence_small_bop = yes
+			custom_effect_tooltip = CAN_exile_influence_decrease
+			subtract_from_variable = { king_influence = 1 }
+			CAN_calc_exile_influence_effects = yes
+		}
+
+		ai_will_do = {
+			factor = 50
+		}
+	}
+	
+	CAN_supress_exile_imperialist_groups = {
+		icon = GFX_decision_generic_nationalism
+
+		available = {
+			has_elected_government = yes
+		}
+
+		visible = {
+			NOT = { tag = GBR }
+			has_country_flag = KR_british_king_base
+			check_variable = { king_influence > 0 }
+			is_subject = no
+			OR = {
+				is_faction_leader = yes
+				is_in_faction_with = ENT
+			}
+		}
+		
+		ai_will_do = {
+			factor = 0
+			modifier = {
+				factor = 40
+				OR = {
+					has_government = social_liberal
+					has_government = social_democrat
+					has_government = market_liberal
+					has_government = authoritarian_democrat
+				}
+			}
+		}
+
+		cancel_trigger = {
+			NOT = { tag = event_target:KR_king_base }
+		}
+
+		cost = 50
+		days_re_enable = 50
+		fire_only_once = no
+		days_remove = 70
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_supress_exile_imperialist_groups"
+			set_country_flag = CAN_doing_decision
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_supress_exile_imperialist_groups"
+			clr_country_flag = CAN_doing_decision
+			CAN_improve_canadian_influence_small_bop = yes
+			custom_effect_tooltip = CAN_exile_influence_decrease
+			subtract_from_variable = { king_influence = 1 }
+			CAN_calc_exile_influence_effects = yes
+		}
+
+		ai_will_do = {
+			factor = 50
+		}
+	}
+	
+	CAN_promote_canadian_culture = {
+		icon = GFX_decision_eng_propaganda_campaigns
+
+		available = {
+			has_elected_government = yes
+		}
+
+		visible = {
+			NOT = { tag = GBR }
+			has_country_flag = KR_british_king_base
+			check_variable = { king_influence > 0 }
+			is_subject = no
+			OR = {
+				is_faction_leader = yes
+				is_in_faction_with = ENT
+			}
+		}
+		
+		ai_will_do = {
+			factor = 0
+			modifier = {
+				factor = 40
+				OR = {
+					has_government = social_liberal
+					has_government = social_democrat
+					has_government = market_liberal
+					has_government = authoritarian_democrat
+				}
+			}
+		}
+
+		cancel_trigger = {
+			NOT = { tag = event_target:KR_king_base }
+		}
+
+		cost = 50
+		days_re_enable = 50
+		fire_only_once = no
+		days_remove = 70
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_promote_canadian_culture"
+			set_country_flag = CAN_doing_decision
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_promote_canadian_culture"
+			clr_country_flag = CAN_doing_decision
+			CAN_improve_canadian_influence_small_bop = yes
+			custom_effect_tooltip = CAN_exile_influence_decrease
+			subtract_from_variable = { king_influence = 1 }
+			CAN_calc_exile_influence_effects = yes
+		}
+
+		ai_will_do = {
+			factor = 50
+		}
+	}
+}
+
 CAN_iedc_decisions = {
 
 	CAN_invite_into_iedc = {
@@ -3170,7 +3903,10 @@ CAN_iedc_decisions = {
 			}
 		}
 		visible = {
-			has_idea = CAN_iedc_main
+			OR = {
+				has_idea = CAN_iedc_main
+				has_idea = CAN_iedc_main2
+			}
 			has_socialist_government = no
 			NOT = {
 				is_in_array = { global.iedc_members = FROM }
@@ -3195,7 +3931,10 @@ CAN_iedc_decisions = {
 
 		priority = 5
 		target_root_trigger = {
-			has_idea = CAN_iedc_main
+			OR = {
+				has_idea = CAN_iedc_main
+				has_idea = CAN_iedc_main2
+			}
 		}
 
 		target_array = allies
@@ -3255,10 +3994,16 @@ CAN_iedc_decisions = {
 		}
 		visible = {
 			is_ai = no
-			NOT = { has_idea = CAN_iedc_main }
+			NOT = { OR = {
+				has_idea = CAN_iedc_main
+				has_idea = CAN_iedc_main2
+			} }
 			is_in_array = { global.iedc_members = ROOT }
 			FROM = {
+				OR = {
 				has_idea = CAN_iedc_main
+				has_idea = CAN_iedc_main2
+			}
 				is_in_faction_with = ROOT
 			}
 		}
@@ -3274,7 +4019,10 @@ CAN_iedc_decisions = {
 
 		target_trigger = {
 			FROM = {
+				OR = {
 				has_idea = CAN_iedc_main
+				has_idea = CAN_iedc_main2
+			}
 				is_in_faction_with = ROOT
 			}
 		}
@@ -3312,7 +4060,10 @@ CAN_iedc_decisions = {
 			}
 		}
 		visible = {
-			has_idea = CAN_iedc_main
+			OR = {
+				has_idea = CAN_iedc_main
+				has_idea = CAN_iedc_main2
+			}
 		}
 
 		cost = 0
@@ -3385,7 +4136,10 @@ CAN_iedc_decisions = {
 			}
 		}
 		visible = {
-			has_idea = CAN_iedc_main
+			OR = {
+				has_idea = CAN_iedc_main
+				has_idea = CAN_iedc_main2
+			}
 			FROM = {
 				NOT = { tag = ROOT }
 				is_in_array = { global.iedc_members = THIS }
@@ -3405,7 +4159,10 @@ CAN_iedc_decisions = {
 		fire_only_once = no
 
 		target_root_trigger = {
-			has_idea = CAN_iedc_main
+			OR = {
+				has_idea = CAN_iedc_main
+				has_idea = CAN_iedc_main2
+			}
 		}
 
 		target_array = global.iedc_members
@@ -3856,6 +4613,243 @@ highlight_state_targets = {
 			}
 		}
 	}
+	
+	### Defense Scheme No. 1 
+
+	CAN_maple_line = {
+		icon = fortress
+		allowed = {
+			tag = CAN
+		}
+
+		available = {
+			OR = {
+				CAN = { controls_state = 357 }
+				AND = {
+					357 = { is_owned_by = NEE }
+					NEE = { is_subject_of = CAN }
+				}
+				AND = {
+					357 = { is_owned_by = NEE }
+					NEE = { is_in_faction_with = CAN }
+				}
+			}
+		}
+
+		visible = {
+			has_completed_focus = CAN_defense_one
+		}
+
+		fire_only_once = yes
+
+		cost = 40
+		days_remove = 70
+
+		ai_will_do = {
+			factor = 10
+			modifier = {
+				factor = 5
+				has_war_with = CSA
+			}
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_maple_line"
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_maple_line"
+			796 = {
+				add_building_construction = { type = bunker province = 11654 level = 3 instant_build = yes }
+				add_building_construction = { type = bunker province = 6707 level = 3 instant_build = yes }
+				add_building_construction = { type = bunker province = 9664 level = 3 instant_build = yes }
+				add_building_construction = { type = bunker province = 11680 level = 3 instant_build = yes }
+				add_building_construction = { type = bunker province = 11650 level = 3 instant_build = yes }
+				add_building_construction = { type = bunker province = 6717 level = 3 instant_build = yes }
+				add_building_construction = { type = bunker province = 11660 level = 3 instant_build = yes }
+				add_building_construction = { type = bunker province = 706 level = 3 instant_build = yes }
+				add_building_construction = { type = bunker province = 3894 level = 3 instant_build = yes }
+				add_building_construction = { type = bunker province = 6911 level = 3 instant_build = yes }
+				add_building_construction = { type = bunker province = 734 level = 3 instant_build = yes }
+				add_building_construction = { type = bunker province = 3733 level = 3 instant_build = yes }
+				add_building_construction = { type = bunker province = 3747 level = 3 instant_build = yes }
+				add_building_construction = { type = bunker province = 6795 level = 3 instant_build = yes }
+				add_building_construction = { type = bunker province = 6778 level = 3 instant_build = yes }
+				add_building_construction = { type = bunker province = 598 level = 3 instant_build = yes }
+				add_building_construction = { type = bunker province = 3602 level = 3 instant_build = yes }
+				add_building_construction = { type = bunker province = 11662 level = 3 instant_build = yes }
+			}
+			933 = { add_building_construction = { type = bunker province = 7629 level = 3 instant_build = yes }	}
+			934 = { add_building_construction = { type = bunker province = 10481 level = 3 instant_build = yes }	}
+			357 = {
+				add_building_construction = { type = bunker province = 6719 level = 3 instant_build = yes }
+				add_building_construction = { type = bunker province = 12202 level = 3 instant_build = yes }
+				add_building_construction = { type = bunker province = 12221 level = 3 instant_build = yes }
+				add_building_construction = { type = bunker province = 10247 level = 3 instant_build = yes }
+				add_building_construction = { type = bunker province = 4287 level = 3 instant_build = yes }
+				add_building_construction = { type = bunker province = 1282 level = 3 instant_build = yes }
+				add_building_construction = { type = bunker province = 1619 level = 3 instant_build = yes }
+			}
+		}
+	}
+
+	CAN_georgian_line = {
+		icon = fortress
+		allowed = {
+			tag = CAN
+		}
+
+		available = {
+			
+		}
+
+		visible = {
+			has_completed_focus = CAN_defense_one
+		}
+
+		fire_only_once = yes
+
+		cost = 40
+		days_remove = 70
+
+		ai_will_do = {
+			factor = 10
+			modifier = {
+				factor = 5
+				has_war_with = CSA
+			}
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_georgian_line"
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_georgian_line"
+			682 = {
+				add_building_construction = { type = bunker province = 7899 level = 2 instant_build = yes }
+				add_building_construction = { type = bunker province = 1769 level = 2 instant_build = yes }
+				add_building_construction = { type = bunker province = 4875 level = 2 instant_build = yes }
+			}
+			467 = {
+				add_building_construction = { type = bunker province = 1873 level = 2 instant_build = yes }
+				add_building_construction = { type = bunker province = 4790 level = 2 instant_build = yes }
+				add_building_construction = { type = bunker province = 12145 level = 2 instant_build = yes }
+				add_building_construction = { type = bunker province = 1848 level = 2 instant_build = yes }
+			}
+			469 = {
+				add_building_construction = { type = bunker province = 1788 level = 2 instant_build = yes }
+				add_building_construction = { type = bunker province = 12603 level = 2 instant_build = yes }
+				add_building_construction = { type = bunker province = 3769 level = 2 instant_build = yes }
+				add_building_construction = { type = bunker province = 10552 level = 2 instant_build = yes }
+			}
+			470 = {
+				add_building_construction = { type = bunker province = 7718 level = 2 instant_build = yes }
+				add_building_construction = { type = bunker province = 1262 level = 2 instant_build = yes }
+			}
+			473 = {
+				add_building_construction = { type = bunker province = 7280 level = 2 instant_build = yes }
+				add_building_construction = { type = bunker province = 12578 level = 2 instant_build = yes }
+				add_building_construction = { type = bunker province = 7677 level = 2 instant_build = yes }
+				add_building_construction = { type = bunker province = 7753 level = 2 instant_build = yes }
+				add_building_construction = { type = bunker province = 4428 level = 3 instant_build = yes }
+			}
+		}
+	}
+	
+	CAN_st_lawrence_line = {
+		icon = fortress
+		allowed = {
+			tag = CAN
+		}
+
+		available = {
+			
+		}
+
+		visible = {
+			has_completed_focus = CAN_defense_one
+		}
+
+		fire_only_once = yes
+
+		cost = 40
+		days_remove = 70
+
+		ai_will_do = {
+			factor = 10
+			modifier = {
+				factor = 5
+				has_war_with = CSA
+			}
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_st_lawrence_line"
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_st_lawrence_line"
+			276 = {
+				add_building_construction = { type = bunker province = 3605 level = 3 instant_build = yes }
+				add_building_construction = { type = bunker province = 6625 level = 3 instant_build = yes }
+				add_building_construction = { type = bunker province = 4270 level = 3 instant_build = yes }
+			}
+			468 = {
+				add_building_construction = { type = bunker province = 4345 level = 3 instant_build = yes }
+				add_building_construction = { type = bunker province = 9601 level = 3 instant_build = yes }
+				add_building_construction = { type = bunker province = 7291 level = 3 instant_build = yes }
+				add_building_construction = { type = bunker province = 12149 level = 3 instant_build = yes }
+				add_building_construction = { type = bunker province = 7345 level = 3 instant_build = yes }
+			}
+		}
+	}
+	
+	CAN_fortify_great_lakes = {
+		icon = fortress
+		allowed = {
+			tag = CAN
+		}
+
+		available = {
+			
+		}
+
+		visible = {
+			has_completed_focus = CAN_defense_one
+		}
+
+		fire_only_once = yes
+
+		cost = 40
+		days_remove = 70
+
+		ai_will_do = {
+			factor = 10
+			modifier = {
+				factor = 5
+				has_war_with = CSA
+			}
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_fortify_great_lakes"
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_fortify_great_lakes"
+			276 = {
+				add_building_construction = { type = bunker province = 9711 level = 4 instant_build = yes }
+				add_building_construction = { type = bunker province = 9667 level = 4 instant_build = yes }
+				add_building_construction = { type = bunker province = 749 level = 4 instant_build = yes }
+			}
+			682 = {
+				add_building_construction = { type = bunker province = 12582 level = 3 instant_build = yes }
+			}
+		}
+	}
+	
+	### Intervene
 
 	CAN_intervene_in_ACW_USA = {
 		icon = generic_ignite_civil_war
@@ -4966,6 +5960,373 @@ highlight_state_targets = {
 			}
 		}
 	}
+	
+	CAN_intervene_in_ACW_CAR = {
+		icon = generic_ignite_civil_war
+		allowed = {
+			tag = CAN
+		}
+		available = {
+			ROOT = {
+				has_completed_focus = CAN_crossing_the_border
+				controls_all_owned_states = yes
+				NOT = {
+					has_idea = CAN_divided_nation
+					has_idea = CAN_csa_strikes
+				}
+			}
+			FROM = {
+				custom_trigger_tooltip = {
+					tooltip = CAN_not_winning_ACW
+					# OR = {
+						# if = {
+							# limit = { has_war_with = CSA }
+							# check_variable = { COR.num_controlled_states < CSA.num_controlled_states }
+						# }
+						# if = {
+							# limit = { has_war_with = CAL }
+							# check_variable = { COR.num_controlled_states < CAL.num_controlled_states }
+						# }
+						# if = {
+							# limit = { has_war_with = USA }
+							# check_variable = { COR.num_controlled_states < USA.num_controlled_states }
+						# }
+					# }
+				}
+			}
+		}
+		visible = {
+			has_country_flag = CAN_supports_COR
+			is_faction_leader = yes
+			has_global_flag = USA_civil_war_begun_flag
+			NOT = { has_global_flag = USA_civil_war_over_flag }
+			NOT = {
+				has_war_with = USA
+				has_war_with = CSA
+				has_war_with = COR
+				has_war_with = CAL
+				has_war_with = TEX
+				has_war_with = NEE
+				has_country_flag = CAN_white_peaced_ACW
+			}
+			FROM = {
+				is_subject = no
+				is_in_faction = no
+				OR = {
+					has_war_with = CSA
+					has_war_with = USA
+					has_war_with = CAL
+					has_war_with = TEX
+				}
+				NOT = {
+					has_war_with = ROOT
+				}
+			}
+		}
+
+		targets = { COR }
+		target_root_trigger = { has_country_flag = CAN_supports_COR }
+		target_trigger = {
+			FROM = {
+				is_subject = no
+				is_in_faction = no
+				OR = {
+					has_war_with = CSA
+					has_war_with = USA
+					has_war_with = CAL
+					has_war_with = TEX
+				}
+			}
+		}
+
+		fire_only_once = yes
+		cost = 0
+		days_remove = 30
+
+		war_with_on_remove = CSA
+		war_with_on_remove = USA
+		war_with_on_remove = CAL
+		war_with_on_remove = TEX
+
+		cancel_if_not_visible = yes
+		cancel_trigger = {
+			OR = {
+				has_idea = CAN_divided_nation
+				has_idea = CAN_csa_strikes
+			}
+		}
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancelled CAN_intervene_in_ACW_AUS target: [From.GetName]"
+			hidden_effect = {
+				if = {
+					limit = {
+						COR = { has_war_with = CSA }
+						NOT = { has_war_with = CSA }
+					}
+					add_ai_strategy = {
+						type = prepare_for_war
+						id = CSA
+						value = -1000
+					}
+					CSA = {
+						add_ai_strategy = {
+							type = prepare_for_war
+							id = CAN
+							value = -1000
+						}
+					}
+				}
+				if = {
+					limit = {
+						COR = { has_war_with = USA }
+						NOT = { has_war_with = USA }
+					}
+					add_ai_strategy = {
+						type = prepare_for_war
+						id = USA
+						value = -1000
+					}
+					USA = {
+						add_ai_strategy = {
+							type = prepare_for_war
+							id = CAN
+							value = -1000
+						}
+					}
+				}
+				if = {
+					limit = {
+						COR = { has_war_with = CAL }
+						NOT = { has_war_with = CAL }
+					}
+					add_ai_strategy = {
+						type = prepare_for_war
+						id = CAL
+						value = -1000
+					}
+					CAL = {
+						add_ai_strategy = {
+							type = prepare_for_war
+							id = CAN
+							value = -1000
+						}
+					}
+				}
+				if = {
+					limit = {
+						COR = { has_war_with = TEX }
+						NOT = { has_war_with = TEX }
+					}
+					add_ai_strategy = {
+						type = prepare_for_war
+						id = TEX
+						value = -1000
+					}
+					TEX = {
+						add_ai_strategy = {
+							type = prepare_for_war
+							id = CAN
+							value = -1000
+						}
+					}
+				}
+			}
+		}
+
+		ai_will_do = {
+			factor = 20
+			modifier = {
+				factor = 0
+				OR = {
+					has_war_with = AST
+					has_war_with = ENG
+					has_war_with = FRA
+					has_war_with = GER
+				}
+			}
+			#AUS needs to be strong enough
+			modifier = {
+				factor = 0
+				OR = {
+					check_variable = { COR.num_controlled_states < 8 }
+					COR = { surrender_progress > 0.50 }
+				}
+			}
+			#not if the Deal with the Devil is active
+			modifier = {
+				factor = 0
+				has_global_flag = ACW_deal_with_devil
+			}
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_intervene_in_ACW_AUS target: [From.GetName]"
+			hidden_effect = {
+				if = {
+					limit = {
+						COR = { has_war_with = CSA }
+						NOT = { has_war_with = CSA }
+					}
+					add_ai_strategy = {
+						type = prepare_for_war
+						id = CSA
+						value = 1000
+					}
+					CSA = {
+						add_ai_strategy = {
+							type = prepare_for_war
+							id = CAN
+							value = 1000
+						}
+					}
+				}
+				if = {
+					limit = {
+						COR = { has_war_with = USA }
+						NOT = { has_war_with = USA }
+					}
+					add_ai_strategy = {
+						type = prepare_for_war
+						id = USA
+						value = 1000
+					}
+					USA = {
+						add_ai_strategy = {
+							type = prepare_for_war
+							id = CAN
+							value = 1000
+						}
+					}
+				}
+				if = {
+					limit = {
+						COR = { has_war_with = CAL }
+						NOT = { has_war_with = CAL }
+					}
+					add_ai_strategy = {
+						type = prepare_for_war
+						id = CAL
+						value = 1000
+					}
+					CAL = {
+						add_ai_strategy = {
+							type = prepare_for_war
+							id = CAN
+							value = 1000
+						}
+					}
+				}
+				if = {
+					limit = {
+						COR = { has_war_with = TEX }
+						NOT = { has_war_with = TEX }
+					}
+					add_ai_strategy = {
+						type = prepare_for_war
+						id = TEX
+						value = 1000
+					}
+					TEX = {
+						add_ai_strategy = {
+							type = prepare_for_war
+							id = CAN
+							value = 1000
+						}
+					}
+				}
+			}
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_intervene_in_ACW_AUS target: [From.GetName]"
+			set_country_flag = CAN_joined_the_ACW
+			COR = { country_event = canada.222 }
+			if = {
+				limit = {
+					COR = { has_war_with = CSA }
+					NOT = { has_war_with = CSA }
+				}
+				add_to_war = { targeted_alliance = COR enemy = CSA }
+				hidden_effect = {
+					add_ai_strategy = {
+						type = prepare_for_war
+						id = CSA
+						value = -1000
+					}
+					CSA = {
+						add_ai_strategy = {
+							type = prepare_for_war
+							id = CAN
+							value = -1000
+						}
+					}
+				}
+			}
+			if = {
+				limit = {
+					COR = { has_war_with = USA }
+					NOT = { has_war_with = USA }
+				}
+				add_to_war = { targeted_alliance = COR enemy = USA }
+				hidden_effect = {
+					add_ai_strategy = {
+						type = prepare_for_war
+						id = USA
+						value = -1000
+					}
+					USA = {
+						add_ai_strategy = {
+							type = prepare_for_war
+							id = CAN
+							value = -1000
+						}
+					}
+				}
+			}
+			if = {
+				limit = {
+					COR = { has_war_with = CAL }
+					NOT = { has_war_with = CAL }
+				}
+				add_to_war = { targeted_alliance = COR enemy = CAL }
+				hidden_effect = {
+					add_ai_strategy = {
+						type = prepare_for_war
+						id = CAL
+						value = -1000
+					}
+					CAL = {
+						add_ai_strategy = {
+							type = prepare_for_war
+							id = CAN
+							value = -1000
+						}
+					}
+				}
+			}
+			if = {
+				limit = {
+					COR = { has_war_with = TEX }
+					NOT = { has_war_with = TEX }
+				}
+				add_to_war = { targeted_alliance = COR enemy = TEX }
+				hidden_effect = {
+					add_ai_strategy = {
+						type = prepare_for_war
+						id = TEX
+						value = -1000
+					}
+					TEX = {
+						add_ai_strategy = {
+							type = prepare_for_war
+							id = CAN
+							value = -1000
+						}
+					}
+				}
+			}
+		}
+	}
 
 	CAN_declare_war_on_CSA = {
 		icon = generic_ignite_civil_war
@@ -5247,6 +6608,98 @@ highlight_state_targets = {
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision CAN_invite_PSA_ceasefire target: [From.GetName]"
 			FROM = { country_event = amcivwar.166 }
+		}
+	}
+	
+	CAN_demand_oregon = {
+		icon = generic_civil_support
+
+		allowed = {
+			original_tag = CAN
+		}
+
+		available = {
+			386 = { #Washington
+				OR = {
+					is_owned_and_controlled_by = CAL
+					is_owned_and_controlled_by = USA
+				}
+			}
+			CAN = {
+				owns_state = 473 #British Columbia
+				controls_all_owned_states = yes
+				NOT = { has_idea = CAN_divided_nation }
+			}
+		}
+
+		visible = {
+			NOT = {
+				has_country_flag = CAN_supports_CAL
+			}
+			has_country_flag = CAN_acw_intervention
+			is_subject = no
+			has_completed_focus = CAN_oregon_territory
+			386 = {
+				owner = {
+					is_subject = no
+					NOT = { has_war_with = CAN }
+					NOT = { is_in_faction_with = CAN }
+					OR = {
+						controls_state = 387 #Idaho
+						controls_state = 386 #Washington
+						controls_state = 385 #Oregon
+					}
+				}
+			}
+		}
+
+		fire_only_once = yes
+
+		war_with_on_complete = CAL
+
+		cost = 100
+
+		ai_will_do = {
+			factor = 2
+			modifier = {
+				factor = 0
+				has_elected_government = yes
+			}
+			modifier = {
+				factor = 0
+				OR = {
+					has_war_with = AST
+					any_enemy_country = { is_actual_major = yes }
+				}
+			}
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_demand_oregon"
+			add_stability = -0.05
+			add_state_claim = 386 #Washington
+			add_state_claim = 385 #Oregon
+			add_state_claim = 387 #Idaho
+			every_country = {
+				limit = {
+					OR = {
+						tag = CAL
+						tag = USA
+						tag = CSA
+						tag = TEX
+					}
+					exists = yes
+				}
+				add_opinion_modifier = { target = CAN modifier = CAN_DEMANDED_OREGON }
+			}
+			386 = {
+				owner = {
+					country_event = { days = 1 id = canada.2011 }
+				}
+			}
+			hidden_effect = {
+				#country_event = worldtension.19
+			}
 		}
 	}
 }
@@ -6053,6 +7506,1516 @@ highlight_state_targets = {
 
 }
 
+CAN_red_belt_decisions = {
+
+	CAN_pacify_state = {
+		icon = GFX_decision_generic_military
+
+		allowed = { always = no } #activated by effect
+
+		available = {
+			FROM = { 
+				is_owned_and_controlled_by = CAN 
+			}
+			CAN = {
+				divisions_in_state = {
+					state = FROM
+					size  > 2
+				}
+			}
+			#NOT = {
+				#has_country_flag = CAN_pacifying_already
+			#}
+		}
+		visible = {
+			FROM = {
+				CAN_has_syndicalist_resistance = yes
+			}
+		}
+
+		cost = 25
+		days_remove = 30
+		fire_only_once = no
+		days_re_enable = 20
+		
+		ai_will_do = {
+			factor = 50
+		}
+		state_target = yes
+
+		ai_will_do = {
+			factor = 50
+		}
+		
+		complete_effect = {
+			set_country_flag = CAN_pacifying_already
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_pacify_state"
+			FROM = {
+				CAN_decrease_synd_resistance_in_state = yes
+			}
+			clr_country_flag = CAN_pacifying_already
+		}
+	}
+	
+	CAN_expand_south = {
+		icon = GFX_decision_generic_military
+
+		allowed = { original_tag = CAN }
+
+		available = {
+			owns_state = 360
+			owns_state = 359
+			owns_state = 1162
+			has_completed_focus = CAN_pacify_red_belt
+		}
+		visible = {
+			owns_state = 261
+			796 = {
+				is_owned_by_ROOT_or_ally = yes
+			}
+		}
+
+		cost = 25
+		days_remove = 30
+		fire_only_once = yes
+		
+		ai_will_do = {
+			factor = 50
+		}
+
+		ai_will_do = {
+			factor = 50
+		}
+		
+		complete_effect = {
+			
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_expand_south"
+			every_owned_state = {
+				limit = {
+					OR = {
+						state = 360 #New Jersey
+						state = 1162 #New Jersey
+						state = 360 #New Jersey
+					}
+				}
+				set_state_flag = CAN_red_belt_state
+				add_dynamic_modifier = {
+					modifier = CAN_syndicalist_resistance_3
+				}
+				activate_targeted_decision = { target = PREV decision = CAN_pacify_state }
+			}
+		}
+	}
+	
+}
+
+CAN_new_provinces = {
+
+	### Great Lakes ###
+	
+	CAN_establish_province_michigan = {
+		icon = generic_form_nation
+
+		allowed = { tag = CAN }
+
+		highlight_states = {
+			highlight_state_targets = {
+				state = 393
+			}
+		}
+
+		available = {
+			393 = {
+				is_owned_and_controlled_by = ROOT
+			}
+		}
+
+		visible = {
+			has_completed_focus = CAN_rebuild_great_lakes
+			is_subject = no
+			393 = {
+				is_owned_by = ROOT
+				NOT = { is_core_of = ROOT }
+			}
+		}
+
+		modifier = {
+			political_power_cost = 0.50
+		}
+
+		fire_only_once = no
+		cost = 50
+		days_remove = 60
+		ai_will_do = {
+			factor = 10
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_establish_province_michigan"
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_establish_province_michigan"
+			add_state_core = 393
+			add_to_variable = { CAN_provinces = 1 }
+			add_to_variable = { CAN_current_provinces = 1 }
+		}
+	}
+	
+	CAN_establish_province_wisconsin = {
+		icon = generic_form_nation
+
+		allowed = { tag = CAN }
+
+		highlight_states = {
+			highlight_state_targets = {
+				state = 1152
+			}
+			highlight_state_targets = {
+				state = 394
+			}
+		}
+
+		available = {
+			OR = {
+				1152 = {
+					is_owned_and_controlled_by = ROOT
+				}
+				394 = {
+					is_owned_and_controlled_by = ROOT
+				}
+			}
+		}
+
+		visible = {
+			has_completed_focus = CAN_rebuild_great_lakes
+			is_subject = no
+			OR = {
+				1152 = {
+					is_owned_by = ROOT
+					NOT = { is_core_of = ROOT }
+				}
+				394 = {
+					is_owned_by = ROOT
+					NOT = { is_core_of = ROOT }
+				}
+			}
+		}
+
+		modifier = {
+			political_power_cost = 0.50
+		}
+
+		fire_only_once = no
+		cost = 50
+		days_remove = 60
+		ai_will_do = {
+			factor = 10
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_establish_province_wisconsin"
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_establish_province_wisconsin"
+			if = {
+				limit = {
+					owns_state = 394
+				}
+				add_state_core = 394
+			}
+			if = {
+				limit = {
+					owns_state = 1152
+				}
+				add_state_core = 1152
+			}
+			add_to_variable = { CAN_provinces = 1 }
+			add_to_variable = { CAN_current_provinces = 1 }
+		}
+	}
+	
+	CAN_establish_province_illinois = {
+		icon = generic_form_nation
+
+		allowed = { tag = CAN }
+
+		highlight_states = {
+			highlight_state_targets = {
+				state = 395
+			}
+			highlight_state_targets = {
+				state = 1154
+			}
+		}
+
+		available = {
+			OR = {
+				395 = {
+					is_owned_and_controlled_by = ROOT
+				}
+				1154 = {
+					is_owned_and_controlled_by = ROOT
+				}
+			}
+		}
+
+		visible = {
+			has_completed_focus = CAN_rebuild_great_lakes
+			is_subject = no
+			OR = {
+				395 = {
+					is_owned_by = ROOT
+					NOT = { is_core_of = ROOT }
+				}
+				1154 = {
+					is_owned_by = ROOT
+					NOT = { is_core_of = ROOT }
+				}
+			}
+		}
+
+		modifier = {
+			political_power_cost = 0.50
+		}
+
+		fire_only_once = no
+		cost = 50
+		days_remove = 60
+		ai_will_do = {
+			factor = 10
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_establish_province_illinois"
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_establish_province_illinois"
+			if = {
+				limit = {
+					owns_state = 395
+				}
+				add_state_core = 395
+			}
+			if = {
+				limit = {
+					owns_state = 1154
+				}
+				add_state_core = 1154
+			}
+			add_to_variable = { CAN_provinces = 1 }
+			add_to_variable = { CAN_current_provinces = 1 }
+		}
+	}
+	
+	CAN_establish_province_indiana = {
+		icon = generic_form_nation
+
+		allowed = { tag = CAN }
+
+		highlight_states = {
+			highlight_state_targets = {
+				state = 396
+			}
+			highlight_state_targets = {
+				state = 1151
+			}
+		}
+
+		available = {
+			OR = {
+				396 = {
+					is_owned_and_controlled_by = ROOT
+				}
+				1151 = {
+					is_owned_and_controlled_by = ROOT
+				}
+			}
+		}
+
+		visible = {
+			has_completed_focus = CAN_rebuild_great_lakes
+			is_subject = no
+			OR = {
+				396 = {
+					is_owned_by = ROOT
+					NOT = { is_core_of = ROOT }
+				}
+				1151 = {
+					is_owned_by = ROOT
+					NOT = { is_core_of = ROOT }
+				}
+			}
+		}
+
+		modifier = {
+			political_power_cost = 0.50
+		}
+
+		fire_only_once = no
+		cost = 50
+		days_remove = 60
+		ai_will_do = {
+			factor = 10
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_establish_province_indiana"
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_establish_province_indiana"
+			if = {
+				limit = {
+					owns_state = 396
+				}
+				add_state_core = 396
+			}
+			if = {
+				limit = {
+					owns_state = 1151
+				}
+				add_state_core = 1151
+			}
+			add_to_variable = { CAN_provinces = 1 }
+			add_to_variable = { CAN_current_provinces = 1 }
+		}
+	}
+	
+	CAN_establish_province_ohio = {
+		icon = generic_form_nation
+
+		allowed = { tag = CAN }
+
+		highlight_states = {
+			highlight_state_targets = {
+				state = 261
+			}
+			highlight_state_targets = {
+				state = 1153
+			}
+		}
+
+		available = {
+			OR = {
+				261 = {
+					is_owned_and_controlled_by = ROOT
+				}
+				1153 = {
+					is_owned_and_controlled_by = ROOT
+				}
+			}
+		}
+
+		visible = {
+			has_completed_focus = CAN_rebuild_great_lakes
+			is_subject = no
+			OR = {
+				261 = {
+					is_owned_by = ROOT
+					NOT = { is_core_of = ROOT }
+				}
+				1153 = {
+					is_owned_by = ROOT
+					NOT = { is_core_of = ROOT }
+				}
+			}
+		}
+
+		modifier = {
+			political_power_cost = 0.50
+		}
+
+		fire_only_once = no
+		cost = 50
+		days_remove = 60
+		ai_will_do = {
+			factor = 10
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_establish_province_ohio"
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_establish_province_ohio"
+			if = {
+				limit = {
+					owns_state = 261
+				}
+				add_state_core = 261
+			}
+			if = {
+				limit = {
+					owns_state = 1153
+				}
+				add_state_core = 1153
+			}
+			add_to_variable = { CAN_provinces = 1 }
+			add_to_variable = { CAN_current_provinces = 1 }
+		}
+	}
+	
+	CAN_establish_province_minnesota = {
+		icon = generic_form_nation
+
+		allowed = { tag = CAN }
+
+		highlight_states = {
+			highlight_state_targets = {
+				state = 391
+			}
+			highlight_state_targets = {
+				state = 1173
+			}
+		}
+
+		available = {
+			OR = {
+				391 = {
+					is_owned_and_controlled_by = ROOT
+				}
+				1173 = {
+					is_owned_and_controlled_by = ROOT
+				}
+			}
+		}
+
+		visible = {
+			has_completed_focus = CAN_rebuild_great_lakes
+			is_subject = no
+			OR = {
+				391 = {
+					is_owned_by = ROOT
+					NOT = { is_core_of = ROOT }
+				}
+				1173 = {
+					is_owned_by = ROOT
+					NOT = { is_core_of = ROOT }
+				}
+			}
+		}
+
+		modifier = {
+			political_power_cost = 0.50
+		}
+
+		fire_only_once = no
+		cost = 50
+		days_remove = 60
+		ai_will_do = {
+			factor = 10
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_establish_province_ohio"
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_establish_province_ohio"
+			if = {
+				limit = {
+					owns_state = 391
+				}
+				add_state_core = 391
+			}
+			if = {
+				limit = {
+					owns_state = 1173
+				}
+				add_state_core = 1173
+			}
+			add_to_variable = { CAN_provinces = 1 }
+			add_to_variable = { CAN_current_provinces = 1 }
+		}
+	}
+	
+	CAN_establish_province_nj = {
+		icon = generic_form_nation
+
+		allowed = { tag = CAN }
+
+		highlight_states = {
+			highlight_state_targets = {
+				state = 359
+			}
+			highlight_state_targets = {
+				state = 1162
+			}
+		}
+
+		available = {
+			OR = {
+				359 = {
+					is_owned_and_controlled_by = ROOT
+				}
+				1162 = {
+					is_owned_and_controlled_by = ROOT
+				}
+			}
+		}
+
+		visible = {
+			has_completed_focus = CAN_rebuild_great_lakes
+			is_subject = no
+			OR = {
+				359 = {
+					is_owned_by = ROOT
+					NOT = { is_core_of = ROOT }
+				}
+				1162 = {
+					is_owned_by = ROOT
+					NOT = { is_core_of = ROOT }
+				}
+			}
+		}
+
+		modifier = {
+			political_power_cost = 0.50
+		}
+
+		fire_only_once = no
+		cost = 50
+		days_remove = 60
+		ai_will_do = {
+			factor = 10
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_establish_province_nj"
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_establish_province_nj"
+			if = {
+				limit = {
+					owns_state = 359
+				}
+				add_state_core = 359
+			}
+			if = {
+				limit = {
+					owns_state = 1162
+				}
+				add_state_core = 1162
+			}
+			add_to_variable = { CAN_provinces = 1 }
+			add_to_variable = { CAN_current_provinces = 1 }
+		}
+	}
+	
+	CAN_establish_province_penn = {
+		icon = generic_form_nation
+
+		allowed = { tag = CAN }
+
+		highlight_states = {
+			highlight_state_targets = {
+				state = 360
+			}
+		}
+
+		available = {
+			360 = {
+				is_owned_and_controlled_by = ROOT
+			}
+		}
+
+		visible = {
+			has_completed_focus = CAN_rebuild_great_lakes
+			is_subject = no
+			360 = {
+				is_owned_by = ROOT
+				NOT = { is_core_of = ROOT }
+			}
+		}
+
+		modifier = {
+			political_power_cost = 0.50
+		}
+
+		fire_only_once = no
+		cost = 50
+		days_remove = 20
+		ai_will_do = {
+			factor = 10
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_establish_province_penn"
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_establish_province_penn"
+			if = {
+				limit = {
+					owns_state = 360
+				}
+				add_state_core = 360
+			}
+			add_to_variable = { CAN_provinces = 1 }
+			add_to_variable = { CAN_current_provinces = 1 }
+		}
+	}
+	
+	### Other Americans ###
+	
+	CAN_establish_province_oregon_full = {
+		icon = generic_form_nation
+
+		allowed = { tag = CAN }
+
+		highlight_states = {
+			highlight_state_targets = {
+				state = 386
+			}
+			highlight_state_targets = {
+				state = 385
+			}
+		}
+
+		available = {
+			386 = {
+				is_owned_and_controlled_by = ROOT
+			}
+			385 = {
+				is_owned_and_controlled_by = ROOT
+			}
+		}
+
+		visible = {
+			has_completed_focus = CAN_oregon_territory
+			is_subject = no
+			386 = {
+				is_owned_by = ROOT
+				NOT = { is_core_of = ROOT }
+			}
+			385 = {
+				is_owned_by = ROOT
+				NOT = { is_core_of = ROOT }
+			}
+		}
+
+		modifier = {
+			political_power_cost = 0.50
+		}
+
+		fire_only_once = no
+		cost = 50
+		days_remove = 40
+		ai_will_do = {
+			factor = 10
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_establish_province_oregon_full"
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_establish_province_oregon_full"
+			if = {
+				limit = {
+					owns_state = 386
+				}
+				add_state_core = 386
+			}
+			if = {
+				limit = {
+					owns_state = 385
+				}
+				add_state_core = 385
+			}
+			add_to_variable = { CAN_provinces = 1 }
+			add_to_variable = { CAN_current_provinces = 1 }
+		}
+	}
+	
+	CAN_establish_province_washington = {
+		icon = generic_form_nation
+
+		allowed = { tag = CAN }
+
+		highlight_states = {
+			highlight_state_targets = {
+				state = 386
+			}
+		}
+
+		available = {
+			386 = {
+				is_owned_and_controlled_by = ROOT
+			}
+			385 = {
+				NOT = {
+					is_owned_and_controlled_by = ROOT
+				}
+			}
+		}
+
+		visible = {
+			has_completed_focus = CAN_oregon_territory
+			is_subject = no
+			386 = {
+				is_owned_by = ROOT
+				NOT = { is_core_of = ROOT }
+			}
+		}
+
+		modifier = {
+			political_power_cost = 0.50
+		}
+
+		fire_only_once = no
+		cost = 50
+		days_remove = 30
+		ai_will_do = {
+			factor = 10
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_establish_province_washington"
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_establish_province_washington"
+			if = {
+				limit = {
+					owns_state = 386
+				}
+				add_state_core = 386
+			}
+			add_to_variable = { CAN_provinces = 1 }
+			add_to_variable = { CAN_current_provinces = 1 }
+		}
+	}
+	
+	CAN_establish_province_maine = {
+		icon = generic_form_nation
+
+		allowed = { tag = CAN }
+
+		highlight_states = {
+			highlight_state_targets = {
+				state = 357
+			}
+		}
+
+		available = {
+			357 = {
+				is_owned_and_controlled_by = ROOT
+			}
+		}
+
+		visible = {
+			has_completed_focus = CAN_province_maine
+			is_subject = no
+			357 = {
+				is_owned_by = ROOT
+				NOT = { is_core_of = ROOT }
+			}
+		}
+
+		modifier = {
+			political_power_cost = 0.50
+		}
+
+		fire_only_once = no
+		cost = 50
+		days_remove = 20
+		ai_will_do = {
+			factor = 10
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_establish_province_maine"
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_establish_province_maine"
+			if = {
+				limit = {
+					owns_state = 357
+				}
+				add_state_core = 357
+			}
+			add_to_variable = { CAN_provinces = 1 }
+			add_to_variable = { CAN_current_provinces = 1 }
+		}
+	}
+	
+	CAN_establish_province_alaska = {
+		icon = generic_form_nation
+
+		allowed = { tag = CAN }
+
+		highlight_states = {
+			highlight_state_targets = {
+				state = 463
+			}
+		}
+
+		available = {
+			463 = {
+				is_owned_and_controlled_by = ROOT
+			}
+		}
+
+		visible = {
+			has_completed_focus = CAN_integrate_alaska
+			is_subject = no
+			463 = {
+				is_owned_by = ROOT
+				NOT = { is_core_of = ROOT }
+			}
+		}
+
+		modifier = {
+			political_power_cost = 0.50
+		}
+
+		fire_only_once = no
+		cost = 50
+		days_remove = 20
+		ai_will_do = {
+			factor = 10
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_establish_province_alaska"
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_establish_province_alaska"
+			if = {
+				limit = {
+					owns_state = 463
+				}
+				add_state_core = 463
+			}
+			if = {
+				limit = {
+					owns_state = 1273
+				}
+				add_state_core = 1273
+			}
+			add_to_variable = { CAN_provinces = 1 }
+			add_to_variable = { CAN_current_provinces = 1 }
+		}
+	}
+	
+	### Carribean ###
+	
+	CAN_establish_province_puerto_rico = {
+		icon = generic_form_nation
+
+		allowed = { tag = CAN }
+
+		highlight_states = {
+			highlight_state_targets = {
+				state = 686
+			}
+		}
+
+		available = {
+			686 = {
+				is_owned_and_controlled_by = ROOT
+			}
+		}
+
+		visible = {
+			has_completed_focus = CAN_integrate_puerto_rico
+			is_subject = no
+			686 = {
+				is_owned_by = ROOT
+				NOT = { is_core_of = ROOT }
+			}
+		}
+
+		modifier = {
+			political_power_cost = 0.50
+		}
+
+		fire_only_once = no
+		cost = 50
+		days_remove = 20
+		ai_will_do = {
+			factor = 10
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_establish_province_puerto_rico"
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_establish_province_puerto_rico"
+			if = {
+				limit = {
+					owns_state = 686
+				}
+				add_state_core = 686
+			}
+			if = {
+				limit = {
+					owns_state = 1312
+				}
+				add_state_core = 1312
+			}
+			add_to_variable = { CAN_provinces = 1 }
+			add_to_variable = { CAN_current_provinces = 1 }
+		}
+	}
+	
+	CAN_establish_province_bahamas = {
+		icon = generic_form_nation
+
+		allowed = { tag = CAN }
+
+		highlight_states = {
+			highlight_state_targets = {
+				state = 690
+			}
+		}
+
+		available = {
+			690 = {
+				is_owned_and_controlled_by = ROOT
+			}
+		}
+
+		visible = {
+			has_completed_focus = CAN_west_indies_integration
+			is_subject = no
+			690 = {
+				is_owned_by = ROOT
+				NOT = { is_core_of = ROOT }
+			}
+		}
+
+		modifier = {
+			political_power_cost = 0.50
+		}
+
+		fire_only_once = no
+		cost = 50
+		days_remove = 30
+		ai_will_do = {
+			factor = 10
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_establish_province_bahamas"
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_establish_province_bahamas"
+			if = {
+				limit = {
+					owns_state = 690
+				}
+				add_state_core = 690
+			}
+			add_to_variable = { CAN_provinces = 1 }
+			add_to_variable = { CAN_current_provinces = 1 }
+		}
+	}
+	
+	CAN_establish_province_bermuda = {
+		icon = generic_form_nation
+
+		allowed = { tag = CAN }
+
+		highlight_states = {
+			highlight_state_targets = {
+				state = 696
+			}
+		}
+
+		available = {
+			696 = {
+				is_owned_and_controlled_by = ROOT
+			}
+		}
+
+		visible = {
+			has_completed_focus = CAN_west_indies_integration
+			is_subject = no
+			696 = {
+				is_owned_by = ROOT
+				NOT = { is_core_of = ROOT }
+			}
+		}
+
+		modifier = {
+			political_power_cost = 0.50
+		}
+
+		fire_only_once = no
+		cost = 50
+		days_remove = 30
+		ai_will_do = {
+			factor = 10
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_establish_province_bahamas"
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_establish_province_bahamas"
+			if = {
+				limit = {
+					owns_state = 696
+				}
+				add_state_core = 696
+			}
+			add_to_variable = { CAN_provinces = 1 }
+			add_to_variable = { CAN_current_provinces = 1 }
+		}
+	}
+	
+	CAN_establish_province_jamacia = {
+		icon = generic_form_nation
+
+		allowed = { tag = CAN }
+
+		highlight_states = {
+			highlight_state_targets = {
+				state = 689
+			}
+		}
+
+		available = {
+			689 = {
+				is_owned_and_controlled_by = ROOT
+			}
+		}
+
+		visible = {
+			has_completed_focus = CAN_west_indies_integration
+			is_subject = no
+			689 = {
+				is_owned_by = ROOT
+				NOT = { is_core_of = ROOT }
+			}
+		}
+
+		modifier = {
+			political_power_cost = 0.50
+		}
+
+		fire_only_once = no
+		cost = 50
+		days_remove = 30
+		ai_will_do = {
+			factor = 10
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_establish_province_bahamas"
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_establish_province_bahamas"
+			if = {
+				limit = {
+					owns_state = 689
+				}
+				add_state_core = 689
+			}
+			add_to_variable = { CAN_provinces = 1 }
+			add_to_variable = { CAN_current_provinces = 1 }
+		}
+	}
+	
+	CAN_establish_province_west_india = {
+		icon = generic_form_nation
+
+		allowed = { tag = CAN }
+
+		highlight_states = {
+			highlight_state_targets = {
+				state = 691
+			}
+		}
+
+		available = {
+			691 = {
+				is_owned_and_controlled_by = ROOT
+			}
+			692 = {
+				is_owned_and_controlled_by = ROOT
+			}
+			694 = {
+				is_owned_and_controlled_by = ROOT
+			}
+			308 = {
+				is_owned_and_controlled_by = ROOT
+			}
+		}
+
+		visible = {
+			has_completed_focus = CAN_west_indies_integration
+			is_subject = no
+			691 = {
+				is_owned_by = ROOT
+				NOT = { is_core_of = ROOT }
+			}
+			692 = {
+				is_owned_by = ROOT
+				NOT = { is_core_of = ROOT }
+			}
+			694 = {
+				is_owned_by = ROOT
+				NOT = { is_core_of = ROOT }
+			}
+			308 = {
+				is_owned_by = ROOT
+				NOT = { is_core_of = ROOT }
+			}
+		}
+
+		modifier = {
+			political_power_cost = 0.50
+		}
+
+		fire_only_once = no
+		cost = 50
+		days_remove = 30
+		ai_will_do = {
+			factor = 10
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_establish_province_west_india"
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_establish_province_west_india"
+			if = {
+				limit = {
+					owns_state = 691
+				}
+				add_state_core = 691
+			}
+			if = {
+				limit = {
+					owns_state = 692
+				}
+				add_state_core = 692
+			}
+			if = {
+				limit = {
+					owns_state = 694
+				}
+				add_state_core = 694
+			}
+			if = {
+				limit = {
+					owns_state = 308
+				}
+				add_state_core = 308
+			}
+			add_to_variable = { CAN_provinces = 1 }
+			add_to_variable = { CAN_current_provinces = 1 }
+		}
+	}
+	
+	CAN_establish_province_guyana = {
+		icon = generic_form_nation
+
+		allowed = { tag = CAN }
+
+		highlight_states = {
+			highlight_state_targets = {
+				state = 1078
+			}
+		}
+
+		available = {
+			1079 = {
+				is_owned_and_controlled_by = ROOT
+			}
+			1039 = {
+				is_owned_and_controlled_by = ROOT
+			}
+			694 = {
+				is_owned_and_controlled_by = ROOT
+			}
+			308 = {
+				is_owned_and_controlled_by = ROOT
+			}
+			687 = {
+				is_owned_and_controlled_by = ROOT
+			}
+			1078 = {
+				is_owned_and_controlled_by = ROOT
+			}
+		}
+
+		visible = {
+			has_completed_focus = CAN_west_indies_integration
+			is_subject = no
+			1079 = {
+				is_owned_by = ROOT
+				NOT = { is_core_of = ROOT }
+			}
+			1039 = {
+				is_owned_by = ROOT
+				NOT = { is_core_of = ROOT }
+			}
+			1308 = {
+				is_owned_by = ROOT
+				NOT = { is_core_of = ROOT }
+			}
+			308 = {
+				is_owned_by = ROOT
+				NOT = { is_core_of = ROOT }
+			}
+			687 = {
+				is_owned_by = ROOT
+				NOT = { is_core_of = ROOT }
+			}
+			1078 = {
+				is_owned_by = ROOT
+				NOT = { is_core_of = ROOT }
+			}
+		}
+
+		modifier = {
+			political_power_cost = 0.50
+		}
+
+		fire_only_once = no
+		cost = 50
+		days_remove = 30
+		ai_will_do = {
+			factor = 10
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_establish_province_west_india"
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_establish_province_west_india"
+			if = {
+				limit = {
+					owns_state = 1079
+				}
+				add_state_core = 1079
+			}
+			if = {
+				limit = {
+					owns_state = 1039
+				}
+				add_state_core = 1039
+			}
+			if = {
+				limit = {
+					owns_state = 1308
+				}
+				add_state_core = 1308
+			}
+			if = {
+				limit = {
+					owns_state = 687
+				}
+				add_state_core = 687
+			}
+			if = {
+				limit = {
+					owns_state = 1078
+				}
+				add_state_core = 1078
+			}
+			add_to_variable = { CAN_provinces = 1 }
+			add_to_variable = { CAN_current_provinces = 1 }
+		}
+	}
+	
+	CAN_establish_province_belize = {
+		icon = generic_form_nation
+
+		allowed = { tag = CAN }
+
+		highlight_states = {
+			highlight_state_targets = {
+				state = 311
+			}
+		}
+
+		available = {
+			311 = {
+				is_owned_and_controlled_by = ROOT
+			}
+		}
+
+		visible = {
+			has_completed_focus = CAN_british_honduras
+			is_subject = no
+			311 = {
+				is_owned_by = ROOT
+				NOT = { is_core_of = ROOT }
+			}
+		}
+
+		modifier = {
+			political_power_cost = 0.50
+		}
+
+		fire_only_once = no
+		cost = 50
+		days_remove = 40
+		ai_will_do = {
+			factor = 10
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_establish_province_belize"
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_establish_province_belize"
+			if = {
+				limit = {
+					owns_state = 311
+				}
+				add_state_core = 311
+			}
+			add_to_variable = { CAN_provinces = 1 }
+			add_to_variable = { CAN_current_provinces = 1 }
+		}
+	}
+	
+	### North Atlantic ###
+	
+	CAN_establish_province_iceland = {
+		icon = generic_form_nation
+
+		allowed = { tag = CAN }
+
+		highlight_states = {
+			highlight_state_targets = {
+				state = 100
+			}
+		}
+
+		available = {
+			100 = {
+				is_owned_and_controlled_by = ROOT
+			}
+		}
+
+		visible = {
+			has_completed_focus = CAN_develop_iceland
+			is_subject = no
+			100 = {
+				is_owned_by = ROOT
+				NOT = { is_core_of = ROOT }
+			}
+		}
+
+		modifier = {
+			political_power_cost = 0.50
+		}
+
+		fire_only_once = no
+		cost = 50
+		days_remove = 20
+		ai_will_do = {
+			factor = 10
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_establish_province_iceland"
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_establish_province_iceland"
+			if = {
+				limit = {
+					owns_state = 100
+				}
+				add_state_core = 100
+			}
+			add_to_variable = { CAN_provinces = 1 }
+			add_to_variable = { CAN_current_provinces = 1 }
+		}
+	}
+	
+	CAN_establish_province_greenland = {
+		icon = generic_form_nation
+
+		allowed = { tag = CAN }
+
+		highlight_states = {
+			highlight_state_targets = {
+				state = 101
+			}
+			highlight_state_targets = {
+				state = 337
+			}
+			highlight_state_targets = {
+				state = 926
+			}
+		}
+
+		available = {
+			101 = {
+				is_owned_and_controlled_by = ROOT
+			}
+			337 = {
+				is_owned_and_controlled_by = ROOT
+			}
+			926 = {
+				is_owned_and_controlled_by = ROOT
+			}
+		}
+
+		visible = {
+			has_completed_focus = CAN_develop_greenland
+			is_subject = no
+			101 = {
+				is_owned_by = ROOT
+				NOT = { is_core_of = ROOT }
+			}
+			337 = {
+				is_owned_by = ROOT
+				NOT = { is_core_of = ROOT }
+			}
+			926 = {
+				is_owned_by = ROOT
+				NOT = { is_core_of = ROOT }
+			}
+		}
+
+		modifier = {
+			political_power_cost = 0.50
+		}
+
+		fire_only_once = no
+		cost = 50
+		days_remove = 20
+		ai_will_do = {
+			factor = 10
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_establish_province_greenland"
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_establish_province_greenland"
+			if = {
+				limit = {
+					owns_state = 101
+				}
+				add_state_core = 101
+			}
+			if = {
+				limit = {
+					owns_state = 337
+				}
+				add_state_core = 337
+			}
+			if = {
+				limit = {
+					owns_state = 926
+				}
+				add_state_core = 926
+			}
+			#add_to_variable = { CAN_provinces = 1 } Territory, not Province
+		}
+	}
+}
+
 prospect_for_resources = {
 
 	CAN_develop_ontario_coal_mines = {
@@ -6704,4 +9667,1736 @@ highlight_state_targets = {
 		}
 	}
 
+}
+
+ENT_imperial_federation_decisions = {
+	ENT_invite_to_imperial_fed = {
+		icon = generic_agreement
+		available = {
+			ROOT = {
+				has_capitulated = no
+				custom_trigger_tooltip = {
+					tooltip = CAN_not_currently_inviting
+					NOT = { has_country_flag = { flag = CAN_inviting_to_imp_fed value > 0 } }
+				}
+			}
+			FROM = {
+				has_capitulated = no
+			}
+		}
+		visible = {
+			has_completed_focus = CAN_towards_imperial_federation
+			has_socialist_government = no
+			FROM = {
+				is_in_array = { global.ENT_imperial_integration_array = FROM }
+				has_socialist_government = no
+				is_in_faction_with = ROOT
+				OR = {
+					is_subject = no
+					is_subject_of = ROOT
+				}
+				NOT = {
+					tag = ROOT
+					has_country_flag = CAN_invited_to_imp_fed
+					has_country_flag = CAN_refused_imp_fed
+				}
+			}
+		}
+
+		cost = 0
+		fire_only_once = no
+
+		priority = 5
+		target_root_trigger = {
+			has_global_flag = ENT_IMP_FED
+		}
+
+		target_array = allies
+
+		target_trigger = {
+			FROM = {
+				has_socialist_government = no
+				is_in_faction_with = ROOT
+				OR = {
+					is_subject = no
+					is_subject_of = ROOT
+				}
+				NOT = {
+					tag = ROOT
+					has_country_flag = CAN_invited_to_imp_fed
+					has_country_flag = CAN_refused_imp_fed
+				}
+			}
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_invite_into_iedc target: [From.GetName]"
+			clr_country_flag = CAN_inviting_to_imp_fed
+			set_country_flag = { flag = CAN_inviting_to_imp_fed days = 4 value = 1 }
+			FROM = {
+				set_country_flag = CAN_invited_to_imp_fed
+				country_event = { id = imp_fed.1 days = 1 }
+			}
+		}
+
+		ai_will_do = {
+			factor = 30
+		}
+	}
+	
+	ENT_begin_imperial_federatin = {
+
+		icon = GFX_decision_generic_flags
+		allowed = { tag = ENT }
+		available = {
+			custom_trigger_tooltip = {
+				tooltip = CAN_all_imp_states_accepted
+				AST = {
+					OR = {
+						is_subject_of = CAN
+						has_country_flag = ENT_accepted_fed_proposal
+						exists = no
+					}
+				}
+				NZL = {
+					OR = {
+						is_subject_of = CAN
+						has_country_flag = ENT_accepted_fed_proposal
+						exists = no
+					}
+				}
+				DEH = {
+					OR = {
+						is_subject_of = CAN
+						has_country_flag = ENT_accepted_fed_proposal
+						exists = no
+					}
+				}
+				SAF = {
+					OR = {
+						is_subject_of = CAN
+						has_country_flag = ENT_accepted_fed_proposal
+						exists = no
+					}
+				}
+				SFR = {
+					OR = {
+						is_subject_of = CAN
+						has_country_flag = ENT_accepted_fed_proposal
+						exists = no
+					}
+				}
+				ZAM = {
+					OR = {
+						is_subject_of = CAN
+						has_country_flag = ENT_accepted_fed_proposal
+						exists = no
+					}
+				}
+				ZIM = {
+					OR = {
+						is_subject_of = CAN
+						has_country_flag = ENT_accepted_fed_proposal
+						exists = no
+					}
+				}
+				KEN = {
+					OR = {
+						is_subject_of = CAN
+						has_country_flag = ENT_accepted_fed_proposal
+						exists = no
+					}
+				}
+				UGA = {
+					OR = {
+						is_subject_of = CAN
+						has_country_flag = ENT_accepted_fed_proposal
+						exists = no
+					}
+				}
+				CIV = {
+					OR = {
+						is_subject_of = CAN
+						has_country_flag = ENT_accepted_fed_proposal
+						exists = no
+					}
+				}
+				GHA = {
+					OR = {
+						is_subject_of = CAN
+						has_country_flag = ENT_accepted_fed_proposal
+						exists = no
+					}
+				}
+				NGR = {
+					OR = {
+						is_subject_of = CAN
+						has_country_flag = ENT_accepted_fed_proposal
+						exists = no
+					}
+				}
+				CAF = {
+					OR = {
+						is_subject_of = CAN
+						has_country_flag = ENT_accepted_fed_proposal
+						exists = no
+					}
+				}
+		   }
+		}
+
+		visible = {
+			has_completed_focus = CAN_towards_imperial_federation
+		}
+
+		fire_only_once = yes
+
+		cost = 0
+
+		ai_will_do = {
+			factor = 100
+		}
+		
+		days_remove = 20
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision ENT_begin_imperial_federatin"
+			every_country = {
+				limit = { is_in_array = { global.ENT_imperial_integration_array = THIS } }
+				country_event = imp_fed.6
+			}
+		}
+	}
+	
+	ENT_form_imperial_fed = {
+
+		icon = GFX_decision_eng_imperial_federation
+		allowed = { tag = ENT }
+		available = {
+			NOT = {
+				country_exists = AST
+				country_exists = NZL
+				country_exists = DEH
+				country_exists = SAF
+				country_exists = SFR
+				country_exists = ZAM
+				country_exists = ZIM
+				country_exists = KEN
+				country_exists = UGA
+				country_exists = CIV
+				country_exists = NGR
+				country_exists = CAF
+			}
+			owns_state = 985
+			owns_state = 284
+			owns_state = 126
+			owns_state = 739
+			owns_state = 275
+		}
+
+		visible = {
+			has_completed_focus = CAN_towards_imperial_federation
+		}
+
+		fire_only_once = yes
+
+		cost = 0
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision form_centroamerica"
+
+			every_state = {
+				limit = {
+					OR = {
+						is_core_of = AST
+						is_core_of = NZL
+						is_core_of = DEH
+						is_core_of = SAF
+						is_core_of = SFR
+						is_core_of = ZAM
+						is_core_of = ZIM
+						is_core_of = KEN
+						is_core_of = UGA
+						is_core_of = CIV
+						is_core_of = NGR
+						is_core_of = CAF
+					}
+				}
+				ENT = {
+					add_state_core = PREV
+				}
+			}
+			country_event = imp_fed.9
+		}
+	}
+}
+
+political_actions = {
+	
+	CAN_restore_protectorate = {
+
+		icon = generic_formable_nations
+		allowed = { tag = CAN }
+		available = {
+			1247 = {
+				OR = {
+					is_owned_by_ROOT_or_ally = yes
+				}
+			}
+		}
+
+		visible = {
+			has_completed_focus = CAN_miskito_coast
+		}
+
+		fire_only_once = yes
+
+		cost = 0
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_restore_protectorate"
+			remove_state_claim = 1247
+			NIC = {
+				remove_state_claim = 1247
+				remove_state_core = 1247
+			}
+			CAN_setup_miskito_protectorate = yes
+			MKT = {
+				get_current_government_type = yes
+			}
+			CAN = {
+				puppet = MKT
+			}
+			MKT = {
+				restore_previous_government_type = yes
+			}
+			set_global_flag = CAN_RESTORED_MISKITO
+		}
+	}
+	
+	CAN_expand_protectorate = {
+
+		icon = generic_formable_nations
+		allowed = { tag = CAN }
+		available = {
+			1071 = {
+				OR = {
+					is_owned_by_ROOT_or_ally = yes
+				}
+			}
+			1261 = {
+				OR = {
+					is_owned_by_ROOT_or_ally = yes
+				}
+			}
+			1249 = {
+				OR = {
+					is_owned_by_ROOT_or_ally = yes
+				}
+			}
+		}
+
+		visible = {
+			has_completed_focus = CAN_miskito_coast
+			has_global_flag = CAN_RESTORED_MISKITO
+		}
+
+		fire_only_once = yes
+
+		cost = 0
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_restore_protectorate"
+			NIC = {
+				remove_state_claim = 1071
+				remove_state_core = 1071
+				remove_state_claim = 1261
+				remove_state_core = 1261
+			}
+			HON = {
+				remove_state_claim = 1249
+				remove_state_core = 1249
+			}
+			MKT = {
+				transfer_state = 1071
+				transfer_state = 1261
+				transfer_state = 1249
+				
+				add_state_core = 1071
+				add_state_core = 1261
+				add_state_core = 1249
+			}
+		}
+	}
+}
+
+CAN_new_interventionism_decisions = {
+
+	CAN_crush_SA_socialists = {
+		icon = generic_prepare_civil_war
+		allowed = { original_tag = CAN }
+		available = {
+			has_completed_focus = CAN_south_american_interests
+			has_war = no
+			is_subject = no
+			NOT = {
+				has_country_flag = CAN_intervening_already
+			}
+		}
+		visible = {
+			has_completed_focus = CAN_south_american_interests
+		}
+		
+		highlight_states = {
+ 			highlight_state_targets = {
+				state = FROM.capital
+			} 
+		}
+
+		target_root_trigger = {
+			has_completed_focus = CAN_south_american_interests
+		}
+		
+		target_array = global.south_american_tags_array
+		target_array = global.central_american_tags_array
+		target_trigger = {
+			can_declare_war_on = FROM
+			FROM = {
+				OR = {
+					has_socialist_government = yes
+					has_government = national_populist
+				}
+			}
+		}
+		
+		war_with_target_on_remove = yes
+
+		days_remove = 20
+		cost = 25
+		ai_will_do = {
+			factor = 1
+		}
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_crush_SA_socialists target: [From.GetName]"
+			set_country_flag = CAN_intervening_already
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_crush_SA_socialists target: [From.GetName]"
+			clr_country_flag = CAN_intervening_already
+			create_wargoal = {
+				target = FROM
+				type = annex_everything
+			}
+		}
+	}
+
+	### Italy ###
+	
+	CAN_aid_reunification_italy = { 
+		icon = hol_draw_up_staff_plans
+		allowed = { always = no }
+		available = {
+			OR = {
+				is_neighbor_of = FROM
+				any_allied_country = { is_neighbor_of = FROM }
+				any_subject_country = { is_neighbor_of = FROM }
+			}
+			NOT = {
+				has_country_flag = CAN_intervening_already
+			}
+		}
+		visible = {
+			is_subject = no
+			can_declare_war_on = FROM
+		}
+		
+		highlight_states = {
+ 			highlight_state_targets = {
+				state = FROM.capital
+			} 
+		}
+		
+		cost = 10
+		days_remove = 30
+		fire_only_once = yes
+		cancel_if_not_visible = yes
+		war_with_target_on_remove = yes
+
+		ai_will_do = {
+			factor = 0
+			modifier = {
+				factor = 0
+				ROOT_is_threatened_cautious = yes
+			}
+			modifier = {
+				factor = 0
+				FROM = { default_attack_AI_trigger_FROM = yes }
+			}
+		}
+		
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancelled CAN_aid_reunification_italy target: [From.GetName]"
+			clear_decision_attack_AI = yes
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_aid_reunification_italy target: [From.GetName]"
+			FROM = { country_event = kr.political.30 } #warning event
+			setup_decision_attack_AI = yes
+			set_country_flag = CAN_intervening_already
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_aid_reunification_italy target: [From.GetName]"
+			clr_country_flag = CAN_intervening_already
+			clear_decision_attack_AI = yes
+			declare_war_on = {
+				target = FROM
+				type = annex_everything
+			}
+		}
+	}
+
+	### America ###
+	
+	CAN_crush_american_government = { 
+		icon = hol_draw_up_staff_plans
+		allowed = { always = no }
+		available = {
+			OR = {
+				is_neighbor_of = FROM
+				any_allied_country = { is_neighbor_of = FROM }
+				any_subject_country = { is_neighbor_of = FROM }
+			}
+			NOT = {
+				has_country_flag = CAN_intervening_already
+			}
+		}
+		visible = {
+			is_subject = no
+			can_declare_war_on = FROM
+		}
+		
+		highlight_states = {
+ 			highlight_state_targets = {
+				state = FROM.capital
+			} 
+		}
+		
+		cost = 10
+		days_remove = 30
+		fire_only_once = yes
+		cancel_if_not_visible = yes
+		war_with_target_on_remove = yes
+
+		ai_will_do = {
+			factor = 0
+			modifier = {
+				factor = 0
+				ROOT_is_threatened_cautious = yes
+			}
+			modifier = {
+				factor = 0
+				FROM = { default_attack_AI_trigger_FROM = yes }
+			}
+		}
+		
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancelled CAN_aid_reunification_italy target: [From.GetName]"
+			clear_decision_attack_AI = yes
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_aid_reunification_italy target: [From.GetName]"
+			FROM = { country_event = kr.political.30 } #warning event
+			setup_decision_attack_AI = yes
+			set_country_flag = CAN_intervening_already
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_aid_reunification_italy target: [From.GetName]"
+			clr_country_flag = CAN_intervening_already
+			clear_decision_attack_AI = yes
+			create_wargoal = {
+				target = FROM
+				type = annex_everything
+			}
+		}
+	}
+	
+	### Japan ###
+
+	CAN_stop_japanese_expansionism = { 
+		icon = hol_draw_up_staff_plans
+		allowed = { always = no }
+		available = {
+			OR = {
+				is_neighbor_of = FROM
+				any_allied_country = { is_neighbor_of = FROM }
+				any_subject_country = { is_neighbor_of = FROM }
+			}
+			NOT = {
+				has_country_flag = CAN_intervening_already
+			}
+		}
+		visible = {
+			is_subject = no
+			can_declare_war_on = FROM
+		}
+		target_trigger = {
+			can_declare_war_on = FROM
+			has_war = yes
+		}
+		
+		cost = 10
+		days_remove = 30
+		fire_only_once = yes
+		cancel_if_not_visible = yes
+		war_with_target_on_remove = yes
+
+		ai_will_do = {
+			factor = 0
+			modifier = {
+				factor = 0
+				ROOT_is_threatened_cautious = yes
+			}
+			modifier = {
+				factor = 0
+				FROM = { default_attack_AI_trigger_FROM = yes }
+			}
+		}
+		
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancelled CAN_aid_reunification_italy target: [From.GetName]"
+			clear_decision_attack_AI = yes
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_aid_reunification_italy target: [From.GetName]"
+			FROM = { country_event = kr.political.30 } #warning event
+			setup_decision_attack_AI = yes
+			set_country_flag = CAN_intervening_already
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_aid_reunification_italy target: [From.GetName]"
+			clr_country_flag = CAN_intervening_already
+			clear_decision_attack_AI = yes
+			declare_war_on = {
+				target = FROM
+				type = annex_everything
+			}
+		}
+	}
+
+	### Russia ###
+
+	CAN_contain_russian_agression = { 
+		icon = hol_draw_up_staff_plans
+		allowed = { always = no }
+		available = {
+			OR = {
+				is_neighbor_of = FROM
+				any_allied_country = { is_neighbor_of = FROM }
+				any_subject_country = { is_neighbor_of = FROM }
+			}
+			NOT = {
+				has_country_flag = CAN_intervening_already
+			}
+		}
+		visible = {
+			is_subject = no
+			can_declare_war_on = FROM
+			FROM = {
+				owns_state = 219
+			}
+		}
+		target_trigger = {
+			can_declare_war_on = FROM
+			has_war = yes
+			owns_state = 219
+		}
+		
+		cost = 10
+		days_remove = 30
+		fire_only_once = yes
+		cancel_if_not_visible = yes
+		war_with_target_on_remove = yes
+
+		ai_will_do = {
+			factor = 0
+			modifier = {
+				factor = 0
+				ROOT_is_threatened_cautious = yes
+			}
+			modifier = {
+				factor = 0
+				FROM = { default_attack_AI_trigger_FROM = yes }
+			}
+		}
+		
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancelled CAN_aid_reunification_italy target: [From.GetName]"
+			clear_decision_attack_AI = yes
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_aid_reunification_italy target: [From.GetName]"
+			FROM = { country_event = kr.political.30 } #warning event
+			setup_decision_attack_AI = yes
+			set_country_flag = CAN_intervening_already
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_aid_reunification_italy target: [From.GetName]"
+			clr_country_flag = CAN_intervening_already
+			clear_decision_attack_AI = yes
+			create_wargoal = {
+				target = FROM
+				type = annex_everything
+			}
+		}
+	}
+
+	### India ###
+	
+	CAN_aid_reunification_india = { 
+		icon = hol_draw_up_staff_plans
+		allowed = { always = no }
+		available = {
+			OR = {
+				is_neighbor_of = FROM
+				any_allied_country = { is_neighbor_of = FROM }
+				any_subject_country = { is_neighbor_of = FROM }
+			}
+			NOT = {
+				has_country_flag = CAN_intervening_already
+			}
+		}
+		visible = {
+			is_subject = no
+			can_declare_war_on = FROM
+		}
+		
+		highlight_states = {
+ 			highlight_state_targets = {
+				state = FROM.capital
+			} 
+		}
+		
+		cost = 10
+		days_remove = 30
+		fire_only_once = yes
+		cancel_if_not_visible = yes
+		war_with_target_on_remove = yes
+
+		ai_will_do = {
+			factor = 0
+			modifier = {
+				factor = 0
+				ROOT_is_threatened_cautious = yes
+			}
+			modifier = {
+				factor = 0
+				FROM = { default_attack_AI_trigger_FROM = yes }
+			}
+		}
+		
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancelled CAN_aid_reunification_italy target: [From.GetName]"
+			clear_decision_attack_AI = yes
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_aid_reunification_italy target: [From.GetName]"
+			FROM = { country_event = kr.political.30 } #warning event
+			setup_decision_attack_AI = yes
+			set_country_flag = CAN_intervening_already
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_aid_reunification_italy target: [From.GetName]"
+			clr_country_flag = CAN_intervening_already
+			clear_decision_attack_AI = yes
+			create_wargoal = {
+				target = FROM
+				type = annex_everything
+			}
+		}
+	}
+	
+	### Germany ###
+	
+	CAN_destroy_huns = { 
+		icon = hol_draw_up_staff_plans
+		allowed = { always = no }
+		available = {
+			OR = {
+				is_neighbor_of = FROM
+				any_allied_country = { is_neighbor_of = FROM }
+				any_subject_country = { is_neighbor_of = FROM }
+			}
+			has_global_flag = CAN_german_tension
+			NOT = {
+				has_country_flag = CAN_intervening_already
+			}
+		}
+		visible = {
+			is_subject = no
+			can_declare_war_on = FROM
+		}
+		
+		cost = 10
+		days_remove = 30
+		fire_only_once = yes
+		cancel_if_not_visible = yes
+		war_with_target_on_remove = yes
+
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				ROOT_is_threatened_cautious = yes
+			}
+			modifier = {
+				factor = 0
+				FROM = { default_attack_AI_trigger_FROM = yes }
+			}
+		}
+		
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancelled BAT_GER_invade_russia target: [From.GetName]"
+			clear_decision_attack_AI = yes
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision BAT_GER_invade_russia target: [From.GetName]"
+			FROM = { country_event = kr.political.30 } #warning event
+			setup_decision_attack_AI = yes
+			set_country_flag = CAN_intervening_already
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove BAT_GER_invade_russia target: [From.GetName]"
+			clr_country_flag = CAN_intervening_already
+			clear_decision_attack_AI = yes
+			declare_war_on = {
+				target = FROM
+				type = annex_everything
+			}
+		}
+	}
+	
+	CAN_demand_germany_leave_belgium = { 
+		icon = hol_draw_up_staff_plans
+		allowed = { always = no }
+		available = {
+			BEL = {
+				is_subject_of = GER
+			}
+			NOT = {
+				has_country_flag = CAN_intervening_already
+			}
+		}
+		visible = {
+			is_subject = no
+			has_country_flag = CAN_german_hostility
+		}
+		
+		cost = 40
+		days_remove = 30
+		fire_only_once = yes
+		cancel_if_not_visible = yes
+
+		ai_will_do = {
+			factor = 60
+			modifier = {
+				factor = 30
+				GER = {
+					has_war = yes
+				}
+			}
+		}
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision BAT_GER_invade_russia target: [From.GetName]"
+			set_country_flag = CAN_intervening_already
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove BAT_GER_invade_russia target: [From.GetName]"
+			clr_country_flag = CAN_intervening_already
+			GER = {
+				country_event = {
+					id = entente.402
+					days = 2
+				}
+			}
+		}
+	}
+	
+	CAN_demand_germany_leave_former_colonies = { 
+		icon = hol_draw_up_staff_plans
+		allowed = { always = no }
+		available = {
+			OR = {
+				KEN = {
+					is_subject_of = GER
+				}
+				NGR = {
+					is_subject_of = GER
+				}
+				ZAM = {
+					is_subject_of = GER
+				}
+			}
+			NOT = {
+				has_country_flag = CAN_intervening_already
+			}
+		}
+		visible = {
+			is_subject = no
+			has_country_flag = CAN_GER_leave_colonies
+		}
+		
+		cost = 40
+		days_remove = 30
+		fire_only_once = yes
+		cancel_if_not_visible = yes
+
+		ai_will_do = {
+			factor = 60
+			modifier = {
+				factor = 30
+				GER = {
+					has_war = yes
+				}
+			}
+		}
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_demand_germany_leave_former_colonies target: [From.GetName]"
+			set_country_flag = CAN_intervening_already
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_demand_germany_leave_former_colonies target: [From.GetName]"
+			clr_country_flag = CAN_intervening_already
+			GER = {
+				country_event = {
+					id = entente.405
+					days = 2
+				}
+			}
+		}
+	}
+}
+CAN_nato_decisions = {
+	CAN_invite_to_NATO = {
+		icon = generic_agreement
+
+		available = {
+			has_war = no
+		}
+		
+		highlight_states = {
+ 			highlight_state_targets = {
+				state = FROM.capital
+			} 
+		}
+
+		visible = {
+			has_completed_focus = CAN_our_own_alliance
+			is_faction_leader = yes
+			FROM = {
+				exists = yes
+				is_subject = no
+				is_in_faction = no
+				has_socialist_government = no
+				has_war = no
+			}
+		}
+
+		target_array = global.south_american_tags_array
+		target_array = global.north_american_tags_array
+		target_array = global.central_american_tags_array
+		target_root_trigger = {
+			has_completed_focus = CAN_our_own_alliance
+		}
+		target_trigger = {
+			FROM = {
+				is_subject = no
+				is_in_faction = no
+				has_socialist_government = no
+			}
+		}
+
+		cost = 10
+		days_remove = 7
+		fire_only_once = no
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_invite_to_NATO target: [From.GetName]"
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_invite_to_NATO target: [From.GetName]"
+			FROM = {
+				country_event = canada.3230
+			}
+		}
+	}
+	
+	CAN_liberate_american_govt = { 
+		icon = hol_draw_up_staff_plans
+		allowed = { always = no }
+		available = {
+			OR = {
+				is_neighbor_of = FROM
+				any_allied_country = { is_neighbor_of = FROM }
+				any_subject_country = { is_neighbor_of = FROM }
+				FROM = {
+					NOT = {
+						has_country_flag = CAN_legitimate_govt
+					}	
+				}
+			}
+			NOT = {
+				has_country_flag = CAN_intervening_already
+			}
+		}
+		visible = {
+			is_subject = no
+			can_declare_war_on = FROM
+			has_completed_focus = CAN_stabilize_america
+		}
+		
+		cost = 10
+		days_remove = 30
+		fire_only_once = yes
+		cancel_if_not_visible = yes
+		war_with_target_on_remove = yes
+
+		ai_will_do = {
+			factor = 0
+			modifier = {
+				factor = 0
+				ROOT_is_threatened_cautious = yes
+			}
+			modifier = {
+				factor = 0
+				FROM = { default_attack_AI_trigger_FROM = yes }
+			}
+		}
+		
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancelled CAN_aid_reunification_italy target: [From.GetName]"
+			clear_decision_attack_AI = yes
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_aid_reunification_italy target: [From.GetName]"
+			FROM = { country_event = kr.political.30 } #warning event
+			setup_decision_attack_AI = yes
+			set_country_flag = CAN_intervening_already
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_aid_reunification_italy target: [From.GetName]"
+			clr_country_flag = CAN_intervening_already
+			clear_decision_attack_AI = yes
+			create_wargoal = {
+				target = FROM
+				type = annex_everything
+			}
+		}
+	}
+	
+	CAN_NATO_crush_SA_socialists = {
+		name = CAN_crush_SA_socialists
+		icon = generic_prepare_civil_war
+		allowed = { original_tag = CAN }
+		available = {
+			has_completed_focus = CAN_our_own_alliance
+			has_war = no
+			is_subject = no
+			NOT = {
+				has_country_flag = CAN_intervening_already
+			}
+		}
+		visible = {
+			has_completed_focus = CAN_our_own_alliance
+		}
+
+		target_root_trigger = {
+			has_completed_focus = CAN_our_own_alliance
+		}
+		
+		target_array = global.south_american_tags_array
+		target_array = global.central_american_tags_array
+		target_trigger = {
+			can_declare_war_on = FROM
+			FROM = {
+				OR = {
+					has_socialist_government = yes
+					has_government = national_populist
+				}
+			}
+		}
+		
+		war_with_target_on_remove = yes
+
+		days_remove = 20
+		cost = 25
+		ai_will_do = {
+			factor = 1
+		}
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CAN_crush_SA_socialists target: [From.GetName]"
+			set_country_flag = CAN_intervening_already
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CAN_crush_SA_socialists target: [From.GetName]"
+			clr_country_flag = CAN_intervening_already
+			create_wargoal = {
+				target = FROM
+				type = annex_everything
+			}
+		}
+	}
+}
+
+
+##################################
+### Leauge of Nations Mechanic ###
+##################################
+
+
+CAN_Leauge_of_Nations_decisions = {
+	LON_demilitarization = {
+		icon = GFX_decision_generic_agreement
+		allowed = {
+			is_actual_major = yes
+		}
+		available = {
+			CAN = { has_completed_focus = CAN_form_leauge_of_nations }
+			NOT = {
+				has_global_flag = lon_vote_ongoing
+			}
+		}
+		visible = {
+			is_actual_major = yes
+			has_country_flag = CAN_demilitarization_vote
+		}
+		cost = 0
+		fire_only_once = yes
+		ai_will_do = {
+			factor = 100
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete LON_demilitarization"
+			set_global_flag = lon_vote_ongoing
+			set_global_flag = LON_demilitarization_vote
+			save_global_event_target_as = LON_proposing_country
+			activate_mission = LON_vote_timer
+			every_country = {
+				limit = {
+					is_in_array = { global.LON_voters = FROM } 
+					NOT = {
+						tag = ROOT
+					}
+				}
+				activate_mission = LON_vote_timer_fake
+			}
+			every_country = {
+				limit = { has_country_flag = lon_council_vote }
+				country_event = leauge_of_nations.65
+			}
+		}
+	}
+	LON_promotion_of_democracy_cooperation = {
+		icon = GFX_decision_SWI_swiss_democratic_tradition_campaign
+		allowed = {
+			is_actual_major = yes
+		}
+		available = {
+			CAN = { has_completed_focus = CAN_form_leauge_of_nations }
+			NOT = {
+				has_global_flag = lon_vote_ongoing
+			}
+		}
+		visible = {
+			is_actual_major = yes
+			has_country_flag = LON_promotion_of_democracy_cooperation_vote
+		}
+		cost = 0
+		fire_only_once = yes
+		ai_will_do = {
+			factor = 100
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete LON_promotion_of_democracy_cooperation"
+			set_global_flag = lon_vote_ongoing
+			set_global_flag = LON_promotion_of_democracy_cooperation_vote
+			save_global_event_target_as = LON_proposing_country
+			activate_mission = LON_vote_timer
+			every_country = {
+				limit = {
+					is_in_array = { global.LON_voters = FROM } 
+					NOT = {
+						tag = ROOT
+					}
+				}
+				activate_mission = LON_vote_timer_fake
+			}
+			every_country = {
+				limit = { has_country_flag = lon_council_vote }
+				country_event = leauge_of_nations.66
+			}
+		}
+	}
+	LON_invite_country = {
+		icon = GFX_decision_generic_political_discourse
+		allowed = {
+			is_actual_major = yes
+		}
+		available = {
+			CAN = { has_completed_focus = CAN_form_leauge_of_nations }
+			NOT = {
+				has_global_flag = lon_vote_ongoing
+			}
+			#NOT = { has_country_flag = LON_inviting_country }
+			FROM = {
+				at_peace_or_same_enemies_as_ROOT = yes
+			}
+		}
+		visible = {
+			has_global_flag = LON_can_invite_countries
+		}
+		
+		#target_array = global.LON_potential_lon_members
+		on_map_mode = map_and_decisions_view
+		
+		highlight_states = {
+ 			highlight_state_targets = {
+				state = FROM.capital
+			} 
+		}
+		
+		target_root_trigger = {
+			is_actual_major = yes		
+		}
+		target_trigger = {
+			FROM = {
+				exists = yes
+				is_a_potential_leauge_of_nationsmember = yes
+				NOT = { has_country_flag = lon_council_vote }
+				NOT = { has_country_flag = LON_refused_lon_participation }
+			}
+		}
+		cost = 0
+		fire_only_once = yes
+		days_remove = 5
+		ai_will_do = {
+			factor = 0		}
+		
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel LON_invite_country"
+			clr_country_flag = LON_inviting_country
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete LON_invite_country"
+			set_country_flag = { flag = LON_inviting_country days = 14 value = 1 }
+			FROM = {
+				country_event = {
+					id = leauge_of_nations.75
+					days = 3
+				}
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove LON_invite_country"
+			clr_country_flag = LON_inviting_country
+		}
+		
+	}
+	LON_initialize_country_accept = {
+		icon = GFX_decision_generic_political_discourse
+		allowed = { always = no } #manually activated
+		available = {
+			CAN = { has_completed_focus = CAN_form_leauge_of_nations }
+			NOT = {
+				has_global_flag = lon_vote_ongoing
+			}
+		}
+		visible = {
+			is_actual_major = yes
+		}
+		
+		on_map_mode = map_and_decisions_view
+		
+		highlight_states = {
+ 			highlight_state_targets = {
+				state = FROM.capital
+			} 
+		}
+		
+		cost = 0
+		fire_only_once = yes
+		ai_will_do = {
+			factor = 0		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete LON_initialize_country_accept [FROM.GetName]"
+			FROM = { 
+				save_global_event_target_as = LON_candidate_membership
+				country_event = leauge_of_nations.78
+			}
+			set_global_flag = lon_vote_ongoing
+			set_global_flag = LON_candidate_membership_vote
+			save_global_event_target_as = LON_proposing_country
+			activate_mission = LON_vote_timer
+			every_country = {
+				limit = {
+					is_in_array = { global.LON_voters = FROM } 
+					NOT = {
+						tag = ROOT
+					}
+				}
+				activate_mission = LON_vote_timer_fake
+			}
+			effect_tooltip = {
+				every_other_country = {
+					limit = { has_country_flag = lon_council_vote }
+					country_event = leauge_of_nations.77
+				}
+			}
+			hidden_effect = {
+				set_temp_variable = { LON_vote_delay = 2 }
+				for_each_scope_loop = {
+					array = global.LON_voters
+					country_event = { id = leauge_of_nations.77 hours = LON_vote_delay }
+					add_to_temp_variable = { LON_vote_delay = 6 }
+				}
+			}
+		}
+		
+	}
+	LON_kick_out_country = {
+		icon = GFX_decision_generic_political_discourse
+		allowed = { is_actual_major = yes } #manually activated
+		available = {
+			CAN = { has_completed_focus = CAN_form_leauge_of_nations }
+			NOT = {
+				has_global_flag = lon_vote_ongoing
+			}
+			NOT = { has_country_flag = LON_inviting_country }
+		}
+		visible = {
+			is_actual_major = yes
+		}
+		target_array = global.LON_potential_lon_members
+		target_root_trigger = {
+			is_actual_major = yes	
+		}
+		target_trigger = {
+			FROM = {
+				exists = yes
+				is_a_potential_leauge_of_nationsmember = yes
+				has_country_flag = lon_council_vote
+				NOT = {
+					is_actual_major = yes
+				}
+				OR = {
+					#is_ally_of_major = yes
+					any_enemy_country = {
+						has_country_flag = lon_council_vote
+						has_defensive_war_with = FROM
+					}
+					has_added_tension_amount > 7
+				}
+			}
+		}
+		cost = 0
+		fire_only_once = yes
+		ai_will_do = {
+			factor = 0		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete LON_kick_out_country [FROM.GetName]"
+			FROM = { 
+				save_global_event_target_as = LON_candidate_membership
+				country_event = leauge_of_nations.86
+			}
+			set_global_flag = lon_vote_ongoing
+			set_global_flag = LON_candidate_membership_revoke
+			save_global_event_target_as = LON_proposing_country
+			activate_mission = LON_vote_timer
+			every_country = {
+				limit = {
+					is_in_array = { global.LON_voters = FROM } 
+					NOT = {
+						tag = ROOT
+					}
+				}
+				activate_mission = LON_vote_timer_fake
+			}
+			effect_tooltip = {
+				every_other_country = {
+					limit = { has_country_flag = lon_council_vote }
+					country_event = leauge_of_nations.85
+				}
+			}
+			hidden_effect = {
+				set_temp_variable = { LON_vote_delay = 2 }
+				for_each_scope_loop = {
+					array = global.LON_voters
+					country_event = { id = leauge_of_nations.85 hours = LON_vote_delay }
+					add_to_temp_variable = { LON_vote_delay = 6 }
+				}
+			}
+		}
+		
+	}
+	LON_apply_sanctions_against_country = {
+		icon = GFX_decision_generic_political_discourse
+		allowed = { is_actual_major = yes } #manually activated
+		available = {
+			CAN = { has_completed_focus = CAN_form_leauge_of_nations }
+			NOT = {
+				has_global_flag = lon_vote_ongoing
+			}
+		}
+		visible = {
+			is_actual_major = yes
+		}
+		target_array = global.LON_potential_lon_members
+		target_root_trigger = {
+			is_actual_major = yes
+		}
+		target_trigger = {
+			FROM = {
+				exists = yes
+				is_a_potential_leauge_of_nationsmember = yes
+				has_country_flag = lon_council_vote
+				OR = {
+					#is_ally_of_major = yes
+					any_enemy_country = {
+						has_country_flag = lon_council_vote
+						has_defensive_war_with = FROM
+					}
+					has_offensive_war = yes
+					has_added_tension_amount > 7
+				}
+				NOT = {
+					is_in_faction_with = ROOT
+					has_idea = LON_sanctions_idea
+				}
+			}
+		}
+		cost = 0
+		fire_only_once = yes
+		ai_will_do = {
+			factor = 0		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete LON_apply_sanctions_against_country [FROM.GetName]"
+			FROM = { 
+				save_global_event_target_as = LON_sanctioned_country
+				country_event = leauge_of_nations.93
+			}
+			set_global_flag = lon_vote_ongoing
+			set_global_flag = LON_sanctions_vote
+			save_global_event_target_as = LON_proposing_country
+			activate_mission = LON_vote_timer
+			every_country = {
+				limit = {
+					is_in_array = { global.LON_voters = FROM } 
+					NOT = {
+						tag = ROOT
+					}
+				}
+				activate_mission = LON_vote_timer_fake
+			}
+			effect_tooltip = {
+				every_other_country = {
+					limit = { has_country_flag = lon_council_vote }
+					country_event = leauge_of_nations.92
+				}
+			}
+			hidden_effect = {
+				set_temp_variable = { LON_vote_delay = 2 }
+				for_each_scope_loop = {
+					array = global.LON_voters
+					country_event = { id = leauge_of_nations.92 hours = LON_vote_delay }
+					add_to_temp_variable = { LON_vote_delay = 6 }
+				}
+			}
+		}
+		
+	}
+	LON_send_aid = {
+		icon = GFX_decision_generic_political_discourse
+		available = {
+			at_peace_or_same_enemies_as_FROM = yes
+			NOT = {
+				has_global_flag = LON_sending_aid
+			}
+		}
+		target_array = global.LON_potential_lon_members
+		target_root_trigger = {
+			has_country_flag = lon_council_vote
+		}
+		target_trigger = {
+			FROM = {
+				exists = yes
+				has_defensive_war = yes
+				
+			}
+		}
+		cost = 0
+		fire_only_once = yes
+		days_remove = 14
+		ai_will_do = {
+			factor = 0
+			modifier = {
+				factor = 0
+				has_equipment = {
+					infantry_equipment < 500
+				}
+			}
+		}
+		
+		highlight_states = {
+ 			highlight_state_targets = {
+				state = FROM.capital
+			} 
+		}
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete LON_send_aid [FROM.GetName]"
+			set_global_flag = LON_sending_aid
+			ROOT = { 
+				country_event = {
+					id = leauge_of_nations.83
+					days = 2
+					random_days = 4
+				}
+				save_global_event_target_as = helping_tag
+			}
+			FROM = {
+				save_global_event_target_as = receiving_tag
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove LON_send_aid [FROM.GetName]"
+			FROM = { country_event = leauge_of_nations.84 }
+			clr_global_flag = LON_sending_aid
+		}
+	}
+	LON_promote_democracy = {
+		icon = GFX_decision_SWI_swiss_democratic_tradition_campaign
+		
+		visible = {
+			has_global_flag = LON_democracy_yes
+			has_country_flag = lon_council_vote
+			NOT = {
+				has_global_flag = lon_vote_ongoing
+			}
+			FROM = {
+				exists = yes
+			}
+			NOT = {
+				has_idea = LON_democracy_promoted_idea
+			}
+		}
+
+		targets = { CAN }
+		target_root_trigger = { has_country_flag = lon_council_vote }
+		target_trigger = {
+		
+		}
+
+		fire_only_once = no
+		cost = 0
+
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				has_socialist_government = no
+			}
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision LON_promote_democracy target: [From.GetName]"
+			add_ideas = LON_democracy_promoted_idea
+		}
+	}
+	LON_demilitarize = {
+		icon = generic_research
+		
+		available = { is_in_tech_research_group = no }
+		
+		visible = {
+			has_global_flag = LON_demil_yes
+			has_country_flag = lon_council_vote
+			NOT = {
+				has_global_flag = lon_vote_ongoing
+			}
+			FROM = {
+				exists = yes
+		
+			}
+			NOT = {
+				has_idea = LON_demilitarization_idea
+			}
+	
+		}
+
+		targets = { CAN }
+		target_root_trigger = { has_country_flag = lon_council_vote }
+		target_trigger = {
+			
+		}
+
+		fire_only_once = yes
+		cost = 0
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision LON_demilitarize target: [From.GetName]"
+			add_ideas = LON_demilitarization_idea
+		}
+	}
+	LON_vote_timer = {
+		icon = GFX_decision_generic_political_discourse
+		allowed = { always = no } #manually activated
+		available = {
+			hidden_trigger = {
+				always = no
+			}
+		}
+
+		days_mission_timeout = 30
+		is_good = no
+
+		cancel_trigger = {
+			hidden_trigger = { always = no }
+		}
+		timeout_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision timeout LON_vote_timer"
+			event_target:LON_proposing_country = {
+				clear_global_event_target = LON_proposing_country
+			}
+			if = {
+				limit = {
+					NOT = {
+						has_global_flag = LON_vetoed_vote
+					}
+				}
+				clr_global_flag = LON_vote_ongoing
+				if = {
+					limit = { has_global_flag = LON_promotion_of_democracy_cooperation_vote }
+					clr_global_flag = LON_promotion_of_democracy_cooperation_vote
+					ROOT = { country_event = leauge_of_nations.72 }
+				}
+				else_if = {
+					limit = { has_global_flag = LON_demilitarization_vote }
+					clr_global_flag = LON_demilitarization_vote
+					ROOT = { country_event = leauge_of_nations.69 }
+				}
+				else_if = {
+					limit = { has_global_flag = LON_candidate_membership_vote }
+					clr_global_flag = LON_candidate_membership_vote
+					ROOT = { country_event = leauge_of_nations.79 }
+				}
+				else_if = {
+					limit = { has_global_flag = LON_candidate_membership_revoke }
+					clr_global_flag = LON_candidate_membership_revoke
+					ROOT = { country_event = leauge_of_nations.87 }
+				}
+				else_if = {
+					limit = { has_global_flag = LON_sanctions_vote }
+					clr_global_flag = LON_sanctions_vote
+					ROOT = { country_event = leauge_of_nations.94 }
+				}
+			}
+			else = {
+				country_event = leauge_of_nations.91
+			}
+			hidden_effect = {
+				if = {
+					limit = {
+						check_variable = { global.lon_yes_votes > global.lon_no_votes }
+					}
+					country_event = { id = leauge_of_nations.68 hours = 2 }
+				}
+				else = {
+					country_event = { id = leauge_of_nations.67 hours = 2 }
+				}
+			}
+			clr_global_flag = LON_vetoed_vote
+			clear_variable = global.lon_yes_votes
+			clear_variable = global.lon_no_votes
+			clear_variable = global.lon_abstain_votes		
+			clear_array = global.lon_yes_votes
+			clear_array = global.lon_no_votes
+			clear_array = global.lon_abstain_votes
+		}
+		
+	}
+	
+	LON_vote_timer_fake = {
+		icon = GFX_decision_generic_political_discourse
+		name = LON_vote_timer
+		allowed = { always = no } #manually activated
+		available = {
+			hidden_trigger = {
+				always = no
+			}
+		}
+
+		days_mission_timeout = 30
+		is_good = no
+
+		cancel_trigger = {
+			hidden_trigger = { always = no }
+		}
+		
+		timeout_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision timeout LON_vote_timer"
+			effect_tooltip = {
+				if = {
+					limit = {
+						NOT = {
+							has_global_flag = LON_vetoed_vote
+						}
+					}
+					if = {
+						limit = { has_global_flag = LON_promotion_of_democracy_cooperation_vote }
+						ROOT = { country_event = leauge_of_nations.72 }
+					}
+					else_if = {
+						limit = { has_global_flag = LON_demilitarization_vote }
+						ROOT = { country_event = leauge_of_nations.69 }
+					}
+					else_if = {
+						limit = { has_global_flag = LON_candidate_membership_vote }
+						ROOT = { country_event = leauge_of_nations.79 }
+					}
+					else_if = {
+						limit = { has_global_flag = LON_candidate_membership_revoke }
+						ROOT = { country_event = leauge_of_nations.87 }
+					}
+					else_if = {
+						limit = { has_global_flag = LON_sanctions_vote }
+						ROOT = { country_event = leauge_of_nations.94 }
+					}
+				}
+				else = {
+					country_event = leauge_of_nations.91
+
+				}
+			}
+		}
+	}
 }
