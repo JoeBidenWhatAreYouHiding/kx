@@ -6268,14 +6268,15 @@ news_event = { # Crisis
 	
 	picture = GFX_news_event_UKR_vasyl_abdication
 	
-	trigger = {
-		regional_europe_news = yes
-	}
-
 	is_triggered_only = yes
-	
+	trigger = { wants_world_news = yes }
 	major = yes
+	fire_for_sender = no
 	show_major = {
+		OR = {
+			regional_europe_news = yes
+			is_neighbor_of = UKR
+		}
 		NOT = { tag = UKR }
 	}
 	
@@ -8047,14 +8048,15 @@ news_event = { # Crisis
 	
 	picture = GFX_news_event_UKR_vasyl_abdication
 	
-	trigger = {
-		regional_europe_news = yes
-	}
-
 	is_triggered_only = yes
-	
+	trigger = { wants_world_news = yes }
 	major = yes
+	fire_for_sender = no
 	show_major = {
+		OR = {
+			regional_europe_news = yes
+			is_neighbor_of = UKR
+		}
 		NOT = { tag = UKR }
 	}
 	
@@ -8079,14 +8081,15 @@ news_event = { # Crisis
 	
 	picture = GFX_news_event_UKR_vasyl_abdication
 	
-	trigger = {
-		regional_europe_news = yes
-	}
-
 	is_triggered_only = yes
-	
+	trigger = { wants_world_news = yes }
 	major = yes
+	fire_for_sender = no
 	show_major = {
+		OR = {
+			regional_europe_news = yes
+			is_neighbor_of = UKR
+		}
 		NOT = { tag = UKR }
 	}
 	
@@ -9771,7 +9774,7 @@ country_event = { # Dontsov
 	is_triggered_only = yes
 
 	option = {
-		name = ukrsun.2.b
+		name = ukrsun.2.a
 	}	
 }
 country_event = { # SUN Assembly
@@ -10101,11 +10104,7 @@ country_event = { # SUN Assembly
 	is_triggered_only = yes
 
 	option = {
-		name = ukrsun.11.a
-		effect_tooltip = {
-			set_party_name = { ideology = national_populist name = UKR_national_populist_party2 }
-			set_party_name = { ideology = paternal_autocrat name = UKR_national_populist_party2 }
-		}
+		name = ukrsun.11.a		
 		hidden_effect = {
 			set_temp_variable = { coalition_partner_var = token:paternal_autocrat }
 			add_to_coalition = yes
@@ -10352,20 +10351,25 @@ news_event = { # Proclamation
 	desc = ukrsun.131.d
 	
 	picture = GFX_news_event_UKR_ukrainian_state
-	
-	trigger = {
-		regional_europe_news = yes
-	}
-
 	is_triggered_only = yes
-	
+	trigger = { wants_world_news = yes }
 	major = yes
+	fire_for_sender = no
 	show_major = {
+		OR = {
+			regional_europe_news = yes
+			is_neighbor_of = UKR
+		}
 		NOT = { tag = UKR }
 	}
 	
 	option = {
 		name = ukrsun.131.a
+		trigger = { is_russian_tag_that_can_integrate = yes }
+	}
+	option = {
+		name = ukrsun.131.b
+		trigger = { is_russian_tag_that_can_integrate = no }
 	}	
 }
 country_event = { # SUNM
@@ -10839,13 +10843,23 @@ country_event = { #
 	is_triggered_only = yes
 	picture = GFX_report_event_UKR_baranovskyi
 	trigger = {
-		UKR_yevhen_konovalets_in_power = yes
+		OR = {
+			UKR_uvo_in_power = yes
+			UKR_dmytro_dontsov_in_power = yes
+		}
+		has_country_flag = UKR_mie_subversive
+		has_global_flag = MIE_intermarium_formed
 	}
-
+	
 	option = {
 		name = ukrsun.33.a
 		set_temp_variable = { UKR_uvo_faction_change = 0.03 }
 		UKR_nationalist_change_old = yes			
+		if = {
+			limit = { NOT = { has_country_flag = MIE_member } }
+			MIE_add_to_intermarium = yes
+		}
+		UKR_activate_mie_subversive_decisions = yes	
 	}	
 }
 country_event = { # 
@@ -11685,6 +11699,262 @@ country_event = { #
 		set_temp_variable = { UKR_uvo_faction_change = 0.02 }
 		UKR_nationalist_change_old = yes
 		add_popularity = { ideology = national_populist popularity = 0.01 }
+	}
+}
+
+country_event = { # 
+	id = ukrsun.60
+	immediate = { log = "[GetDateText]: [Root.GetName]: event ukrsun.60" }
+	title = ukrsun.60.t
+	desc = ukrsun.60.d	
+	is_triggered_only = yes
+	picture = GFX_report_event_SWE_army
+	
+	fire_only_once = yes
+	trigger = { 
+		tag = MIE
+		has_country_flag = UKR_nationalist_subversive_mie
+	}
+	
+	option = {
+		name = ukrsun.60.a
+		FROM = { white_peace_with_ROOT = yes }
+		every_state = {
+			limit = {
+				NOT = {
+					is_owned_by = ROOT
+					is_controlled_by = ROOT
+				}
+				ROOT = { divisions_in_state = { state = PREV size > 0 } }
+			}
+			teleport_armies = {
+				limit = { tag = ROOT }
+				to_state_array = owned_controlled_states
+			}
+		}
+		every_owned_state = {
+			teleport_armies = {
+				limit = {
+					NOT = {
+						tag = ROOT
+						has_war_with = ROOT
+					}
+				}
+				to_state_array = owned_controlled_states
+			}
+		}
+		remove_puppet_and_leave_faction = yes
+		peace_out_non_neighbours_after_leaving_faction = yes
+		create_faction = "Eastern Europe Defensive Pact"
+		every_country = {
+			limit = { 
+				has_country_flag = MIE_member 
+				has_country_flag = MIE_member_will_be_couped
+			}
+			remove_puppet_and_leave_faction = yes
+			peace_out_non_neighbours_after_leaving_faction = yes
+			MIE_remove_from_intermarium = yes
+			country_event = ukrsun.61
+			ROOT = { add_to_faction = FROM }		
+		}
+		MIE = { delete_unit = { id = 177013 } }
+		clear_global_event_target = MIE_leader
+		clr_global_flag = MIE_intermarium_formed
+	}
+}
+
+country_event = { # 
+	id = ukrsun.61
+	immediate = { log = "[GetDateText]: [Root.GetName]: event ukrsun.61" }
+	title = ukrsun.61.t
+	desc = ukrsun.61.d	
+	is_triggered_only = yes
+	picture = GFX_report_event_SWE_army
+	
+	fire_only_once = yes
+	
+	option = {
+		name = ukrsun.61.a
+		if = {
+			limit = { tag = WHR }
+			if = {
+				limit = { 
+					NOT = { has_government = national_populist }
+				}
+				complete_national_focus = WHR_The_Countercoup
+				set_politics = {
+					ruling_party = national_populist
+					elections_allowed = no
+				}
+				add_popularity = {
+					ideology = national_populist
+					popularity = 0.10
+				}
+				remove_all_ministers = yes
+				add_ideas = WHR_Vaclau_Lastouski_hog_npo
+				add_ideas = WHR_Uladzislau_Kazlouski_for_npo
+				add_ideas = WHR_Vaclau_Ivanouski_eco_npo
+				add_ideas = WHR_Siarhey_Pjasetski_sec_npo
+				clr_country_flag = WHR_ai_bulakhovich
+				clr_country_flag = WHR_ai_revolution
+				clr_country_flag = WHR_ai_german
+				clr_country_flag = WHR_ai_anarchy
+				clr_country_flag = sigismund_I_HoS
+				hidden_effect = {
+					news_event = { id = worldnews.469 days = 1}
+				}
+			}
+		}
+		else_if = {
+			limit = { tag = POL }
+			if = {
+				limit = { 
+					NOT = { has_government = authoritarian_democrat }
+				}
+				add_stability = 0.1
+				set_politics = {
+					ruling_party = authoritarian_democrat
+					elections_allowed = no
+				}
+				set_country_flag = POL_ready_to_go_foreign
+				hidden_effect = {
+					set_cosmetic_tag = POL_REPUBLIC
+					unlock_national_focus = POL_the_great_debate
+					create_country_leader = {
+						name = "Władysław Studnicki"
+						desc = "POLITICS_WLADYSLAW_STUDNICKI_DESC"
+						picture = "gfx/leaders/POL/Portrait_POL_Wladyslaw_Studnicki.png"
+						expire = "1965.1.1"
+						ideology = absolute_monarchy_subtype
+					}
+					create_country_leader = {
+						name = "Julian Leszczyński"
+						picture = "gfx/leaders/POL/Portrait_POL_Julian_Leszczynski.png"
+						expire = "1965.1.1"
+						ideology = authcom_subtype
+					}
+					create_country_leader = {
+						name = "Alfred Lampe"
+						picture = "gfx/leaders/POL/Portrait_POL_Alfred_Lampe.png"
+						expire = "1965.1.1"
+						ideology = centralized_syndicalism_subtype
+					}
+					create_country_leader = {
+						name = "Adolf Warski"
+						picture = "gfx/leaders/POL/Portrait_POL_Adolf_Warski.png"
+						expire = "1965.1.1"
+						ideology = radsoc_communism_subtype
+					}
+					add_popularity = {
+						ideology = national_populist
+						popularity = 0.2
+					}
+					add_popularity = {
+						ideology = authoritarian_democrat
+						popularity = 0.2
+					}
+					mark_focus_tree_layout_dirty = yes
+					news_event = {
+						id = worldnews.53
+						days = 1
+					}
+					country_event = {
+						id = poland.195
+						days = 28
+					}
+				}				
+				add_ideas = {
+					POL_Adam_Doboszynski_hog_npo
+					POL_Jedrzej_Giertych_for_npo
+					POL_Roman_Rybarski_eco_npo
+					POL_Tadeusz_Bielecki_sec_npo
+				}
+			}
+		}
+		else_if = {
+			limit = { tag = BAT }
+			set_country_flag = Rudiger_von_der_Goltz_dead
+			set_country_flag = Oskar_von_Weiss_dead
+			hidden_effect = {
+				set_country_flag = BAT_flight_to_riga
+				set_autonomy = {
+					target = ROOT
+					autonomy_state = autonomy_free
+				}
+				12 = {
+					remove_core_of = ROOT
+					add_claim_by = ROOT
+					force_enable_resistance = { occupier = BAT occupied = LAT clear = yes }
+				}
+				13 = {
+					remove_core_of = ROOT
+					add_claim_by = ROOT
+					force_enable_resistance = { occupier = BAT occupied = EST clear = yes }
+				}
+				190 = {
+					remove_core_of = ROOT
+					add_claim_by = ROOT
+					force_enable_resistance = { occupier = BAT occupied = LAT clear = yes }
+				}
+				191 = {
+					remove_core_of = ROOT
+					add_claim_by = ROOT
+					force_enable_resistance = { occupier = BAT occupied = EST clear = yes }
+				}			
+				LAT = {
+					transfer_state = 190
+					transfer_state = 12
+					transfer_technology = yes
+					load_oob = "LAT"
+					if = {
+						limit = { has_template = "Deutsch-Balt. Kampfbataillon" }
+						delete_unit_template_and_units = { division_template = "Deutsch-Balt. Kampfbataillon" }
+					}
+					if = {
+						limit = { has_template = "Freiwilligen-Regiment" }
+						delete_unit_template_and_units = { division_template = "Freiwilligen-Regiment" }
+					}
+					if = {
+						limit = { has_template = "Motorized-Kampfbataillon" }
+						delete_unit_template_and_units = { division_template = "Motorized-Kampfbataillon" }
+					}
+					if = {
+						limit = { has_template = "Panzer-Kampfbataillon" }
+						delete_unit_template_and_units = { division_template = "Panzer-Kampfbataillon" }
+					}
+					country_event = {
+						id = KRLAT.1
+						days = 2
+					}
+				}
+				EST = {
+					transfer_state = 191
+					transfer_state = 13
+					transfer_technology = yes
+					load_oob = "EST"
+					if = {
+						limit = { has_template = "Deutsch-Balt. Kampfbataillon" }
+						delete_unit_template_and_units = { division_template = "Deutsch-Balt. Kampfbataillon" }
+					}
+					if = {
+						limit = { has_template = "Freiwilligen-Regiment" }
+						delete_unit_template_and_units = { division_template = "Freiwilligen-Regiment" }
+					}
+					if = {
+						limit = { has_template = "Motorized-Kampfbataillon" }
+						delete_unit_template_and_units = { division_template = "Motorized-Kampfbataillon" }
+					}
+					if = {
+						limit = { has_template = "Panzer-Kampfbataillon" }
+						delete_unit_template_and_units = { division_template = "Panzer-Kampfbataillon" }
+					}
+				}
+				BAT_becomes_Riga = yes
+				LAT = { annex_country = { target = BAT } }
+				news_event = { id = worldnews.4241 hours = 8 }
+				baltic_germans_flee = yes
+			}
+		}		
 	}
 }
 
@@ -14312,7 +14582,7 @@ news_event = { # Kyiv Conference
 	
 	major = yes
 	show_major = {
-		NOT = { tag = UPR }
+		NOT = { tag = UKR }
 	}
 	
 	option = {
@@ -23928,7 +24198,7 @@ country_event = { # red hetmat
 }
 
 country_event = { #Hidden AI event for going radical paths
-	id = ukraine.1999
+	id = ukrsoc.1999 
 	is_triggered_only = yes
 	hidden = yes
 	fire_only_once = yes
@@ -23949,6 +24219,7 @@ country_event = { #Hidden AI event for going radical paths
 				}			
 			}
 		}
+		set_country_flag = UKR_ai_borotbysts_fail
 	}
 	option = { #Borotbyst revolution will happen
 		ai_chance = {
@@ -25094,7 +25365,10 @@ country_event = { # End of Reform?
 				check_variable = { UKR_Land_Reform_Borotbysts < 30 }
 				AND = {
 					is_ai = yes
-					has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_DISABLED }
+					OR = {
+						has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_DISABLED }
+						has_country_flag = UKR_ai_borotbysts_fail
+					}
 				}
 			}
 		}
@@ -25265,6 +25539,7 @@ country_event = { # End of Reform?
 						has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_GUARANTEED }
 						has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_CIVIL_WAR }
 						has_game_rule = { rule = UKR_revolution option = UKR_REVOLUTION_COUP }
+						has_country_flag = UKR_ai_borotbysts
 					}
 				}
 			}
@@ -30495,7 +30770,7 @@ country_event = { # UVO-GER
 			}
 		}
 		else = {
-			UKR_activate_mie_subversive_decisions = yes	
+			set_country_flag = UKR_mie_subversive
 		}
 	}
 }
@@ -30663,7 +30938,7 @@ country_event = { # UVO-GER
 			}
 		}
 		else = {
-			UKR_activate_mie_subversive_decisions = yes	
+			set_country_flag = UKR_mie_subversive
 		}
 	}
 }
@@ -30702,8 +30977,10 @@ country_event = { # UVO-GER
 		}		
 	}
 	option = {
-		name = ukrfor.98.b
+		name = ukrfor.98.a
 		trigger = { tag = UKR }
+		remove_puppet_and_leave_faction = yes
+		peace_out_non_neighbours_after_leaving_faction = yes
 		if = {
 			limit = { has_global_flag = UKR_germany_will_guarantee }
 			diplomatic_relation = {
@@ -42228,14 +42505,15 @@ news_event = { # Agricultural Crisis
 	
 	picture = GFX_news_event_UKR_famine
 	
-	trigger = {
-		regional_europe_news = yes
-	}
-
 	is_triggered_only = yes
-	
+	trigger = { wants_world_news = yes }
 	major = yes
+	fire_for_sender = no
 	show_major = {
+		OR = {
+			regional_europe_news = yes
+			is_neighbor_of = UKR
+		}
 		NOT = { tag = UKR }
 	}
 	
@@ -42306,14 +42584,15 @@ news_event = { # Triumvirate
 	
 	picture = GFX_news_event_UKR_triumvirate
 	
-	trigger = {
-		regional_europe_news = yes
-	}
-
 	is_triggered_only = yes
-	
+	trigger = { wants_world_news = yes }
 	major = yes
+	fire_for_sender = no
 	show_major = {
+		OR = {
+			regional_europe_news = yes
+			is_neighbor_of = UKR
+		}
 		NOT = { tag = UKR }
 	}
 	
@@ -42329,14 +42608,15 @@ news_event = { # Nationalists
 	
 	picture = GFX_news_event_UKR_nationalists
 	
-	trigger = {
-		regional_europe_news = yes
-	}
-
 	is_triggered_only = yes
-	
+	trigger = { wants_world_news = yes }
 	major = yes
+	fire_for_sender = no
 	show_major = {
+		OR = {
+			regional_europe_news = yes
+			is_neighbor_of = UKR
+		}
 		NOT = { tag = UKR }
 	}
 	
@@ -42367,14 +42647,15 @@ news_event = { # Petliura
 	
 	picture = GFX_news_event_UKR_petliura
 	
-	trigger = {
-		regional_europe_news = yes
-	}
-
 	is_triggered_only = yes
-	
+	trigger = { wants_world_news = yes }
 	major = yes
+	fire_for_sender = no
 	show_major = {
+		OR = {
+			regional_europe_news = yes
+			is_neighbor_of = UKR
+		}
 		NOT = { tag = UKR }
 	}
 	
@@ -42409,14 +42690,15 @@ news_event = { # USDRP
 	
 	picture = GFX_news_event_UKR_usdrp
 	
-	trigger = {
-		regional_europe_news = yes
-	}
-
 	is_triggered_only = yes
-	
+	trigger = { wants_world_news = yes }
 	major = yes
+	fire_for_sender = no
 	show_major = {
+		OR = {
+			regional_europe_news = yes
+			is_neighbor_of = UKR
+		}
 		NOT = { tag = UKR }
 	}
 	
@@ -42447,14 +42729,15 @@ news_event = { # UPSR
 	
 	picture = GFX_news_event_UKR_people
 	
-	trigger = {
-		regional_europe_news = yes
-	}
-
 	is_triggered_only = yes
-	
+	trigger = { wants_world_news = yes }
 	major = yes
+	fire_for_sender = no
 	show_major = {
+		OR = {
+			regional_europe_news = yes
+			is_neighbor_of = UKR
+		}
 		NOT = { tag = UKR }
 	}
 	
@@ -42485,14 +42768,15 @@ news_event = { # Richytskyi
 	
 	picture = GFX_news_event_UKR_richitskyi
 	
-	trigger = {
-		regional_europe_news = yes
-	}
-
 	is_triggered_only = yes
-	
+	trigger = { wants_world_news = yes }
 	major = yes
+	fire_for_sender = no
 	show_major = {
+		OR = {
+			regional_europe_news = yes
+			is_neighbor_of = UKR
+		}
 		NOT = { tag = UKR }
 	}
 	
@@ -42508,14 +42792,15 @@ news_event = { # Ukapists
 	
 	picture = GFX_news_event_UKR_ukp
 	
-	trigger = {
-		regional_europe_news = yes
-	}
-
 	is_triggered_only = yes
-	
+	trigger = { wants_world_news = yes }
 	major = yes
+	fire_for_sender = no
 	show_major = {
+		OR = {
+			regional_europe_news = yes
+			is_neighbor_of = UKR
+		}
 		NOT = { tag = UKR }
 	}
 	
@@ -42546,14 +42831,15 @@ news_event = { # Ukapists
 	
 	picture = GFX_news_event_UKR_skrypnyk
 	
-	trigger = {
-		regional_europe_news = yes
-	}
-
 	is_triggered_only = yes
-	
+	trigger = { wants_world_news = yes }
 	major = yes
+	fire_for_sender = no
 	show_major = {
+		OR = {
+			regional_europe_news = yes
+			is_neighbor_of = UKR
+		}
 		NOT = { tag = UKR }
 	}
 	
@@ -42584,14 +42870,15 @@ news_event = { # ULD
 	
 	picture = GFX_news_event_UKR_republic
 	
-	trigger = {
-		regional_europe_news = yes
-	}
-
 	is_triggered_only = yes
-	
+	trigger = { wants_world_news = yes }
 	major = yes
+	fire_for_sender = no
 	show_major = {
+		OR = {
+			regional_europe_news = yes
+			is_neighbor_of = UKR
+		}
 		NOT = { tag = UKR }
 	}
 	
