@@ -399,66 +399,137 @@ RUS_civil_war_decisions = {
 			}		
 		}
 	}
-	RCW_pact_with_rrf = {
+	RCW_joint_front = {
 		icon = generic_agreement
-		allowed = { always = no }
+		allowed = { tag = RVA }
 		available = {
-			NOT = { has_war_with = FROM }
-			RUS_kornilov_in_power = yes		
+			country_exists = RUS
+			count_triggers = {
+				amount > 1
+				RRF = { has_war_with = RUS }
+				TRM = { has_war_with = RUS }
+				WRA = { has_war_with = RUS }
+			}
+		}
+		visible = {
+			has_global_flag = RCW_begun
+			NOT = { has_global_flag = RCW_over }
 		}
 		cost = 0
 		fire_only_once = yes
 		ai_will_do = { factor = 200 }
 		
 		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision RCW_pact_with_rrf"
-			FROM = {
+			log = "[GetDateText]: [Root.GetName]: Decision RCW_joint_front"
+			create_faction = "South-Eastern Union"
+			every_other_country = {
+				limit = {
+					OR = {
+						AND = { 
+							tag = RRF
+							NOT = { has_global_flag = RCW_SOV_RRF_peace }
+						}
+						tag = WRA
+						tag = TRM
+					}
+					exists = yes
+					has_war_with = RUS
+				}
 				country_event = {
-					id = rcw.41
+					id = rcw.251
 					days = 2
 				}
 			}
 		}
 	}
-	RCW_alliance_fails = {
+	RCW_invite_to_pact = {
 		icon = generic_agreement
-		allowed = { always = no } #activated by event
+		allowed = { tag = RVA }
 		available = {
-			OR = {
-				NOT = { country_exists = RUS }
-				RUS = { surrender_progress > 0.5 }
+			country_exists = RUS
+			if = {
+				limit = { FROM = { tag = TRM } }
+				if = {
+					limit = {
+						OR = { 
+							RUS_kornilov_in_power = yes
+							RUS_denikin_in_power = yes
+						}
+					}
+					FROM = { has_government = paternal_autocrat }
+				}
+				else_if = {
+					limit = { RUS_wrangel_in_power = yes }
+					FROM = { has_country_flag = TRM_Mil_coup }
+				}
+			}
+		}
+		visible = {
+			has_global_flag = RCW_begun
+			NOT = { has_global_flag = RCW_over }			
+		}
+		targets = { ALO DKB WRA TRM }
+		target_root_trigger = { is_faction_leader = yes }
+		target_trigger = {
+			FROM = {
+				has_war_with = var:219:owner
+				NOT = { has_war_with = ROOT }
 			}
 		}
 		cost = 0
 		fire_only_once = yes
-		ai_will_do = { 
-			base = 200
-			modifier = {
-				factor = 0
-				AND = {
-					FROM = { RUS_dont_attack_if_target_is_stronger = yes }
-					date < 1938.1.1
+		ai_will_do = { factor = 200 }
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision RCW_invite_to_pact target: [From.GetName]"
+			FROM = {
+				country_event = {
+					id = rcw.251
+					days = 2
 				}
 			}
 		}
-		war_with_target_on_remove = yes
+	}
+	RCW_give_to_the_people = {
+		icon = generic_prepare_civil_war
+		allowed = { always = no  }
+		available = {
+			OR = {
+				controls_province = 6174
+				controls_province = 6380
+			}
+		}
+		cancel_trigger = {
+			hidden_trigger = { 
+				OR = {
+					has_capitulated = yes 
+					NOT = { country_exists = RUS }
+				}
+			}
+		}
+		selectable_mission = no
+		fire_only_once = yes
+		days_mission_timeout = 600
 		
 		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision RCW_alliance_fails"
-			setup_decision_attack_AI = yes
+			log = "[GetDateText]: [Root.GetName]: Decision RCW_give_to_the_people target: [From.GetName]"
+			if = {
+				limit = { has_idea = RRF_victory_expectations }
+				remove_ideas = RRF_victory_expectations
+			}
+			add_war_support = 0.2
+			add_popularity = { ideology = national_populist popularity = 0.2 }
+			every_controlled_state = {
+				limit = {
+					NOT = { is_core_of = ROOT }
+					has_resistance = yes
+				}
+				add_compliance = 40
+			}
 		}
-		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove RCW_alliance_fails"
-			clear_decision_attack_AI = yes
-			diplomatic_relation = {
-				country = FROM
-				relation = non_aggression_pact
-				active = no
-			}
-			declare_war_on = {
-				target = FROM
-				type = civil_war
-			}
+		timeout_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision timeout RCW_give_to_the_people target: [From.GetName]"
+			country_event = rcw.262
 		}
 	}
 	RUS_propose_ceasefire_trm = {
@@ -518,68 +589,10 @@ RUS_civil_war_decisions = {
 		}
 		
 		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision RCW_alliance_fails"
+			log = "[GetDateText]: [Root.GetName]: Decision RUS_propose_ceasefire_trm"
 			FROM = { country_event = rcw.101 }
 		}
-	}
-	RCW_invite_cossacks = {
-		icon = generic_agreement
-		allowed = { tag = RVA }
-		available = {
-			NOT = { has_war_with = FROM }
-		}
-		cost = 0
-		fire_only_once = yes
-		ai_will_do = { factor = 200 }
-		targets = { DKB }
-		target_root_trigger = {
-			OR = {
-				RUS_kornilov_in_power = yes			
-				RUS_denikin_in_power = yes
-				RUS_wrangel_in_power = yes
-			}
-		}
-		target_trigger = {
-			FROM = {
-				at_peace_or_same_enemies_as_ROOT = yes
-				is_subject = no
-				has_war = no
-				is_in_faction = no
-				has_socialist_government = no
-				don_is_pro_russian = yes				
-			}
-		}
-		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision RCW_invite_cossacks"
-			FROM = {
-				country_event = {
-					id = rcw.20
-					days = 2
-				}				
-			}
-		}
-	}
-	RCW_pact_with_trm = {
-		icon = generic_agreement
-		allowed = { always = no } #activated by event
-		available = {
-			NOT = { has_war_with = FROM }
-		}
-		
-		cost = 0
-		fire_only_once = yes
-		ai_will_do = { factor = 200 }
-		
-		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision RCW_pact_with_trm"
-			FROM = {
-				country_event = {
-					id = rcw.43
-					days = 2
-				}
-			}
-		}
-	}
+	}		
 	RCW_conquer_siberia = {
 		icon = generic_agreement
 		allowed = { 
@@ -630,11 +643,11 @@ RUS_civil_war_decisions = {
 		ai_will_do = { factor = 200 }
 		war_with_target_on_remove = yes
 		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision RCW_invite_cossacks"
+			log = "[GetDateText]: [Root.GetName]: Decision RCW_conquer_siberia"
 			setup_decision_attack_AI = yes
 		}
 		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove RCW_invite_cossacks"
+			log = "[GetDateText]: [Root.GetName]: Decision remove RCW_conquer_siberia"
 			clear_decision_attack_AI = yes
 			declare_war_on = {
 				target = FROM
@@ -1214,7 +1227,6 @@ RUS_civil_war_decisions = {
 				impassable = no
 				NOT = { has_state_category = zero }
 				NOT = { has_state_category = one }
-				NOT = { has_state_category = two }
 			}
 			NOT = { has_global_flag = RCW_over }
 			OR = {
