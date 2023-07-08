@@ -1,0 +1,403 @@
+on_actions = {
+	on_startup = {
+		effect = {
+			137 = { #Crimea
+				add_dynamic_modifier = { modifier = UKR_crimean_autonomy }
+			}	
+			1221 = { #Crimea
+				add_dynamic_modifier = { modifier = UKR_crimean_autonomy }
+			}	
+			1220 = { #Crimea
+				add_dynamic_modifier = { modifier = UKR_crimean_autonomy }
+			}	
+			for_each_scope_loop = {
+				array = UKR.owned_states
+				add_to_array = { UKR.UKR_starting_states_array = THIS }
+			}
+			every_state = {
+				limit = { UKR_is_industrial_relocation_destiny_state = yes }
+				add_to_array = { UKR.UKR_states_east_of_dnieper_array = THIS }
+			}
+			if = {
+				limit = { has_dlc = "No Step Back" }
+				UKR = {
+					division_template = {
+						name = "Motorizovana Kavaleriiska Dyviziia"
+						division_names_group = UKR_MOT_01
+						regiments = {
+							motorized = { x = 0 y = 0 }
+							motorized = { x = 0 y = 1 }
+							motorized = { x = 0 y = 2 }
+							motorized = { x = 1 y = 0 }
+							motorized = { x = 1 y = 1 }
+							motorized = { x = 1 y = 2 }
+							armored_car = { x = 2 y = 0 }
+							armored_car = { x = 2 y = 1 }
+							armored_car = { x = 2 y = 2 }
+						}
+						support = {
+							armored_car_recon = { x = 0 y = 0 }
+						}
+					}
+				}
+				202 = {
+					create_unit = {
+						division = "division_template = \"Motorizovana Kavaleriiska Dyviziia\" start_experience_factor = 0.3 start_equipment_factor = 1"
+						owner = UKR
+						count = 1
+					}
+				}
+			}
+			else = {
+				202 = {
+					create_unit = {
+						division = "division_template = \"Motorizovana Dyviziia\" start_experience_factor = 0.3 start_equipment_factor = 1"
+						owner = UKR
+						count = 1
+					}
+				}
+			}
+		}
+	}
+	on_government_change = {
+		effect = {
+			if = {
+				limit = {
+					tag = UKR
+					has_socialist_government = yes
+				}
+				if = {
+					limit = {
+						KUB = {
+							OR = {
+								is_in_faction_with = UKR
+								is_subject_of = UKR
+							}
+						}
+					}
+					KUB = {
+						clear_all_relations = yes
+						drop_cosmetic_tag = yes
+						add_opinion_modifier = {
+							target = UKR
+							modifier = faction_traitor
+						}
+						diplomatic_relation = {
+							country = UKR
+							relation = military_access
+							active = no
+						}
+						country_event = kub.105
+					}
+				}						
+			}			
+		}
+	}
+	
+	#ROOT is winner #FROM gets annexed - For civil wars on_civil_war_end is also fired
+	on_annex = {
+		effect = {
+			if = {
+				limit = {
+					ROOT = { tag = UKR }
+					FROM = { tag = USR }
+					has_global_flag = UKR_borotbyst_civil_war
+				}
+				if = {
+					limit = { 
+						ROOT = { UKR_borotbysts_in_power = yes }
+					}
+					ROOT = { country_event = ukrsoc.209 }
+				}
+				else = {
+					ROOT = { country_event = ukrsoc.210 }
+				}
+			}
+			if = {
+				limit = {
+					ROOT = { tag = USR }
+					FROM = { tag = UKR }
+					has_global_flag = UKR_borotbyst_civil_war
+				}
+				if = {
+					limit = { 
+						ROOT = { UKR_borotbysts_in_power = yes }
+					}
+					ROOT = { country_event = ukrsoc.209 }
+				}
+				else = {
+					ROOT = { country_event = ukrsoc.210 }
+				}
+			}
+			if = {
+				limit = {
+					ROOT = { tag = WSU }
+					FROM = { tag = UKR }
+				}
+				ROOT = { country_event = wsu.35 }
+			}			
+		}
+	}
+	
+	on_peace = {
+		effect = {
+			if = {
+				limit = {
+					OR = {
+						tag = UKR
+						tag = GER
+					}
+					FROM = {
+						OR = {
+							tag = UKR
+							tag = GER
+						}
+					}
+				}
+				set_global_flag = UKR_GER_peace
+			}
+		}
+	}
+
+	# ROOT is capitulated country, FROM is winner
+	on_capitulation_immediate = {
+		effect = {
+			### RUS-INT peace over UKR
+			if = {
+				limit = {
+					tag = UKR
+					FROM = { is_russian_tag_that_can_integrate = yes }
+					is_in_faction_with = INT
+				}
+				INT = {
+					country_event = { id = ukraine.91 days = 2 }
+				}
+			}			
+		}
+	}
+
+	on_new_term_election = {
+		effect = {
+			if = {
+				limit = {
+					tag = UKR
+				}
+				#country_event = ukrel.2 #1938
+				country_event = ukrel.5
+				country_event = ukrel.10 #
+				country_event = ukrel.11 #
+				country_event = ukrel.12 #
+				country_event = ukrel.13 #
+			}			
+		}
+	}
+	#ROOT is new controller #FROM is old controller #FROM.FROM is state ID
+	on_state_control_changed = {
+		effect = {
+			### ROM-UKR War
+			if = {
+				limit = {
+					OR = {
+						tag = ROM
+						is_ukrainian_tag = yes
+					}
+					has_war_with = FROM
+					FROM = {
+						OR = {
+							tag = ROM
+							is_ukrainian_tag = yes
+						}
+					}
+				}
+				ROM = { country_event = ukrfor.231 }
+			}
+			### UPR-UKR War
+			if = {
+				limit = {
+					ROOT = {
+						OR = {
+							tag = UKR
+							tag = USR
+						}
+					}
+					FROM = { 
+						OR = {
+							tag = UKR
+							tag = USR
+						}
+					}
+					FROM.FROM = { state = 1228 } #Kyiv
+					has_global_flag = UKR_borotbyst_civil_war 
+				}
+				FROM = {
+					hidden_effect = {
+						add_timed_idea = {
+							idea = ready_to_surrender
+							days = 30
+						}
+					}
+				}
+			}
+			if = {
+				limit = {
+					ROOT = {
+						tag = GER
+					}
+					FROM = { 
+						tag = UKR
+					}
+					FROM.FROM = { state = 202 } #Kyiv
+				}
+				FROM = { country_event = ukrfor.1190 }
+			}	
+			if = {
+				limit = {
+					ROOT = {
+						OR = {
+							tag = UKR
+							tag = USR
+						}
+					}
+					FROM = { 
+						OR = {
+							tag = UKR
+							tag = USR
+						}
+					}
+					FROM.FROM = { state = 202 } #Kyiv
+					has_global_flag = UKR_borotbyst_civil_war 
+				}
+				ROOT = {
+					if = {
+						limit = {
+							tag = UKR
+							OR = {
+								UKR_vasyl_in_power = yes
+								UKR_pavlo_skoropadsky_in_power = yes
+							}
+						}
+						country_event = ukrpol.63
+					}
+					else_if = {
+						limit = {
+							tag = UKR
+							UKR_vasyl_in_power = no
+							UKR_pavlo_skoropadsky_in_power = no
+						}
+						country_event = ukrpol.62
+						country_event = ukrpol.620
+					}
+				}
+			}
+			### WSU-UKR War
+			if = {
+				limit = {
+					tag = WSU
+					FROM = { 
+						OR = {
+							tag = UKR
+							tag = UPR
+						}
+					}
+					FROM.FROM = { state = 202 } #Kyiv
+				}
+				WSU = {
+					country_event = { id = wsu.35 days = 2 }
+				}
+			}
+		}
+	}
+
+	#ROOT = attacking side
+	#FROM = defending side
+	#fired when two countries end up at war with each other (on_war is fired when a country goes to war against anyone and is not fired again when it enters war against another country unless it went to peace first)
+	on_war_relation_added = {
+		effect = {
+			if = {
+				limit = {
+					OR = {
+						tag = GER
+						tag = RUS
+					}
+					OR = {
+						FROM = { tag = GER }
+						FROM = { tag = RUS }
+					}
+				}
+				if = {
+					limit = { has_global_flag = UKR_secret_collusion_with_russia }
+					UKR = { country_event = ukrfor.158 }
+				}					
+			}
+			if = {
+				limit = {
+					OR = {
+						tag = UKR
+						tag = RUS
+					}
+					OR = {
+						FROM = { tag = UKR }
+						FROM = { tag = RUS }
+					}
+				}
+				clr_global_flag = UKR_secret_collusion_with_russia
+			}
+			if = {
+				limit = {
+					OR = {
+						tag = UKR
+						FROM = { tag = UKR }
+					}
+				}
+				UKR = {
+					country_event = { id = ukrmisc.23 days = 5 }
+					country_event = { id = ukrmisc.85 days = 140 random_days = 20 }
+					country_event = { id = ukrfor.78 days = 2 }
+					country_event = { id = ukrmisc.89 days = 60 random_days = 60 }
+					country_event = { id = ukrmisc.18 days = 30 random_days = 30 }
+					country_event = { id = ukrpol.148 days = 2 }
+				}
+			}
+		}
+	}	
+	on_peaceconference_started = { #Access to postwar content
+		effect = {
+			if = {
+				limit = {
+					ROOT = { tag = UKR }
+					FROM = {
+						is_russian_tag = yes
+						owns_state = 219 #Moscow
+					}
+				}
+				UKR = {
+					remove_targeted_decision = { decision = UKR_emergency_recruitment target = ROOT }
+					remove_targeted_decision = { decision = UKR_organise_partisan_cells target = ROOT }
+					remove_targeted_decision = { decision = UKR_not_step_back target = ROOT }
+					remove_targeted_decision = { decision = UKR_demobilize_volunteers target = ROOT }
+					remove_targeted_decision = { decision = UKR_dnieper_line_of_defence target = 202 }
+					remove_targeted_decision = { target = 221 decision = UKR_move_khlf }
+					remove_targeted_decision = { target = 221 decision = UKR_move_khtz }
+					remove_targeted_decision = { target = 228 decision = UKR_move_azovstal }
+					every_state = {
+						limit = { 
+							OR = {
+								state = 221 
+								state = 227  
+								state = 228  
+								state = 200  
+								state = 1239  
+								state = 1283  
+								state = 1282  
+								state = 1284  
+								state = 1285  
+								state = 1286
+							}
+						}
+						UKR = { remove_targeted_decision = { target = PREV decision = UKR_evacuate_industry } }
+					}
+				}
+			}
+		}
+	}
+}
