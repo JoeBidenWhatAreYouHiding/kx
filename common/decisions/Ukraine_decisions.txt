@@ -6293,6 +6293,7 @@ UKR_foreign_policy = {
 		cost = 10
 		fire_only_once = yes
 		war_with_target_on_remove = yes
+		days_remove = 14
 
 		ai_will_do = {
 			factor = 100
@@ -16401,6 +16402,10 @@ UKR_galicia_partisans_category = {
 					type = infantry_equipment
 					amount = -500
 				}
+				every_state = {
+					limit = { is_east_galicia = yes }
+					add_core_of = UKR
+				}
 			}
 		}
 
@@ -19186,10 +19191,112 @@ MIE_decisions = {
 		}
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision UKR_bye_pakt target: [From.GetName]"
+			every_state = {
+				limit = {
+					NOT = {
+						is_owned_by = ROOT
+						is_controlled_by = ROOT
+					}
+					ROOT = { divisions_in_state = { state = PREV size > 0 } }
+				}
+				teleport_armies = {
+					limit = { tag = ROOT }
+					to_state_array = owned_controlled_states
+				}
+			}
+			every_owned_state = {
+				teleport_armies = {
+					limit = {
+						NOT = {
+							tag = ROOT
+							has_war_with = ROOT
+						}
+					}
+					to_state_array = owned_controlled_states
+				}
+			}
 			remove_puppet_and_leave_faction = yes
 			peace_out_non_neighbours_after_leaving_faction = yes
 			create_faction = "Eastern Europe Defensive Pact"
+			every_country = {
+				limit = { 
+					has_country_flag = MIE_member 
+					has_country_flag = MIE_member_will_be_couped
+				}
+				remove_puppet_and_leave_faction = yes
+				peace_out_non_neighbours_after_leaving_faction = yes
+				MIE_remove_from_intermarium = yes
+				country_event = ukrsun.61
+			}
+			MIE = { delete_unit = { id = 177013 } }
+			clear_global_event_target = MIE_leader
+			clr_global_flag = MIE_intermarium_formed
 			
+		}
+	}
+	UKR_ally_nationalists_in_country = {
+		icon = GFX_decision_generic_ignite_civil_war
+		allowed = { always = no }
+		available = {
+			FROM = { is_in_faction_with = ROOT }	
+		}
+		visible = {
+			if = {
+				limit = { FROM = { tag = BAT } }
+				NOT = {
+					country_exists = LAT
+					country_exists = EST
+				}
+			}
+			FROM = { 
+				NOT = { has_country_flag = MIE_member_will_be_couped }
+			}
+		}
+		ai_hint_pp_cost = 25
+		custom_cost_text = PP_25_CP_25
+		custom_cost_trigger = {
+			has_political_power > 24.99
+			command_power > 24.99
+		}
+		
+		fire_only_once = yes
+		ai_will_do = {
+			base = 100
+			modifier = {
+				factor = 0
+				has_game_rule = { rule = UKR_foreign_policy option = UKR_FOREIGN_POLICY_REICHSPAKT }
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_ally_nationalists_in_country target: [From.GetName]"
+			if = {
+				limit = { 
+					OR = {
+						AND = {
+							FROM = {
+								tag = POL 
+								OR = {
+									has_government = authoritarian_democrat
+									has_government = national_populist
+								}
+							}
+						}
+						AND = {
+							FROM = {
+								tag = WHR
+								has_government = national_populist
+							}
+						}
+					}
+				}
+				FROM = { country_event = ukrsun.62 }
+			}	
+			else = {
+				effect_tooltip = { country_event = ukrsun.66 }
+				hidden_effect = { 
+					FROM = { country_event = ukrsun.65 }
+				}
+			}
 		}
 	}
 	
