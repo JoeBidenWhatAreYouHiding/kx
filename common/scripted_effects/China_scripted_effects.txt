@@ -482,7 +482,40 @@ chinese_united_front_ceasefire = {
 }
 
 set_potential_national_government = {
-	set_country_flag = china_is_potential_government
+	if = {
+		limit = {
+			NOT = { has_country_flag = china_is_potential_government }
+		}
+		set_country_flag = china_is_potential_government
+		every_state = {
+			limit = {
+				is_core_china = yes
+				is_claim_or_core_of_PREV = no
+				NOT = {
+					has_variable = ambition_area_@PREV
+					owner = {
+						is_subject_of = PREV.PREV
+						china_is_governorate = yes
+					}
+				}
+			}
+			add_claim_by = PREV
+			add_to_array = { PREV.china_government_ambitions = THIS }
+			set_variable = { ambition_area_@PREV = 1 }
+		}
+		hidden_effect = {
+			every_state = {
+				limit = {
+					is_china_claim_area = yes
+					is_claim_or_core_of_PREV = no
+					NOT = { has_variable = ambition_area_@PREV }
+				}
+				add_to_array = { PREV.china_government_ambitions = THIS }
+				set_variable = { ambition_area_@PREV = 1 }
+			}
+			CHI_warn_of_rkmt_government_effect = yes #If its a RKMT leader, effect will fire an event for CHI
+		}
+	}
 	if = {
 		limit = {
 			NOT = { has_country_flag = can_assume_national_leadership }
@@ -531,22 +564,7 @@ set_potential_national_government = {
 			NOT = { has_variable = kr_china_concessionintegration_speed }
 		}
 		set_variable = { kr_china_concessionintegration_speed = 60 }
-	}
-	hidden_effect = {
-		every_state = {
-			limit = {
-				is_claims_china = yes
-				NOT = { has_variable = ambition_area_@PREV }
-			}
-			if = {
-				limit = {
-					NOT = { is_claimed_by = PREV }
-				}
-				add_claim_by = PREV
-			}
-			set_variable = { ambition_area_@PREV = 1 }
-		}
-	}
+	}		
 }
 
 clear_potential_national_government = {
@@ -560,17 +578,24 @@ clear_potential_national_government = {
 		clear_variable = kr_china_provinceintegration_speed
 		clear_variable = kr_china_concessionintegration_cost
 		clear_variable = kr_china_concessionintegration_speed
-		every_state = {
-			limit = {
-				OR = {
-					is_claimed_by = ROOT
-					has_variable = ambition_area_@ROOT
-				}
-				NOT = { is_core_of = ROOT }
-			}
-			remove_claim_by = ROOT
-			clear_variable = ambition_area_@ROOT
+		for_each_scope_loop = {
+			array = china_government_ambitions
+			remove_claim_by = PREV
+			clear_variable = ambition_area_@PREV
 		}
+		clear_array = china_government_ambitions
+
+		for_each_loop = {
+			array = china_possible_allies_array
+			remove_targeted_decision = { decision = china_offer_alliance target = var:v }
+		}
+		clear_array = china_possible_allies_array
+		
+		for_each_loop = {
+			array = china_possible_allies_array
+			remove_targeted_decision = { decision = china_offer_alliance_northwest target = var:v }
+		}
+		clear_array = china_possible_allies_array_northwest
 	}
 }
 
@@ -913,11 +938,23 @@ china_puppet_ROOT_effect = {
 			get_current_government_type = yes
 			every_subject_country = {
 				get_current_government_type = yes
-				var:new_overlord = {
-					set_autonomy = {
-						target = PREV
-						autonomy_state = kr_default_puppet
-						end_wars = no
+				if = {
+					limit = { is_chinese_tag = yes }
+					var:new_overlord = {
+						set_autonomy = {
+							target = PREV
+							autonomy_state = kr_governorate
+							end_wars = no
+						}
+					}
+				}
+				else = {
+					var:new_overlord = {
+						set_autonomy = {
+							target = PREV
+							autonomy_state = kr_default_puppet
+							end_wars = no
+						}
 					}
 				}
 				restore_previous_government_type = yes
@@ -927,7 +964,7 @@ china_puppet_ROOT_effect = {
 	}
 	set_autonomy = {
 		target = ROOT
-		autonomy_state = kr_default_puppet
+		autonomy_state = kr_governorate
 		end_wars = no
 	}
 	hidden_effect = {
@@ -958,11 +995,23 @@ china_puppet_PREV_effect = {
 			get_current_government_type = yes
 			every_subject_country = {
 				get_current_government_type = yes
-				var:new_overlord = {
-					set_autonomy = {
-						target = PREV
-						autonomy_state = kr_default_puppet
-						end_wars = no
+				if = {
+					limit = { is_chinese_tag = yes }
+					var:new_overlord = {
+						set_autonomy = {
+							target = PREV
+							autonomy_state = kr_governorate
+							end_wars = no
+						}
+					}
+				}
+				else = {
+					var:new_overlord = {
+						set_autonomy = {
+							target = PREV
+							autonomy_state = kr_default_puppet
+							end_wars = no
+						}
 					}
 				}
 				restore_previous_government_type = yes
@@ -1002,11 +1051,23 @@ china_puppet_FROM_effect = {
 		FROM = {
 			every_subject_country = {
 				get_current_government_type = yes
-				var:new_overlord = {
-					set_autonomy = {
-						target = PREV
-						autonomy_state = kr_default_puppet
-						end_wars = no
+				if = {
+					limit = { is_chinese_tag = yes }
+					var:new_overlord = {
+						set_autonomy = {
+							target = PREV
+							autonomy_state = kr_governorate
+							end_wars = no
+						}
+					}
+				}
+				else = {
+					var:new_overlord = {
+						set_autonomy = {
+							target = PREV
+							autonomy_state = kr_default_puppet
+							end_wars = no
+						}
 					}
 				}
 				restore_previous_government_type = yes
@@ -1017,7 +1078,7 @@ china_puppet_FROM_effect = {
 	}
 	set_autonomy = {
 		target = FROM
-		autonomy_state = kr_default_puppet
+		autonomy_state = kr_governorate
 		end_wars = no
 	}
 	hidden_effect = {
@@ -1037,7 +1098,7 @@ china_puppet_TARGET_effect = {
 	hidden_effect = { var:target = { get_current_government_type = yes } }
 	set_autonomy = {
 		target = var:target
-		autonomy_state = kr_default_puppet
+		autonomy_state = kr_governorate
 		end_wars = no
 	}
 	hidden_effect = {
@@ -1179,7 +1240,7 @@ china_kmt_set_cosmetic_effect = {
 }
 china_break_puppet_effect = {
 	if = {
-		limit = { overlord = { is_chinese_tag = yes } }
+		limit = { china_is_governorate = yes }
 		leave_faction = yes
 		overlord = {
 			set_temp_variable = { former_overlord = THIS }

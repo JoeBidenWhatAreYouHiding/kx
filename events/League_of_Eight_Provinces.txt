@@ -1160,6 +1160,19 @@ country_event = { #Chen Tiaoyuan Declares War, triggered by anqing.9/10
 			}
 			set_cosmetic_tag = LEP_NAN
 			set_global_flag = LEP_war
+			
+			ANQ = {
+				if = {
+					limit = { NOT = { has_idea = league_collapse_ANQ } }
+					add_ideas = league_collapse_ANQ
+				}
+			}
+			LEP = {
+				if = {
+					limit = { NOT = { has_idea = league_collapse_LEP } }
+					add_ideas = league_collapse_LEP
+				}
+			}
 		}
 	}
 
@@ -1437,41 +1450,254 @@ country_event = { #barebones peace event with ANQ
 	}
 }
 
-#country_event = { #weaken KMT 1
-#	id = lepcollapse.26
-#	title = lepcollapse.26.t
-#	desc = lepcollapse.26.d
-#
-#	fire_only_once = yes
-#
-#	trigger = {
-#		tag = CHI
-#	}
-#
-#	is_triggered_only = yes
-#
-#	option = {
-#		name = lepcollapse.26.a
-#	}
-#}
+country_event = { # LEP collapse - LEP dead
+	id = lepcollapse.26
 
-#country_event = { #weaken KMT very much
-#	id = lepcollapse.27
-#	title = lepcollapse.27.t
-#	desc = lepcollapse.27.d
-#
-#	fire_only_once = yes
-#
-#	trigger = {
-#		tag = CHI
-#	}
-#
-#	is_triggered_only = yes
-#
-#	option = {
-#		name = lepcollapse.27.a
-#	}
-#}
+	hidden = yes
+	fire_only_once = yes
+	is_triggered_only = yes
+
+	trigger = {
+		has_global_flag = LEP_war
+		NOT = { country_exists = LEP }
+		LEP = { has_idea = league_collapse_LEP }
+	}
+
+	option = {
+		log = "[GetLogInfo]: event lepcollapse.26 option 1"
+		LEP_league_war_find_victor = yes
+		LEP = {
+			LEP_remove_collapse_dm = yes
+			clr_country_flag = LEP_league_war_flag
+		}		
+	}
+}
+
+country_event = { # LEP collapse - CHI dead
+	id = lepcollapse.27
+
+	hidden = yes
+	fire_only_once = yes
+	is_triggered_only = yes
+
+	trigger = {
+		has_global_flag = LEP_war
+		NOT = { country_exists = CHI }
+		CHI = { has_idea = league_collapse_CHI }
+	}
+
+	option = {
+		log = "[GetLogInfo]: event lepcollapse.27 option 1"
+		LEP_league_war_find_victor = yes
+		CHI = {
+			LEP_remove_collapse_dm = yes
+		}		
+	}
+}
+
+country_event = { # LEP collapse - ANQ dead
+	id = lepcollapse.28
+
+	hidden = yes
+	fire_only_once = yes
+	is_triggered_only = yes
+
+	trigger = {
+		has_global_flag = LEP_war
+		NOT = { country_exists = ANQ }
+		ANQ = { has_idea = league_collapse_ANQ }
+	}
+
+	option = {
+		log = "[GetLogInfo]: event lepcollapse.28 option 1"
+		LEP_league_war_find_victor = yes
+		ANQ = {
+			LEP_remove_collapse_dm = yes
+		}
+		if = {
+			limit = {
+				country_exists = QIE
+				QIE = {
+					NOT = { has_country_flag = wu_intervenes_proLEP }
+					NOT = { has_completed_focus = QIE_restoration }
+				}
+			}
+			ANQ = {
+				random_unit_leader = {
+					limit = { has_id = 2272 }
+					set_nationality = QIE
+					unit_leader_event = lepcollapse.35
+				}
+			}
+		}
+		else_if = {
+			limit = { country_exists = CHI }
+			ANQ = {
+				CHI_recruit_sun_liren_effect = yes
+				CHI = { 
+					random_unit_leader = {
+					limit = { has_id = 2272 }
+					unit_leader_event = lepcollapse.34 } 
+				}
+			}
+		}
+		else = {
+			random_country = { #will go to a random master
+				limit = {
+					OR = {
+						original_tag = FNG
+						original_tag = HNN
+						original_tag = GXC
+						original_tag = SZC
+					}
+					OR = {
+						is_ai = no
+						AND = {
+							FNG = { is_ai = yes }
+							HNN = { is_ai = yes }
+							GXC = { is_ai = yes }
+							SZC = { is_ai = yes }
+						}
+					}
+				}
+				ANQ = {
+					random_unit_leader = {
+						limit = { has_id = 2272 }
+						set_nationality = PREV.PREV
+						unit_leader_event = lepcollapse.36
+					}
+				}
+			}
+		}
+	}
+}
+
+country_event = { # LEP collapse - SQI out
+	id = lepcollapse.29
+
+	hidden = yes
+	fire_only_once = yes
+	is_triggered_only = yes
+
+	trigger = {
+		has_global_flag = LEP_war
+		if = {
+			limit = { country_exists = SQI }
+			OR = {
+				FNG = { has_country_flag = FNG_anqsqi_warc2_success }
+				QIE = { has_country_flag = QIE_zhang_backs_coup }
+				SQI = { has_government = authoritarian_democrat }
+				SQI = { is_subject = yes }
+				NOT = {
+					# prevent QIE went coup and LEP finished off before SQI can join thus locked up LEP tree
+					country_exists = ANQ
+					country_exists = CHI
+					SQI = { has_war_with = LEP }
+				}
+			}
+		}
+		else = {
+			NOT = { country_exists = SQI }
+		}
+	}
+
+	option = {
+		log = "[GetLogInfo]: event lepcollapse.29 option 1"
+		set_global_flag = LEP_collapse_SQI_out
+		LEP_league_war_find_victor = yes
+		SQI = {
+			LEP_remove_collapse_dm = yes
+		}
+	}
+}
+unit_leader_event = {
+	id = lepcollapse.34 #Sun Liren offers to join CHI
+	title = lepcollapse.34.t
+	desc = lepcollapse.34.d
+	picture = GFX_report_event_military_planning
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event lepcollapse.34 option lepcollapse.34.a"
+		name = lepcollapse.34.a
+		add_political_power = -15
+		CHI_RF_small_effect = yes
+		custom_effect_tooltip = LEP_recruit_sun_liren_tooltip
+		hidden_effect = {
+			THIS = {
+				set_unit_leader_flag = CHI_RF_military_loyalist_flag
+				demote_leader = yes
+			}
+		}
+	}
+	option = {
+		log = "[GetLogInfo]: event lepcollapse.34 option lepcollapse.34.b"
+		name = lepcollapse.34.b
+		ai_chance = { base = 0 }
+		add_political_power = 15
+		custom_effect_tooltip = LEP_arrest_sun_liren_tooltip
+		hidden_effect = { THIS = { retire = yes } }
+	}
+}
+
+unit_leader_event = {
+	id = lepcollapse.35 #Sun Liren offers to join QIE
+	title = lepcollapse.35.t
+	desc = lepcollapse.35.d
+	picture = GFX_report_event_military_planning
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event lepcollapse.35 option lepcollapse.35.a"
+		name = lepcollapse.35.a
+		add_political_power = -15
+		custom_effect_tooltip = LEP_recruit_sun_liren_tooltip
+		hidden_effect = { THIS = { demote_leader = yes } }
+	}
+	option = {
+		log = "[GetLogInfo]: event lepcollapse.35 option lepcollapse.35.b"
+		name = lepcollapse.35.b
+		ai_chance = { base = 0 }
+		add_political_power = 15
+		custom_effect_tooltip = LEP_arrest_sun_liren_tooltip
+		hidden_effect = {
+			THIS = {
+				retire = yes
+			}
+		}
+	}
+}
+
+unit_leader_event = {
+	id = lepcollapse.36 #Sun Liren offers to join another warlord tag
+	title = lepcollapse.36.t
+	desc = lepcollapse.36.d
+	picture = GFX_report_event_military_planning
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event lepcollapse.36 option lepcollapse.36.a"
+		name = lepcollapse.36.a
+		add_political_power = -15
+		custom_effect_tooltip = LEP_recruit_sun_liren_tooltip
+		hidden_effect = { THIS = { demote_leader = yes } }
+	}
+	option = {
+		log = "[GetLogInfo]: event lepcollapse.36 option lepcollapse.36.b"
+		name = lepcollapse.36.b
+		ai_chance = { base = 0 }
+		add_political_power = 15
+		custom_effect_tooltip = LEP_arrest_sun_liren_tooltip
+		hidden_effect = {
+			THIS = {
+				retire = yes
+			}
+		}
+	}
+}
 
 
 #LEP Collapse Decision/Mission Events
