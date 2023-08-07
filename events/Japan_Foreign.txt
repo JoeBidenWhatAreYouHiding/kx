@@ -4353,11 +4353,190 @@ country_event = {
 ### The Fading Sun ###
 ######################
 
+###################
+### Peace Deals ###
+###################
+
+country_event = { #hidden event to fire the peace mission
+	id = japfor.229
+
+	hidden = yes
+
+	trigger = {
+		original_tag = JAP
+		has_war = yes
+		is_valid_peace_target = yes
+		NOT = { surrender_progress > 0.15 }
+		NOT = { has_active_mission = JAP_fading_sun_timer }
+		OR = {
+			is_ai = no
+			NOT = { has_global_flag = JAP_will_surrender }
+		}
+		525 = {
+			is_owned_by_ROOT_or_ally = yes
+			is_controlled_by_ROOT_or_ally = no
+		}
+		527 = {
+			is_owned_by_ROOT_or_ally = yes
+			is_controlled_by_ROOT_or_ally = no
+		}
+		OR = {
+			AND = {
+				any_enemy_country = {
+					is_chinese_tag = yes
+					OR = {
+						china_is_potential_government = yes
+						is_faction_leader = yes #United Front
+					}
+					is_valid_peace_target = yes
+				}
+				if = {
+					limit = { is_ally_with = MAN }
+					MAN = { has_capitulated = yes }
+				}
+				else_if = {
+					limit = { NOT = { has_war_with = FNG } }
+					OR = {
+						NOT = { country_exists = FNG }
+						FNG = { has_capitulated = yes }
+					}
+				}
+				if = {
+					limit = { is_ally_with = LEC }
+					LEC = { has_capitulated = yes }
+				}
+				NOT = {
+					any_allied_country = {
+						is_tag_in_china_area = yes
+						has_capitulated = no
+					}
+					any_owned_state = {
+						is_china_claim_area = yes
+						NOT = { state = 524 } #Taiwan
+						NOT = { state = 745 } #Kwantung
+						is_controlled_by = ROOT
+					}
+				}
+			}
+			AND = {
+				OR = {
+					RUS = {
+						has_war_with = ROOT
+						is_valid_peace_target = yes
+					}
+					SOV = {
+						has_war_with = ROOT
+						is_valid_peace_target = yes
+					}
+				}
+				if = {
+					limit = {
+						country_exists = MAN
+						is_ally_with = MAN
+					}
+					MAN = { has_capitulated = yes }
+				}
+				if = {
+					limit = {
+						OR = {
+							RUS = { has_war_with = FNG }
+							SOV = { has_war_with = FNG }
+						}
+						FNG = { has_capitulated = yes }
+					}
+				}
+				OR = {
+					NOT = { country_exists = TRM }
+					TRM = { has_capitulated = yes }
+				}
+			}
+		}
+	}
+
+	mean_time_to_happen = {
+		days = 10
+	}
+
+	option = {
+		log = "[GetLogInfo]: event japfor.229 option 1"
+		activate_mission = JAP_fading_sun_timer
+		every_enemy_country = {
+			limit = {
+				is_ai = no
+				OR = {
+					is_tag_in_china_area = yes
+					is_russian_tag = yes
+				}
+			}
+			activate_mission = JAP_fading_sun_timer_enemy
+		}
+	}
+}
+
 country_event = { #Should I, Japan, surrender?
 	id = japfor.230
 	immediate = { log = "[GetDateText]: [Root.GetName]: event japfor.230" }
 	title = japfor.230.t
-	desc = japfor.230.d
+	desc = {
+		text = japfor.230.d.taiwan_kept
+		trigger = {
+			JAP = {
+				owns_state = 524
+				NOT = {
+					enemies_naval_strength_ratio > 4
+					AND = {
+						surrender_progress > 0.15
+						any_home_area_neighbor_country = { is_ally_with = ROOT }
+					}
+				}
+			}
+			NOT = {
+				var:524.controller = {
+					is_tag_in_china_area = yes
+					has_war_with = event_target:japan
+				}
+			}
+		}
+	}
+	desc = {
+		text = japfor.230.d.taiwan_handed_over
+		trigger = {
+			JAP = {
+				owns_state = 524
+				OR = {
+					enemies_naval_strength_ratio > 4
+					AND = {
+						surrender_progress > 0.15
+						any_home_area_neighbor_country = { is_ally_with = ROOT }
+					}
+				}
+			}
+			NOT = {
+				var:524.controller = {
+					is_tag_in_china_area = yes
+					has_war_with = event_target:japan
+				}
+			}
+		}
+	}
+	desc = {
+		text = japfor.230.d.taiwan_occupied
+		trigger = {
+			JAP = {
+				owns_state = 524
+				var:524.controller = {
+					is_tag_in_china_area = yes
+					has_war_with = event_target:japan
+				}
+			}
+		}
+	}
+	desc = {
+		text = japfor.230.d.no_taiwan
+		trigger = {
+			NOT = { JAP = { owns_state = 524 } } #Taiwan
+		}
+	}
 	picture = GFX_report_event_japanese_reply
 
 	fire_only_once = yes
@@ -4368,37 +4547,124 @@ country_event = { #Should I, Japan, surrender?
 		ai_chance = {
 			factor = 100
 		}
-		every_enemy_country = {
-			limit = {
-				is_subject = no
-				OR = {
-					is_in_faction = no
-					is_faction_leader = yes
-				}
-			}
-			country_event = japfor.231
-		}
+		set_country_flag = JAP_accepted_peace
 		hidden_effect = {
-			country_event = {
-				id = japfor.232
-				days = 3
+			every_subject_country = { set_country_flag = JAP_accepted_peace }
+			every_other_country = {
+				limit = { is_in_faction_with = ROOT }
+				set_country_flag = JAP_accepted_peace
 			}
 		}
+		JAP_china_peace_next_country = yes
 	}
+
 	option = {
-		name = japfor.230.b #Japan decides to fight to the bitter end
-		trigger = { is_ai = no }
-		add_political_power = -150
-		add_stability = -0.15
-		add_war_support = -0.25
+		log = "[GetLogInfo]: event japfor.230 option japfor.230.b"
+		name = japfor.230.b
+		ai_chance = { base = 0 }
+		set_country_flag = JAP_refused_peace
+		hidden_effect = {
+			every_subject_country = { set_country_flag = JAP_refused_peace }
+			every_other_country = {
+				limit = { is_in_faction_with = ROOT }
+				set_country_flag = JAP_refused_peace
+			}
+		}
+		add_political_power = -100
+		add_war_support = -0.1
+		event_target:japan = { country_event = japfor.233 }
+		JAP_china_peace_next_country = yes
 	}
 }
 
 country_event = { #Do you want peace with Japan?
 	id = japfor.231
 	immediate = { log = "[GetDateText]: [Root.GetName]: event japfor.231" }
-	title = japfor.231.t
-	desc = japfor.231.d
+	immediate = {
+		if = {
+			limit = {
+				any_enemy_country = {
+					is_tag_in_china_area = yes
+					is_valid_peace_target = yes
+					has_country_flag = JAP_accepted_peace
+				}
+			}
+			save_event_target_as = JAP_peace_with_china
+		}
+	}
+	title = {
+		text = japfor.231.t.peace
+		trigger = {
+			has_event_target = JAP_peace_with_china
+		}
+	}
+	title = {
+		text = japfor.231.t.no_peace
+		trigger = {
+			NOT = { has_event_target = JAP_peace_with_china }
+		}
+	}
+
+	desc = {
+		text = japfor.231.d.peace_taiwan_kept
+		trigger = {
+			has_event_target = JAP_peace_with_china
+			owns_state = 524 #Taiwan
+			controls_state = 524 #Taiwan
+			NOT = {
+				enemies_naval_strength_ratio > 4
+				AND = {
+					surrender_progress > 0.15
+					any_home_area_neighbor_country = { is_ally_with = ROOT }
+				}
+			}
+		}
+	}
+	desc = {
+		text = japfor.231.d.peace_taiwan_handed_over
+		trigger = {
+			has_event_target = JAP_peace_with_china
+			owns_state = 524 #Taiwan
+			controls_state = 524 #Taiwan
+			OR = {
+				enemies_naval_strength_ratio > 4
+				AND = {
+					surrender_progress > 0.15
+					any_home_area_neighbor_country = { is_ally_with = ROOT }
+				}
+			}
+		}
+	}
+	desc = {
+		text = japfor.231.d.peace_taiwan_occupied
+		trigger = {
+			has_event_target = JAP_peace_with_china
+			owns_state = 524 #Taiwan
+			var:524.controller = {
+				has_war_with = ROOT
+				has_country_flag = JAP_accepted_peace
+			}
+		}
+	}
+	desc = {
+		text = japfor.231.d.peace_no_taiwan
+		trigger = {
+			has_event_target = JAP_peace_with_china
+			OR = {
+				NOT = { owns_state = 524 } #Taiwan
+				var:524.controller = {
+					has_war_with = ROOT
+					NOT = { has_country_flag = JAP_accepted_peace }
+				}
+			}
+		}
+	}
+	desc = {
+		text = japfor.231.d.no_peace
+		trigger = {
+			NOT = { has_event_target = JAP_peace_with_china }
+		}
+	}
 	picture = GFX_report_event_JAP_meeting
 
 	is_triggered_only = yes
@@ -4409,396 +4675,643 @@ country_event = { #Do you want peace with Japan?
 			factor = 100
 		}
 		custom_effect_tooltip = JAP_offered_peace_and_I_want
-	}
-	option = {
-		name = japfor.231.b #No fuck em'
-		ai_chance = {
-			factor = 0
+		trigger = {
+			has_event_target = JAP_peace_with_china
 		}
-		set_country_flag = JAP_no_peace
-		custom_effect_tooltip = JAP_offered_peace_and_I_hate_peace
-	}
-}
+		set_global_flag = JAP_defeated_by_china
+		clr_global_flag = JAP_will_surrender
 
-country_event = { #Japan gets the answer
-	id = japfor.232
-	immediate = { log = "[GetDateText]: [Root.GetName]: event japfor.232" }
-	title = japfor.232.t
-	desc = japfor.232.d
-	picture = GFX_report_event_JAP_hirohito_addressing
-
-	fire_only_once = yes
-	is_triggered_only = yes
-
-	option = {
-		name = japfor.232.a
-		### Order of the code goes is as follows ###
-		# Transfer all territories not being kept by Japan to a dynamic tag to be split by the peace conference
-		# Tell everyone that the peace event has happened
-		# Inform Co-Prosperity Sphere members
-		# Dismantle the Co-Prosperity Sphere
-		# Peace everyone out
-		# Peace out any remaining Co-Prosperity Sphere member wars
-		# Fire the world news event
-		# Send out event to Legation Cities removing Japanese influence
-		# Fire the event reducing JAP's army influence
-
-		hidden_effect = {
-			JAP_fading_sun = yes
-
-			### Transfer all territories not being kept by Japan to a dynamic tag to be split by the peace conference ###
-			create_dynamic_country = {
-				original_tag = JAP
-				copy_tag = JAP
-				save_global_event_target_as = JAP_peace_conference_tag
-				set_country_flag = { flag = disabled_annexations days = 15 value = 1 }
-				set_politics = { ruling_party = paternal_autocrat }
-				set_political_party = { ideology = paternal_autocrat popularity = 100 }
-				ROOT = {
-					every_enemy_country = {
-						event_target:JAP_peace_conference_tag = {
-							add_to_war = {
-								targeted_alliance = ROOT
-								enemy = PREV
-							}
-						}
-					}
-					every_owned_state = {
-						limit = {
-							NOT = {
-								region = 154 #Home Islands
-								state = 526 #Okinawa
-								state = 555 #Kurils
-							}
-							if = {
-								limit = { state = 537 } #Sakhalin
-								ROOT = {
-									any_enemy_country = {
-										OR = {
-											is_russian_tag_that_can_integrate = yes
-											537 = { is_claim_or_core_of_PREV = yes }
-										}
-									}
-								}
-							}
-							if = {
-								limit = { state = 555 } #Kurils
-								ROOT = {
-									any_enemy_country = {
-										OR = {
-											is_russian_tag_that_can_integrate = yes
-											537 = { is_claim_or_core_of_PREV = yes }
-										}
-									}
-								}
-							}
-							else_if = {
-								limit = { is_pacific_islands = yes }
-								ROOT = {
-									any_enemy_country = {
-										OR = {
-											is_ally_with = AST
-											is_ally_with = GEA
-											AND = {
-												is_in_australia = yes
-												check_variable = { num_ships > 25 }
-											}
-										}
-									}
-								}
-							}
-						}
-						add_core_of = event_target:JAP_peace_conference_tag
-						if = {
-							limit = {
-								OR = {
-									is_fully_controlled_by = ROOT
-									state = 745 #Kwantung
-								}
-							}
-							event_target:JAP_peace_conference_tag = { transfer_state = PREV }
-						}
-						else = {
-							event_target:JAP_peace_conference_tag = { set_state_owner = PREV }
-						}
+		### Free Korea and all Chinese subjects
+		every_subject_country = {
+			limit = {
+				OR = {
+					original_tag = KOR
+					is_tag_in_china_area = yes
+					AND = {
+						has_capitulated = yes
+						capital_scope = { controller = { has_country_flag = JAP_accepted_peace } }
 					}
 				}
-				force_capitulate = yes
-				set_cosmetic_tag = JAP_treaty
 			}
+			overlord = {
+				set_autonomy = {
+					target = PREV
+					autonomy_state = autonomy_free
+				}
+			}
+		}
 
-			### Tell everyone that the peace event has happened
-			every_enemy_country = { country_event = japfor.233 }
-
-			### Inform Co-Prosperity Sphere members
-			every_other_country = {
-				limit = { is_in_faction_with = JAP }
-				if = {
-					limit = {
-						OR = {
-							is_chinese_tag = yes
-							has_capitulated = yes
-						}
+		### Remove Korea and all Chinese allies from the CPS
+		every_other_country = {
+			limit = {
+				is_in_faction_with = ROOT
+				OR = {
+					original_tag = KOR
+					is_tag_in_china_area = yes
+					AND = {
+						has_capitulated = yes
+						capital_scope = { controller = { has_country_flag = JAP_accepted_peace } }
 					}
-					leave_faction = yes
+				}
+			}
+			leave_faction = yes
+		}
+
+		### Give all mainland Chinese states to the controller or CHN
+		every_state = {
+			limit = {
+				owner = { is_ally_with = ROOT }
+				is_china_claim_area = yes
+				NOT = { state = 524 } #Taiwan
+				controller = {
+					is_tag_in_china_area = yes
+					has_war_with = ROOT
+				}
+			}
+			controller = {
+				if = {
+					limit = { is_subject = yes }
+					overlord = { transfer_state = PREV.PREV }
 				}
 				else = {
-					set_country_flag = JAP_was_in_sphere
-					country_event = japfor.235
+					transfer_state = PREV
 				}
 			}
-
-			### Peace everyone out
-			every_enemy_country = {
-				limit = {
-					is_valid_peace_target = yes
-					NOT = { has_country_flag = JAP_no_peace }
-				}
-				white_peace_with_ROOT = yes
+		}
+		every_state = {
+			limit = {
+				owner = { is_ally_with = ROOT }
+				is_china_claim_area = yes
+				NOT = { state = 524 } #Taiwan
 			}
+			transfer_state_to = CHN
+		}
 
-			### Dismantle the Co-Prosperity Sphere
-			if = {
-				limit = { is_faction_leader = no }
-				set_faction_leader = yes
-			}
-			dismantle_faction = yes
-
-			### Restore control for countries controlling states owned by non-enemies
-			restore_control_of_all_non_enemy_states = yes
-
-			### Peace out any remaining Co-Prosperity Sphere member wars
-			every_country = {
-				limit = {
-					NOT = { original_tag = JAP }
-					has_war = yes
-					is_valid_peace_target = yes
-					any_enemy_country = {
+		### Handle Taiwan
+		if = {
+			limit = {
+				owns_state = 524
+				OR = {
+					var:524.controller = {
+						has_war_with = ROOT
+						has_country_flag = JAP_accepted_peace
+					}
+					AND = {
+						controls_state = 524
 						OR = {
-							tag = FNG
-							has_country_flag = JAP_was_in_sphere
+							enemies_naval_strength_ratio > 4
+							AND = {
+								surrender_progress > 0.15
+								any_home_area_neighbor_country = { is_ally_with = ROOT }
+							}
 						}
 					}
 				}
-				country_event = { id = japfor.236 hours = 1 }
 			}
-
-			### Fire the world news event
-			news_event = worldnews.197
-			country_event = worldtension.22
-
-			### Send out event to Legation Cities removing Japanese influence
-			LEC = {
-				if = {
-					limit = {
-						exists = yes
-						is_subject = no
+			remove_state_core = 524
+			remove_state_claim = 524
+			if = {
+				limit = {
+					var:524.controller = {
+						has_war_with = ROOT
+						has_country_flag = JAP_accepted_peace
 					}
-					country_event = { id = lec.130 hours = 12 }
+				}
+				var:524.controller = {
 					if = {
-						limit = { has_war_with = JAP }
-						set_country_flag = LEC_had_war_with_JAP
+						limit = {
+							is_subject = yes
+							is_chinese_tag = no
+						}
+						overlord = { transfer_state = 524 }
+					}
+					else = {
+						transfer_state = 524
 					}
 				}
 			}
+		}
 
-			### Fire the event reducing JAP's army influence (disabled for now)
-			#country_event = {
-			#	id = japfor.237
-			#	days = 13
-			#}
+		### Handle Korea
+		remove_state_core = 525
+		remove_state_core = 527
+		remove_state_claim = 525
+		remove_state_claim = 527
+		if = {
+			limit = {
+				525 = {
+					is_owned_by = ROOT
+					controller = {
+						is_tag_in_china_area = yes
+						has_country_flag = JAP_accepted_peace
+					}
+				}
+			}
+			var:525.controller = {
+				if = {
+					limit = { is_subject = yes }
+					overlord = { transfer_state = 525 }
+				}
+				else = {
+					transfer_state = 525
+				}
+			}
+		}
+		if = {
+			limit = {
+				527 = {
+					is_owned_by = ROOT
+					controller = {
+						is_tag_in_china_area = yes
+						has_country_flag = JAP_accepted_peace
+					}
+				}
+			}
+			var:527.controller = {
+				if = {
+					limit = { is_subject = yes }
+					overlord = { transfer_state = 527 }
+				}
+				else = {
+					transfer_state = 527
+				}
+			}
+		}
+
+		### Remove LEC's Japanese influence
+		if = {
+			limit = { country_exists = LEC }
+			LEC = {
+				if = {
+					limit = { is_subject = no }
+					country_event = { id = lec.130 hours = 12 }
+				}
+				if = {
+					limit = { has_war_with = JAP }
+					set_country_flag = LEC_had_war_with_JAP
+				}
+			}
+			LEC_remove_from_legation_council = yes
+		}
+
+		### Disable Fengtian Mantetsu mechanic
+		FNG_break_with_japan = yes
+
+		### Disable Japanese ambitions towards China
+		every_state = {
+			limit = {
+				is_china_claim_area = yes
+				NOT = { state = 524 } #Taiwan
+			}
+			remove_core_of = JAP
+			remove_claim_by = JAP
+			clear_variable = ambition_area_JAP
+		}
+
+		### Peace everyone out
+		every_enemy_country = {
+			limit = {
+				is_tag_in_china_area = yes
+				has_country_flag = JAP_accepted_peace
+			}
+			white_peace_with_ROOT = yes
+			hidden_effect = { country_event = japfor.232 }
+		}
+
+		### Remove guarantees and wargoals, create NAPs and truces
+		every_country = {
+			limit = {
+				is_tag_in_china_area = yes
+				NOT = {
+					is_ally_with = ROOT
+					has_war_with = ROOT
+				}
+			}
+			if = {
+				limit = { is_guaranteed_by = ROOT }
+				ROOT = {
+					diplomatic_relation = {
+						country = PREV
+						relation = guarantee
+						active = no
+					}
+				}
+			}
+			diplomatic_relation = {
+				country = ROOT
+				relation = non_aggression_pact
+			}
+			set_truce = { target = ROOT days = 730 }
+		}
+
+		### Clear flags
+		hidden_effect = {
+			every_country = {
+				clr_country_flag = JAP_accepted_peace
+				clr_country_flag = JAP_refused_peace
+			}
+		}
+	}
+	option = {
+		log = "[GetLogInfo]: event japfor.231 option japfor.231.b"
+		name = japfor.231.b
+		trigger = {
+			NOT = { has_event_target = JAP_peace_with_china }
+		}
+		clr_global_flag = JAP_will_surrender
+
+		### Clear flags
+		hidden_effect = {
+			every_country = {
+				clr_country_flag = JAP_accepted_peace
+				clr_country_flag = JAP_refused_peace
+			}
 		}
 	}
 }
 
-country_event = { #everyone gets peace
+country_event = { #End of the Sino-Japanese War
+	id = japfor.232
+	title = japfor.232.t
+	desc = japfor.232.d
+	picture = GFX_report_event_CHI_victory2
+
+	is_triggered_only = yes
+
+	immediate = {
+		hidden_effect = {
+			set_truce = { target = FROM days = 730 }
+		}
+	}
+
+	option = {
+		log = "[GetLogInfo]: event japfor.232 option japfor.232.a"
+		name = japfor.232.a
+		effect_tooltip = {
+			set_truce = { target = FROM days = 730 }
+		}
+	}
+}
+
+country_event = { #FROM Refuses Peace
 	id = japfor.233
-	immediate = { log = "[GetDateText]: [Root.GetName]: event japfor.233" }
 	title = japfor.233.t
 	desc = japfor.233.d
-	picture = GFX_report_event_japanese_chinese_surrender
+	picture = GFX_report_event_japanese_reply
 
 	is_triggered_only = yes
 
 	option = {
+		log = "[GetLogInfo]: event japfor.233 option japfor.233.a"
 		name = japfor.233.a
-		add_political_power = 50
-		if = {
-			limit = { has_idea = FNG_Expel_the_Japanese_Bandits }
-			remove_ideas = FNG_Expel_the_Japanese_Bandits
+	}
+}
+
+### Russia ###
+country_event = { #Japan Offers Peace
+	id = japfor.238
+	title = japfor.238.t
+	desc = japfor.238.d
+	picture = GFX_report_event_JAP_meeting
+
+	is_triggered_only = yes
+	timeout_days = 4
+
+	option = {
+		log = "[GetLogInfo]: event japfor.238 option japfor.238.a"
+		name = japfor.238.a
+		ai_chance = {
+			base = 100
+			modifier = {
+				add = -30
+				FROM = { has_war_with = 361.owner } #USA
+				NOT = { has_war_with = 361.owner }
+			}
+			modifier = {
+				add = -20
+				FROM = { has_war_with = CAN }
+				NOT = { has_war_with = CAN }
+			}
+			modifier = {
+				add = -20
+				FROM = { has_war_with = ENG }
+				NOT = { has_war_with = ENG }
+			}
+			modifier = {
+				add = -15
+				FROM = { has_war_with = AST }
+				NOT = { has_war_with = AST }
+			}
+			modifier = {
+				add = -15
+				FROM = { has_war_with = GER }
+				NOT = { has_war_with = GER }
+			}
+			modifier = {
+				add = -10
+				FROM = { has_war_with = HOL }
+				NOT = { has_war_with = HOL }
+			}
+		}
+		effect_tooltip = {
+			every_state = {
+				limit = {
+					is_owned_by = FROM
+					OR = {
+						state = 537 #Sakhalin
+						state = 555 #Kuril Islands
+						AND = {
+							is_core_of = KOR
+							controller = { is_ally_with = FROM }
+						}
+						AND = {
+							is_manchuria = yes
+							OR = {
+								controller = { is_ally_with = FROM }
+								var:716.controller = { is_ally_with = FROM } #Shenyang
+								MAN = { is_subject_of = FROM }
+							}
+						}
+						AND = {
+							is_china_proper = yes
+							OR = {
+								controller = { is_ally_with = FROM }
+								var:608.controller = { is_ally_with = FROM } #Beijing
+								FNG = { is_ally_with = FROM }
+							}
+						}
+						is_claim_or_core_of_ROOT = yes
+						ROOT = {
+							any_allied_country = {
+								PREV.PREV = { is_claim_or_core_of_PREV = yes }
+							}
+						}
+						ROOT = {
+							any_subject_country = {
+								PREV.PREV = { is_claim_or_core_of_PREV = yes }
+							}
+						}
+					}
+				}
+				transfer_state_to = ROOT
+			}
+			every_other_country = {
+				limit = {
+					is_subject_of = FROM
+					OR = {
+						is_tag_in_china_area = yes
+						original_tag = TRM
+						original_tag = SIB
+						original_tag = KOR
+					}
+				}
+				overlord = {
+					set_autonomy = {
+						target = PREV
+						autonomy_state = autonomy_free
+					}
+				}
+			}
+			every_other_country = {
+				limit = {
+					is_in_faction_with = FROM
+					OR = {
+						is_tag_in_china_area = yes
+						original_tag = TRM
+						original_tag = SIB
+						original_tag = KOR
+					}
+				}
+				leave_faction = yes
+			}
+			FROM = { white_peace_with_ROOT = yes }
+			diplomatic_relation = {
+				country = ROOT
+				relation = non_aggression_pact
+			}
+			set_truce = { target = ROOT days = 730 }
+		}
+		FROM = { country_event = japfor.239 }
+	}
+
+	option = {
+		log = "[GetLogInfo]: event japfor.238 option japfor.238.b"
+		name = japfor.238.b
+		ai_chance = {
+			base = 0
+			modifier = {
+				add = 30
+				FROM = { has_war_with = 361.owner } #USA
+				NOT = { has_war_with = 361.owner }
+			}
+			modifier = {
+				add = 20
+				FROM = { has_war_with = CAN }
+				NOT = { has_war_with = CAN }
+			}
+			modifier = {
+				add = 20
+				FROM = { has_war_with = ENG }
+				NOT = { has_war_with = ENG }
+			}
+			modifier = {
+				add = 15
+				FROM = { has_war_with = AST }
+				NOT = { has_war_with = AST }
+			}
+			modifier = {
+				add = 15
+				FROM = { has_war_with = GER }
+				NOT = { has_war_with = GER }
+			}
+			modifier = {
+				add = 10
+				FROM = { has_war_with = HOL }
+				NOT = { has_war_with = HOL }
+			}
+			modifier = {
+				factor = 0
+				FROM = { is_ai = no }
+			}
+		}
+		set_country_flag = JAP_refused_peace
+		add_political_power = -100
+		add_war_support = -0.1
+		FROM = { country_event = japfor.241 }
+	}
+}
+
+country_event = { #Russia Accepts Peace
+	id = japfor.239
+	title = japfor.239.t
+	desc = japfor.239.d
+	picture = GFX_report_event_JAP_hirohito_addressing
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event japfor.239 option japfor.239.a"
+		name = japfor.239.a
+		clr_global_flag = JAP_will_surrender
+
+		### Hand over Sakhalin, the Kurils and all claims of RUS/SOV and its allies
+		every_owned_state = {
+			limit = {
+				set_temp_variable = { current_state = THIS }
+				OR = {
+					state = 537 #Sakhalin
+					state = 555 #Kuril Islands
+					AND = {
+						is_core_of = KOR
+						controller = { is_ally_with = FROM }
+					}
+					AND = {
+						is_manchuria = yes
+						OR = {
+							controller = { is_ally_with = FROM }
+							var:716.controller = { is_ally_with = FROM }
+							MAN = { is_subject_of = FROM }
+						}
+					}
+					AND = {
+						is_china_proper = yes
+						OR = {
+							controller = { is_ally_with = FROM }
+							var:608.controller = { is_ally_with = FROM }
+							FNG = { is_ally_with = FROM }
+						}
+					}
+					ROOT = {
+						any_enemy_country = {
+							is_ally_with = FROM
+							var:current_state = { is_claim_or_core_of_PREV = yes }
+						}
+					}
+				}
+			}
+			transfer_state_to = FROM
+		}
+
+		### Remove all Russian ambition areas from the CPS
+		every_subject_country = {
+			limit = {
+				OR = {
+					is_tag_in_china_area = yes
+					original_tag = TRM
+					original_tag = SIB
+					original_tag = KOR
+				}
+			}
+			overlord = {
+				set_autonomy = {
+					target = PREV
+					autonomy_state = autonomy_free
+				}
+			}
+		}
+		every_other_country = {
+			limit = {
+				is_in_faction_with = ROOT
+				OR = {
+					is_tag_in_china_area = yes
+					original_tag = TRM
+					original_tag = SIB
+					original_tag = KOR
+				}
+			}
+			leave_faction = yes
+		}
+
+		### Peace everyone out
+		FROM = {
+			white_peace_with_ROOT = yes
+			country_event = japfor.240
+		}
+
+		### Remove guarantees and wargoals, create NAPs and truces
+		every_country = {
+			limit = {
+				is_ally_with = FROM
+				NOT = { has_war_with = ROOT }
+			}
+			diplomatic_relation = {
+				country = ROOT
+				relation = non_aggression_pact
+			}
+			set_truce = { target = ROOT days = 730 }
 		}
 	}
 }
 
-country_event = { #inform faction members of peace
-	id = japfor.235
-	immediate = { log = "[GetDateText]: [Root.GetName]: event japfor.235" }
-	title = japfor.235.t
-	desc = japfor.235.d
-	picture = GFX_report_event_japanese_chinese_surrender
+country_event = { #Peace with Japan
+	id = japfor.240
+	title = japfor.240.t
+	desc = japfor.240.d
+	picture = GFX_report_event_japanese_reply
 
 	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event japfor.240 option japfor.240.a"
+		name = japfor.240.a
+	}
+}
+
+country_event = { #FROM Refuses Peace
+	id = japfor.241
+	title = japfor.241.t
+	desc = japfor.241.d
+	picture = GFX_report_event_japanese_reply
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event japfor.241 option japfor.241.a"
+		name = japfor.241.a
+	}
+}
+
+### Japan capitulates ###
+country_event = { #Inform former faction members of peace
+	id = japfor.251
+	title = japfor.251.t
+	desc = japfor.251.d
+	picture = GFX_report_event_japanese_chinese_surrender
 
 	trigger = { is_ai = no }
 
-	option = {
-		name = japfor.235.a
-	}
-}
-
-country_event = { # Hidden event to peace out Co-Prosperity members
-	id = japfor.236
-	immediate = { log = "[GetDateText]: [Root.GetName]: event japfor.236" }
-
 	is_triggered_only = yes
-	hidden = yes
 
-	immediate = {
-		# First European faction leaders peace out with any non-neighbours outside of Europe
-		if = {
-			limit = {
-				is_in_europe = yes
-				is_faction_leader = yes
-			}
-			every_enemy_country = {
-				limit = {
-					OR = {
-						tag = FNG
-						has_country_flag = JAP_was_in_sphere
-					}
-					NOT = {
-						original_tag = JAP
-						has_capitulated = yes
-						AND = {
-							tag = NZL
-							AST = { is_in_faction_with = ROOT }
-						}
-						AND = {
-							tag = LEC
-							any_allied_country = { is_han_chinese_tag = yes }
-						}
-						any_owned_state = {
-							any_neighbor_state = {
-								is_owned_by_ROOT_or_ally = yes
-							}
-						}
-						any_owned_state = {
-							is_coastal = yes
-							is_controlled_by_ROOT_or_ally = yes
-						}
-					}
-				}
-				white_peace = ROOT
-			}
-		}
-		# Then Asian faction leaders peace out with any non-neighbours
-		else_if = {
-			limit = {
-				is_in_asia = yes
-				is_faction_leader = yes
-			}
-			every_enemy_country = {
-				limit = {
-					OR = {
-						tag = FNG
-						has_country_flag = JAP_was_in_sphere
-					}
-					NOT = {
-						original_tag = JAP
-						has_capitulated = yes
-						AND = {
-							tag = NZL
-							AST = { is_in_faction_with = ROOT }
-						}
-						AND = {
-							tag = HOL
-							ROOT = { tag = INS }
-						}
-						AND = {
-							tag = LEC
-							any_allied_country = { is_han_chinese_tag = yes }
-						}
-						any_owned_state = {
-							any_neighbor_state = {
-								is_controlled_by_ROOT_or_ally = yes
-							}
-						}
-						any_owned_state = {
-							is_coastal = yes
-							is_controlled_by_ROOT_or_ally = yes
-						}
-					}
-				}
-				white_peace = ROOT
-			}
-		}
-		# Then everyone else peaces out with any non-neighbours
-		else = {
-			every_enemy_country = {
-				limit = {
-					OR = {
-						tag = FNG
-						has_country_flag = JAP_was_in_sphere
-					}
-					NOT = {
-						original_tag = JAP
-						has_capitulated = yes
-						AND = {
-							tag = HOL
-							ROOT = { tag = INS }
-						}
-						AND = {
-							tag = LEC
-							ROOT = { is_han_chinese_tag = yes }
-						}
-						if = {
-							limit = {
-								NOT = {
-									tag = SIA
-									tag = BRM
-									tag = INC
-									tag = VIN
-									tag = LAO
-								}
-							}
-							any_owned_state = {
-								any_neighbor_state = {
-									is_controlled_by_ROOT_or_ally = yes
-									NOT = { has_variable = impassable_to@PREV }
-								}
-							}
-						}
-						any_owned_state = {
-							is_coastal = yes
-							is_controlled_by_ROOT_or_ally = yes
-						}
-					}
-				}
-				white_peace = ROOT
-			}
-		}
+	option = {
+		log = "[GetLogInfo]: event japfor.251 option japfor.251.a"
+		name = japfor.251.a
 	}
 }
 
-#country_event = { #The Imperial Japanese Navy Seizes the Moment
-#	id = japfor.237
-#	title = japfor.237.t
-#	desc = japfor.237.d
-#	picture = GFX_report_event_JAP_battleship_kongo
-#
-#	is_triggered_only = yes
-#	fire_only_once = yes
-#
-#	trigger = {
-#		is_subject = no
-#		has_socialist_government = no
-#	}
-#
-#	option = { #The navy must become an impenetrable shield!
-#		name = japfor.237.a
-#		JAP_increase_naval_bias = yes
-#	}
-#}
+# The Fading Sun
+news_event = {
+	id = japfor.252
+	immediate = { log = "[GetLogInfo]: event japfor.252" }
+	title = japfor.252.t
+	desc = japfor.252.d
+	picture = GFX_news_event_JAP_coup
+
+	trigger = {
+		wants_world_news = yes
+	}
+
+	major = yes
+	show_major = {
+		regional_asia_news = yes
+	}
+
+	fire_for_sender = no
+	is_triggered_only = yes
+
+	option = {
+		name = japfor.251.a
+	}
+}
 
 #Involving Anqing
 
