@@ -617,6 +617,283 @@ country_event = { #FROM refuses alliance with ROOT
 }
 
 
+##########################
+### PUPPET INTEGRATION ###
+##########################
+
+country_event = { #FROM requests our integration
+	id = china_events.10
+	title = china_events.10.t
+
+	desc = china_events.10.d
+	
+	picture = GFX_report_event_CHI_riot_police
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.10 option china_events.10.a"
+		name = china_events.10.a
+		ai_chance = {
+			base = 0
+			modifier = {
+				FROM = { ROOT = { set_temp_variable = { acceptance = mtth:china_integration_acceptance_chance } } }
+				always = yes
+				add = var:acceptance
+			}
+		}
+		effect_tooltip = { activate_mission = china_integration_timer }
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.10 option china_events.10.b"
+		name = china_events.10.b
+		ai_chance = {
+			base = 0
+			modifier = {
+				FROM = { ROOT = { set_temp_variable = { refusal = mtth:china_integration_refusal_chance } } }
+				always = yes
+				add = var:refusal
+			}
+		}
+		hidden_effect = { remove_mission = china_integration_timer }
+		if = {
+			limit = { china_compatible_alignment_to_FROM = yes }
+			add_stability = -0.2
+			add_political_power = -200
+			if = {
+				limit = { china_same_alignment_as_FROM = yes }
+				var:country_leader = { clear_variable = china_alignment }
+			}
+		}
+		set_country_flag = china_revolted_against_@FROM
+		create_wargoal = {
+			target = FROM
+			type = topple_government
+		}
+		china_break_puppet_effect = yes
+		FROM = {
+			if = {
+				limit = { is_in_array = { china_possible_allies_array = ROOT } }
+				remove_from_array = { china_possible_allies_array = ROOT }
+			}
+			if = {
+				limit = { is_in_array = { china_possible_allies_array_northwest = ROOT } }
+				remove_from_array = { china_possible_allies_array_northwest = ROOT }
+			}
+			effect_tooltip = {
+				create_wargoal = {
+					target = ROOT
+					type = annex_everything
+				}
+			}
+			if = {
+				limit = { NOT = { any_other_country = { has_country_flag = china_revolted_against_@FROM } } }
+				country_event = { id = china_events.13 hours = 8 }
+			}
+			else = {
+				country_event = { id = china_events.15 hours = 8 }
+			}
+		}
+	}
+}
+
+country_event = { #Overlord increases integration
+	id = china_events.11
+	title = china_events.11.t
+
+	desc = china_events.11.d
+	
+	picture = GFX_report_event_YUN_inspection
+
+	is_triggered_only = yes
+
+	immediate = {
+		save_event_target_as = target
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.11 option china_events.11.a"
+		name = china_events.11.a
+		hidden_effect = { overlord = { country_event = china_events.12 } }
+		effect_tooltip = {
+			overlord = {
+				add_collaboration = { target = ROOT value = 0.05 }
+				china_integrate_TARGET_effect = yes
+			}
+		}
+	}
+}
+
+country_event = { #Increased Integration of FROM
+	id = china_events.12
+	title = china_events.12.t
+
+	desc = china_events.12.d
+	
+	picture = GFX_report_event_YUN_inspection
+
+	is_triggered_only = yes
+
+	immediate = {
+		FROM = { save_event_target_as = target }
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.12 option china_events.12.a"
+		name = china_events.12.a
+		add_collaboration = { target = FROM value = 0.05 }
+		china_integrate_TARGET_effect = yes
+	}
+}
+
+country_event = { #Clique refused integration
+	id = china_events.13
+	title = china_events.13.t
+	desc = china_events.13.d
+	picture = GFX_report_event_SHX_feng_advisors
+
+	is_triggered_only = yes
+
+	immediate = {
+		set_country_flag = { flag = china_central_plains_war_might_happen days = 30 value = 1 }
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.13 option china_events.13.a"
+		name = china_events.13.a #Attack
+		effect_tooltip = {
+			FROM = { china_break_puppet_effect = yes }
+		}
+		create_wargoal = {
+			target = FROM
+			type = annex_everything
+		}
+		every_subject_country = {
+			limit = {
+				has_autonomy_state = kr_governorate
+			}
+			country_event = { id = china_events.14 days = 1 random_days = 2 }
+		}
+	}
+}
+
+country_event = { #FROM.FROM Revolts against FROM
+	id = china_events.14
+	title = china_events.14.t
+	desc = china_events.14.d
+	picture = GFX_report_event_SHX_feng_soldiers
+
+	is_triggered_only = yes
+
+	immediate = { FROM = { save_event_target_as = previous_overlord } }
+
+	option = {
+		log = "[GetLogInfo]: event china_events.14 option china_events.13.a"
+		name = china_events.13.a #Side with FROM.FROM
+		ai_chance = {
+			base = 0
+			modifier = {
+				FROM = { ROOT = { set_temp_variable = { refusal = mtth:china_integration_refusal_chance } } }
+				always = yes
+				add = var:refusal
+			}
+		}
+		china_break_puppet_effect = yes
+		create_wargoal = {
+			target = FROM
+			type = annex_everything
+		}
+		FROM = {
+			if = {
+				limit = { is_in_array = { china_possible_allies_array = ROOT } }
+				remove_from_array = { china_possible_allies_array = ROOT }
+			}
+			if = {
+				limit = { is_in_array = { china_possible_allies_array_northwest = ROOT } }
+				remove_from_array = { china_possible_allies_array_northwest = ROOT }
+			}
+			effect_tooltip = {
+				create_wargoal = {
+					target = ROOT
+					type = annex_everything
+				}
+			}
+			country_event = china_events.15
+		}
+		FROM.FROM = {
+			country_event = china_events.16
+		}
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.14 option china_events.13.a"
+		name = china_events.13.a #Side with FROM
+		ai_chance = {
+			base = 20
+			modifier = {
+				FROM = { ROOT = { set_temp_variable = { refusal = mtth:china_integration_acceptance_chance } } }
+				always = yes
+				add = var:acceptance
+			}
+		}
+	}
+}
+
+country_event = { #Clique sides with revolter
+	id = china_events.15
+	title = china_events.15.t
+	desc = china_events.15.d
+	picture = GFX_report_event_SHX_feng_looking_in_telescope
+
+	immediate = {
+		modify_country_flag = { flag = china_central_plains_war_might_happen value = 1 }
+		if = {
+			limit = {
+				has_country_flag = { flag = china_central_plains_war_might_happen value > 2 }
+				NOT = { has_country_flag = china_central_plains_war_happened }
+			}
+			set_country_flag = china_central_plains_war_happened
+			hidden_effect = { news_event = { id = china_events.17 days = 4 } }
+		}
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.15 option china_events.15.a"
+		name = china_events.15.a #Attack
+		FROM = {
+			effect_tooltip = {
+				china_break_puppet_effect = yes
+				create_wargoal = {
+					target = ROOT
+					type = annex_everything
+				}
+			}
+		}
+		create_wargoal = {
+			target = FROM
+			type = annex_everything
+		}
+	}
+}
+
+country_event = { #Clique sides with us
+	id = china_events.16
+	title = china_events.16.t
+	desc = china_events.16.d
+	picture = GFX_report_event_QIE_warlord_soldiers
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.16 option china_events.16.a"
+		name = china_events.16.a #Attack
+		china_puppet_FROM_effect = yes
+	}
+}
+
 ###################
 ### NEWS EVENTS ###
 ###################

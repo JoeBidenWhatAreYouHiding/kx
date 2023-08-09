@@ -559,6 +559,190 @@ chinese_unification = {
 			}
 		}
 	}
+	china_integrate_subjects = {
+		icon = eng_trade_unions_support
+
+		available = {
+			NOT = { has_war_together_with = FROM }
+			NOT = { has_rule = can_not_declare_war } #united front
+			if = {
+				limit = { FROM = { has_autonomy_state = kr_integrated_governorate } }
+				has_global_flag = china_united
+				is_neighbor_of = FROM
+				received_expeditionary_forces = { sender = FROM value < 1 }
+			}
+		}
+
+		cancel_trigger = {
+			OR = {
+				NOT = { has_subject = FROM }
+				if = {
+					limit = { FROM = { has_autonomy_state = kr_integrated_governorate } }
+					received_expeditionary_forces = { sender = FROM value > 0 }
+				}
+				else = {
+					hidden_trigger = { always = no }
+				}
+			}
+		}
+
+		target_array = global.china_tags_array
+		target_root_trigger = { has_global_flag = LEP_collapse_happened }
+		target_trigger = {
+			has_subject = FROM
+			FROM = { china_is_governorate = yes }
+		}
+
+		cost = 75
+		days_remove = 100
+
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				has_political_power < 200
+			}
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel china_integrate_subjects target: [From.GetName]"
+			hidden_effect = { FROM = { remove_mission = china_integration_timer } }
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete china_integrate_subjects target: [From.GetName]"
+			FROM = {
+				country_event = china_events.10
+				hidden_effect = { activate_mission = china_integration_timer }
+			}
+			custom_effect_tooltip = "[ROOT.china_integration_refusal_chance_tooltip]"
+			if = {
+				limit = { NOT = { check_variable = { refusal_weight = 0 } } }
+				custom_effect_tooltip = if_they_refuse_tt
+				effect_tooltip = {
+					FROM = { china_break_puppet_effect = yes }
+					create_wargoal = {
+						target = FROM
+						type = annex_everything
+					}
+				}
+			}
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove china_integrate_subjects target: [From.GetName]"
+			FROM = {
+				hidden_effect = { country_event = china_events.11 }
+				effect_tooltip = { save_global_event_target_as = target }
+			}
+			effect_tooltip = {
+				add_collaboration = { target = FROM value = 0.05 }
+				if = {
+					limit = { FROM = { has_autonomy_state = kr_integrated_governorate } }
+					china_integrate_TARGET_effect = yes
+				}
+				else_if = {
+					limit = { FROM = { has_autonomy_state = kr_governorate } }
+					set_autonomy = {
+						target = FROM
+						autonomy_state = kr_integrated_governorate
+						end_wars = no
+					}
+				}
+				else_if = {
+					limit = { FROM = { has_autonomy_state = kr_autonomous_governorate } }
+					set_autonomy = {
+						target = FROM
+						autonomy_state = kr_governorate
+						end_wars = no
+					}
+				}
+				else_if = {
+					limit = { FROM = { has_autonomy_state = kr_associated_governorate } }
+					set_autonomy = {
+						target = FROM
+						autonomy_state = kr_autonomous_governorate
+						end_wars = no
+					}
+				}
+			}
+		}
+	}
+
+	china_integration_timer = {
+		icon = eng_trade_unions_demand
+
+		allowed = { always = no } #activated by china_integrate_subjects
+
+		available = {
+			has_capitulated = no
+			NOT = { has_war_together_with = overlord }
+		}
+
+		cancel_trigger = {
+			is_subject = no
+		}
+
+		cost = 0
+		is_good = yes
+		days_mission_timeout = 100
+		selectable_mission = yes
+
+		ai_will_do = { factor = 0 }
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel china_integration_timer target: [From.GetName]"
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete china_integration_timer target: [From.GetName]"
+			if = {
+				limit = { overlord = { china_compatible_alignment_to_PREV = yes } }
+				add_stability = -0.2
+				add_political_power = -200
+				if = {
+					limit = { overlord = { china_same_alignment_as_PREV = yes } }
+					var:country_leader = { clear_variable = china_alignment }
+				}
+			}
+			set_country_flag = china_revolted_against_@var:overlord
+			create_wargoal = {
+				target = overlord
+				type = topple_government
+			}
+			custom_effect_tooltip = tooltip_white_line
+			overlord = {
+				if = {
+					limit = { is_in_array = { china_possible_allies_array = ROOT } }
+					remove_from_array = { china_possible_allies_array = ROOT }
+				}
+				if = {
+					limit = { is_in_array = { china_possible_allies_array_northwest = ROOT } }
+					remove_from_array = { china_possible_allies_array_northwest = ROOT }
+				}
+				effect_tooltip = {
+					create_wargoal = {
+						target = ROOT
+						type = annex_everything
+					}
+				}
+				if = {
+					limit = { NOT = { any_other_country = { has_country_flag = china_revolted_against_@FROM } } }
+					country_event = china_events.13
+				}
+				else = {
+					country_event = china_events.15
+				}
+			}
+			custom_effect_tooltip = tooltip_white_line
+			china_break_puppet_effect = yes
+		}
+
+		timeout_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision timeout china_integration_timer target: [From.GetName]"
+		}
+	}
+	
 	### Dealing with the Outskirts ###
 	china_demand_annexation = {
 		icon = ger_mefo_bills
