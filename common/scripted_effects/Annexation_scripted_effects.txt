@@ -63,9 +63,74 @@ occupy_massive_country = {
 }
 
 # state scope
+occupy_state = {
+	set_state_flag = occupied_by_@PREV
+	set_temp_variable = { occupied_by_@THIS = 1 }
+	ROOT = { recheck_annexations = yes }
+}
+
+# state scope
+transfer_and_occupy_state = {
+	transfer_state_to = PREV
+	set_state_flag = occupied_by_@PREV
+	ROOT = { recheck_annexations = yes }
+}
+
+# state scope
+occupy_state_annexation = {
+	set_state_flag = occupied_by_@PREV
+	set_state_flag = annexation_occupied_by_@PREV
+	set_temp_variable = { occupied_by_@THIS = 1 }
+	ROOT = { recheck_annexations = yes }
+}
+
+# state scope
+transfer_and_occupy_state_annexation = {
+	transfer_state_to = PREV
+	set_state_flag = occupied_by_@PREV
+	set_state_flag = annexation_occupied_by_@PREV
+	ROOT = { recheck_annexations = yes }
+}
+
+# state scope
+clear_occupy_state = {
+	clr_state_flag = occupied_by_@PREV
+	clr_state_flag = annexation_occupied_by_@PREV
+	clear_variable = occupied_by_@THIS
+	ROOT = { recheck_annexations = yes }
+}
+
+# state scope
+state_given_notification_effect = {
+	hidden_effect = {
+		if = {
+			limit = { owner = { is_ai = no } }
+			save_event_target_as = granted_land
+			state_event = { id = annex.2 trigger_for = owner }
+		}
+	}
+}
+
+# state scope
 retain_state = {
-	set_state_flag = { flag = retain_state_@PREV days = 16 value = 1 }
+	set_state_flag = { flag = retain_state_@ROOT days = 16 value = 1 }
 	set_temp_variable = { retain_state_@THIS = 1 }
+}
+
+# state scope
+clear_retain_state = {
+	clr_state_flag = retain_state_@PREV
+	clear_variable = retain_state_@THIS
+}
+
+# country scope
+clear_retained_states = {
+	hidden_effect = {
+		every_state = {
+			limit = { has_state_flag = retain_state_@PREV }
+			clr_state_flag = retain_state_@PREV
+		}
+	}
 }
 
 # state scope
@@ -78,9 +143,31 @@ transfer_state_without_overriding_occupation = {
 		set_state_owner_to = var:tag_to_release
 		set_state_province_controller = {
 			controller = var:tag_to_release
-			limit = { NOT = { has_war_with = var:tag_to_release } }
+			limit = { NOT = { has_war_with = ROOT } }
 		}
 	}
+}
+
+# state scope
+temporarily_disable_country_annexation = {
+	hidden_effect = {
+		every_core_state = { set_state_flag = { flag = temporarily_disabled_annexation_@ROOT value = 1 days = 32 } }
+		country_event = { id = annex.1 days = 32 }
+	}
+		}
+
+# state scope
+temporarily_disable_annexation = {
+	hidden_effect = {
+		set_state_flag = { flag = temporarily_disabled_annexation_@ROOT value = 1 days = 32 }
+		PREV = { country_event = { id = annex.1 days = 32 }}
+	}
+	}
+
+# state scope
+save_as_offered_state = {
+	temporarily_disable_annexation = yes
+	add_to_array = { PREV.offered_states_array = THIS }
 }
 
 # state scope
@@ -196,7 +283,10 @@ transfer_if_owned = {
 
 # state scope
 add_claim_of_target_and_transfer_if_owned = {
-	add_claim_of_target = yes
+	if = {
+		limit = { is_claim_or_core_of_ROOT = no }
+		add_claim_of_target = yes
+	}
 	if = {
 		limit = { is_valid_annexation_state = yes }
 		transfer_state_without_overriding_occupation = yes
@@ -206,7 +296,10 @@ add_claim_of_target_and_transfer_if_owned = {
 
 # state scope
 add_core_of_target_and_transfer_if_owned = {
-	remove_claim_and_add_core_of_target = yes
+	if = {
+		limit = { is_claim_or_core_of_ROOT = no }
+		remove_claim_and_add_core_of_target = yes
+	}
 	if = {
 		limit = { is_valid_annexation_state = yes }
 		transfer_state_without_overriding_occupation = yes
@@ -221,7 +314,8 @@ add_core_and_transfer_if_owned_else_add_claim = {
 		remove_claim_and_add_core_of_target = yes
 		transfer_state_without_overriding_occupation = yes
 	}
-	else = {
+	else_if = {
+		limit = { is_claim_or_core_of_ROOT = no }
 		add_claim_of_target = yes
 	}
 	ROOT = { recheck_annexations = yes }
@@ -232,13 +326,14 @@ add_core_if_owned_else_add_claim = {
 	if = {
 		limit = {
 			OR = {
-				is_valid_annexation_state = yes
 				is_owned_by = var:tag_to_release
+				is_valid_annexation_state = yes
 			}
 		}
 		remove_claim_and_add_core_of_target = yes
 	}
-	else = {
+	else_if = {
+		limit = { is_claim_or_core_of_ROOT = no }
 		add_claim_of_target = yes
 	}
 	ROOT = { recheck_annexations = yes }
@@ -248,12 +343,23 @@ add_core_if_owned_else_add_claim = {
 add_core_or_claim_of_target_and_transfer_if_owned = {
 	if = {
 		limit = { has_state_flag = was_core_of_@var:tag_to_release }
-		add_core_of_target_and_transfer_if_owned = yes
 		clr_state_flag = was_core_of_@var:tag_to_release
+		add_core_of_target_and_transfer_if_owned = yes
 	}
-	else = {
+	else_if = {
+		limit = { is_claim_or_core_of_ROOT = no }
 		add_claim_of_target_and_transfer_if_owned = yes
 	}
+}
+
+# country scope = {
+set_transfer_target_cores = {
+	set_temp_variable = { transfer_target_@THIS = 1 }
+}
+
+# state scope = {
+set_transfer_target_state = {
+	set_temp_variable = { state_transfer_target_@THIS = 1 }
 }
 
 # global scope
@@ -277,6 +383,44 @@ remove_all_cores_and_claims_of_tags = {
 }
 
 # global scope
+transfer_targeted_territory = {
+	if = {
+		limit = { has_war = yes }
+		every_owned_state = {
+			limit = {
+				is_claim_or_core_of_ROOT = no
+				NOT = { has_state_flag = retain_state_@PREV }
+				NOT = { has_variable = retain_state_@THIS }
+				NOT = { has_state_flag = occupied_by_@PREV }
+				NOT = { has_variable = occupied_by_@THIS }
+				OR = {
+					has_variable = state_transfer_target_@THIS
+					any_country_with_core = { has_variable = transfer_target_@THIS }
+				}
+			}
+			transfer_state_without_overriding_occupation = yes
+		}
+	}
+	else = {
+		every_owned_state = {
+			limit = {
+				is_claim_or_core_of_ROOT = no
+				NOT = { has_state_flag = retain_state_@PREV }
+				NOT = { has_variable = retain_state_@THIS }
+				NOT = { has_state_flag = occupied_by_@PREV }
+				NOT = { has_variable = occupied_by_@THIS }
+				OR = {
+					has_variable = state_transfer_target_@THIS
+					any_country_with_core = { has_variable = transfer_target_@THIS }
+				}
+			}
+			transfer_state_to = var:tag_to_release
+		}
+	}
+	clear_retained_states = yes
+	recheck_annexations = yes
+}
+
 transfer_territory_from_core_regions = {
 	if = {
 		limit = { has_war = yes }
@@ -320,6 +464,7 @@ transfer_territory_from_core_regions = {
 			clr_state_flag = retain_state_@PREV
 		}
 	}
+	clear_retained_states = yes
 	recheck_annexations = yes
 }
 
@@ -369,6 +514,7 @@ transfer_territory_from_core_regions_and_add_claims = {
 			clr_state_flag = retain_state_@PREV
 		}
 	}
+	clear_retained_states = yes
 	recheck_annexations = yes
 }
 
@@ -418,6 +564,7 @@ transfer_territory_from_core_regions_and_add_cores = {
 			clr_state_flag = retain_state_@PREV
 		}
 	}
+	clear_retained_states = yes
 	recheck_annexations = yes
 }
 
@@ -464,19 +611,7 @@ release_targeted_tag_with_claims = {
 			transfer_state_to = var:tag_to_release
 		}
 	}
-	hidden_effect = {
-		every_owned_state = {
-			limit = {
-				OR = {
-					is_core_of = var:tag_to_release
-					is_claimed_by = var:tag_to_release
-				}
-				NOT = { has_state_flag = retain_state_@PREV }
-				NOT = { has_variable = retain_state_@THIS }
-			}
-			clr_state_flag = retain_state_@PREV
-		}
-	}
+	clear_retained_states = yes
 	puppet_released_tag = yes
 }
 
@@ -505,16 +640,7 @@ release_targeted_tag = {
 			transfer_state_to = var:tag_to_release
 		}
 	}
-	hidden_effect = {
-		every_owned_state = {
-			limit = {
-				is_core_of = var:tag_to_release
-				NOT = { has_state_flag = retain_state_@PREV }
-				NOT = { has_variable = retain_state_@THIS }
-			}
-			clr_state_flag = retain_state_@PREV
-		}
-	}
+	clear_retained_states = yes
 	puppet_released_tag = yes
 }
 
@@ -543,16 +669,7 @@ release_targeted_tag_nocosmetic = {
 			transfer_state_to = var:tag_to_release
 		}
 	}
-	hidden_effect = {
-		every_owned_state = {
-			limit = {
-				is_core_of = var:tag_to_release
-				NOT = { has_state_flag = retain_state_@PREV }
-				NOT = { has_variable = retain_state_@THIS }
-			}
-			clr_state_flag = retain_state_@PREV
-		}
-	}
+	clear_retained_states = yes
 	puppet_released_tag_nocosmetic = yes
 }
 
@@ -1091,7 +1208,7 @@ setup_romanian_puppet_leaders = {
 				has_country_leader = { name = "Carol II" ruling_only = yes }
 			}
 			create_country_leader = {
-				name = "Michael I"
+				name = "Mihai I"
 				desc = "POLITICS_MICHAEL_I_DESC"
 				picture = "gfx/leaders/ROM/Portrait_ROM_Michael_I.png"
 				expire = "1965.1.1"
@@ -1109,7 +1226,7 @@ setup_romanian_puppet_leaders = {
 		if = {
 			limit = {
 				has_government = national_populist
-				has_country_leader = { name = "Michael I" ruling_only = yes }
+				has_country_leader = { name = "Mihai I" ruling_only = yes }
 			}
 			create_country_leader = {
 				name = "Alexandru Cantacuzino"
