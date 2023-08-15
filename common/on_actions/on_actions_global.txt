@@ -551,6 +551,15 @@ on_actions = {
 				FROM.FROM = { rename_state_effect = yes }
 			}
 
+			### Annexation Check
+			if = {
+				limit = {
+					owns_state = FROM.FROM
+					FROM.FROM = { has_state_flag = annexation_trigger_state }
+				}
+				recheck_annexations = yes
+			}
+
 			### Operative Nationality Check
 			if = {
 				limit = {
@@ -561,21 +570,52 @@ on_actions = {
 				country_event = kr.political.209
 			}
 
-			### Fixing state control when occupying occupied territory
-			if = {
-				limit = {
-					FROM.FROM = {
-						owner = {
-							NOT = { tag = ROOT }
-							OR = {
-								is_in_faction_with = ROOT
-								is_subject_of = ROOT
-								has_subject = ROOT
+			### Integration Check
+			FROM.FROM = {
+				if = {
+					limit = {
+						NOT = { is_core_of = ROOT }
+						impassable = no
+					}
+					if = {
+						limit = {
+							any_country_with_core = {
+								has_variable = ROOT.can_integrate_@THIS
+								set_temp_variable = { integration_target = THIS }
 							}
 						}
+						if = {
+							limit = {
+								NOT = {
+									AND = {
+										has_resistance = yes
+										occupied = { has_variable = ROOT.can_integrate_@THIS }
+									}
+								}
+							}
+							if = {
+								limit = { has_resistance = yes }
+								set_temp_variable = { previous_compliance = compliance }
+								set_temp_variable = { previous_resistance = resistance }
+								cancel_resistance = yes
+							}
+							start_resistance = var:integration_target
+							set_compliance = var:previous_compliance
+							set_resistance = var:previous_resistance
+						}
+						ROOT = { var:integration_target = { set_occupation_law_where_available = territorial_integration } }
+					}
+					else_if = {
+						limit = { has_variable = can_integrate_@ROOT }
+						start_state_integration_resistance = yes
+					}
+					else = {
+						clear_state_integration_resistance = yes
 					}
 				}
-				FROM.FROM = { set_state_controller_to = owner }
+				else = {
+					clear_state_integration_resistance = yes
+				}
 			}
 
 			#Important countries for logalyzer
@@ -628,6 +668,11 @@ on_actions = {
 				}
 			}
 			recheck_annexations = yes
+
+			every_occupied_country = {
+				limit = { has_variable = ROOT.can_integrate_@THIS }
+				set_occupation_law_where_available = territorial_integration
+			}		
 		}
 	}
 
@@ -754,6 +799,18 @@ on_actions = {
 		effect = {
 			log = "[GetDateText] [Root.GetName] (ROOT) on_peaceconference_ended FROM = [From.GetName]"
 			
+			#Remove redundant wargoals
+			if = {
+				limit = { has_wargoal_against = FROM }
+				remove_wargoal = { target = FROM type = all }
+			}
+			FROM = {
+				if = {
+					limit = { has_wargoal_against = ROOT }
+					remove_wargoal = { target = ROOT type = all }
+				}
+			}
+
 			#post-PC data cleanup
 			if = {
 				limit = {
@@ -773,7 +830,7 @@ on_actions = {
 				every_country = { recheck_annexations = yes }
 			}
 
-				# Remove the force-surrender idea, just in case it's still there
+			# Remove the force-surrender idea, just in case it's still there
 			FROM = {
 				remove_ideas = ready_to_surrender
 			}
