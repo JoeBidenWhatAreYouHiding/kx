@@ -942,6 +942,4363 @@ country_event = { #Clique sides with us
 	}
 }
 
+news_event = { #Central Plains War
+	id = china_events.17
+	immediate = { log = "[GetLogInfo]: event china_events.17" }
+	title = china_events.17.t
+	desc = china_events.17.d #text set by scripted loc
+	picture = GFX_news_event_SIK_western_china
+
+	trigger = {
+		wants_world_news = yes
+	}
+
+	is_triggered_only = yes
+
+	major = yes
+	show_major = {
+		regional_asia_news = yes
+	}
+
+	option = {
+		name = china_events.17.a #text set by scripted loc
+	}
+}
+
+##############################
+### DEALING WITH OUTSKIRTS ###
+##############################
+
+country_event = { #MON/TIB/ETS: China demands our annexation
+	id = china_events.100
+	title = china_events.100.t
+
+	desc = {
+		text = china_events.100.d.independent
+		trigger = {
+			is_subject = no
+			OR = {
+				is_in_faction = no
+				is_faction_leader = yes
+			}
+			NOT = { has_event_target = abandoned_by_overlord }
+			NOT = { has_event_target = abandoned_by_allies }
+		}
+	}
+	desc = {
+		text = china_events.100.d.is_puppet
+		trigger = {
+			is_subject = yes
+		}
+	}
+	desc = {
+		text = china_events.100.d.was_puppet
+		trigger = {
+			has_event_target = abandoned_by_overlord
+		}
+	}
+	desc = {
+		text = china_events.100.d.is_in_faction
+		trigger = {
+			is_subject = no
+			is_in_faction = yes
+			is_faction_leader = no
+		}
+	}
+	desc = {
+		text = china_events.100.d.was_in_faction
+		trigger = {
+			has_event_target = abandoned_by_allies
+		}
+	}
+
+	picture = GFX_report_event_FNG_dairen
+
+	is_triggered_only = yes
+
+	immediate = {
+		hidden_effect = {
+			save_event_target_as = target_country
+			FROM = {
+				save_event_target_as = china
+				###Lookover this###
+				##if = {
+				##	limit = { has_completed_focus = CHI_unitary_state }
+				##	save_event_target_as = refused_autonomy
+				##}
+			}
+			if = {
+				limit = { any_owned_state = { is_core_china = yes } }
+				save_event_target_as = can_give_away_lands
+			}
+			RUS = { save_event_target_as = russia }
+			if = {
+				limit = {
+					count_triggers = {
+						amount = 2
+						NOT = { country_exists = BHC }
+						NOT = { country_exists = PRF }
+						NOT = { country_exists = DEH }
+					}
+				}
+				if = {
+					limit = { is_neighbor_of = BHC }
+					BHC = { save_event_target_as = india }
+				}
+				else_if = {
+					limit = { is_neighbor_of = DEH }
+					DEH = { save_event_target_as = india }
+				}
+				else_if = {
+					limit = { is_neighbor_of = PRF }
+					PRF = { save_event_target_as = india }
+				}
+			}
+		}
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.100 option china_events.100.a"
+		name = china_events.100.a #Accept
+		trigger = {
+			is_subject = no
+			OR = {
+				is_in_faction = no
+				is_faction_leader = yes
+			}
+			NOT = { is_guaranteed_by = event_target:russia }
+			NOT = { is_guaranteed_by = event_target:india }
+		}
+		ai_chance = {
+			base = 0
+			modifier = {
+				add = 100
+				has_event_target = abandoned_by_overlord #we give up
+			}
+		}
+		FROM = { country_event = { id = china_events.101 days = 1 } } #China: FROM surrenders
+		custom_effect_tooltip = GAME_OVER_TT
+		effect_tooltip = {
+			FROM = {
+				annex_country = {
+					target = ROOT
+					transfer_troops = no
+				}
+			}
+		}
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.100 option china_events.100.b"
+		name = china_events.100.b #Autonomy in exchange
+		trigger = {
+			is_subject = no
+			OR = {
+				is_in_faction = no
+				is_faction_leader = yes
+			}
+			NOT = { is_guaranteed_by = event_target:russia }
+			NOT = { is_guaranteed_by = event_target:india }
+		}
+		FROM = { country_event = { id = china_events.102 days = 1 } } #China: FROM demands autonomy
+		custom_effect_tooltip = if_they_accept_tt
+		effect_tooltip = {
+			every_subject_country = {
+				FROM = { puppet = PREV }
+			}
+			FROM = {
+				set_autonomy = {
+					target = ROOT
+					autonomy_state = kr_autonomous_puppet
+				}
+			}
+		}
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.100 option china_events.100.c"
+		name = china_events.100.c #Lands in exchange for independence
+		trigger = {
+			has_event_target = can_give_away_lands
+			is_subject = no
+			OR = {
+				is_in_faction = no
+				is_faction_leader = yes
+			}
+			NOT = { is_guaranteed_by = event_target:russia }
+			NOT = { is_guaranteed_by = event_target:india }
+		}
+		FROM = { country_event = { id = china_events.107 days = 1 } } #China: FROM offers Han lands in exchange for independence
+		custom_effect_tooltip = if_they_accept_tt
+		effect_tooltip = {
+			every_owned_state = {
+				limit = { is_core_china = yes }
+				transfer_state_to = FROM
+			}
+			set_truce = { target = FROM days = 1095 }
+			diplomatic_relation = {
+				country = FROM
+				relation = non_aggression_pact
+			}
+		}
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.100 option china_events.100.d"
+		name = china_events.100.d #Ask Russia for protection
+		trigger = {
+			is_subject = no
+			OR = {
+				is_in_faction = no
+				is_faction_leader = yes
+			}
+			has_event_target = russia
+			OR = {
+				china_russia_can_protect_country = yes
+				is_guaranteed_by = event_target:russia
+			}
+		}
+		event_target:russia = { country_event = { id = china_events.110 days = 1 } } #RUS/BHC/DEH/PRF: FROM asks for protection against China
+		if = {
+			limit = {
+				has_socialist_government = no
+				event_target:russia = { has_socialist_government = yes }
+			}
+			custom_effect_tooltip = china_country_may_demand_regime_change
+		}
+		custom_effect_tooltip = if_they_accept_tt
+		effect_tooltip = {
+			if = {
+				limit = { event_target:russia = { is_in_faction = yes } }
+				var:event_target:russia.faction_leader = { add_to_faction = ROOT }
+			}
+			else = {
+				event_target:russia = {
+					give_guarantee = FROM
+					diplomatic_relation = {
+						country = FROM
+						relation = non_aggression_pact
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.100 option china_events.100.e"
+		name = china_events.100.e #Ask India for protection
+		trigger = {
+			is_subject = no
+			OR = {
+				is_in_faction = no
+				is_faction_leader = yes
+			}
+			has_event_target = india
+			OR = {
+				china_india_can_protect_country = yes
+				is_guaranteed_by = event_target:india
+			}
+		}
+		event_target:india = { country_event = { id = china_events.110 days = 1 } } #RUS/BHC/DEH/PRF: FROM asks for protection against China
+		if = {
+			limit = {
+				has_socialist_government = no
+				event_target:russia = { has_socialist_government = yes }
+			}
+			custom_effect_tooltip = china_country_may_demand_regime_change
+		}
+		custom_effect_tooltip = if_they_accept_tt
+		effect_tooltip = {
+			if = {
+				limit = { event_target:india = { is_in_faction = yes } }
+				var:event_target:india.faction_leader = { add_to_faction = ROOT }
+			}
+			else = {
+				event_target:india = {
+					give_guarantee = FROM
+					diplomatic_relation = {
+						country = FROM
+						relation = non_aggression_pact
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.100 option china_events.100.f"
+		name = china_events.100.f #Refuse
+		trigger = {
+			is_subject = no
+			OR = {
+				is_in_faction = no
+				is_faction_leader = yes
+			}
+			NOT = { is_guaranteed_by = event_target:russia }
+			NOT = { is_guaranteed_by = event_target:india }
+		}
+		ai_chance = { base = 0 }
+		FROM = {
+			effect_tooltip = {
+				create_wargoal = {
+					target = ROOT
+					type = annex_everything
+				}
+			}
+			country_event = china_events.118 #China: FROM refuses annexation
+		}
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.100 option china_events.100.g"
+		name = china_events.100.g #Ask overlord to intervene
+		trigger = {
+			is_subject = yes
+		}
+		overlord = { country_event = { id = china_events.119 days = 1 } } #Overlord/faction leader of MON/TIB/ETS: China demands annexation of FROM
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.100 option china_events.100.h"
+		name = china_events.100.h #Ask faction leader to intervene
+		trigger = {
+			is_subject = no
+			is_in_faction = yes
+			is_faction_leader = no
+		}
+		faction_leader = { country_event = { id = china_events.119 days = 1 } } #Overlord/faction leader of MON/TIB/ETS: China demands annexation of FROM
+	}
+}
+
+country_event = { #China: FROM surrenders
+	id = china_events.101
+	title = china_events.101.t
+	desc = china_events.101.d
+
+	trigger = {
+		NOT = { has_war_with = FROM }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.101 option china_events.101.a"
+		name = china_events.101.a
+		annex_country = {
+			target = FROM
+			transfer_troops = no
+		}
+	}
+}
+
+country_event = { #China: FROM demands autonomy
+	id = china_events.102
+	title = china_events.102.t
+	desc = china_events.102.d
+	picture = GFX_report_event_MON_monastery
+
+	trigger = {
+		NOT = { has_war_with = FROM }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.102 option china_events.102.a"
+		name = china_events.102.a #Yes
+		effect_tooltip = {
+			FROM = {
+				every_subject_country = { ROOT = { puppet = PREV } }
+			}
+			set_autonomy = {
+				target = FROM
+				autonomy_state = kr_autonomous_puppet
+			}
+		}
+		FROM = { country_event = { id = china_events.103 days = 1 } } #MON/TIB/ETS: China accepts autonomy
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.102 option china_events.102.b"
+		name = china_events.102.b #Demand the return of Han lands in exchange
+		trigger = {
+			has_event_target = can_give_away_lands
+		}
+		FROM = { country_event = { id = china_events.104 days = 1 } } #MON/TIB/ETS: China wants Han lands
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.102 option china_events.102.c"
+		name = china_events.102.c #No
+		save_event_target_as = refused_autonomy
+		if = {
+			limit = { has_event_target = refused_lands }
+			FROM = { custom_effect_tooltip = china_gets_event_109_from_china_refused_both } #MON/TIB/ETS: repeating event to exhaust options
+		}
+		else = {
+			FROM = { custom_effect_tooltip = china_gets_event_109_from_china_refused_autonomy } #MON/TIB/ETS: repeating event to exhaust options
+		}
+		hidden_effect = {
+			FROM = { country_event = { id = china_events.109 days = 1 tooltip = china_gets_event_109_from_china_refused_autonomy } } #MON/TIB/ETS: repeating event to exhaust options
+		}
+	}
+}
+
+country_event = { #MON/TIB/ETS: China accepts autonomy
+	id = china_events.103
+	title = china_events.103.t
+
+	desc = {
+		text = china_events.103.d.default
+		trigger = { NOT = { has_event_target = refused_lands } }
+	}
+	desc = {
+		text = china_events.103.d.kept_lands
+		trigger = { has_event_target = refused_lands }
+	}
+
+	picture = GFX_report_event_TIB_army_3
+
+	trigger = {
+		NOT = { has_war_with = FROM }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.103 option china_events.103.a"
+		name = china_events.103.a
+		hidden_effect = {
+			every_subject_country = {
+				get_current_government_type = yes
+				FROM = {
+					set_autonomy = {
+						target = PREV
+						autonomy_state = kr_default_puppet
+						end_wars = no
+					}
+				}
+				restore_previous_government_type = yes
+			}
+			get_current_government_type = yes
+		}
+		FROM = {
+			set_autonomy = {
+				target = PREV
+				autonomy_state = kr_autonomous_puppet
+				end_wars = no
+			}
+		}
+		hidden_effect = { restore_previous_government_type = yes }
+	}
+}
+
+country_event = { #MON/TIB/ETS: China wants Han lands
+	id = china_events.104
+	title = china_events.104.t
+	desc = china_events.104.d
+	picture = GFX_report_event_TIB_army
+
+	trigger = {
+		NOT = { has_war_with = FROM }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.104 option china_events.104.a"
+		name = china_events.104.a #Yes
+		effect_tooltip = {
+			every_owned_state = {
+				limit = { is_core_china = yes }
+				transfer_state_to = FROM
+			}
+		}
+		FROM = {
+			effect_tooltip = {
+				set_autonomy = {
+					target = PREV
+					autonomy_state = kr_autonomous_puppet
+				}
+			}
+			country_event = china_events.105 #China: FROM returns lands
+		}
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.104 option china_events.104.b"
+		name = china_events.104.b #No
+		save_event_target_as = refused_lands
+		FROM = { country_event = { id = china_events.106 days = 1 } } #China: FROM refuses to return lands
+	}
+}
+
+country_event = { #China: FROM returns lands
+	id = china_events.105
+	title = china_events.105.t
+	desc = china_events.105.d
+	picture = GFX_report_event_FNG_colonel
+
+	trigger = {
+		NOT = { has_war_with = FROM }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.105 option china_events.105.a"
+		name = china_events.105.a #Yes
+		FROM = {
+			every_owned_state = {
+				limit = { is_core_china = yes }
+				transfer_state_to = ROOT
+			}
+			hidden_effect = { get_current_government_type = yes }
+		}
+		set_autonomy = {
+			target = FROM
+			autonomy_state = kr_autonomous_puppet
+			end_wars = no
+		}
+		hidden_effect = {
+			FROM = { restore_previous_government_type = yes }
+		}
+	}
+}
+
+country_event = { #China: FROM refuses to return lands
+	id = china_events.106
+	title = china_events.106.t
+	desc = china_events.106.d
+	picture = GFX_report_event_FNG_kempeitai
+
+	trigger = {
+		NOT = { has_war_with = FROM }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.106 option china_events.106.a"
+		name = china_events.106.a #Agree to autonomy
+		effect_tooltip = {
+			FROM = {
+				every_subject_country = {
+					ROOT = {
+						set_autonomy = {
+							target = PREV
+							autonomy_state = kr_default_puppet
+							end_wars = no
+						}
+					}
+				}
+			}
+			set_autonomy = {
+				target = FROM
+				autonomy_state = kr_autonomous_puppet
+				end_wars = no
+			}
+		}
+		FROM = { country_event = { id = china_events.103 days = 1 } } #MON/TIB/ETS: China accepts autonomy
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.106 option china_events.106.b"
+		name = china_events.106.b #Refuse
+		if = {
+			limit = {
+				OR = {
+					event_target:target_country = { china_russia_can_protect_country = yes }
+					event_target:target_country = { china_india_can_protect_country = yes }
+				}
+			}
+			custom_effect_tooltip = china_from_may_seek_foreign_protection
+		}
+		save_event_target_as = refused_lands
+		save_event_target_as = refused_autonomy
+		FROM = {
+			custom_effect_tooltip = china_gets_event_109_from_china_refused_both
+			hidden_effect = { country_event = { id = china_events.109 days = 1 } } #MON/TIB/ETS: repeating event to exhaust options
+		}
+	}
+}
+
+country_event = { #China: FROM offers Han lands in exchange for independence
+	id = china_events.107
+	title = china_events.107.t
+	desc = china_events.107.d
+	picture = GFX_report_event_ETS_founding_nation
+
+	trigger = {
+		NOT = { has_war_with = FROM }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.107 option china_events.107.a"
+		name = china_events.107.a #Agree
+		effect_tooltip = {
+			FROM = {
+				every_owned_state = {
+					limit = { is_core_china = yes }
+					transfer_state_to = ROOT
+				}
+			}
+			set_truce = { target = ROOT days = 1095 }
+			diplomatic_relation = {
+				country = FROM
+				relation = non_aggression_pact
+			}
+		}
+		FROM = { country_event = { id = china_events.108 days = 1 } } #MON/TIB/ETS: Lands for independence
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.107 option china_events.107.b"
+		name = china_events.107.b #Refuse
+		if = {
+			limit = {
+				OR = {
+					event_target:target_country = { china_russia_can_protect_country = yes }
+					event_target:target_country = { china_india_can_protect_country = yes }
+				}
+			}
+			custom_effect_tooltip = china_from_may_seek_foreign_protection
+		}
+		save_event_target_as = refused_lands
+		if = {
+			limit = { has_event_target = refused_autonomy }
+			FROM = { custom_effect_tooltip = china_gets_event_109_from_china_refused_both }
+		}
+		else = {
+			FROM = { custom_effect_tooltip = china_gets_event_109_from_china_refused_lands } #MON/TIB/ETS: repeating event to exhaust options
+		}
+		hidden_effect = {
+			FROM = { country_event = { id = china_events.109 days = 1 } } #MON/TIB/ETS: repeating event to exhaust options
+		}
+	}
+}
+
+country_event = { #MON/TIB/ETS: Lands for independence
+	id = china_events.108
+	title = china_events.108.t
+	desc = china_events.108.d
+	picture = GFX_report_event_ETS_declaration
+
+	trigger = {
+		NOT = { has_war_with = FROM }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.108 option china_events.108.a"
+		name = china_events.108.a
+		every_owned_state = {
+			limit = { is_core_china = yes }
+			transfer_state_to = FROM
+		}
+		set_truce = { target = ROOT days = 1095 }
+		diplomatic_relation = {
+			country = FROM
+			relation = non_aggression_pact
+		}
+	}
+}
+
+country_event = { #MON/TIB/ETS: repeating event to exhaust options
+	id = china_events.109
+
+	title = {
+		text = china_events.109.t.from_russia
+		trigger = { FROM = { tag = event_target:russia } }
+	}
+	title = {
+		text = china_events.109.t.from_india
+		trigger = { FROM = { tag = event_target:india } }
+	}
+	title = {
+		text = china_events.109.t.from_china_refused_autonomy
+		trigger = {
+			FROM = {
+				NOT = { tag = event_target:russia }
+				NOT = { tag = event_target:india }
+			}
+			has_event_target = refused_autonomy
+			NOT = { has_event_target = refused_lands }
+		}
+	}
+	title = {
+		text = china_events.109.t.from_china_refused_lands
+		trigger = {
+			FROM = {
+				NOT = { tag = event_target:russia }
+				NOT = { tag = event_target:india }
+			}
+			has_event_target = refused_lands
+			NOT = { has_event_target = refused_autonomy }
+		}
+	}
+	title = {
+		text = china_events.109.t.from_china_refused_both
+		trigger = {
+			FROM = {
+				NOT = { tag = event_target:russia }
+				NOT = { tag = event_target:india }
+			}
+			has_event_target = refused_autonomy
+			has_event_target = refused_lands
+		}
+	}
+
+	desc = {
+		text = china_events.109.d.from_russia
+		trigger = { FROM = { tag = event_target:russia } }
+	}
+	desc = {
+		text = china_events.109.d.from_india
+		trigger = { FROM = { tag = event_target:india } }
+	}
+	desc = {
+		text = china_events.109.d.from_china_refused_autonomy
+		trigger = {
+			FROM = {
+				NOT = { tag = event_target:russia }
+				NOT = { tag = event_target:india }
+			}
+			has_event_target = refused_autonomy
+			NOT = { has_event_target = refused_lands }
+		}
+	}
+	desc = {
+		text = china_events.109.d.from_china_refused_lands
+		trigger = {
+			FROM = {
+				NOT = { tag = event_target:russia }
+				NOT = { tag = event_target:india }
+			}
+			has_event_target = refused_lands
+			NOT = { has_event_target = refused_autonomy }
+		}
+	}
+	desc = {
+		text = china_events.109.d.from_china_refused_both
+		trigger = {
+			FROM = {
+				NOT = { tag = event_target:russia }
+				NOT = { tag = event_target:india }
+			}
+			has_event_target = refused_autonomy
+			has_event_target = refused_lands
+		}
+	}
+
+	picture = GFX_report_event_MON_army2
+
+	is_triggered_only = yes
+
+	trigger = {
+		NOT = { has_war_with = event_target:china }
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.109 option china_events.109.a"
+		name = china_events.109.a #Surrender
+		ai_chance = { base = 0 }
+		event_target:china = { country_event = { id = china_events.101 days = 1 } } #China: FROM surrenders
+		custom_effect_tooltip = GAME_OVER_TT
+		effect_tooltip = {
+			event_target:china = {
+				annex_country = {
+					target = ROOT
+					transfer_troops = no
+				}
+			}
+		}
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.109 option china_events.109.b"
+		name = china_events.109.b #Autonomy in exchange
+		trigger = {
+			NOT = { has_event_target = refused_autonomy }
+		}
+		event_target:china = { country_event = { id = china_events.102 days = 1 } } #China: FROM demands autonomy
+		custom_effect_tooltip = if_they_accept_tt
+		effect_tooltip = {
+			every_subject_country = {
+				event_target:china = { puppet = PREV }
+			}
+			event_target:china = {
+				set_autonomy = {
+					target = ROOT
+					autonomy_state = kr_autonomous_puppet
+				}
+			}
+		}
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.109 option china_events.109.c"
+		name = china_events.109.c #Lands in exchange for independence
+		trigger = {
+			has_event_target = can_give_away_lands
+			NOT = { has_event_target = refused_lands }
+		}
+		event_target:china = { country_event = { id = china_events.107 days = 1 } } #China: FROM offers Han lands in exchange for independence
+		custom_effect_tooltip = if_they_accept_tt
+		effect_tooltip = {
+			every_owned_state = {
+				limit = { is_core_china = yes }
+				transfer_state_to = event_target:china
+			}
+			set_truce = { target = event_target:china days = 1095 }
+			diplomatic_relation = {
+				country = event_target:china
+				relation = non_aggression_pact
+			}
+		}
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.109 option china_events.109.d"
+		name = china_events.109.d #Ask Russia for protection
+		trigger = {
+			NOT = { has_event_target = refused_russia }
+			has_event_target = russia
+			OR = {
+				china_russia_can_protect_country = yes
+				event_target:russia = { has_guaranteed = ROOT }
+			}
+		}
+		event_target:russia = { country_event = { id = china_events.110 days = 1 } } #RUS/BHC/DEH/PRF: FROM asks for protection against China
+		if = {
+			limit = {
+				has_socialist_government = no
+				event_target:russia = { has_socialist_government = yes }
+			}
+			custom_effect_tooltip = china_country_may_demand_regime_change
+		}
+		custom_effect_tooltip = if_they_accept_tt
+		effect_tooltip = {
+			if = {
+				limit = { event_target:russia = { is_in_faction = yes } }
+				var:event_target:russia.faction_leader = { add_to_faction = ROOT }
+			}
+			else = {
+				event_target:russia = {
+					give_guarantee = ROOT
+					diplomatic_relation = {
+						country = ROOT
+						relation = non_aggression_pact
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.109 option china_events.109.e"
+		name = china_events.109.e #Ask India for protection
+		trigger = {
+			NOT = { has_event_target = refused_india }
+			has_event_target = india
+			OR = {
+				china_india_can_protect_country = yes
+				event_target:india = { has_guaranteed = ROOT }
+			}
+		}
+		event_target:india = { country_event = { id = china_events.110 days = 1 } } #RUS/BHC/DEH/PRF: FROM asks for protection against China
+		if = {
+			limit = {
+				has_socialist_government = no
+				event_target:russia = { has_socialist_government = yes }
+			}
+			custom_effect_tooltip = china_country_may_demand_regime_change
+		}
+		custom_effect_tooltip = if_they_accept_tt
+		effect_tooltip = {
+			if = {
+				limit = { event_target:india = { is_in_faction = yes } }
+				var:event_target:india.faction_leader = { add_to_faction = ROOT }
+			}
+			else = {
+				event_target:india = {
+					give_guarantee = ROOT
+					diplomatic_relation = {
+						country = ROOT
+						relation = non_aggression_pact
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.109 option china_events.109.f"
+		name = china_events.109.f #Refuse
+		event_target:china = {
+			effect_tooltip = {
+				create_wargoal = {
+					target = ROOT
+					type = annex_everything
+				}
+			}
+			country_event = china_events.118 #China: FROM refuses annexation
+		}
+	}
+}
+
+country_event = { #RUS/BHC/DEH/PRF: FROM asks for protection against China
+	id = china_events.110
+	title = china_events.110.t
+	picture = GFX_report_event_SIK_uyghur_family
+	desc = {
+		text = china_events.110.d.russia_already_guaranteed
+		trigger = {
+			has_guaranteed = FROM
+			is_russian_tag = yes
+		}
+	}
+	desc = {
+		text = china_events.110.d.russia
+		trigger = {
+			NOT = { has_guaranteed = FROM }
+			is_russian_tag = yes
+		}
+	}
+	desc = {
+		text = china_events.110.d.india_already_guaranteed
+		trigger = {
+			has_guaranteed = FROM
+			is_russian_tag = no
+		}
+	}
+	desc = {
+		text = china_events.110.d.india
+		trigger = {
+			NOT = { has_guaranteed = FROM }
+			is_russian_tag = no
+		}
+	}
+
+	trigger = {
+		NOT = { has_war_with = FROM }
+		NOT = { FROM = { has_war_with = event_target:china } }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.110 option china_events.110.a"
+		name = china_events.110.a #Already guaranteed
+		trigger = {
+			has_guaranteed = FROM
+		}
+		effect_tooltip = {
+			if = {
+				limit = { is_in_faction = yes }
+				faction_leader = { add_to_faction = FROM }
+			}
+			else = {
+				diplomatic_relation = {
+					country = FROM
+					relation = non_aggression_pact
+				}
+			}
+		}
+		FROM = { country_event = { id = china_events.111 days = 1 } } #MON/TIB/ETS: FROM agrees to protect us against China
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.110 option china_events.110.b"
+		name = china_events.110.b #Yes
+		trigger = {
+			NOT = { has_guaranteed = FROM }
+			OR = {
+				has_socialist_government = no
+				FROM = { has_socialist_government = yes }
+			}
+		}
+		ai_chance = {
+			modifier = {
+				factor = 0
+				OR = {
+					surrender_progress > 0.05
+					AND = {
+						OR = {
+							is_russian_tag = yes
+							is_in_faction_with = RUS
+							is_in_faction_with = INT
+						}
+						GER = { exists = yes }
+					}
+					AND = {
+						OR = {
+							is_in_faction_with = ENT
+							is_in_faction_with = GER
+						}
+						INT = { exists = yes }
+					}
+				}
+			}
+		}
+		effect_tooltip = {
+			if = {
+				limit = { is_in_faction = yes }
+				faction_leader = { add_to_faction = FROM }
+			}
+			else = {
+				give_guarantee = FROM
+				diplomatic_relation = {
+					country = FROM
+					relation = non_aggression_pact
+				}
+			}
+		}
+		FROM = { country_event = { id = china_events.111 days = 1 } } #MON/TIB/ETS: FROM agrees to protect us against China
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.110 option china_events.110.c"
+		name = china_events.110.c #Demand regime change
+		trigger = {
+			NOT = { has_guaranteed = FROM }
+			has_socialist_government = yes
+			FROM = { has_socialist_government = no }
+		}
+		ai_chance = {
+			modifier = {
+				factor = 0
+				OR = {
+					surrender_progress > 0.05
+					AND = {
+						OR = {
+							is_russian_tag = yes
+							is_in_faction_with = RUS
+							is_in_faction_with = INT
+						}
+						GER = { exists = yes }
+					}
+					AND = {
+						OR = {
+							is_in_faction_with = ENT
+							is_in_faction_with = GER
+						}
+						INT = { exists = yes }
+					}
+				}
+			}
+		}
+		FROM = { country_event = { id = china_events.115 days = 1 } } #MON/TIB/ETS: FROM wants regime change in exchange for protection
+		custom_effect_tooltip = if_they_accept_tt
+		effect_tooltip = { puppet = FROM }
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.110 option china_events.110.d"
+		name = china_events.110.d #No
+		trigger = {
+			NOT = { has_guaranteed = FROM }
+		}
+		if = {
+			limit = { has_guaranteed = FROM }
+			diplomatic_relation = {
+				country = FROM
+				relation = guarantee
+				active = no
+			}
+		}
+		if = {
+			limit = { has_military_access_to = FROM }
+			diplomatic_relation = {
+				country = FROM
+				relation = military_access
+				active = no
+			}
+		}
+		if = {
+			limit = { is_russian_tag = yes }
+			save_event_target_as = refused_russia
+			FROM = { custom_effect_tooltip = china_gets_event_109_from_russia }
+		}
+		else = {
+			save_event_target_as = refused_india
+			FROM = { custom_effect_tooltip = china_gets_event_109_from_india }
+		}
+		hidden_effect = {
+			FROM = { country_event = { id = china_events.109 days = 1 } } #MON/TIB/ETS: repeating event to exhaust options
+		}
+	}
+}
+
+country_event = { #MON/TIB/ETS: FROM agrees to protect us against China
+	id = china_events.111
+	title = china_events.111.t
+	picture = GFX_report_event_SIK_mongols
+	desc = {
+		text = china_events.111.d.russia
+		trigger = { FROM = { is_russian_tag = yes } }
+	}
+	desc = {
+		text = china_events.111.d.india
+		trigger = { FROM = { is_russian_tag = no } }
+	}
+
+	trigger = {
+		NOT = { has_war_with = FROM }
+		NOT = { has_war_with = event_target:china }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.111 option china_events.111.a"
+		name = china_events.111.a #Yes
+		FROM = {
+			if = {
+				limit = { is_in_faction = yes }
+				faction_leader = { add_to_faction = ROOT }
+			}
+			else = {
+				give_guarantee = ROOT
+				diplomatic_relation = {
+					country = ROOT
+					relation = non_aggression_pact
+				}
+			}
+		}
+		event_target:china = { country_event = { id = china_events.112 days = 1 } } #China: Russia/India protects FROM
+	}
+}
+
+country_event = { #China: Russia/India protects FROM
+	id = china_events.112
+	title = china_events.112.t
+	picture = GFX_report_event_RUS_army4
+	desc = {
+		text = china_events.112.d.russia
+		trigger = { FROM.FROM = { is_russian_tag = yes } }
+	}
+	desc = {
+		text = china_events.112.d.india
+		trigger = { FROM.FROM = { is_russian_tag = no } }
+	}
+
+	trigger = {
+		NOT = { has_war_with = FROM }
+		NOT = { has_war_with = FROM.FROM }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.112 option china_events.112.a"
+		name = china_events.112.a #Back down
+		FROM = {
+			effect_tooltip = {
+				set_truce = { target = ROOT days = 1095 }
+				diplomatic_relation = {
+					country = ROOT
+					relation = non_aggression_pact
+				}
+			}
+			country_event = china_events.113 #MON/ETS/TIB/RUS/BHC/DEH/PRF: China backs down
+		}
+		FROM.FROM = {
+			effect_tooltip = {
+				set_truce = { target = ROOT days = 1095 }
+				diplomatic_relation = {
+					country = ROOT
+					relation = non_aggression_pact
+				}
+			}
+			country_event = china_events.113 #MON/ETS/TIB/RUS/BHC/DEH/PRF: China backs down
+		}
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.112 option china_events.112.b"
+		name = china_events.112.b #War
+		create_wargoal = {
+			target = FROM
+			type = annex_everything
+		}
+		FROM = { country_event = { id = china_events.114 days = 1 } } #MON/ETS/TIB/RUS/BHC/DEH/PRF: China prepares for war
+		FROM.FROM = { country_event = { id = china_events.114 days = 1 } } #MON/ETS/TIB/RUS/BHC/DEH/PRF: China prepares for war
+	}
+}
+
+country_event = { #MON/ETS/TIB/RUS/BHC/DEH/PRF: China backs down
+	id = china_events.113
+	title = china_events.113.t
+	desc = china_events.113.d
+	picture = GFX_report_event_HND_soldiers
+	trigger = {
+		NOT = { has_war_with = FROM }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.113 option china_events.113.a"
+		name = china_events.113.a
+		add_political_power = 25
+		set_truce = { target = FROM days = 1095 }
+		diplomatic_relation = {
+			country = FROM
+			relation = non_aggression_pact
+		}
+	}
+}
+
+country_event = { #MON/ETS/TIB/RUS/BHC/DEH/PRF: China prepares for war
+	id = china_events.114
+	title = china_events.114.t
+	desc = china_events.114.d
+	picture = GFX_report_event_QIE_imperial_guard
+	trigger = {
+		NOT = { has_war_with = FROM }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.114 option china_events.114.a"
+		name = china_events.114.a
+		effect_tooltip = {
+			event_target:china = {
+				create_wargoal = {
+					target = event_target:target_country
+					type = annex_everything
+				}
+			}
+		}
+	}
+}
+
+country_event = { #MON/TIB/ETS: FROM wants regime change in exchange for protection
+	id = china_events.115
+	title = china_events.115.t
+	picture = GFX_report_event_ETS_declaration
+	desc = {
+		text = china_events.115.d.russia
+		trigger = { FROM = { is_russian_tag = yes } }
+	}
+	desc = {
+		text = china_events.115.d.india
+		trigger = { FROM = { is_russian_tag = no } }
+	}
+
+	trigger = {
+		NOT = { has_war_with = FROM }
+		NOT = { has_war_with = event_target:china }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.115 option china_events.115.a"
+		name = china_events.115.a #Yes
+		FROM = {
+			puppet = ROOT
+			country_event = china_events.116 #RUS/BHC/DEH/PRF: FROM accepts regime change
+		}
+		event_target:china = { country_event = { id = china_events.112 days = 1 } } #China: Russia/India protects FROM
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.115 option china_events.115.b"
+		name = china_events.115.b #No
+		if = {
+			limit = { FROM = { is_russian_tag = yes } }
+			save_event_target_as = refused_russia
+		}
+		else = {
+			save_event_target_as = refused_india
+		}
+		FROM = { country_event = { id = china_events.117 days = 1 } } #RUS/BHC/DEH/PRF: FROM refuses regime change
+	}
+}
+
+country_event = { #RUS/BHC/DEH/PRF: FROM accepts regime change
+	id = china_events.116
+	title = china_events.116.t
+	desc = china_events.116.d
+	picture = GFX_report_event_SIK_town
+	trigger = {
+		NOT = { has_war_with = FROM }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.116 option china_events.116.a"
+		name = china_events.116.a
+		effect_tooltip = { puppet = FROM }
+	}
+}
+
+country_event = { #RUS/BHC/DEH/PRF: FROM refuses regime change
+	id = china_events.117
+	title = china_events.117.t
+	desc = china_events.117.d
+	picture = GFX_report_event_KUM_silk_gate
+	trigger = {
+		NOT = { has_war_with = FROM }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.117 option china_events.117.a"
+		name = china_events.117.a
+		if = {
+			limit = { is_russian_tag = yes }
+			save_event_target_as = refused_russia
+		}
+		else = {
+			save_event_target_as = refused_india
+		}
+		if = {
+			limit = { has_guaranteed = FROM }
+			diplomatic_relation = {
+				country = FROM
+				relation = guarantee
+				active = no
+			}
+		}
+		if = {
+			limit = { has_military_access_to = FROM }
+			diplomatic_relation = {
+				country = FROM
+				relation = military_access
+				active = no
+			}
+		}
+		FROM = { country_event = { id = china_events.109 days = 1 } } #MON/TIB/ETS: repeating event to exhaust options
+	}
+}
+
+country_event = { #China: FROM refuses annexation
+	id = china_events.118
+	title = china_events.118.t
+	desc = china_events.118.d
+	picture = GFX_report_event_KUM_kumul_rebellion
+	trigger = {
+		NOT = { has_war_with = FROM }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.118 option china_events.118.a"
+		name = china_events.118.a
+		create_wargoal = {
+			target = FROM
+			type = annex_everything
+		}
+	}
+}
+
+country_event = { #Overlord/faction leader of MON/TIB/ETS: China demands annexation of FROM
+	id = china_events.119
+	title = china_events.119.t
+	picture = GFX_report_event_QIE_american_merc_trainer
+	desc = {
+		text = china_events.119.d.faction_leader_can_give_lands
+		trigger = {
+			is_faction_leader = yes
+			has_event_target = can_give_away_lands
+		}
+	}
+	desc = {
+		text = china_events.119.d.faction_leader_default
+		trigger = {
+			is_faction_leader = yes
+			NOT = { has_event_target = can_give_away_lands }
+		}
+	}
+	desc = {
+		text = china_events.119.d.overlord_not_in_faction_can_give_lands
+		trigger = {
+			is_in_faction = yes
+			is_faction_leader = no
+			has_event_target = can_give_away_lands
+		}
+	}
+	desc = {
+		text = china_events.119.d.overlord_not_in_faction
+		trigger = {
+			is_in_faction = yes
+			is_faction_leader = no
+			NOT = { has_event_target = can_give_away_lands }
+		}
+	}
+	desc = {
+		text = china_events.119.d.overlord_in_faction_can_give_lands
+		trigger = {
+			is_in_faction = no
+			has_event_target = can_give_away_lands
+		}
+	}
+	desc = {
+		text = china_events.119.d.overlord_in_faction
+		trigger = {
+			is_in_faction = no
+			NOT = { has_event_target = can_give_away_lands }
+		}
+	}
+
+	trigger = {
+		NOT = { has_war_with = event_target:china }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.119 option china_events.119.a"
+		name = china_events.119.a #Protect
+		trigger = {
+			OR = {
+				is_in_faction = no
+				is_faction_leader = yes
+			}
+		}
+		FROM = { country_event = { id = china_events.120 days = 1 } } #MON/TIB/ETS: Faction leader protects us
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.119 option china_events.119.b"
+		name = china_events.119.b #Overlord in faction: ask faction leader for support
+		trigger = {
+			is_in_faction = yes
+			is_faction_leader = no
+		}
+		faction_leader = { country_event = { id = china_events.124 days = 1 } } #Faction leader of MON/ETS/TIB overlord: FROM asks for support
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.119 option china_events.119.c"
+		name = china_events.119.c #Compromise: lands for independence
+		trigger = {
+			has_event_target = can_give_away_lands
+		}
+		FROM = { country_event = { id = china_events.128 days = 1 } } #MON/ETS/TIB: Overlord/faction leader asks to compromise
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.119 option china_events.119.d"
+		name = china_events.119.d #Abandon
+		FROM = {
+			effect_tooltip = { remove_puppet_and_leave_faction = yes }
+			country_event = china_events.135 #MON/TIB/ETS: Faction leader/overlord abandons country
+		}
+	}
+}
+
+country_event = { #MON/TIB/ETS: Faction leader protects us
+	id = china_events.120
+	title = china_events.120.t
+	picture = GFX_report_event_RUS_speech
+	desc = {
+		text = china_events.120.d.default
+		trigger = { NOT = { has_event_target = refused_lands } }
+	}
+	desc = {
+		text = china_events.120.d.refused_lands
+		trigger = { has_event_target = refused_lands }
+	}
+
+	trigger = {
+		NOT = { has_war_with = event_target:china }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.120 option china_events.120.a"
+		name = china_events.120.a
+		event_target:china = { country_event = { id = china_events.121 days = 1 } } #China: Overlord/faction leader protects FROM
+	}
+}
+
+country_event = { #China: Overlord/faction leader protects FROM
+	id = china_events.121
+	title = china_events.121.t
+	picture = GFX_report_event_RUS_cossacks_3
+	desc = {
+		text = china_events.121.d.overlord
+		trigger = {
+			FROM = {
+				is_subject = yes
+				overlord = { is_in_faction = no }
+			}
+			NOT = { has_event_target = refused_to_protect_ally }
+			NOT = { has_event_target = refused_lands }
+		}
+	}
+	desc = {
+		text = china_events.121.d.overlord_refused_lands
+		trigger = {
+			FROM = {
+				is_subject = yes
+				overlord = { is_in_faction = no }
+			}
+			NOT = { has_event_target = refused_to_protect_ally }
+			has_event_target = refused_lands
+		}
+	}
+	desc = {
+		text = china_events.121.d.overlord_abandoned_by_allies
+		trigger = {
+			FROM = {
+				is_subject = yes
+				overlord = { is_in_faction = no }
+			}
+			has_event_target = refused_to_protect_ally
+			NOT = { has_event_target = refused_lands }
+		}
+	}
+	desc = {
+		text = china_events.121.d.overlord_refused_lands_abandoned_by_allies
+		trigger = {
+			FROM = {
+				is_subject = yes
+				overlord = { is_in_faction = no }
+			}
+			has_event_target = refused_to_protect_ally
+			has_event_target = refused_lands
+		}
+	}
+	desc = {
+		text = china_events.121.d.overlord_and_allies
+		trigger = {
+			FROM = {
+				is_subject = yes
+				overlord = { is_in_faction = yes }
+			}
+			NOT = { has_event_target = refused_lands }
+		}
+	}
+	desc = {
+		text = china_events.121.d.overlord_and_allies_refused_lands
+		trigger = {
+			FROM = {
+				is_subject = yes
+				overlord = { is_in_faction = yes }
+			}
+			has_event_target = refused_lands
+		}
+	}
+	desc = {
+		text = china_events.121.d.faction
+		trigger = {
+			FROM = { is_subject = no }
+			NOT = { has_event_target = refused_lands }
+		}
+	}
+	desc = {
+		text = china_events.121.d.faction_refused_lands
+		trigger = {
+			FROM = { is_subject = no }
+			NOT = { has_event_target = refused_lands }
+		}
+	}
+
+	trigger = {
+		NOT = { has_war_with = FROM }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.121 option china_events.121.a"
+		name = china_events.121.a #Back down
+		FROM = {
+			effect_tooltip = {
+				set_truce = { target = ROOT days = 1095 }
+				diplomatic_relation = {
+					country = ROOT
+					relation = non_aggression_pact
+				}
+			}
+			country_event = china_events.122 #MON/ETS/TIB and allies: China backs down
+		}
+		if = {
+			limit = {
+				FROM = {
+					is_subject = yes
+					overlord = { is_faction_leader = no }
+				}
+			}
+			var:FROM.overlord = {
+				effect_tooltip = {
+					set_truce = { target = ROOT days = 1095 }
+					diplomatic_relation = {
+						country = ROOT
+						relation = non_aggression_pact
+					}
+				}
+				country_event = china_events.122 #MON/ETS/TIB and allies: China backs down
+			}
+		}
+		if = {
+			limit = { FROM = { is_in_faction = yes } }
+			var:FROM.faction_leader = {
+				effect_tooltip = {
+					set_truce = { target = ROOT days = 1095 }
+					diplomatic_relation = {
+						country = ROOT
+						relation = non_aggression_pact
+					}
+				}
+				country_event = china_events.122 #MON/ETS/TIB and allies: China backs down
+			}
+		}
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.121 option china_events.121.b"
+		name = china_events.121.b #War
+		create_wargoal = {
+			target = FROM
+			type = annex_everything
+		}
+		every_other_country = {
+			limit = { is_ally_with = FROM }
+			country_event = china_events.123 #MON/ETS/TIB and allies: China prepares for war
+		}
+	}
+}
+
+country_event = { #MON/ETS/TIB and allies: China backs down
+	id = china_events.122
+	title = china_events.122.t
+	desc = china_events.122.d
+	picture = GFX_report_event_RUS_partisans2
+	trigger = {
+		NOT = { has_war_with = FROM }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.122 option china_events.122.a"
+		name = china_events.122.a
+		add_political_power = 25
+		set_truce = { target = FROM days = 1095 }
+		diplomatic_relation = {
+			country = FROM
+			relation = non_aggression_pact
+		}
+	}
+}
+
+country_event = { #MON/ETS/TIB and allies: China prepares for war
+	id = china_events.123
+	title = china_events.123.t
+	desc = china_events.123.d
+	picture = GFX_report_event_CHI_interruption
+	trigger = {
+		NOT = { has_war_with = FROM }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.123 option china_events.123.a"
+		name = china_events.123.a
+		effect_tooltip = {
+			FROM = {
+				create_wargoal = {
+					target = FROM.FROM
+					type = annex_everything
+				}
+			}
+		}
+	}
+}
+
+country_event = { #Faction leader of MON/ETS/TIB overlord: FROM asks for support
+	id = china_events.124
+	title = china_events.124.t
+	desc = china_events.124.d
+	picture = GFX_report_event_SIK_sheng_baby
+	trigger = {
+		NOT = { FROM = { has_war_with = event_target:china } }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.124 option china_events.124.a"
+		name = china_events.124.a #Yes
+		FROM = { country_event = { id = china_events.125 days = 1 } } #Overlord of MON/ETS/TIB: FROM supports us
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.124 option china_events.124.b"
+		name = china_events.124.b #No
+		save_event_target_as = refused_to_protect_ally
+		FROM = { country_event = { id = china_events.126 days = 1 } } #Overlord of MON/ETS/TIB: FROM won't support us
+	}
+}
+
+country_event = { #Overlord of MON/ETS/TIB: FROM supports us
+	id = china_events.125
+	title = china_events.125.t
+	desc = china_events.125.d
+	picture = GFX_report_event_HND_calcutta
+	trigger = {
+		NOT = { has_war_with = event_target:china }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.125 option china_events.125.a"
+		name = china_events.125.a
+		FROM.FROM = { country_event = { id = china_events.120 days = 1 } } #MON/TIB/ETS: Faction leader protects us
+	}
+}
+
+country_event = { #Overlord of MON/ETS/TIB: FROM won't support us
+	id = china_events.126
+	title = china_events.126.t
+	desc = china_events.126.d
+	picture = GFX_report_event_FNG_kempeitai
+	trigger = {
+		NOT = { has_war_with = event_target:china }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.126 option china_events.126.a"
+		name = china_events.126.a #Protect regardless
+		faction_leader = { country_event = { id = china_events.127 days = 1 } } #Faction leader of MON/ETS/TIB overlord: FROM left faction over refusal to support them
+		leave_faction = yes
+		peace_out_non_neighbours_after_leaving_faction = yes
+		event_target:target_country = { country_event = { id = china_events.120 days = 1 } } #MON/TIB/ETS: Faction leader protects us
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.126 option china_events.126.b"
+		name = china_events.126.b #Offer compromise
+		trigger = {
+			has_event_target = can_give_away_lands
+		}
+		event_target:target_country = { country_event = { id = china_events.128 days = 1 } } #MON/ETS/TIB: Overlord/faction leader asks to compromise
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.126 option china_events.126.c"
+		name = china_events.126.c #Abandon
+		event_target:target_country = {
+			effect_tooltip = { remove_puppet_and_leave_faction = yes }
+			country_event = china_events.135 #MON/TIB/ETS: Faction leader/overlord abandons country
+		}
+	}
+}
+
+country_event = { #Faction leader of MON/ETS/TIB overlord: FROM left faction over refusal to support them
+	id = china_events.127
+	title = china_events.127.t
+	desc = china_events.127.d
+	picture = GFX_report_event_MON_mongols
+	trigger = {
+		NOT = { FROM = { has_war_with = event_target:china } }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.127 option china_events.127.a"
+		name = china_events.127.a
+		reverse_add_opinion_modifier = {
+			target = FROM
+			modifier = KR_outraged
+		}
+	}
+}
+
+country_event = { #MON/ETS/TIB: Overlord/faction leader asks to compromise
+	id = china_events.128
+	title = china_events.128.t
+	picture = GFX_report_event_HND_leaders
+	desc = {
+		text = china_events.128.d.puppet
+		trigger = { is_subject = yes }
+	}
+	desc = {
+		text = china_events.128.d.not_puppet
+		trigger = { is_subject = no }
+	}
+
+	trigger = {
+		NOT = { has_war_with = event_target:china }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.128 option china_events.128.a"
+		name = china_events.128.a #No choice
+		trigger = { is_subject = yes }
+		event_target:china = { country_event = { id = china_events.131 days = 1 } } #China: Allies of MON/TIB/ETS offer compromise
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.128 option china_events.128.b"
+		name = china_events.128.b #Yes
+		trigger = { is_subject = no }
+		FROM = { country_event = { id = china_events.129 days = 1 } } #Faction leader of MON/TIB/ETS: Country agrees to offer compromise
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.128 option china_events.128.c"
+		name = china_events.128.c #No
+		trigger = { is_subject = no }
+		FROM = { country_event = { id = china_events.130 days = 1 } } #Faction leader of MON/TIB/ETS: Country refuses to offer compromise
+	}
+}
+
+country_event = { #Faction leader of MON/TIB/ETS: Country agrees to offer compromise
+	id = china_events.129
+	title = china_events.129.t
+	desc = china_events.129.d
+	picture = GFX_report_event_CHI_ambassador_announcement
+	trigger = {
+		NOT = { has_war_with = event_target:china }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.129 option china_events.129.a"
+		name = china_events.129.a
+		event_target:china = { country_event = { id = china_events.131 days = 1 } } #China: Allies of MON/TIB/ETS offer compromise
+	}
+}
+
+country_event = { #Faction leader of MON/TIB/ETS: Country refuses to offer compromise
+	id = china_events.130
+	title = china_events.130.t
+	desc = china_events.130.d
+	picture = GFX_report_event_CHI_riot
+	trigger = {
+		NOT = { has_war_with = event_target:china }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.130 option china_events.130.a"
+		name = china_events.130.a #Protect
+		FROM = { country_event = { id = china_events.120 days = 1 } } #MON/TIB/ETS: Faction leader protects us
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.130 option china_events.130.b"
+		name = china_events.130.b #Abandon
+		effect_tooltip = { remove_from_faction = FROM }
+		FROM = { country_event = { id = china_events.135 days = 1 } } #MON/TIB/ETS: Faction leader/overlord abandons country
+	}
+}
+
+country_event = { #China: Allies of MON/TIB/ETS offer compromise
+	id = china_events.131
+	title = china_events.131.t
+	picture = GFX_report_event_SIK_uyghurs
+	desc = {
+		text = china_events.131.d.puppet
+		trigger = { event_target:target_country = { is_subject = yes } }
+	}
+	desc = {
+		text = china_events.131.d.not_puppet
+		trigger = { event_target:target_country = { is_subject = no } }
+	}
+
+	trigger = {
+		NOT = { has_war_with = FROM }
+		NOT = { has_war_with = event_target:target_country }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.131 option china_events.131.a"
+		name = china_events.131.a #Agree
+		event_target:target_country = {
+			country_event = china_events.132 #MON/TIB/ETS and allies: China accepts compromise
+			effect_tooltip = {
+				every_owned_state = {
+					limit = { is_core_china = yes }
+					transfer_state_to = ROOT
+				}
+				set_truce = { target = ROOT days = 1095 }
+				diplomatic_relation = {
+					country = ROOT
+					relation = non_aggression_pact
+				}
+			}
+		}
+		if = {
+			limit = {
+				event_target:target_country = {
+					is_subject = yes
+					overlord = { is_faction_leader = no }
+				}
+			}
+			var:event_target:target_country.overlord = {
+				country_event = china_events.132 #MON/TIB/ETS and allies: China accepts compromise
+				effect_tooltip = {
+					set_truce = { target = ROOT days = 1095 }
+					diplomatic_relation = {
+						country = ROOT
+						relation = non_aggression_pact
+					}
+				}
+			}
+		}
+		if = {
+			limit = {
+				event_target:target_country = { is_in_faction = yes }
+			}
+			var:event_target:target_country.faction_leader = {
+				country_event = china_events.132 #MON/TIB/ETS and allies: China accepts compromise
+				effect_tooltip = {
+					set_truce = { target = ROOT days = 1095 }
+					diplomatic_relation = {
+						country = ROOT
+						relation = non_aggression_pact
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.131 option china_events.131.b"
+		name = china_events.131.b #Refuse
+		save_event_target_as = refused_lands
+		event_target:target_country = { country_event = { id = china_events.133 days = 1 } } #MON/TIB/ETS: China refuses compromise
+		effect_tooltip = {
+			if = {
+				limit = { event_target:target_country = { is_subject = yes } }
+				var:event_target:target_country.overlord = { country_event = { id = china_events.134 days = 1 } } #Faction leader/overlord of MON/TIB/ETS: China refuses compromise
+			}
+			else = {
+				var:event_target:target_country.faction_leader = { country_event = { id = china_events.134 days = 1 } } #Faction leader/overlord of MON/TIB/ETS: China refuses compromise
+			}
+		}
+	}
+}
+
+country_event = { #MON/TIB/ETS and allies: China accepts compromise
+	id = china_events.132
+	title = china_events.132.t
+	picture = GFX_report_event_CHI_official_announcement
+	desc = {
+		text = china_events.132.d.target
+		trigger = { tag = event_target:target_country }
+	}
+	desc = {
+		text = china_events.132.d.faction_leader_abandoned_ally
+		trigger = { tag = event_target:refused_to_protect_ally }
+	}
+	desc = {
+		text = china_events.132.d.other_allies
+		trigger = {
+			NOT = { tag = event_target:target_country }
+			NOT = { tag = event_target:refused_to_protect_ally }
+		}
+	}
+
+	trigger = {
+		NOT = { has_war_with = FROM }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.132 option china_events.132.a"
+		name = china_events.132.a
+		trigger = { tag = event_target:target_country }
+		every_owned_state = {
+			limit = { is_core_china = yes }
+			transfer_state_to = FROM
+		}
+		set_truce = { target = ROOT days = 1095 }
+		diplomatic_relation = {
+			country = FROM
+			relation = non_aggression_pact
+		}
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.132 option china_events.132.b"
+		name = china_events.132.b
+		trigger = { tag = event_target:refused_to_protect_ally }
+		set_truce = { target = ROOT days = 1095 }
+		diplomatic_relation = {
+			country = FROM
+			relation = non_aggression_pact
+		}
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.132 option china_events.132.c"
+		name = china_events.132.c
+		trigger = {
+			has_subject = event_target:target_country
+			has_event_target = refused_to_protect_ally
+		}
+		set_truce = { target = ROOT days = 1095 }
+		diplomatic_relation = {
+			country = FROM
+			relation = non_aggression_pact
+		}
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.132 option china_events.132.d"
+		name = china_events.132.d
+		trigger = {
+			NOT = {
+				tag = event_target:target_country
+				tag = event_target:refused_to_protect_ally
+				AND = {
+					has_subject = event_target:target_country
+					has_event_target = refused_to_protect_ally
+				}
+			}
+		}
+		set_truce = { target = ROOT days = 1095 }
+		diplomatic_relation = {
+			country = FROM
+			relation = non_aggression_pact
+		}
+	}
+}
+
+country_event = { #MON/TIB/ETS: China refuses compromise
+	id = china_events.133
+	title = china_events.133.t
+	desc = china_events.133.d
+	picture = GFX_report_event_CHI_interruption
+	trigger = {
+		NOT = { has_war_with = FROM }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.133 option china_events.133.a"
+		name = china_events.133.a
+		if = {
+			limit = { event_target:target_country = { is_subject = yes } }
+			var:event_target:target_country.overlord = { country_event = { id = china_events.134 days = 1 } } #Faction leader/overlord of MON/TIB/ETS: China refuses compromise
+		}
+		else = {
+			var:event_target:target_country.faction_leader = { country_event = { id = china_events.134 days = 1 } } #Faction leader/overlord of MON/TIB/ETS: China refuses compromise
+		}
+	}
+}
+
+country_event = { #Faction leader/overlord of MON/TIB/ETS: China refuses compromise
+	id = china_events.134
+	title = china_events.134.t
+	picture = GFX_report_event_LEP_march
+	desc = {
+		text = china_events.134.d.overlord_in_faction
+		trigger = {
+			is_in_faction = yes
+			is_faction_leader = no
+			NOT = { has_event_target = refused_to_protect_ally }
+		}
+	}
+	desc = {
+		text = china_events.134.d.overlord_refused_by_faction
+		trigger = {
+			is_in_faction = yes
+			is_faction_leader = no
+			has_event_target = refused_to_protect_ally
+		}
+	}
+	desc = {
+		text = china_events.134.d.faction_leader
+		trigger = {
+			OR = {
+				is_in_faction = no
+				is_faction_leader = yes
+			}
+		}
+	}
+
+	trigger = {
+		NOT = { has_war_with = event_target:china }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.134 option china_events.134.a"
+		name = china_events.134.a #Ask faction leader for support
+		trigger = {
+			is_in_faction = yes
+			is_faction_leader = no
+			NOT = { has_event_target = refused_to_protect_ally }
+		}
+		faction_leader = { country_event = { id = china_events.124 days = 1 } } #Faction leader of MON/ETS/TIB overlord: FROM asks for support
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.134 option china_events.134.b"
+		name = china_events.134.b #Protect regardless
+		trigger = {
+			is_in_faction = yes
+			is_faction_leader = no
+			has_event_target = refused_to_protect_ally
+		}
+		faction_leader = { country_event = { id = china_events.127 days = 1 } } #Faction leader of MON/ETS/TIB overlord: FROM left faction over refusal to support them
+		leave_faction = yes
+		peace_out_non_neighbours_after_leaving_faction = yes
+		event_target:target_country = { country_event = { id = china_events.120 days = 1 } } #China: Overlord/faction leader protects FROM
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.134 option china_events.134.c"
+		name = china_events.134.c #Protect
+		trigger = {
+			OR = {
+				is_in_faction = no
+				is_faction_leader = yes
+			}
+		}
+		event_target:target_country = { country_event = { id = china_events.120 days = 1 } } #China: Overlord/faction leader protects FROM
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.134 option china_events.134.d"
+		name = china_events.134.d #Abandon
+		event_target:target_country = { country_event = { id = china_events.135 days = 1 } } #MON/TIB/ETS: Faction leader/overlord abandons country
+	}
+}
+
+country_event = { #MON/TIB/ETS: Faction leader/overlord abandons country
+	id = china_events.135
+	title = china_events.135.t
+	picture = GFX_report_event_RUS_riders
+	desc = {
+		text = china_events.135.d.abandoned_by_allies
+		trigger = { is_subject = no }
+	}
+	desc = {
+		text = china_events.135.d.abandoned_by_overlord_allies
+		trigger = {
+			is_subject = yes
+			has_event_target = refused_to_protect_ally
+		}
+	}
+	desc = {
+		text = china_events.135.d.abandoned_by_overlord
+		trigger = {
+			is_subject = yes
+			NOT = { has_event_target = refused_to_protect_ally }
+		}
+	}
+
+	trigger = {
+		NOT = { has_war_with = event_target:target_country }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.135 option china_events.135.a"
+		name = china_events.135.a
+		if = {
+			limit = { is_subject = yes }
+			save_event_target_as = abandoned_by_overlord
+		}
+		else = {
+			save_event_target_as = abandoned_by_allies
+		}
+		remove_puppet_and_leave_faction = yes
+		event_target:china = { country_event = { id = china_events.136 days = 1 } } #China: MON/TIB/ETS abandoned by allies
+	}
+}
+
+country_event = { #China: MON/TIB/ETS abandoned by allies
+	id = china_events.136
+	title = china_events.136.t
+	desc = china_events.136.d
+	picture = GFX_report_event_RUS_siberia1
+	trigger = {
+		NOT = { has_war_with = FROM }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.136 option china_events.136.a"
+		name = china_events.136.a
+		FROM = { country_event = { id = china_events.100 days = 1 } } #MON/TIB/ETS: China demands our annexation
+	}
+}
+
+################################
+### DEALING WITH CONCESSIONS ###
+################################
+
+country_event = { #POR/AST/CAN/GEA/JAP: China wants return of concessions
+	id = china_events.200
+	title = china_events.200.t
+	desc = china_events.200.desc
+	picture = GFX_report_event_LEP_march
+
+	is_triggered_only = yes
+
+	immediate = {
+		hidden_effect = {
+			if = {
+				limit = { is_subject = no }
+				set_variable = { china_concession_value = 50 }
+				every_state = {
+					limit = {
+						is_possible_legation_cities_state = yes
+						OR = {
+							is_owned_by = ROOT
+							owner = { is_subject_of = ROOT }
+						}
+					}
+					add_to_variable = { ROOT.china_concession_value = 25 }
+				}
+			}
+		}
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.200 option china_events.200.a"
+		name = china_events.200.a #Sure
+		trigger = { is_subject = no }
+		ai_chance = {
+			base = 10
+			modifier = {
+				factor = 0
+				event_target:china = {
+					is_in_faction = yes
+					is_faction_leader = no
+					NOT = { is_in_faction_with = event_target:china_united_front_leader }
+					NOT = { is_in_faction_with = ROOT }
+				}
+			}
+			modifier = {
+				factor = 0
+				event_target:china = { both_socialist_or_both_not_socialist = no }
+			}
+			modifier = {
+				factor = 0
+				original_tag = JAP
+				is_faction_leader = yes
+				both_socialist_or_both_not_socialist = no
+			}
+			modifier = {
+				factor = 5
+				is_in_faction_with = event_target:china
+			}
+		}
+		effect_tooltip = {
+			set_temp_variable = { target = event_target:china }
+			every_state = {
+				limit = {
+					OR = {
+						AND = {
+							is_owned_by = ROOT
+							is_core_china = yes
+						}
+						AND = {
+							OR = {
+								is_owned_by = ROOT
+								owner = { is_subject_of = ROOT }
+							}
+							is_possible_legation_cities_state = yes
+						}
+					}
+				}
+				transfer_state_during_war = yes
+			}
+		}
+		event_target:china = { country_event = { id = china_events.201 days = 1 } }
+		clear_variable = china_concession_value
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.200 option china_events.200.b"
+		name = china_events.200.b #Demand compensation
+		trigger = { is_subject = no }
+		ai_chance = {
+			base = 50
+			modifier = {
+				factor = 0
+				has_socialist_government = yes
+			}
+			modifier = {
+				factor = 0
+				event_target:china = {
+					is_in_faction = yes
+					is_faction_leader = no
+					NOT = { is_in_faction_with = event_target:china_united_front_leader }
+					NOT = { is_in_faction_with = ROOT }
+				}
+			}
+			modifier = {
+				factor = 0
+				event_target:china = { both_socialist_or_both_not_socialist = no }
+			}
+			modifier = {
+				factor = 0
+				original_tag = JAP
+				is_faction_leader = yes
+				OR = {
+					has_socialist_government = yes
+					both_socialist_or_both_not_socialist = no
+				}
+			}
+		}
+		event_target:china = { country_event = { id = china_events.202 days = 1 } }
+		custom_effect_tooltip = if_they_accept_tt
+		effect_tooltip = {
+			add_political_power = var:ROOT.china_concession_value
+			set_temp_variable = { target = event_target:china }
+			every_state = {
+				limit = {
+					OR = {
+						AND = {
+							is_owned_by = ROOT
+							is_core_china = yes
+						}
+						AND = {
+							OR = {
+								is_owned_by = ROOT
+								owner = { is_subject_of = ROOT }
+							}
+							is_possible_legation_cities_state = yes
+						}
+					}
+				}
+				transfer_state_to = event_target:china
+			}
+			event_target:china = {
+				if = {
+					limit = { NOT = { ROOT = { tag = event_target:concession_holder } } }
+					add_opinion_modifier = {
+						target = event_target:concession_holder
+						modifier = KR_approves_of_govt
+					}
+				}
+				add_opinion_modifier = {
+					target = ROOT
+					modifier = KR_approves_of_govt
+				}
+			}
+		}
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.200 option china_events.200.c"
+		name = china_events.200.c #Never
+		trigger = { is_subject = no }
+		ai_chance = {
+			base = 40
+			modifier = {
+				factor = 0
+				has_socialist_government = yes
+			}
+			modifier = {
+				factor = 0
+				is_in_faction_with = event_target:china
+			}
+		}
+		event_target:china = {
+			country_event = { id = china_events.205 days = 1 }
+			custom_effect_tooltip = tooltip_white_line
+			effect_tooltip = {
+				if = {
+					limit = { NOT = { ROOT = { tag = event_target:concession_holder } } }
+					add_opinion_modifier = {
+						target = event_target:concession_holder
+						modifier = KR_outraged
+					}
+				}
+				add_opinion_modifier = {
+					target = ROOT
+					modifier = KR_outraged
+				}
+				if = {
+					limit = { can_declare_war_on = event_target:concession_holder }
+					activate_targeted_decision = { decision = china_seize_concessions target = event_target:concession_holder }
+				}
+			}
+		}
+		clear_variable = china_concession_value
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.200 option china_events.200.d"
+		name = china_events.200.d #Notify overlord
+		trigger = { is_subject = yes }
+		overlord = { country_event = china_events.200 }
+	}
+}
+
+country_event = { #China: FROM returns concessions
+	id = china_events.201
+	title = china_events.201.t
+	desc = china_events.201.d
+	picture = GFX_report_event_CHI_beijing_beiyang_flag
+
+	trigger = {
+		NOT = { has_war_with = FROM }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.201 option china_events.201.a"
+		name = china_events.201.a #Sure
+		set_temp_variable = { target = ROOT }
+		every_state = {
+			limit = {
+				OR = {
+					AND = {
+						is_owned_by = FROM
+						is_core_china = yes
+					}
+					AND = {
+						OR = {
+							is_owned_by = FROM
+							owner = { is_subject_of = FROM }
+						}
+						is_possible_legation_cities_state = yes
+					}
+				}
+			}
+			hidden_effect = {
+				remove_claim_by = owner
+				remove_claim_by = FROM
+			}
+			clear_variable = ambition_area_@var:owner
+			clear_variable = ambition_area_@FROM
+			transfer_state_during_war = yes
+		}
+		if = {
+			limit = { NOT = { FROM = { tag = event_target:concession_holder } } }
+			add_opinion_modifier = {
+				target = event_target:concession_holder
+				modifier = KR_approves_of_govt
+			}
+		}
+		add_opinion_modifier = {
+			target = FROM
+			modifier = KR_approves_of_govt
+		}
+	}
+}
+
+country_event = { #China: FROM wants compensation for concessions
+	id = china_events.202
+	title = china_events.202.t
+	desc = china_events.202.d
+	picture = GFX_report_event_SHX_shanxi_provincal_bank
+
+	trigger = {
+		NOT = { has_war_with = FROM }
+	}
+
+	is_triggered_only = yes
+
+	immediate = {
+		hidden_effect = {
+			set_variable = { FROM.china_concession_value = 50 }
+			every_state = {
+				limit = {
+					is_possible_legation_cities_state = yes
+					OR = {
+						is_owned_by = FROM
+						owner = { is_subject_of = FROM }
+					}
+				}
+				add_to_variable = { FROM.china_concession_value = 25 }
+			}
+		}
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.202 option china_events.202.a"
+		name = china_events.202.a #Sure
+		set_temp_variable = { china_concession_cost = FROM.china_concession_value }
+		multiply_temp_variable = { china_concession_cost = -1 }
+		add_political_power = var:china_concession_cost
+
+		custom_effect_tooltip = tooltip_white_line
+		effect_tooltip = {
+			every_state = {
+				limit = {
+					OR = {
+						AND = {
+							is_owned_by = FROM
+							is_core_china = yes
+						}
+						AND = {
+							OR = {
+								is_owned_by = FROM
+								owner = { is_subject_of = FROM }
+							}
+							is_possible_legation_cities_state = yes
+						}
+					}
+				}
+				transfer_state_to = ROOT
+			}
+		}
+		FROM = { country_event = { id = china_events.203 days = 1 } }
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.202 option china_events.202.b"
+		name = china_events.202.b #What? No!
+		if = {
+			limit = { NOT = { FROM = { tag = event_target:concession_holder } } }
+			add_opinion_modifier = {
+				target = event_target:concession_holder
+				modifier = KR_hates_govt
+			}
+		}
+		add_opinion_modifier = {
+			target = FROM
+			modifier = KR_hates_govt
+		}
+		FROM = { country_event = { id = china_events.204 days = 1 } }
+		custom_effect_tooltip = tooltip_white_line
+		if = {
+			limit = { can_declare_war_on = event_target:concession_holder }
+			activate_targeted_decision = { decision = china_seize_concessions target = event_target:concession_holder }
+		}
+		clear_variable = FROM.china_concession_value
+	}
+}
+
+country_event = { #POR/AST/CAN/GEA/JAP: China accepts compensation for concessions
+	id = china_events.203
+	title = china_events.203.t
+	desc = china_events.203.d
+	picture = GFX_report_event_GEA_coltroops
+
+	trigger = {
+		NOT = { has_war_with = FROM }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.203 option china_events.203.a"
+		name = china_events.203.a #Pleasure doing business
+		add_political_power = var:china_concession_value
+		clear_variable = china_concession_value
+
+		custom_effect_tooltip = tooltip_white_line
+		set_temp_variable = { target = FROM }
+		every_state = {
+			limit = {
+				OR = {
+					AND = {
+						is_owned_by = ROOT
+						is_core_china = yes
+					}
+					AND = {
+						OR = {
+							is_owned_by = ROOT
+							owner = { is_subject_of = ROOT }
+						}
+						is_possible_legation_cities_state = yes
+					}
+				}
+			}
+			hidden_effect = {
+				remove_claim_by = ROOT
+				remove_claim_by = owner
+			}
+			clear_variable = ambition_area_@var:owner
+			clear_variable = ambition_area_@ROOT
+			transfer_state_during_war = yes
+		}
+	}
+}
+
+country_event = { #POR/AST/CAN/GEA/JAP: China refuses compensation for concessions
+	id = china_events.204
+	title = china_events.204.t
+	desc = china_events.204.d
+	picture = GFX_report_event_FNG_troops
+
+	trigger = {
+		NOT = { has_war_with = FROM }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.204 option china_events.204.a"
+		name = china_events.204.a
+		effect_tooltip = {
+			FROM = {
+				if = {
+					limit = { NOT = { ROOT = { tag = event_target:concession_holder } } }
+					add_opinion_modifier = {
+						target = event_target:concession_holder
+						modifier = KR_hates_govt
+					}
+				}
+				add_opinion_modifier = {
+					target = ROOT
+					modifier = KR_hates_govt
+				}
+				if = {
+					limit = { can_declare_war_on = event_target:concession_holder }
+					activate_targeted_decision = { decision = china_seize_concessions target = event_target:concession_holder }
+				}
+			}
+		}
+	}
+}
+
+country_event = { #China: FROM refuses to return concessions
+	id = china_events.205
+	title = china_events.205.t
+	desc = china_events.205.d
+	picture = GFX_report_event_GXC_federalist_troops_atgun
+
+	trigger = {
+		NOT = { has_war_with = FROM }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.205 option china_events.205.a"
+		name = china_events.205.a
+		if = {
+			limit = { NOT = { FROM = { tag = event_target:concession_holder } } }
+			add_opinion_modifier = {
+				target = event_target:concession_holder
+				modifier = KR_outraged
+			}
+		}
+		add_opinion_modifier = {
+			target = FROM
+			modifier = KR_outraged
+		}
+		custom_effect_tooltip = tooltip_white_line
+		if = {
+			limit = { can_declare_war_on = event_target:concession_holder }
+			activate_targeted_decision = { decision = china_seize_concessions target = event_target:concession_holder }
+		}
+	}
+}
+
+country_event = { #POR/AST/CAN/GEA/JAP: China has occupied concessions
+	id = china_events.210
+	title = china_events.210.t
+	desc = china_events.210.d
+	picture = GFX_report_event_GXC_federalist_troops_rally
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.210 option china_events.210.a"
+		name = china_events.210.a #Back down
+		trigger = { is_subject = no }
+		ai_chance = {
+			base = 80
+			modifier = {
+				factor = 0.125
+				ROOT_is_threatened = no
+				event_target:china = { default_attack_AI_trigger_FROM = no }
+			}
+		}
+		effect_tooltip = {
+			set_temp_variable = { target = event_target:china }
+			every_state = {
+				limit = {
+					OR = {
+						AND = {
+							is_owned_by = ROOT
+							is_core_china = yes
+						}
+						AND = {
+							OR = {
+								is_owned_by = ROOT
+								owner = { is_subject_of = ROOT }
+							}
+							is_possible_legation_cities_state = yes
+						}
+					}
+				}
+				transfer_state_to = event_target:china
+			}
+		}
+		event_target:china = { country_event = { id = china_events.211 days = 1 } }
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.210 option china_events.210.b"
+		name = china_events.210.b #Threaten war
+		trigger = { is_subject = no }
+		ai_chance = {
+			base = 20
+			modifier = {
+				factor = 0
+				ROOT_is_threatened = yes
+			}
+			modifier = {
+				factor = 0
+				event_target:china = { default_attack_AI_trigger_FROM = yes }
+			}
+		}
+		event_target:china = { country_event = { id = china_events.212 days = 1 } }
+		custom_effect_tooltip = if_they_refuse_tt
+		effect_tooltip = {
+			create_wargoal = {
+				target = event_target:china
+				type = topple_government
+			}
+		}
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.210 option china_events.210.c"
+		name = china_events.210.c #Notify overlord
+		trigger = { is_subject = yes }
+		overlord = { country_event = china_events.210 }
+	}
+}
+
+country_event = { #China: FROM backs down
+	id = china_events.211
+	title = china_events.211.t
+	desc = china_events.211.d
+	picture = GFX_report_event_LEC_shanghai_police_patrol
+
+	trigger = {
+		NOT = { has_war_with = FROM }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.211 option china_events.211.a"
+		name = china_events.211.a
+		every_state = {
+			limit = {
+				OR = {
+					AND = {
+						is_owned_by = FROM
+						is_core_china = yes
+					}
+					AND = {
+						OR = {
+							is_owned_by = FROM
+							owner = { is_subject_of = FROM }
+						}
+						is_possible_legation_cities_state = yes
+					}
+				}
+			}
+			transfer_state_to = ROOT
+		}
+		if = {
+			limit = { NOT = { FROM = { tag = event_target:concession_holder } } }
+			event_target:concession_holder = {
+				add_opinion_modifier = {
+					target = ROOT
+					modifier = KR_outraged
+				}
+			}
+		}
+		reverse_add_opinion_modifier = {
+			target = FROM
+			modifier = KR_outraged
+		}
+	}
+}
+
+country_event = { #China: FROM threatens war
+	id = china_events.212
+	title = china_events.212.t
+	desc = china_events.212.d
+	picture = GFX_report_event_GEA_carrier
+
+	trigger = {
+		NOT = { has_war_with = FROM }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.212 option china_events.212.a"
+		name = china_events.212.a
+		ai_chance = { base = 20 }
+		add_war_support = -0.05
+		FROM = { country_event = { id = china_events.213 days = 1 } }
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.212 option china_events.212.b"
+		name = china_events.212.b
+		ai_chance = {
+			base = 80
+			modifier = {
+				factor = 0
+				OR = {
+					ROOT_is_threatened = yes
+					FROM = { default_attack_AI_trigger_FROM = yes }
+				}
+			}
+		}
+		FROM = {
+			effect_tooltip = {
+				create_wargoal = {
+					target = ROOT
+					type = topple_government
+				}
+			}
+			country_event = { id = china_events.214 days = 1 }
+		}
+	}
+}
+
+country_event = { #POR/AST/CAN/GEA/JAP: China backs down
+	id = china_events.213
+	title = china_events.213.t
+	desc = china_events.213.d
+
+	picture = GFX_report_event_FNG_troops
+	trigger = {
+		NOT = { has_war_with = FROM }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.213 option china_events.213.a"
+		name = china_events.213.a
+		add_political_power = 25
+	}
+}
+
+country_event = { #POR/AST/CAN/GEA/JAP: China is defiant
+	id = china_events.214
+	title = china_events.214.t
+	desc = china_events.214.d
+	picture = GFX_report_event_SHX_feng_speech
+
+	trigger = {
+		NOT = { has_war_with = FROM }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.214 option china_events.214.a"
+		name = china_events.214.a #Opium war time
+		create_wargoal = {
+			target = FROM
+			type = topple_government
+		}
+	}
+}
+
+####################################
+### LEGATION CITIES NEGOTIATIONS ###
+####################################
+
+country_event = { #LEC: China wants to negotiate annexation of LEC
+	id = china_events.220
+	title = china_events.220.t
+
+	desc = {
+		text = china_events.220.d.puppet
+		trigger = {
+			is_subject = yes
+		}
+	}
+	desc = {
+		text = china_events.220.d.in_faction
+		trigger = {
+			is_subject = no
+			is_in_faction = yes
+			is_faction_leader = no
+		}
+	}
+	desc = {
+		text = china_events.220.d.council
+		trigger = {
+			is_subject = no
+			is_in_faction = no
+			check_variable = { global.LEC_voters^num > 0 }
+		}
+	}
+	desc = {
+		text = china_events.220.d.independent
+		trigger = {
+			is_subject = no
+			OR = {
+				is_faction_leader = yes
+				check_variable = { global.LEC_voters^num < 1 }
+			}
+		}
+	}
+
+	picture = GFX_report_event_QIE_wu_peifu_time_cover
+
+	is_triggered_only = yes
+
+	immediate = {
+		FROM = { save_event_target_as = china }
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.220 option china_events.220.a"
+		name = china_events.220.a #Forward to overlord
+		trigger = {
+			is_subject = yes
+		}
+		overlord = { country_event = { id = china_events.223 days = 1 } }
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.220 option china_events.220.b"
+		name = china_events.220.b #Forward to faction leader, recommend disbanding
+		trigger = {
+			is_subject = no
+			is_in_faction = yes
+			is_faction_leader = no
+		}
+		ai_chance = {
+			factor = 40
+			modifier = {
+				factor = 0
+				has_government = paternal_autocrat
+				FROM = { china_is_aligned_with_zhili = no }
+			}
+			modifier = {
+				factor = 0
+				has_government = national_populist
+				OR = {
+					FNG_JAP_hostile = yes
+					FROM = { china_is_aligned_with_fengtian = no }
+				}
+			}
+		}
+		faction_leader = { country_event = { id = china_events.223 days = 1 } }
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.220 option china_events.220.c"
+		name = china_events.220.c #Forward to faction leader, recommend keeping
+		trigger = {
+			is_subject = no
+			is_in_faction = yes
+			is_faction_leader = no
+		}
+		ai_chance = {
+			factor = 60
+			modifier = {
+				factor = 0
+				has_government = market_liberal
+			}
+			modifier = {
+				factor = 0
+				has_government = social_conservative
+				FROM = { has_socialist_government = no }
+			}
+		}
+		save_event_target_as = china_commissioner_recommends_keeping_legations
+		faction_leader = { country_event = { id = china_events.223 days = 1 } }
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.220 option china_events.220.d"
+		name = china_events.220.d #Forward to council, recommend disbanding
+		trigger = {
+			is_subject = no
+			is_in_faction = no
+			check_variable = { global.LEC_voters^num > 0 }
+		}
+		ai_chance = {
+			factor = 40
+			modifier = {
+				factor = 0
+				has_government = paternal_autocrat
+				FROM = { china_is_aligned_with_zhili = no }
+			}
+			modifier = {
+				factor = 0
+				has_government = national_populist
+				OR = {
+					FNG_JAP_hostile = yes
+					FROM = { china_is_aligned_with_fengtian = no }
+				}
+			}
+		}
+		effect_tooltip = {
+			every_country = {
+				limit = { has_country_flag = legation_council_member }
+				country_event = { id = china_events.227 days = 1 }
+			}
+		}
+		hidden_effect = {
+			random_other_country = {
+				limit = { has_country_flag = legation_council_member }
+				country_event = { id = china_events.227 days = 1 }
+			}
+		}
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.220 option china_events.220.e"
+		name = china_events.220.e #Forward to council, recommend keeping
+		trigger = {
+			is_subject = no
+			is_in_faction = no
+			check_variable = { global.LEC_voters^num > 0 }
+		}
+		ai_chance = {
+			factor = 60
+			modifier = {
+				factor = 0
+				has_government = market_liberal
+			}
+			modifier = {
+				factor = 0
+				has_government = social_conservative
+				FROM = { has_socialist_government = no }
+			}
+		}
+		save_event_target_as = china_commissioner_recommends_keeping_legations
+		effect_tooltip = {
+			every_country = {
+				limit = { has_country_flag = legation_council_member }
+				country_event = { id = china_events.227 days = 1 }
+			}
+		}
+		hidden_effect = {
+			random_other_country = {
+				limit = { has_country_flag = legation_council_member }
+				country_event = { id = china_events.227 days = 1 }
+			}
+		}
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.220 option china_events.220.f"
+		name = china_events.220.f #Agree to rejoin
+		trigger = {
+			is_subject = no
+			OR = {
+				is_faction_leader = yes
+				check_variable = { global.LEC_voters^num < 1 }
+			}
+		}
+		if = {
+			limit = { is_faction_leader = yes }
+			dismantle_faction = yes
+		}
+		FROM = { country_event = { id = china_events.221 days = 1 } }
+		custom_effect_tooltip = GAME_OVER_TT
+		effect_tooltip = {
+			FROM = {
+				annex_country = {
+					target = ROOT
+					transfer_troops = no
+				}
+			}
+		}
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.220 option china_events.220.g"
+		name = china_events.220.g #Refuse
+		trigger = {
+			is_subject = no
+			OR = {
+				is_faction_leader = yes
+				check_variable = { global.LEC_voters^num < 1 }
+			}
+		}
+		FROM = { country_event = { id = china_events.222 days = 1 } }
+		effect_tooltip = {
+			FROM = {
+				create_wargoal = {
+					target = ROOT
+					type = annex_everything
+				}
+			}
+		}
+	}
+}
+
+country_event = { #China: independent LEC rejoins China
+	id = china_events.221
+	title = china_events.221.t
+
+	desc = {
+		text = china_events.221.d.puppet
+		trigger = {
+			FROM = { is_subject = yes }
+		}
+	}
+	desc = {
+		text = china_events.221.d.in_faction
+		trigger = {
+			FROM = {
+				is_subject = no
+				is_in_faction = yes
+				is_faction_leader = no
+			}
+		}
+	}
+	desc = {
+		text = china_events.221.d.independent
+		trigger = {
+			FROM = {
+				is_subject = no
+				OR = {
+					is_in_faction = no
+					is_faction_leader = yes
+				}
+			}
+		}
+	}
+
+	picture = GFX_report_event_QIE_soldiers_mobilize
+
+	trigger = {
+		NOT = { event_target:china = { has_war_with = LEC } }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.221 option china_events.221.a"
+		name = china_events.221.a
+		annex_country = {
+			target = FROM
+			transfer_troops = no
+		}
+	}
+}
+
+country_event = { #China: independent LEC refuses to rejoin China
+	id = china_events.222
+	title = china_events.222.t
+	desc = china_events.222.d
+	picture = GFX_report_event_LEC_Canadian_Forces_in_Hong_Kong
+
+	trigger = {
+		NOT = { event_target:china = { has_war_with = LEC } }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.222 option china_events.222.a"
+		name = china_events.222.a #Back down
+		ai_chance = { base = 0 }
+		add_stability = -0.05
+		add_war_support = -0.1
+		effect_tooltip = {
+			diplomatic_relation = {
+				country = FROM
+				relation = non_aggression_pact
+			}
+		}
+		FROM = { country_event = china_events.239 }
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.222 option china_events.222.b"
+		name = china_events.222.b #War
+		ai_chance = {
+			base = 100
+			modifier = {
+				factor = 0
+				ROOT_is_threatened = yes
+			}
+			modifier = {
+				factor = 0
+				FROM = { default_attack_AI_trigger_FROM = yes }
+			}
+		}
+		create_wargoal = {
+			target = FROM
+			type = annex_everything
+		}
+	}
+}
+
+country_event = { #LEC faction leader/overlord: China wants to negotiate annexation of LEC
+	id = china_events.223
+	title = china_events.223.t
+	picture = GFX_report_event_generic_beijing_map
+	desc = {
+		text = china_events.223.d.overlord
+		trigger = { has_subject = LEC }
+	}
+	desc = {
+		text = china_events.223.d.independent_suggests_disbanding
+		trigger = {
+			NOT = { has_subject = LEC }
+			NOT = { has_event_target = china_commissioner_recommends_keeping_legations }
+		}
+	}
+	desc = {
+		text = china_events.223.d.independent_suggests_keeping
+		trigger = {
+			NOT = { has_subject = LEC }
+			has_event_target = china_commissioner_recommends_keeping_legations
+		}
+	}
+
+	trigger = {
+		NOT = { event_target:china = { has_war_with = LEC } }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.223 option china_events.223.a"
+		name = china_events.223.a #Yes
+		ai_chance = {
+			base = 60
+			modifier = {
+				factor = 0
+				original_tag = JAP
+				is_faction_leader = yes
+				NOT = { is_in_faction_with = event_target:china }
+			}
+			modifier = {
+				factor = 0
+				LEC = {
+					is_ai = no
+					OR = {
+						is_subject = yes
+						has_event_target = china_commissioner_recommends_keeping_legations
+					}
+				}
+			}
+			modifier = {
+				factor = 0.33
+				has_event_target = china_commissioner_recommends_keeping_legations
+			}
+		}
+		FROM = { country_event = { id = china_events.224 days = 1 } }
+		effect_tooltip = {
+			event_target:china = {
+				country_event = china_events.221
+				annex_country = {
+					target = LEC
+					transfer_troops = no
+				}
+			}
+		}
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.223 option china_events.223.b"
+		name = china_events.223.b #No
+		ai_chance = {
+			base = 40
+			modifier = {
+				factor = 0
+				is_american_tag = no
+			}
+			modifier = {
+				factor = 0
+				ROOT_is_threatened = yes
+			}
+			modifier = {
+				factor = 0
+				is_in_faction_with = event_target:china
+				OR = {
+					is_faction_leader = yes
+					NOT = { has_subject = LEC }
+				}
+			}
+			modifier = {
+				factor = 0
+				strength_ratio = { tag = event_target:china ratio < 1 }
+			}
+			modifier = {
+				factor = 2
+				has_event_target = china_commissioner_recommends_keeping_legations
+			}
+		}
+		effect_tooltip = {
+			if = {
+				limit = { is_in_faction_with = event_target:china }
+				event_target:china = { leave_faction = yes }
+			}
+		}
+		FROM = { country_event = { id = china_events.225 days = 1 } }
+	}
+}
+
+country_event = { #LEC: FROM accepts annexation of legations
+	id = china_events.224
+	title = china_events.224.t
+	desc = china_events.224.d
+	picture = GFX_report_event_GXC_shanghai_teahouse
+
+	trigger = {
+		NOT = { event_target:china = { has_war_with = LEC } }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.224 option china_events.224.a"
+		name = china_events.224.a
+		event_target:china = { country_event = china_events.221 }
+		custom_effect_tooltip = GAME_OVER_TT
+		effect_tooltip = {
+			event_target:china = {
+				annex_country = {
+					target = ROOT
+					transfer_troops = no
+				}
+			}
+		}
+	}
+}
+
+country_event = { #LEC: FROM refuses annexation of legations
+	id = china_events.225
+	title = china_events.225.t
+	desc = china_events.225.d
+	picture = GFX_report_event_JAP_parade_shanghai
+
+	trigger = {
+		NOT = { event_target:china = { has_war_with = LEC } }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.225 option china_events.225.a"
+		name = china_events.225.a #Well, that's that
+		effect_tooltip = {
+			if = {
+				limit = { is_in_faction_with = event_target:china }
+				event_target:china = { leave_faction = yes }
+			}
+		}
+		event_target:china = { country_event = { id = china_events.226 days = 1 } }
+	}
+}
+
+country_event = { #China: faction refuses to return the legations
+	id = china_events.226
+	title = china_events.226.t
+	picture = GFX_report_event_JAP_parade_shanghai
+	desc = {
+		text = china_events.226.d.same_faction
+		trigger = { is_in_faction_with = FROM }
+	}
+	desc = {
+		text = china_events.226.d.not_same_faction
+		trigger = { NOT = { is_in_faction_with = FROM } }
+	}
+
+	trigger = {
+		NOT = { event_target:china = { has_war_with = LEC } }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.226 option china_events.226.a"
+		name = china_events.226.a #Back down
+		ai_chance = { base = 0 }
+		trigger = { NOT = { is_in_faction_with = FROM } }
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.226 option china_events.226.b"
+		name = china_events.226.b #Leave the alliance
+		trigger = { is_in_faction_with = FROM }
+		ai_chance = { base = 0 }
+		if = {
+			limit = { is_in_faction_with = FROM }
+			leave_faction = yes
+		}
+		peace_out_non_neighbours_after_leaving_faction = yes
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.226 option china_events.226.c"
+		name = china_events.226.c #War
+		ai_chance = {
+			base = 100
+			modifier = {
+				factor = 0
+				ROOT_is_threatened = yes
+			}
+			modifier = {
+				factor = 0
+				FROM = { default_attack_AI_trigger_FROM = yes }
+			}
+		}
+		if = {
+			limit = { is_in_faction_with = FROM }
+			leave_faction = yes
+		}
+		peace_out_non_neighbours_after_leaving_faction = yes
+		create_wargoal = {
+			target = LEC
+			type = annex_everything
+		}
+	}
+}
+
+country_event = { #Council members: China wants annexation of the legations
+	id = china_events.227
+	title = china_events.227.t
+	desc = china_events.227.d
+	picture = GFX_report_event_LEC_shanghai_police_patrol
+
+	trigger = {
+		NOT = { event_target:china = { has_war_with = LEC } }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.227 option china_events.227.a"
+		name = china_events.227.a #Sure
+		ai_chance = {
+			base = 100
+			modifier = {
+				factor = 0
+				has_war_with = event_target:china
+			}
+			modifier = {
+				factor = 0
+				LEC = { is_ai = no }
+				has_event_target = china_commissioner_recommends_keeping_legations
+			}
+			modifier = {
+				factor = 0
+				original_tag = JAP
+				is_faction_leader = yes
+			}
+			modifier = {
+				add = -40
+				has_event_target = china_commissioner_recommends_keeping_legations
+			}
+			modifier = {
+				factor = 0.5
+				event_target:china = { has_socialist_government = yes }
+			}
+			modifier = {
+				factor = 0.5
+				OR = {
+					has_idea = LEC_USA_open_door
+					has_idea = LEC_GER_open_door
+					has_idea = LEC_better_open_door
+				}
+			}
+		}
+		set_country_flag = china_disband_legations
+		add_to_variable = { global.china_disband_legations = 1 }
+		effect_tooltip = {
+			LEC = { country_event = { id = china_events.228 days = 1 } }
+		}
+		hidden_effect = {
+			if = {
+				limit = {
+					any_other_country = {
+						has_country_flag = legation_council_member
+						NOT = { has_country_flag = china_disband_legations }
+						NOT = { has_country_flag = china_keep_legations }
+					}
+				}
+				random_other_country = {
+					limit = {
+						has_country_flag = legation_council_member
+						NOT = { has_country_flag = china_disband_legations }
+						NOT = { has_country_flag = china_keep_legations }
+					}
+					country_event = china_events.227
+				}
+			}
+			else = {
+				LEC = { country_event = { id = china_events.228 days = 1 } }
+			}
+		}
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.227 option china_events.227.b"
+		name = china_events.227.b #No
+		ai_chance = {
+			base = 0
+			modifier = {
+				add = 40
+				has_event_target = china_commissioner_recommends_keeping_legations
+			}
+			modifier = {
+				add = 50
+				event_target:china = { has_socialist_government = yes }
+			}
+			modifier = {
+				add = 50
+				OR = {
+					has_idea = LEC_USA_open_door
+					has_idea = LEC_GER_open_door
+					has_idea = LEC_better_open_door
+				}
+			}
+			modifier = {
+				add = 100
+				original_tag = JAP
+				is_faction_leader = yes
+			}
+			modifier = {
+				add = 100
+				has_war_with = event_target:china
+			}
+			modifier = {
+				factor = 0
+				NOT = { has_country_flag = legation_council_vote }
+			}
+			modifier = {
+				factor = 0
+				LEC = { is_ai = no }
+				NOT = { has_event_target = china_commissioner_recommends_keeping_legations }
+			}
+			modifier = {
+				factor = 0
+				is_american_tag = yes
+				event_target:china = { both_socialist_or_both_not_socialist = yes }
+			}
+			modifier = {
+				factor = 0
+				NOT = { has_war_with = event_target:china }
+				ROOT_is_threatened = yes
+			}
+			modifier = {
+				factor = 0
+				NOT = { has_war_with = event_target:china }
+				strength_ratio = { tag = event_target:china ratio < 1 }
+			}
+		}
+		set_country_flag = china_keep_legations
+		add_to_variable = { global.china_keep_legations = 1 }
+		effect_tooltip = {
+			LEC = { country_event = { id = china_events.228 days = 1 } }
+		}
+		hidden_effect = {
+			if = {
+				limit = {
+					any_other_country = {
+						has_country_flag = legation_council_member
+						NOT = { has_country_flag = china_disband_legations }
+						NOT = { has_country_flag = china_keep_legations }
+					}
+				}
+				random_other_country = {
+					limit = {
+						has_country_flag = legation_council_member
+						NOT = { has_country_flag = china_disband_legations }
+						NOT = { has_country_flag = china_keep_legations }
+					}
+					country_event = china_events.227
+				}
+			}
+			else = {
+				LEC = { country_event = { id = china_events.228 days = 1 } }
+			}
+		}
+	}
+}
+
+country_event = { #LEC: results of the vote
+	id = china_events.228
+	title = china_events.228.t
+	picture = GFX_report_event_CHI_vote
+	desc = {
+		text = china_events.228.d.disband
+		trigger = {
+			check_variable = { global.china_disband_legations > global.china_keep_legations }
+		}
+	}
+	desc = {
+		text = china_events.228.d.keep
+		trigger = {
+			NOT = { check_variable = { global.china_disband_legations > global.china_keep_legations } }
+		}
+	}
+
+	trigger = {
+		NOT = { event_target:china = { has_war_with = LEC } }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.228 option china_events.228.a"
+		name = china_events.228.a
+		trigger = {
+			check_variable = { global.china_disband_legations > global.china_keep_legations }
+		}
+		effect_tooltip = {
+			every_country = {
+				limit = { has_country_flag = legation_council_member }
+				country_event = { id = china_events.229 days = 1 }
+			}
+		}
+		hidden_effect = {
+			random_other_country = {
+				limit = { has_country_flag = legation_council_member }
+				country_event = { id = china_events.229 days = 1 }
+			}
+		}
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.228 option china_events.228.b"
+		name = china_events.228.b
+		trigger = {
+			NOT = { check_variable = { global.china_disband_legations > global.china_keep_legations } }
+		}
+		effect_tooltip = {
+			every_country = {
+				limit = { has_country_flag = legation_council_member }
+				country_event = { id = china_events.232 days = 1 }
+			}
+		}
+		hidden_effect = {
+			random_other_country = {
+				limit = { has_country_flag = legation_council_member }
+				country_event = { id = china_events.232 days = 1 }
+			}
+		}
+	}
+}
+
+country_event = { #Council members: council voted to disband the legations
+	id = china_events.229
+	title = china_events.229.t
+	picture = GFX_report_event_GEA_falkenhausen
+	desc = {
+		text = china_events.229.d.voted_for
+		trigger = {
+			has_country_flag = china_disband_legations
+		}
+	}
+	desc = {
+		text = china_events.229.d.voted_against
+		trigger = {
+			NOT = { has_country_flag = china_disband_legations }
+		}
+	}
+
+	trigger = {
+		NOT = { event_target:china = { has_war_with = LEC } }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.229 option china_events.229.a"
+		name = china_events.229.a #Alright
+		trigger = {
+			has_country_flag = china_disband_legations
+		}
+		LEC_remove_from_legation_council = yes
+		effect_tooltip = {
+			LEC = { country_event = { id = china_events.230 days = 1 } }
+			event_target:china = { country_event = { id = china_events.231 days = 1 } }
+		}
+
+		set_country_flag = china_received_legation_vote_notification
+		hidden_effect = {
+			if = {
+				limit = {
+					any_other_country = {
+						has_country_flag = legation_council_member
+						NOT = { has_country_flag = china_received_legation_vote_notification }
+					}
+				}
+				random_other_country = {
+					limit = {
+						has_country_flag = legation_council_member
+						NOT = { has_country_flag = china_received_legation_vote_notification }
+					}
+					country_event = china_events.229
+				}
+			}
+			else = {
+				LEC = { country_event = { id = china_events.230 days = 1 } }
+			}
+		}
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.229 option china_events.229.b"
+		name = china_events.229.b #Ah, whatever
+		trigger = {
+			NOT = { has_country_flag = china_disband_legations }
+		}
+		ai_chance = { base = 30 }
+		LEC_remove_from_legation_council = yes
+		effect_tooltip = {
+			LEC = { country_event = { id = china_events.230 days = 1 } }
+			event_target:china = { country_event = { id = china_events.231 days = 1 } }
+		}
+
+		set_country_flag = china_received_legation_vote_notification
+		hidden_effect = {
+			if = {
+				limit = {
+					any_other_country = {
+						has_country_flag = legation_council_member
+						NOT = { has_country_flag = china_received_legation_vote_notification }
+					}
+				}
+				random_other_country = {
+					limit = {
+						has_country_flag = legation_council_member
+						NOT = { has_country_flag = china_received_legation_vote_notification }
+					}
+					country_event = china_events.229
+				}
+			}
+			else = {
+				LEC = { country_event = { id = china_events.230 days = 1 } }
+			}
+		}
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.229 option china_events.229.c"
+		name = china_events.229.c #We will not accept this!
+		trigger = {
+			NOT = { has_country_flag = china_disband_legations }
+			NOT = { has_war_with = event_target:china }
+		}
+		ai_chance = {
+			base = 0
+			modifier = {
+				add = 70
+				original_tag = JAP
+				is_faction_leader = yes
+				has_socialist_government = no
+			}
+			modifier = {
+				add = 70
+				is_major = yes
+				has_socialist_government = no
+				FROM = { has_socialist_government = yes }
+			}
+			modifier = {
+				factor = 0.5
+				ROOT_is_threatened = yes
+			}
+			modifier = {
+				factor = 0.5
+				FROM = { default_attack_AI_trigger_FROM = yes }
+			}
+			modifier = {
+				factor = 0
+				surrender_progress > 0.1
+			}
+			modifier = {
+				factor = 0
+				has_war = yes
+				is_in_faction = no
+				enemies_strength_ratio > 1
+			}
+			modifier = {
+				factor = 0
+				has_war = yes
+				is_in_faction = yes
+				alliance_strength_ratio < 1
+			}
+		}
+		LEC_remove_from_legation_council = yes
+		effect_tooltip = {
+			LEC = { country_event = { id = china_events.230 days = 1 } }
+			event_target:china = { country_event = { id = china_events.231 days = 1 } }
+		}
+
+		custom_effect_tooltip = tooltip_white_line
+		save_event_target_as = china_will_be_attacked_by_council_member
+		create_wargoal = {
+			target = event_target:china
+			type = topple_government
+		}
+
+		set_country_flag = china_received_legation_vote_notification
+		hidden_effect = {
+			if = {
+				limit = {
+					any_other_country = {
+						has_country_flag = legation_council_member
+						NOT = { has_country_flag = china_received_legation_vote_notification }
+					}
+				}
+				random_other_country = {
+					limit = {
+						has_country_flag = legation_council_member
+						NOT = { has_country_flag = china_received_legation_vote_notification }
+					}
+					country_event = china_events.229
+				}
+			}
+			else = {
+				LEC = { country_event = { id = china_events.230 days = 1 } }
+			}
+		}
+	}
+}
+
+country_event = { #LEC: council voted to disband the legations
+	id = china_events.230
+	title = china_events.230.t
+
+	desc = {
+		text = china_events.230.d.will_be_attacked
+		trigger = { has_event_target = china_will_be_attacked_by_council_member }
+	}
+	desc = {
+		text = china_events.230.d.peaceful_reunification
+		trigger = { NOT = { has_event_target = china_will_be_attacked_by_council_member } }
+	}
+
+	trigger = {
+		NOT = { event_target:china = { has_war_with = LEC } }
+	}
+
+	picture = GFX_report_event_GEA_falkenhausen
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.230 option china_events.230.a"
+		name = china_events.230.a
+		event_target:china = { country_event = china_events.231 }
+		custom_effect_tooltip = GAME_OVER_TT
+		effect_tooltip = {
+			event_target:china = {
+				annex_country = {
+					target = ROOT
+					transfer_troops = no
+				}
+			}
+		}
+	}
+}
+
+country_event = { #China: legations will disband
+	id = china_events.231
+	title = china_events.231.t
+	picture = GFX_report_event_GEA_falkenhausen
+	desc = {
+		text = china_events.231.d.will_be_attacked
+		trigger = { has_event_target = china_will_be_attacked_by_council_member }
+	}
+	desc = {
+		text = china_events.231.d.peaceful_reunification
+		trigger = { NOT = { has_event_target = china_will_be_attacked_by_council_member } }
+	}
+
+	trigger = {
+		NOT = { event_target:china = { has_war_with = LEC } }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.231 option china_events.231.a"
+		name = china_events.231.a
+		trigger = { has_event_target = china_will_be_attacked_by_council_member }
+		annex_country = {
+			target = FROM
+			transfer_troops = no
+		}
+		effect_tooltip = {
+			every_other_country = {
+				limit = { has_wargoal_against = { target = event_target:china type = topple_government } }
+				create_wargoal = {
+					target = event_target:china
+					type = topple_government
+				}
+			}
+		}
+	}
+	option = {
+		log = "[GetLogInfo]: event china_events.231 option china_events.231.b"
+		name = china_events.231.b
+		trigger = { NOT = { has_event_target = china_will_be_attacked_by_council_member } }
+		annex_country = {
+			target = FROM
+			transfer_troops = no
+		}
+	}
+}
+
+country_event = { #Council members: council voted to keep the legations
+	id = china_events.232
+	title = china_events.232.t
+
+	desc = {
+		text = china_events.232.d.voted_for
+		trigger = {
+			has_country_flag = china_keep_legations
+		}
+	}
+	desc = {
+		text = china_events.232.d.voted_against
+		trigger = {
+			NOT = { has_country_flag = china_keep_legations }
+		}
+	}
+
+	picture = GFX_report_event_JAP_battleship_kongo
+
+	trigger = {
+		NOT = { event_target:china = { has_war_with = LEC } }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.232 option china_events.232.a"
+		name = china_events.232.a #Alright
+		trigger = {
+			OR = {
+				has_country_flag = china_keep_legations
+				has_war_with = event_target:china
+			}
+		}
+		set_country_flag = china_received_legation_vote_notification
+		effect_tooltip = {
+			event_target:china = { country_event = { id = china_events.233 days = 1 } }
+		}
+		hidden_effect = {
+			if = {
+				limit = {
+					any_other_country = {
+						has_country_flag = legation_council_member
+						NOT = { has_country_flag = china_received_legation_vote_notification }
+					}
+				}
+				random_other_country = {
+					limit = {
+						has_country_flag = legation_council_member
+						NOT = { has_country_flag = china_received_legation_vote_notification }
+					}
+					country_event = china_events.232
+				}
+			}
+			else = {
+				event_target:china = { country_event = { id = china_events.233 days = 1 } }
+			}
+		}
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.232 option china_events.232.b"
+		name = china_events.232.b #China won't be happy about this...
+		trigger = {
+			NOT = { has_country_flag = china_keep_legations }
+			NOT = { has_war_with = event_target:china }
+		}
+		set_country_flag = china_received_legation_vote_notification
+		effect_tooltip = {
+			event_target:china = { country_event = { id = china_events.233 days = 1 } }
+		}
+		hidden_effect = {
+			if = {
+				limit = {
+					any_other_country = {
+						has_country_flag = legation_council_member
+						NOT = { has_country_flag = china_received_legation_vote_notification }
+					}
+				}
+				random_other_country = {
+					limit = {
+						has_country_flag = legation_council_member
+						NOT = { has_country_flag = china_received_legation_vote_notification }
+					}
+					country_event = china_events.232
+				}
+			}
+			else = {
+				event_target:china = { country_event = { id = china_events.233 days = 1 } }
+			}
+		}
+	}
+}
+
+country_event = { #China: council voted to keep the legations
+	id = china_events.233
+	title = china_events.233.t
+	desc = china_events.233.d
+	picture = GFX_report_event_JAP_battleship_kongo
+
+	trigger = {
+		NOT = { event_target:china = { has_war_with = LEC } }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.233 option china_events.233.a"
+		name = china_events.233.a #The Legations end here - by force if need be
+		effect_tooltip = {
+			every_country = {
+				limit = { has_country_flag = legation_council_member }
+				country_event = { id = china_events.234 days = 1 }
+			}
+		}
+		custom_effect_tooltip = if_they_accept_tt
+		effect_tooltip = {
+			annex_country = {
+				target = LEC
+				transfer_troops = no
+			}
+		}
+		custom_effect_tooltip = if_they_refuse_tt
+		effect_tooltip = {
+			create_wargoal = {
+				target = LEC
+				type = annex_everything
+			}
+		}
+		hidden_effect = {
+			random_other_country = {
+				limit = { has_country_flag = legation_council_member }
+				country_event = { id = china_events.234 days = 1 }
+			}
+		}
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.233 option china_events.233.b"
+		name = china_events.233.b #There is nothing we can do
+		add_stability = -0.05
+		add_war_support = -0.1
+		effect_tooltip = {
+			diplomatic_relation = {
+				country = LEC
+				relation = non_aggression_pact
+			}
+		}
+		LEC = { country_event = china_events.239 }
+		every_country = {
+			limit = { has_country_flag = legation_council_member }
+			country_event = china_events.240
+		}
+	}
+}
+
+country_event = { #Council members: China threatens war over LEC
+	id = china_events.234
+	title = china_events.234.t
+	desc = china_events.234.d
+	picture = GFX_report_event_CHI_warlord_cavalry
+
+	trigger = {
+		NOT = { event_target:china = { has_war_with = LEC } }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.234 option china_events.234.a"
+		name = china_events.234.a #Screw this, they can have them
+		ai_chance = {
+			base = 80
+			modifier = {
+				factor = 0
+				NOT = { has_guaranteed = LEC }
+			}
+			modifier = {
+				factor = 0
+				has_war_with = event_target:china
+			}
+		}
+		LEC_remove_from_legation_council = yes
+
+		set_country_flag = china_received_legation_war_notification
+		hidden_effect = {
+			if = {
+				limit = {
+					any_other_country = {
+						has_country_flag = legation_council_member
+						NOT = { has_country_flag = china_received_legation_war_notification }
+					}
+				}
+				random_other_country = {
+					limit = {
+						has_country_flag = legation_council_member
+						NOT = { has_country_flag = china_received_legation_war_notification }
+					}
+					country_event = china_events.234
+				}
+			}
+			else_if = {
+				limit = { any_other_country = { has_guaranteed = LEC } }
+				LEC = { country_event = { id = china_events.235 days = 1 } }
+			}
+			else = {
+				LEC = { country_event = { id = china_events.237 days = 1 } }
+			}
+		}
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.234 option china_events.234.b"
+		name = china_events.234.b #Let them come, if they dare
+		ai_chance = {
+			base = 20
+			modifier = {
+				factor = 0
+				NOT = { has_war_with = event_target:china }
+				ROOT_is_threatened = yes
+			}
+		}
+		if = {
+			limit = { NOT = { has_guaranteed = LEC } }
+			give_guarantee = LEC
+		}
+		effect_tooltip = {
+			event_target:china = {
+				create_wargoal = {
+					target = LEC
+					type = annex_everything
+				}
+			}
+		}
+		set_country_flag = china_received_legation_war_notification
+		hidden_effect = {
+			if = {
+				limit = {
+					any_other_country = {
+						has_country_flag = legation_council_member
+						NOT = { has_country_flag = china_received_legation_war_notification }
+					}
+				}
+				random_other_country = {
+					limit = {
+						has_country_flag = legation_council_member
+						NOT = { has_country_flag = china_received_legation_war_notification }
+					}
+					country_event = china_events.234
+				}
+			}
+			else_if = {
+				limit = { any_other_country = { has_guaranteed = LEC } }
+				LEC = { country_event = { id = china_events.235 days = 1 } }
+			}
+			else = {
+				LEC = { country_event = { id = china_events.237 days = 1 } }
+			}
+		}
+	}
+}
+
+country_event = { #LEC: council members stand by LEC
+	id = china_events.235
+	title = china_events.235.t
+	desc = china_events.235.d
+	picture = GFX_report_event_GER_ship
+
+	trigger = {
+		NOT = { event_target:china = { has_war_with = LEC } }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.235 option china_events.235.a"
+		name = china_events.235.a
+		event_target:china = { country_event = china_events.236 }
+	}
+}
+
+country_event = { #China: war with LEC
+	id = china_events.236
+	title = china_events.236.t
+	desc = china_events.236.d
+	picture = GFX_report_event_generic_east_china_map
+
+	trigger = {
+		NOT = { event_target:china = { has_war_with = LEC } }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.236 option china_events.236.a"
+		name = china_events.236.a #Back down
+		ai_chance = { base = 0 }
+		add_stability = -0.05
+		add_war_support = -0.1
+		effect_tooltip = {
+			diplomatic_relation = {
+				country = LEC
+				relation = non_aggression_pact
+			}
+		}
+		LEC = { country_event = china_events.239 }
+		every_country = {
+			limit = { has_country_flag = legation_council_member }
+			country_event = china_events.240
+		}
+	}
+
+	option = {
+		log = "[GetLogInfo]: event china_events.236 option china_events.236.b"
+		name = china_events.236.b #War
+		ai_chance = {
+			base = 100
+			modifier = {
+				factor = 0
+				ROOT_is_threatened = yes
+				any_other_country = {
+					has_guaranteed = LEC
+					NOT = { has_war_with = ROOT }
+				}
+			}
+			modifier = {
+				factor = 0
+				FROM = { default_attack_AI_trigger_FROM = yes }
+			}
+		}
+		create_wargoal = {
+			target = FROM
+			type = annex_everything
+		}
+	}
+}
+
+country_event = { #LEC: council abandons LEC after threats
+	id = china_events.237
+	title = china_events.237.t
+	desc = china_events.237.d
+	picture = GFX_report_event_CHI_radio
+
+	trigger = {
+		NOT = { event_target:china = { has_war_with = LEC } }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.237 option china_events.237.a"
+		name = china_events.237.a
+		event_target:china = { country_event = china_events.238 }
+		custom_effect_tooltip = GAME_OVER_TT
+		effect_tooltip = {
+			event_target:china = {
+				annex_country = {
+					target = ROOT
+					transfer_troops = no
+				}
+			}
+		}
+	}
+}
+
+country_event = { #China: council abandons LEC after threats
+	id = china_events.238
+	title = china_events.238.t
+	desc = china_events.238.d
+	picture = GFX_report_event_CHI_radio
+
+	trigger = {
+		NOT = { event_target:china = { has_war_with = LEC } }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.238 option china_events.238.a"
+		name = china_events.238.a
+		annex_country = {
+			target = FROM
+			transfer_troops = no
+		}
+	}
+}
+
+country_event = { #LEC: China backs down
+	id = china_events.239
+	title = china_events.239.t
+	desc = china_events.239.d
+	picture = GFX_report_event_CHI_chen_gongbo
+
+	trigger = {
+		NOT = { event_target:china = { has_war_with = LEC } }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.239 option china_events.239.a"
+		name = china_events.239.a
+		set_truce = { target = FROM days = 1095 }
+		diplomatic_relation = {
+			country = FROM
+			relation = non_aggression_pact
+		}
+		add_opinion_modifier = {
+			target = FROM
+			modifier = KR_approves_of_govt
+		}
+	}
+}
+
+country_event = { #Council members: China backs down
+	id = china_events.240
+	title = china_events.240.t
+	desc = china_events.240.d
+	picture = GFX_report_event_CHI_chen_gongbo
+
+	trigger = {
+		NOT = { event_target:china = { has_war_with = LEC } }
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event china_events.240 option china_events.240.a"
+		name = china_events.240.a
+		add_opinion_modifier = {
+			target = FROM
+			modifier = KR_approves_of_govt
+		}
+	}
+}
+
 ###################
 ### NEWS EVENTS ###
 ###################
