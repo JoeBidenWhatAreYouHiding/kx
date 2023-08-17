@@ -1,3 +1,48 @@
+china_generate_chinese_theorists = {
+	### make sure that the below are exactly the same as in history/general/china_advisors
+	generate_character = {
+		token_base = china_northern_school
+		advisor = {
+			name = china_northern_school
+			desc = china_northern_school_desc
+			slot = theorist
+			traits = { KR_northern_school }
+			ledger = army
+			cost = 100
+		}
+		portraits = {
+			army = { small = GFX_idea_doctrinal_orthodoxy_spirit }
+		}
+	}
+	generate_character = {
+		token_base = china_southern_school
+		advisor = {
+			name = china_southern_school
+			desc = china_southern_school_desc
+			slot = theorist
+			traits = { KR_southern_school }
+			ledger = army
+			cost = 100
+		}
+		portraits = {
+			army = { small = GFX_idea_upbeat_command_spirit }
+		}
+	}
+	generate_character = {
+		token_base = china_green_forest_school
+		advisor = {
+			name = china_green_forest_school
+			desc = china_green_forest_school_desc
+			slot = theorist
+			traits = { KR_green_forest_school }
+			ledger = army
+			cost = 100
+		}
+		portraits = {
+			army = { small = GFX_idea_traditionalism_academy_spirit }
+		}
+	}
+}
 purge_LEP_templates = {
 	if = {
 		limit = { has_template = "Qibing Xie" }
@@ -10,7 +55,7 @@ purge_LEP_templates = {
 	if = {
 		limit = {
 			has_template = "Bubing Zhen"
-			NOT = { tag = GXC } #has a template of the same name
+			NOT = { original_tag = GXC } #has a template of the same name
 		}
 		delete_unit_template_and_units = { division_template = "Bubing Zhen" }
 	}
@@ -155,9 +200,28 @@ china_reform_faction = {
 	else_if = {
 		limit = {
 			tag = CHI
-			has_completed_focus = CHI_form_eastasia_faction
 		}
-		create_faction = EANL_faction
+		if = {
+			limit = { has_country_leader = { name = "Song Qingling" ruling_only = yes } }
+			create_faction = CHI_song_faction
+		}
+		else_if = {
+			limit = { has_country_leader = { name = "Wang Jingwei" ruling_only = yes } }
+			create_faction = CHI_wang_faction
+		}
+		else_if = {
+			limit = {
+				OR = {
+					has_country_leader = { name = "Chen Gongbo" ruling_only = yes }
+					has_country_leader = { name = "Zeng Zhongming" ruling_only = yes }
+				}
+			}
+			create_faction = CHI_wang_faction
+		}
+		else_if = {
+			limit = { has_country_leader = { name = "Hu Zongnan" ruling_only = yes } }
+			create_faction = CHI_totalist_faction
+		}
 	}
 	else_if = {
 		limit = {
@@ -420,6 +484,40 @@ chinese_united_front_ceasefire = {
 set_potential_national_government = {
 	if = {
 		limit = {
+			NOT = { has_country_flag = china_is_potential_government }
+		}
+		set_country_flag = china_is_potential_government
+		every_state = {
+			limit = {
+				is_core_china = yes
+				is_claim_or_core_of_PREV = no
+				NOT = {
+					has_variable = ambition_area_@PREV
+					owner = {
+						is_subject_of = PREV.PREV
+						china_is_governorate = yes
+					}
+				}
+			}
+			add_claim_by = PREV
+			add_to_array = { PREV.china_government_ambitions = THIS }
+			set_variable = { ambition_area_@PREV = 1 }
+		}
+		hidden_effect = {
+			every_state = {
+				limit = {
+					is_china_claim_area = yes
+					is_claim_or_core_of_PREV = no
+					NOT = { has_variable = ambition_area_@PREV }
+				}
+				add_to_array = { PREV.china_government_ambitions = THIS }
+				set_variable = { ambition_area_@PREV = 1 }
+			}
+			CHI_warn_of_rkmt_government_effect = yes #If its a RKMT leader, effect will fire an event for CHI
+		}
+	}
+	if = {
+		limit = {
 			NOT = { has_country_flag = can_assume_national_leadership }
 		}
 		set_country_flag = can_assume_national_leadership
@@ -466,26 +564,12 @@ set_potential_national_government = {
 			NOT = { has_variable = kr_china_concessionintegration_speed }
 		}
 		set_variable = { kr_china_concessionintegration_speed = 60 }
-	}
-	hidden_effect = {
-		every_state = {
-			limit = {
-				is_claims_china = yes
-				NOT = { has_variable = ambition_area_@PREV }
-			}
-			if = {
-				limit = {
-					NOT = { is_claimed_by = PREV }
-				}
-				add_claim_by = PREV
-			}
-			set_variable = { ambition_area_@PREV = 1 }
-		}
-	}
+	}		
 }
 
 clear_potential_national_government = {
 	hidden_effect = {
+		clr_country_flag = china_is_potential_government
 		clr_country_flag = can_assume_national_leadership
 		clr_country_flag = china_integration_unlocked
 		clear_variable = kr_china_provinceintegration_cost_small
@@ -494,17 +578,24 @@ clear_potential_national_government = {
 		clear_variable = kr_china_provinceintegration_speed
 		clear_variable = kr_china_concessionintegration_cost
 		clear_variable = kr_china_concessionintegration_speed
-		every_state = {
-			limit = {
-				OR = {
-					is_claimed_by = ROOT
-					has_variable = ambition_area_@ROOT
-				}
-				NOT = { is_core_of = ROOT }
-			}
-			remove_claim_by = ROOT
-			clear_variable = ambition_area_@ROOT
+		for_each_scope_loop = {
+			array = china_government_ambitions
+			remove_claim_by = PREV
+			clear_variable = ambition_area_@PREV
 		}
+		clear_array = china_government_ambitions
+
+		for_each_loop = {
+			array = china_possible_allies_array
+			remove_targeted_decision = { decision = china_offer_alliance target = var:v }
+		}
+		clear_array = china_possible_allies_array
+		
+		for_each_loop = {
+			array = china_possible_allies_array
+			remove_targeted_decision = { decision = china_offer_alliance_northwest target = var:v }
+		}
+		clear_array = china_possible_allies_array_northwest
 	}
 }
 
@@ -536,31 +627,37 @@ setup_army_reform = {
 # NOTE: do not use swap_ideas here, it breaks the on_add/on_remove scripts
 increase_army_reform_level = {
 	custom_effect_tooltip = china_army_reform_effect
-	hidden_effect = {
+	if = {
+		limit = { has_idea = china_inadequate_army_5 }
+		remove_ideas = china_inadequate_army_5
+	}
+	else = {
 		if = {
-			limit = { has_idea = china_inadequate_army_5 }
-			remove_ideas = china_inadequate_army_5
+			limit = { has_idea = china_inadequate_army_4 }
+			swap_ideas = {
+				remove_idea = china_inadequate_army_4
+				add_idea = china_inadequate_army_5
+			}
 		}
-		else = {
-			if = {
-				limit = { has_idea = china_inadequate_army_4 }
-				remove_ideas = china_inadequate_army_4
-				add_ideas = china_inadequate_army_5
+		else_if = {
+			limit = { has_idea = china_inadequate_army_3 }
+			swap_ideas = {
+				remove_idea = china_inadequate_army_3
+				add_idea = china_inadequate_army_4
 			}
-			else_if = {
-				limit = { has_idea = china_inadequate_army_3 }
-				remove_ideas = china_inadequate_army_3
-				add_ideas = china_inadequate_army_4
+		}
+		else_if = {
+			limit = { has_idea = china_inadequate_army_2 }
+			swap_ideas = {
+				remove_idea = china_inadequate_army_2
+				add_idea = china_inadequate_army_3
 			}
-			else_if = {
-				limit = { has_idea = china_inadequate_army_2 }
-				remove_ideas = china_inadequate_army_2
-				add_ideas = china_inadequate_army_3
-			}
-			else_if = {
-				limit = { has_idea = china_inadequate_army_1 }
-				remove_ideas = china_inadequate_army_1
-				add_ideas = china_inadequate_army_2
+		}
+		else_if = {
+			limit = { has_idea = china_inadequate_army_1 }
+			swap_ideas = {
+				remove_idea = china_inadequate_army_1
+				add_idea = china_inadequate_army_2
 			}
 		}
 	}
@@ -671,18 +768,8 @@ china_puppet_setup = {
 	hidden_effect = { set_potential_national_government = yes }
 	if = {
 		limit = { tag = CHI }
-		if = {
-			limit = { ROOT = { has_socialist_government = no } }
-			set_politics = {
-				ruling_party = social_democrat
-				elections_allowed = no
-			}
-			set_political_party = {
-				ideology = social_democrat
-				popularity = 60
-			}
-		}
 		set_cosmetic_tag = CHI_ROC
+		CHI_puppet_setup_effect = yes
 	}
 	else_if = {
 		limit = { tag = LEP }
@@ -836,6 +923,792 @@ china_puppet_setup = {
 			}
 			set_cosmetic_tag = UPC
 			load_focus_tree = Federalist_China_Tree
+		}
+	}
+}
+
+china_puppet_ROOT_effect = {
+	hidden_effect = {
+		set_temp_variable = { new_overlord = THIS }
+		ROOT = {
+			get_current_government_type = yes
+			every_subject_country = {
+				get_current_government_type = yes
+				if = {
+					limit = { is_chinese_tag = yes }
+					var:new_overlord = {
+						set_autonomy = {
+							target = PREV
+							autonomy_state = kr_governorate
+							end_wars = no
+						}
+					}
+				}
+				else = {
+					var:new_overlord = {
+						set_autonomy = {
+							target = PREV
+							autonomy_state = kr_default_puppet
+							end_wars = no
+						}
+					}
+				}
+				restore_previous_government_type = yes
+				china_kmt_set_cosmetic_effect = yes
+			}
+		}
+	}
+	set_autonomy = {
+		target = ROOT
+		autonomy_state = kr_governorate
+		end_wars = no
+	}
+	hidden_effect = {
+		if = {
+			limit = { has_wargoal_against = ROOT }
+			remove_wargoal = { target = ROOT type = all }
+		}
+		ROOT = {
+			restore_previous_government_type = yes
+			clear_potential_national_government = yes
+			every_owned_state = {
+				limit = { is_core_china = yes }
+				remove_claim_by = PREV
+			}
+			if = {
+				limit = { has_wargoal_against = PREV }
+				remove_wargoal = { target = PREV type = all }
+			}
+			china_kmt_set_cosmetic_effect = yes
+		}
+	}
+}
+
+china_puppet_PREV_effect = {
+	hidden_effect = {
+		set_temp_variable = { new_overlord = THIS }
+		PREV = {
+			get_current_government_type = yes
+			every_subject_country = {
+				get_current_government_type = yes
+				if = {
+					limit = { is_chinese_tag = yes }
+					var:new_overlord = {
+						set_autonomy = {
+							target = PREV
+							autonomy_state = kr_governorate
+							end_wars = no
+						}
+					}
+				}
+				else = {
+					var:new_overlord = {
+						set_autonomy = {
+							target = PREV
+							autonomy_state = kr_default_puppet
+							end_wars = no
+						}
+					}
+				}
+				restore_previous_government_type = yes
+				china_kmt_set_cosmetic_effect = yes
+			}
+		}
+	}
+	set_autonomy = {
+		target = PREV
+		autonomy_state = kr_default_puppet
+		end_wars = no
+	}
+	hidden_effect = {
+		if = {
+			limit = { has_wargoal_against = PREV }
+			remove_wargoal = { target = PREV type = all }
+		}
+		PREV = {
+			restore_previous_government_type = yes
+			clear_potential_national_government = yes
+			every_owned_state = {
+				limit = { is_core_china = yes }
+				remove_claim_by = PREV.PREV
+			}
+			if = {
+				limit = { has_wargoal_against = PREV }
+				remove_wargoal = { target = PREV type = all }
+			}
+			china_kmt_set_cosmetic_effect = yes
+		}
+	}
+}
+
+china_puppet_FROM_effect = {
+	hidden_effect = {
+		set_temp_variable = { new_overlord = THIS }
+		FROM = {
+			every_subject_country = {
+				get_current_government_type = yes
+				if = {
+					limit = { is_chinese_tag = yes }
+					var:new_overlord = {
+						set_autonomy = {
+							target = PREV
+							autonomy_state = kr_governorate
+							end_wars = no
+						}
+					}
+				}
+				else = {
+					var:new_overlord = {
+						set_autonomy = {
+							target = PREV
+							autonomy_state = kr_default_puppet
+							end_wars = no
+						}
+					}
+				}
+				restore_previous_government_type = yes
+				china_kmt_set_cosmetic_effect = yes
+			}
+			get_current_government_type = yes
+		}
+	}
+	set_autonomy = {
+		target = FROM
+		autonomy_state = kr_governorate
+		end_wars = no
+	}
+	hidden_effect = {
+		FROM = {
+			restore_previous_government_type = yes
+			clear_potential_national_government = yes
+			every_owned_state = {
+				limit = { is_core_china = yes }
+				remove_claim_by = PREV.PREV
+			}
+			china_kmt_set_cosmetic_effect = yes
+		}
+	}
+}
+
+china_puppet_TARGET_effect = {
+	hidden_effect = { var:target = { get_current_government_type = yes } }
+	set_autonomy = {
+		target = var:target
+		autonomy_state = kr_governorate
+		end_wars = no
+	}
+	hidden_effect = {
+		var:target = {
+			restore_previous_government_type = yes
+			clear_potential_national_government = yes
+			every_owned_state = {
+				limit = { is_core_china = yes }
+				remove_claim_by = PREV.PREV
+			}
+			china_kmt_set_cosmetic_effect = yes
+		}
+	}
+}
+
+china_integrate_ally_effect = {
+	if = {
+		limit = { FROM = { tag = CHI } }
+		CHI_recruit_all_generals_from_THIS = yes
+	}
+	transfer_all_unit_leaders_to_FROM = yes
+	every_subject_country = {
+		get_current_government_type = yes
+		FROM = {
+			set_autonomy = {
+				target = PREV
+				autonomy_state = kr_integrated_puppet
+				end_wars = no
+			}
+		}
+		restore_previous_government_type = yes
+	}
+	every_owned_state = {
+		limit = {
+			is_core_china = yes
+			is_claim_or_core_of_FROM = no
+		}
+		add_claim_by = FROM
+	}
+	FROM = {
+		annex_country = {
+			target = ROOT
+			transfer_troops = yes
+		}
+	}
+	if = {
+		limit = { is_ai = no }
+		FROM = { change_tag_from = ROOT }
+	}
+}
+
+china_integrate_TARGET_effect = {
+	set_temp_variable = { integrator = THIS }
+	event_target:target = {
+		clr_country_flag = FNG_promised_autonomy
+		if = {
+			limit = { var:integrator = { tag = CHI } }
+			CHI_recruit_all_generals_from_THIS = yes
+		}
+		every_unit_leader = {
+			limit = { has_unit_leader_flag = CHI_original_unit_leader }
+			hidden_effect = {
+				if = {
+					limit = { is_field_marshal = yes }
+					demote_leader = yes
+				}
+				remove_trait = { trait = recently_promoted }
+			}
+			set_nationality = var:integrator
+		}
+		every_subject_country = {
+			custom_effect_tooltip = tooltip_white_line
+			get_current_government_type = yes
+			var:integrator = { puppet = PREV }
+			restore_previous_government_type = yes
+		}
+		custom_effect_tooltip = tooltip_white_line
+		every_core_state = {
+			limit = {
+				is_china_claim_area = yes
+				NOT = { is_core_of = var:integrator }
+			}
+			add_claim_by = var:integrator
+		}
+	}
+	custom_effect_tooltip = tooltip_white_line
+	annex_country = {
+		target = event_target:target
+		transfer_troops = yes
+	}
+	if = {
+		limit = { event_target:target = { is_ai = no } }
+		change_tag_from = event_target:target
+	}
+}
+china_kmt_set_cosmetic_effect = {
+	if = {
+		limit = {
+			var:new_overlord = { is_ruled_by_kmt = yes }
+			NOT = { var:new_overlord = { is_ruled_by_republicans = yes } }
+		}
+		#In Alphabetical Order for ease of search
+		if = {
+			limit = { original_tag = GXC }
+			set_cosmetic_tag = GXC_KMT
+		}
+		else_if = {
+			limit = { original_tag = HNN }
+			set_cosmetic_tag = HNN_KMT
+		}
+		else_if = {
+			limit = { original_tag = SHX }
+			set_cosmetic_tag = SHX_KMT
+		}
+		else_if = {
+			limit = { original_tag = SIK }
+			set_cosmetic_tag = SIK_KMT
+		}
+		else_if = {
+			limit = { original_tag = SZC }
+			set_cosmetic_tag = SZC_KMT
+		}
+		else_if = {
+			limit = { original_tag = XSM }
+			set_cosmetic_tag = XSM_KMT
+		}
+		else_if = {
+			limit = { original_tag = YUN }
+			set_cosmetic_tag = YUN_KMT
+		}
+	}
+}
+china_break_puppet_effect = {
+	if = {
+		limit = { china_is_governorate = yes }
+		leave_faction = yes
+		overlord = {
+			set_temp_variable = { former_overlord = THIS }
+			set_autonomy = {
+				target = PREV
+				autonomy_state = autonomy_free
+			}
+		}
+		peace_out_non_neighbours_after_leaving_faction = yes
+		every_owned_state = {
+			limit = {
+				is_core_china = yes
+				NOT = { is_core_of = var:former_overlord }
+			}
+			add_claim_by = var:former_overlord
+		}
+		if = {
+			limit = {
+				original_tag = YUN
+				has_cosmetic_tag = YUN_KMT
+				has_government = social_liberal
+			}
+			set_cosmetic_tag = YUN_NRA
+		}
+		else_if = {
+			limit = {
+				OR = {
+					has_cosmetic_tag = GXC_KMT
+					has_cosmetic_tag = HNN_KMT
+					has_cosmetic_tag = SHX_KMT
+					has_cosmetic_tag = SIK_KMT
+					has_cosmetic_tag = SZC_KMT
+					has_cosmetic_tag = XSM_KMT
+					has_cosmetic_tag = YUN_KMT
+				}
+			}
+			drop_cosmetic_tag = yes
+		}
+	}
+}
+china_generic_set_government_cosmetic_effect = {
+	if = {
+		limit = { original_tag = ANQ }
+		set_cosmetic_tag = ANQ_government
+	}
+	else_if = {
+		limit = { original_tag = CHI }
+		set_cosmetic_tag = CHI_government
+		complete_national_focus = CHI_second_national_congress
+		set_country_flag = CHI_phase_two_begins_flag
+	}
+	else_if = {
+		limit = { original_tag = GXC }
+		set_cosmetic_tag = GXC_government
+	}
+	else_if = {
+		limit = { original_tag = HNN }
+		set_cosmetic_tag = HNN_government
+	}
+	else_if = {
+		limit = { original_tag = TAN }
+		set_cosmetic_tag = TAN_government
+	}
+	else_if = {
+		limit = { original_tag = LEP }
+		set_cosmetic_tag = LEP_government
+	}
+	else_if = {
+		limit = { original_tag = SHX }
+		set_cosmetic_tag = SHX_zhongyuan_gov
+	}
+	else_if = {
+		limit = { original_tag = SIK }
+		set_cosmetic_tag = SIK_government
+	}
+	else_if = {
+		limit = { original_tag = SQI }
+		if = {
+			limit = { has_government = national_populist }
+			if = {
+				limit = {
+					owns_state = 608
+					controls_state = 608
+				}
+				set_capital = { state = 608 remember_old_capital = no }
+			}
+			set_cosmetic_tag = SQI_government_yiguandao			
+		}
+		else = {
+			set_cosmetic_tag = SQI_government
+		}
+	}
+	else_if = {
+		limit = { original_tag = SZC }
+		if = {
+			limit = { has_country_leader = { name = "Chen Jiongming" ruling_only = yes } }
+			set_cosmetic_tag = SZC_Federal
+		}
+		else_if = {
+			limit = {
+				OR = {
+					has_country_leader = { name = "Yan Huiqing" ruling_only = yes }
+					has_country_leader = { name = "Jiang Baili" ruling_only = yes }
+				}
+			}
+			set_cosmetic_tag = SZC_Zhili
+		}
+		else = {
+			set_cosmetic_tag = SZC_Chongqing_Government
+		}
+	}
+	else_if = {
+		limit = { original_tag = YUN }
+		if = {
+			limit = { is_ruled_by_right_kmt = yes }
+			set_cosmetic_tag = YUN_NRA
+		}
+		else = {
+			set_cosmetic_tag = YUN_government
+		}
+	}
+	else_if = {
+		limit = { original_tag = XSM }
+		set_cosmetic_tag = XSM_government
+	}
+}
+
+china_enable_non_government_demand_submission_decisions = {
+	effect_tooltip = {
+		if = {
+			limit = {
+				can_declare_war_on = QIE
+				OR = {
+					QIE = { china_is_potential_government = no }
+					QIE = { china_is_unaligned = yes } #NPA
+				}
+			}
+			activate_targeted_decision = { decision = china_demand_submission target = QIE }
+		}
+		if = {
+			limit = {
+				can_declare_war_on = FNG
+				OR = {
+					FNG = { china_is_potential_government = no }
+					FNG = { china_is_unaligned = yes } #NPA
+				}
+			}
+			activate_targeted_decision = { decision = china_demand_submission target = FNG }
+		}
+		if = {
+			limit = {
+				can_declare_war_on = SHX
+				OR = {
+					SHX = { china_is_potential_government = no }
+					SHX = { china_is_unaligned = yes } #NPA
+				}
+			}
+			activate_targeted_decision = { decision = china_demand_submission target = SHX }
+		}
+		if = {
+			limit = {
+				can_declare_war_on = GXC
+				OR = {
+					GXC = { china_is_potential_government = no }
+					GXC = { china_is_unaligned = yes } #NPA
+				}
+			}
+			activate_targeted_decision = { decision = china_demand_submission target = GXC }
+		}
+		if = {
+			limit = {
+				can_declare_war_on = YUN
+				OR = {
+					YUN = { china_is_potential_government = no }
+					YUN = { china_is_unaligned = yes } #NPA
+				}
+			}
+			activate_targeted_decision = { decision = china_demand_submission target = YUN }
+		}
+		if = {
+			limit = {
+				can_declare_war_on = HNN
+				OR = {
+					HNN = { china_is_potential_government = no }
+					HNN = { china_is_unaligned = yes } #NPA
+				}
+			}
+			activate_targeted_decision = { decision = china_demand_submission target = HNN }
+		}
+		if = {
+			limit = {
+				can_declare_war_on = SZC
+				OR = {
+					SZC = { china_is_potential_government = no }
+					SZC = { china_is_unaligned = yes } #NPA
+				}
+			}
+			activate_targeted_decision = { decision = china_demand_submission target = SZC }
+		}
+		if = {
+			limit = {
+				can_declare_war_on = LEP
+				OR = {
+					LEP = { china_is_potential_government = no }
+					LEP = { china_is_unaligned = yes } #NPA
+				}
+			}
+			activate_targeted_decision = { decision = china_demand_submission target = LEP }
+		}
+		if = {
+			limit = {
+				can_declare_war_on = ANQ
+				OR = {
+					ANQ = { china_is_potential_government = no }
+					ANQ = { china_is_unaligned = yes } #NPA
+				}
+			}
+			activate_targeted_decision = { decision = china_demand_submission target = ANQ }
+		}
+		if = {
+			limit = {
+				can_declare_war_on = CHI
+				OR = {
+					CHI = { china_is_potential_government = no }
+					CHI = { china_is_unaligned = yes } #NPA
+				}
+			}
+			activate_targeted_decision = { decision = china_demand_submission target = CHI }
+		}
+		if = {
+			limit = {
+				can_declare_war_on = SQI
+				OR = {
+					SQI = { china_is_potential_government = no }
+					SQI = { china_is_unaligned = yes } #NPA
+				}
+			}
+			activate_targeted_decision = { decision = china_demand_submission target = SQI }
+		}
+	}
+	hidden_effect = {
+		every_other_country = {
+			limit = {
+				is_chinese_tag = yes
+				OR = {
+					china_is_potential_government = no
+					china_is_unaligned = yes
+				}
+				NOT = { original_tag = XSM }
+				NOT = { original_tag = TAN }
+				NOT = { original_tag = SIK }
+			}
+			add_to_array = { ROOT.china_possible_targets_array = THIS }
+		}
+	}
+}
+
+china_enable_all_demand_submission_decisions = {
+	effect_tooltip = {
+		if = {
+			limit = { can_declare_war_on = QIE }
+			activate_targeted_decision = { decision = china_demand_submission target = QIE }
+		}
+		if = {
+			limit = { can_declare_war_on = FNG }
+			activate_targeted_decision = { decision = china_demand_submission target = FNG }
+		}
+		if = {
+			limit = { can_declare_war_on = SHX }
+			activate_targeted_decision = { decision = china_demand_submission target = SHX }
+		}
+		if = {
+			limit = { can_declare_war_on = GXC }
+			activate_targeted_decision = { decision = china_demand_submission target = GXC }
+		}
+		if = {
+			limit = { can_declare_war_on = YUN }
+			activate_targeted_decision = { decision = china_demand_submission target = YUN }
+		}
+		if = {
+			limit = { can_declare_war_on = HNN }
+			activate_targeted_decision = { decision = china_demand_submission target = HNN }
+		}
+		if = {
+			limit = { can_declare_war_on = SZC }
+			activate_targeted_decision = { decision = china_demand_submission target = SZC }
+		}
+		if = {
+			limit = { can_declare_war_on = LEP }
+			activate_targeted_decision = { decision = china_demand_submission target = LEP }
+		}
+		if = {
+			limit = { can_declare_war_on = ANQ }
+			activate_targeted_decision = { decision = china_demand_submission target = ANQ }
+		}
+		if = {
+			limit = { can_declare_war_on = CHI }
+			activate_targeted_decision = { decision = china_demand_submission target = CHI }
+		}
+		if = {
+			limit = { can_declare_war_on = SQI }
+			activate_targeted_decision = { decision = china_demand_submission target = SQI }
+		}
+	}
+	hidden_effect = {
+		every_other_country = {
+			limit = {
+				is_chinese_tag = yes
+				NOT = { original_tag = XSM }
+				NOT = { original_tag = TAN }
+				NOT = { original_tag = SIK }
+			}
+			add_to_array = { ROOT.china_possible_targets_array = THIS }
+		}
+	}
+}
+
+china_enable_all_attack_decisions = {
+	effect_tooltip = {
+		if = {
+			limit = { can_declare_war_on = QIE }
+			activate_targeted_decision = { decision = china_attack_decision target = QIE }
+		}
+		if = {
+			limit = { can_declare_war_on = FNG }
+			activate_targeted_decision = { decision = china_attack_decision target = FNG }
+		}
+		if = {
+			limit = { can_declare_war_on = SHX }
+			activate_targeted_decision = { decision = china_attack_decision target = SHX }
+		}
+		if = {
+			limit = { can_declare_war_on = GXC }
+			activate_targeted_decision = { decision = china_attack_decision target = GXC }
+		}
+		if = {
+			limit = { can_declare_war_on = YUN }
+			activate_targeted_decision = { decision = china_attack_decision target = YUN }
+		}
+		if = {
+			limit = { can_declare_war_on = HNN }
+			activate_targeted_decision = { decision = china_attack_decision target = HNN }
+		}
+		if = {
+			limit = { can_declare_war_on = LEP }
+			activate_targeted_decision = { decision = china_attack_decision target = LEP }
+		}
+		if = {
+			limit = { can_declare_war_on = ANQ }
+			activate_targeted_decision = { decision = china_attack_decision target = ANQ }
+		}
+		if = {
+			limit = { can_declare_war_on = CHI }
+			activate_targeted_decision = { decision = china_attack_decision target = CHI }
+		}
+		if = {
+			limit = { can_declare_war_on = SQI }
+			activate_targeted_decision = { decision = china_attack_decision target = SQI }
+		}
+	}
+	hidden_effect = {
+		every_other_country = {
+			limit = {
+				is_chinese_tag = yes
+				NOT = { original_tag = XSM }
+				NOT = { original_tag = TAN }
+				NOT = { original_tag = SIK }
+			}
+			ROOT = { activate_targeted_decision = { decision = china_attack_decision target = PREV } }
+		}
+	}
+}
+
+china_enable_outskirts_decisions = {
+	if = {
+		limit = { can_declare_war_on = XSM }
+		add_to_array = { ROOT.china_possible_targets_array = XSM }
+		effect_tooltip = { activate_targeted_decision = { target = XSM decision = china_demand_submission } }
+	}
+	if = {
+		limit = { can_declare_war_on = MON }
+		activate_targeted_decision = { decision = china_demand_annexation target = MON }
+	}
+	if = {
+		limit = { can_declare_war_on = TIB }
+		activate_targeted_decision = { decision = china_demand_annexation target = TIB }
+	}
+	if = {
+		limit = { can_declare_war_on = SIK }
+		add_to_array = { ROOT.china_possible_targets_array = SIK }
+		effect_tooltip = { activate_targeted_decision = { target = SIK decision = china_demand_submission } }
+	}
+	if = {
+		limit = { can_declare_war_on = TAN }
+		if = {
+			limit = { TAN = { has_country_flag = TAN_is_chinese_tag } }
+			add_to_array = { ROOT.china_possible_targets_array = TAN }
+			effect_tooltip = { activate_targeted_decision = { target = TAN decision = china_demand_submission } }
+		}
+		else = {
+			activate_targeted_decision = { decision = china_demand_annexation target = TAN }
+		}
+	}
+	if = {
+		limit = { can_declare_war_on = ETS }
+		activate_targeted_decision = { decision = china_demand_annexation target = ETS }
+	}
+}
+
+china_enable_concession_decisions = {
+	set_country_flag = china_concession_decisions_unlocked
+	effect_tooltip = {
+		if = {
+			limit = { country_exists = LEC }
+			activate_targeted_decision = { decision = china_negotiate_with_legation_cities target = LEC }
+		}
+		if = {
+			limit = { var:326.owner = { is_chinese_tag = no } } #Hong Kong
+			activate_targeted_decision = { decision = china_request_return_of_concessions target = 326.owner }
+		}
+		if = {
+			limit = { var:609.owner = { is_chinese_tag = no } } #Tianjin
+			activate_targeted_decision = { decision = china_request_return_of_concessions target = 609.owner }
+		}
+		if = {
+			limit = { var:728.owner = { is_chinese_tag = no } } #Guangzhouwan
+			activate_targeted_decision = { decision = china_request_return_of_concessions target = 728.owner }
+		}
+		if = {
+			limit = { var:729.owner = { is_chinese_tag = no } } #Macau
+			activate_targeted_decision = { decision = china_request_return_of_concessions target = 729.owner }
+		}
+		if = {
+			limit = { var:744.owner = { is_chinese_tag = no } } #Qingdao
+			activate_targeted_decision = { decision = china_request_return_of_concessions target = 744.owner }
+		}
+		if = {
+			limit = { var:745.owner = { is_chinese_tag = no } } #Kwantung
+			activate_targeted_decision = { decision = china_request_return_of_concessions target = 745.owner }
+		}
+		if = {
+			limit = { var:996.owner = { is_chinese_tag = no } } #Weihaiwei
+			activate_targeted_decision = { decision = china_request_return_of_concessions target = 996.owner }
+		}
+	}
+}
+
+china_merges_wuhan = {
+	1048 = { set_state_flag = wuhan_formed }
+	set_victory_points = { province = 7167 value = 0 } #Wuchang
+	set_victory_points = { province = 12467 value = 0 } #Hankou
+	set_victory_points = { province = 4619 value = 20 } #Wuchang/Wuhan
+	set_province_name = { id = 4619 name = VICTORY_POINTS_4619_WUHAN }
+}
+
+china_splits_wuhan = {
+	1048 = { clr_state_flag = wuhan_formed }
+	set_victory_points = { province = 4619 value = 12 } #Wuchang
+	set_victory_points = { province = 12467 value = 5 } #Hanyang
+	set_victory_points = { province = 7167 value = 5 } #Hankou
+	set_province_name = { id = 4619 name = VICTORY_POINTS_4619 }
+}
+
+china_generic_land_reform_setup = {
+	set_variable = { China_land_reform_var = 100 }
+	every_state = {
+		limit = {
+			OR = {
+				is_china_claim_area = yes
+				is_core_of = MON
+			}
+			OR = {
+				has_state_category = one
+				has_state_category = two
+				has_state_category = three
+			}
+		}
+		ROOT = {
+			activate_targeted_decision = { target = PREV decision = china_generic_land_reform_decision }
 		}
 	}
 }
