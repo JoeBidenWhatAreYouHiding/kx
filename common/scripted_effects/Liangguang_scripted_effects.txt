@@ -1,186 +1,456 @@
-setup_rebel_guangxi = {
-	hidden_effect = {
-		594 = { set_demilitarized_zone = no }
-		599 = { set_demilitarized_zone = no }
-		1053 = { set_demilitarized_zone = no }
-		1054 = { set_demilitarized_zone = no }
-		1055 = { set_demilitarized_zone = no }
-		1056 = { set_demilitarized_zone = no }
-		drop_cosmetic_tag = yes
-		if = {
-			limit = { has_country_flag = big_chen_mingshu }
-			GXC_setup_kmt = yes
-		}
-		else_if = {
-			limit = { has_country_flag = big_chen_lianbo }
-			GXC_setup_merchant = yes
-		}
-		else = {
-			GXC_setup_federalist = yes
-		}
-		every_owned_state = {
-			limit = { is_core_of = GXC }
-			add_core_of = PRC
-		}
-		PRC = {
-			transfer_technology_and_slots = yes
-			transfer_state = 594
-			transfer_state = 1053
-			transfer_state = 1054
-			transfer_state = 1055
-			if = {
-				limit = {
-					GXC = {
-						NOT = { has_country_flag = Guilin_held }
-					}
-				}
-				transfer_state = 599
-			}
-			set_capital = { state = 594 }
-			set_cosmetic_tag = GXC_Guangxi
-			if = {
-				limit = {
-					GXC = { has_country_flag = NGxC_takeover }
-				}
-				PRC_setup_new_guangxi_clique = yes
-			}
-			else = {
-				PRC_setup_old_guangxi_clique = yes
-			}
-			load_oob = "GXC_Gx"
-		}
+#scope is destination
+GXC_move_new_guangxi_clique_characters = {
+	event_target:original_liangguang = {
 		every_unit_leader = {
 			limit = {
-				has_trait = GXC_guangxi_clique_officer
+				OR = {
+					has_id = 1209
+					has_id = 1143
+					has_id = 1144
+				}
 			}
-			set_nationality = PRC
+			set_nationality = PREV.PREV
+			hidden_effect = { remove_unit_leader_trait = GXC_guangxi_clique_officer }
+		}
+	}
+}
+#scope is destination
+GXC_move_old_guangxi_clique_characters = {
+	event_target:original_liangguang = {
+		every_unit_leader = {
+			limit = {
+				OR = {
+					has_id = 1117
+					has_id = 1123
+				}
+			}
+			set_nationality = PREV.PREV
+			hidden_effect = { remove_unit_leader_trait = GXC_guangxi_clique_officer }
+		}
+	}
+}
+
+#scope is destination
+GXC_move_federalist_generals = {
+	event_target:original_liangguang = {
+		every_unit_leader = {
+			limit = {
+				OR = {
+					has_id = 1116
+					has_id = 1122
+					has_id = 1142
+					has_id = 5026
+					has_id = 1144
+				}
+			}
+			set_nationality = PREV.PREV
+			hidden_effect = { remove_unit_leader_trait = GXC_guangdong_clique_officer }
+		}
+	}
+}
+
+setup_rebel_guangxi = {
+	set_global_flag = GXC_had_civil_war
+	hidden_effect = {
+		#remove all DMZs
+		every_owned_state = {
+			limit = { is_demilitarized_zone = yes }
+			set_demilitarized_zone = no
+		}
+
+		#delete the locked units, unlock Guangdong's template
+		delete_units = { division_template = "Guangxi Bubing Zhen" disband = yes }
+		delete_units = { division_template = "Guangdong Bubing Zhen" disband = yes }
+
+		#grab the correct ideology
+		if = {
+			limit = { has_global_flag = GXC_new_guangxi_clique_took_over }
+			set_temp_variable = { guangxi_ideology = token:authoritarian_democrat }
+			GXC_move_new_guangxi_clique_characters = yes
+		}
+		else = {
+			set_temp_variable = { guangxi_ideology = token:paternal_autocrat }
+		}
+
+		#start the civil war
+		civil_war_set_flag_to_restore_elections = yes
+		start_civil_war = {
+			### basics ###
+			ideology = var:guangxi_ideology
+			size = 0.2
+			navy_ratio = 0
+
+			### states ###
+			capital = 594
+			states = { 594 599 1053 1054 1055 }
+			states_filter = {
+				OR = {
+					NOT = { has_state_flag = GXC_Guilin_held }
+					NOT = { state = 599 }
+				}
+			}
+
+			### characters ###
+			keep_all_characters = yes
+
+			### effects ###
+			set_temp_variable = { GXC_civil_war_target = THIS }
+		}
+
+		#move all Guangxi characters to revolter
+		every_character = {
+			limit = {
+				OR = {
+					has_unit_leader_flag = GXC_guangxi_leader
+					has_trait = GXC_guangxi_clique_officer
+				}
+			}
+			set_nationality = var:GXC_civil_war_target
+		}
+
+		#setup revolter
+		var:GXC_civil_war_target = {
+			#set cosmetic tag
+			set_cosmetic_tag = GXC_guangxi
+
+			#set leaders and ideology
+			if = {
+				limit = { check_variable = { guangxi_ideology = token:authoritarian_democrat } }
+				GXC_setup_new_guangxi_clique = yes
+				create_country_leader = {
+					name = "Li Zongren"
+					desc = "POLITICS_GXC_LI_ZONGREN_DESC"
+					picture = "gfx/leaders/YUN/Portrait_Yunnan_Li_Zongren.png"
+					expire = "1965.1.1"
+					ideology = authdem_tridemism_subtype
+				}
+			}
+			else = {
+				GXC_setup_old_guangxi_clique = yes
+				create_country_leader = {
+					name = "Ma Ji"
+					desc = "POLITICS_GXC_MA_JI_DESC"
+					picture = "gfx/leaders/GXC/Portrait_GXC_Ma_Ji.png"
+					expire = "1965.1.1"
+					ideology = pataut_warlordism_subtype
+				}
+			}
+
+			#spawn units
+			capital_scope = {
+				create_unit = {
+					division = "division_template = \"Guangxi Bubing Zhen\" start_experience_factor = 0.1 start_equipment_factor = 0.5"
+					owner = PREV
+					count = 6
+				}
+			}
+
+			#remove redundant wargoals
+			if = {
+				limit = { has_wargoal_against = PREV }
+				remove_wargoal = { target = PREV type = all }
+			}
+		}
+		if = {
+			limit = { has_wargoal_against = var:GXC_civil_war_target }
+			remove_wargoal = { target = var:GXC_civil_war_target type = all }
 		}
 		clr_guangxi_ministers = yes
-		if = {
-			limit = { has_template = "Guangxi Bubing Zhen" }
-			delete_unit_template_and_units = { division_template = "Guangxi Bubing Zhen" }
+		#delete Guangxi template
+		delete_unit_template_and_units = { division_template = "Guangxi Bubing Zhen" }
+
+		#remove Guangxi popularities
+		set_political_party = { ideology = authoritarian_democrat popularity = 0 }
+		set_political_party = { ideology = paternal_autocrat popularity = 0 }
+
+		#spawn units
+		capital_scope = {
+			create_unit = {
+				division = "division_template = \"Guangdong Bubing Zhen\" start_equipment_factor = 0.7"
+				owner = PREV
+				count = 5
+			}
 		}
-		set_country_flag = GXC_had_civil_war
-		country_event = { id = lngcivilwar.23 days = 1 }
+
+		#activate decisions
+		activate_targeted_decision = { decision = GXC_mobilize_merchant_corps target = THIS }
+		activate_targeted_decision = { decision = GXC_mobilize_gentry_militia target = THIS }
+
+		#if at war, give wargoal to enemies
+		every_other_country = {
+			limit = {
+				OR = {
+					has_wargoal_against = PREV
+					has_offensive_war_with = PREV
+				}
+				can_declare_war_on = var:GXC_civil_war_target
+			}
+			create_wargoal = {
+				target = var:GXC_civil_war_target
+				type = annex_everything
+			}
+		}
 	}
 }
 setup_rebel_guangdong = {
+	#set global flag
+	set_global_flag = GXC_had_civil_war
+
 	hidden_effect = {
-		594 = { set_demilitarized_zone = no }
-		599 = { set_demilitarized_zone = no }
-		1053 = { set_demilitarized_zone = no }
-		1054 = { set_demilitarized_zone = no }
-		1055 = { set_demilitarized_zone = no }
-		1056 = { set_demilitarized_zone = no }
-		drop_cosmetic_tag = yes
+		#remove all DMZs
+		every_owned_state = {
+			limit = { is_demilitarized_zone = yes }
+			set_demilitarized_zone = no
+		}
+
+		#delete the locked units, unlock Guangxi's template
+		delete_units = { division_template = "Guangxi Bubing Zhen" disband = yes }
+		delete_units = { division_template = "Guangdong Bubing Zhen" disband = yes }
+
+		#grab the correct ideologies
 		if = {
-			limit = { has_country_flag = big_chen_mingshu }
-			PRC = {
-				GXC_setup_kmt = yes
-			}
+			limit = { has_global_flag = GXC_new_guangxi_clique_took_over }
+			set_temp_variable = { guangxi_ideology = token:authoritarian_democrat }
+			GXC_move_new_guangxi_clique_characters = yes
+		}
+		else = {
+			set_temp_variable = { guangxi_ideology = token:paternal_autocrat }
+		}
+		if = {
+			limit = { has_country_leader = { name = "Chen Mingshu" ruling_only = yes } }
+			set_temp_variable = { guangdong_ideology = token:radical_socialist }
 		}
 		else_if = {
-			limit = { has_country_flag = big_chen_lianbo }
-			PRC = {
-				GXC_setup_merchant = yes
-			}
+			limit = { has_country_leader = { name = "Chen Lianbo" ruling_only = yes  } }
+			set_temp_variable = { guangdong_ideology = token:market_liberal }
 		}
 		else = {
-			PRC = {
-				GXC_setup_federalist = yes
-			}
+			set_temp_variable = { guangdong_ideology = token:social_liberal }
 		}
-		every_owned_state = {
-			limit = { is_core_of = GXC }
-			add_core_of = PRC
-		}
-		set_capital = { state = 594 }
-		set_cosmetic_tag = GXC_Guangxi
-		if = {
-			limit = {
-				has_country_flag = NGxC_takeover
-			}
-			PRC_setup_new_guangxi_clique = yes
-			load_focus_tree = { tree = KR_Guangxi_KMT keep_completed = yes } #pls don't break
-		}
-		else = {
-			PRC_setup_old_guangxi_clique = yes
-			load_focus_tree = { tree = KR_Guangxi_Clique keep_completed = yes } #pls don't break
-		}
-		PRC = {
-			transfer_technology_and_slots = yes
-			transfer_state = 592
-			transfer_state = 593
-			transfer_state = 591
-			transfer_state = 1056
-			transfer_state = 800
-			transfer_state = 1012
-			if = {
-				limit = {
-					GXC = {
-						has_country_flag = Guilin_held
-					}
+
+		#start the civil war
+		civil_war_set_flag_to_restore_elections = yes
+		start_civil_war = {
+			### basics ###
+			ruling_party = var:guangxi_ideology
+			ideology = var:guangdong_ideology
+			size = 0.2
+			navy_ratio = 0
+
+			### states ###
+			capital = 592
+			states = { 592 591 593 599 800 1012 1056 }
+			states_filter = {
+				OR = {
+					has_state_flag = GXC_Guilin_held
+					NOT = { state = 599 }
 				}
-				transfer_state = 599
 			}
-			set_capital = { state = 592 }
-			load_oob = "GXC_Gd"
+
+			### characters ###
+			keep_all_characters = yes
+
+			### effects ###
+			set_temp_variable = { GXC_civil_war_target = THIS }
 		}
-		every_unit_leader = {
+
+		#move all Guangdong characters to revolter
+		every_character = {
 			limit = {
-				has_trait = GXC_guangdong_clique_officer
+				OR = {
+					has_character_flag = GXC_guangdong_character
+					has_trait = GXC_guangdong_clique_officer
+				}
 			}
-			set_nationality = PRC
+			set_nationality = var:GXC_civil_war_target
 		}
-		clr_guangdong_ministers = yes
+
+		#setup guangxi
 		if = {
-			limit = { has_template = "Guangdong Bubing Zhen" }
-			delete_unit_template_and_units = { division_template = "Guangdong Bubing Zhen" }
+			limit = { has_global_flag = GXC_new_guangxi_clique_took_over }
+			GXC_setup_new_guangxi_clique = yes
+			create_country_leader = {
+				name = "Li Zongren"
+				desc = "POLITICS_GXC_LI_ZONGREN_DESC"
+				picture = "gfx/leaders/YUN/Portrait_Yunnan_Li_Zongren.png"
+				expire = "1965.1.1"
+				ideology = authdem_tridemism_subtype
+			}
 		}
-		set_country_flag = GXC_had_civil_war
-		country_event = { id = lngcivilwar.23 days = 1 }
+		else = {
+			GXC_setup_old_guangxi_clique = yes
+		}
+
+		#setup revolter
+		var:GXC_civil_war_target = {
+			#set leaders
+			create_country_leader = {
+				name = "Chen Mingshu"
+				desc = "POLITICS_GXC_CHEN_MINGSHU_DESC"
+				picture = "gfx/leaders/GXC/Portrait_GXC_Chen_Mingshu.png"
+				expire = "1965.1.1"
+				ideology = radsoc_tridemism_subtype
+			}
+			create_country_leader = {
+				name = "Chen Qiyou"
+				desc = "POLITICS_GXC_CHEN_QIYOU_DESC"
+				picture = "gfx/leaders/GXC/Portrait_GXC_Chen_Qiyou.png"
+				expire = "1965.1.1"
+				ideology = socdem_warlordism_subtype
+			}
+			create_country_leader = {
+				name = "Chen Qiyou"
+				desc = "POLITICS_GXC_CHEN_QIYOU_DESC"
+				picture = "gfx/leaders/GXC/Portrait_GXC_Chen_Qiyou.png"
+				expire = "1965.1.1"
+				ideology = soclib_warlordism_subtype
+			}
+			create_country_leader = {
+				name = "Chen Lianbo"
+				desc = "POLITICS_GXC_CHEN_LIANBO_DESC"
+				picture = "gfx/leaders/GXC/Portrait_GXC_Chen_Lianbo.png"
+				expire = "1965.1.1"
+				ideology = market_liberal_subtype
+			}
+			if = {
+				limit = { has_unit_leader = 1116 }				
+				create_country_leader = {
+					name = "Chen Jiongming"
+					desc = "POLITICS_GXC_CHEN_JIONGMING_DESC"
+					picture = "gfx/leaders/GXC/Portrait_GXC_Chen_Jiongming.png"
+					expire = "1965.1.1"
+					ideology = soclib_warlordism_subtype
+				}
+				create_country_leader = {
+					name = "Chen Lianbo"
+					desc = "POLITICS_GXC_CHEN_LIANBO_DESC"
+					picture = "gfx/leaders/GXC/Portrait_GXC_Chen_Lianbo.png"
+					expire = "1965.1.1"
+					ideology = market_liberal_subtype
+				}
+			}
+
+			#set ideology
+			if = {
+				limit = { check_variable = { guangdong_ideology = token:radical_socialist } }
+				GXC_setup_kmt = yes
+				set_popularities = {
+					totalist = 0
+					radical_socialist = 15
+					syndicalist = 8
+					social_democrat = 38
+					social_liberal = 21
+					market_liberal = 12
+					social_conservative = 6
+					authoritarian_democrat = 0
+					paternal_autocrat = 0
+					national_populist = 0
+				}
+			}
+			else_if = {
+				limit = { check_variable = { guangdong_ideology = token:market_liberal } }
+				GXC_setup_merchant = yes
+				set_popularities = {
+					totalist = 0
+					radical_socialist = 13
+					syndicalist = 3
+					social_democrat = 27
+					social_liberal = 19
+					market_liberal = 25
+					social_conservative = 13
+					authoritarian_democrat = 0
+					paternal_autocrat = 0
+					national_populist = 0
+				}
+			}
+			else = {
+				GXC_setup_federalist = yes
+				set_popularities = {
+					totalist = 0
+					radical_socialist = 11
+					syndicalist = 5
+					social_democrat = 27
+					social_liberal = 34
+					market_liberal = 15
+					social_conservative = 8
+					authoritarian_democrat = 0
+					paternal_autocrat = 0
+					national_populist = 0
+				}
+			}
+
+			#spawn units
+			capital_scope = {
+				create_unit = {
+					division = "division_template = \"Guangdong Bubing Zhen\" start_equipment_factor = 0.7"
+					owner = PREV
+					count = 5
+				}
+			}
+
+			#activate decisions
+			activate_targeted_decision = { decision = GXC_mobilize_merchant_corps target = THIS }
+			activate_targeted_decision = { decision = GXC_mobilize_gentry_militia target = THIS }
+
+			#remove redundant wargoals
+			if = {
+				limit = { has_wargoal_against = PREV }
+				remove_wargoal = { target = PREV type = all }
+			}
+		}
+		if = {
+			limit = { has_wargoal_against = var:GXC_civil_war_target }
+			remove_wargoal = { target = var:GXC_civil_war_target type = all }
+		}
+
+		#delete Guangdong template
+		delete_unit_template_and_units = { division_template = "Guangdong Bubing Zhen" }
+
+		#spawn units
+		capital_scope = {
+			create_unit = {
+				division = "division_template = \"Guangxi Bubing Zhen\" start_experience_factor = 0.1 start_equipment_factor = 0.5"
+				owner = PREV
+				count = 6
+			}
+		}
+
+		#if at war, give wargoal to enemies
+		every_other_country = {
+			limit = {
+				OR = {
+					has_wargoal_against = var:GXC_civil_war_target
+					has_offensive_war_with = var:GXC_civil_war_target
+				}
+				can_declare_war_on = PREV
+			}
+			create_wargoal = {
+				target = PREV
+				type = annex_everything
+			}
+		}
 	}
 }
+
 GXC_setup_federalist = {
 	set_cosmetic_tag = GXC_Guangdong
 	set_politics = {
 		ruling_party = social_liberal
 		elections_allowed = no
 	}
-	set_popularities = {
-		totalist = 0
-		radical_socialist = 11
-		syndicalist = 5
-		social_democrat = 27
-		social_liberal = 34
-		market_liberal = 15
-		social_conservative = 8
-		authoritarian_democrat = 0
-		paternal_autocrat = 0
-		national_populist = 0
-	}
+	load_focus_tree = { tree = KR_Liangguang_Federalist keep_completed = yes } #pls don't break
 	set_coalition_ministers = yes
 	add_ideas = GXC_Liu_Enchu_hog_sli
 }
+
 GXC_setup_kmt = {
 	set_cosmetic_tag = GXC_Guangdong_republican
 	set_politics = {
-		ruling_party = social_democrat
+		ruling_party = radical_socialist
 		elections_allowed = no
 	}
-	set_popularities = {
-		totalist = 0
-		radical_socialist = 15
-		syndicalist = 8
-		social_democrat = 38
-		social_liberal = 21
-		market_liberal = 12
-		social_conservative = 6
-		authoritarian_democrat = 0
-		paternal_autocrat = 0
-		national_populist = 0
-	}
 	set_ppp_ministers = yes
+	load_focus_tree = { tree = KR_Guangdong_KMT keep_completed = yes } #pls don't break
 }
 GXC_setup_merchant = {
 	set_cosmetic_tag = GXC_Guangdong
@@ -188,21 +458,19 @@ GXC_setup_merchant = {
 		ruling_party = market_liberal
 		elections_allowed = no
 	}
-	set_popularities = {
-		totalist = 0
-		radical_socialist = 13
-		syndicalist = 3
-		social_democrat = 27
-		social_liberal = 19
-		market_liberal = 25
-		social_conservative = 13
-		authoritarian_democrat = 0
-		paternal_autocrat = 0
-		national_populist = 0
-	}
+	load_focus_tree = { tree = KR_Guangdong_Merchants keep_completed = yes } #pls don't break
 	set_merchant_ministers = yes
+	hidden_effect = {
+		XXA = {
+			random_unit_leader = {
+				limit = { has_id = 1121 }
+				set_nationality = ROOT
+			}
+		}
+	}
 }
-PRC_setup_new_guangxi_clique = {
+GXC_setup_new_guangxi_clique = {
+	set_cosmetic_tag = GXC_Guangxi
 	set_politics = {
 		ruling_party = authoritarian_democrat
 		elections_allowed = no
@@ -219,14 +487,16 @@ PRC_setup_new_guangxi_clique = {
 		paternal_autocrat = 0
 		national_populist = 0
 	}
-	create_NGxC_generals = yes
+	load_focus_tree = { tree = KR_Guangxi_KMT keep_completed = yes } #pls don't break
 	YUN = {
 		country_event = lngcivilwar.22
 		set_country_flag = NGxC_is_back_home
 	}
 	set_ngx_ministers = yes
 }
-PRC_setup_old_guangxi_clique = {
+
+GXC_setup_old_guangxi_clique = {
+	set_cosmetic_tag = GXC_Guangxi
 	set_politics = {
 		ruling_party = paternal_autocrat
 		elections_allowed = no
@@ -243,44 +513,53 @@ PRC_setup_old_guangxi_clique = {
 		paternal_autocrat = 40
 		national_populist = 0
 	}
+	load_focus_tree = { tree = KR_Guangxi_Clique keep_completed = yes } #pls don't break
 	set_ogx_ministers = yes
 }
-remove_rebel_cores_prc = {
-	hidden_effect = {
-		every_owned_state = {
-			remove_core_of = PRC
+GXC_new_guangxi_clique_flees = {
+	hidden_effect = {		
+		if = {
+			limit = {
+				YUN = { has_completed_focus = YUN_NRA_prevailed }
+			}
+			every_unit_leader = {
+				limit = {
+					OR = {
+						has_id = 1209 #Li Zongren
+						has_id = 1143 #Bai Chongxi
+						has_id = 1144 #Yu Zuobai
+					}
+				}
+				if = {
+					limit = { is_field_marshal = yes }
+					demote_leader = yes
+				}
+				set_nationality = YUN
+			}
+			YUN = { country_event = lngcivilwar.24 }
+			else = {
+				every_unit_leader = {
+					limit = {
+						OR = {
+							has_id = 1209 #Li Zongren
+							has_id = 1143 #Bai Chongxi
+							has_id = 1144 #Yu Zuobai
+						}
+					}
+					set_nationality = XXA
+				}
+				YUN = { set_country_flag = NGxC_in_hiding }
+			}
 		}
 	}
 }
-old_guangxi_clique_flees = {
-	every_unit_leader = {
-		limit = {
-			OR = {
-				has_id = 1117 #Ma Ji
-				has_id = 1123 #Lu Yuguang
-			}
-		}
-		remove_unit_leader_trait = GXC_guangxi_clique_officer
-	}
-	every_unit_leader = {
-		limit = {
-			OR = {
-				has_id = 1117 #Ma Ji
-				has_id = 1123 #Lu Yuguang
-			}
-			is_field_marshal = yes
-		}
-		demote_leader = yes
-	}
+GXC_old_guangxi_clique_flees = {
 	if = {
 		limit = {
-			NOT = {
-				has_country_flag = NGxC_takeover
-				tag = QIE
-			}
 			QIE = {
+				exists = yes
 				NOT = {
-					has_country_flag = QIE_manchu_restoration
+					has_global_flag = QIE_manchu_restoration
 					has_country_flag = refused_old_guangxi_leaders
 				}
 			}
@@ -291,33 +570,24 @@ old_guangxi_clique_flees = {
 					has_id = 1117 #Ma Ji
 					has_id = 1123 #Lu Yuguang
 				}
+			}			
+			if = {
+				limit = { is_field_marshal = yes }
+				demote_leader = yes
 			}
 			set_nationality = QIE
 		}
-		QIE = {
-			every_unit_leader = {
-				limit = {
-					has_id = 1117 #Ma Ji
-				}
-				unit_leader_event = lngcivilwar.18
-			}
-		}
+		QIE = { country_event = lngcivilwar.18 }
 	}
 	else_if = {
 		limit = {
-			NOT = {
-				has_country_flag = NGxC_takeover
-				tag = SQI
-			}
 			SQI = {
 				exists = yes
 				has_country_leader = {
 					name = "Zhang Zongchang"
 					ruling_only = yes
 				}
-				NOT = {
-					has_country_flag = refused_old_guangxi_leaders
-				}
+				NOT = { has_country_flag = refused_old_guangxi_leaders }
 			}
 		}
 		every_unit_leader = {
@@ -326,29 +596,20 @@ old_guangxi_clique_flees = {
 					has_id = 1117 #Ma Ji
 					has_id = 1123 #Lu Yuguang
 				}
+			}			
+			if = {
+				limit = { is_field_marshal = yes }
+				demote_leader = yes
 			}
 			set_nationality = SQI
 		}
-		SQI = {
-			every_unit_leader = {
-				limit = {
-					has_id = 1117 #Ma Ji
-				}
-				unit_leader_event = lngcivilwar.18
-			}
-		}
-	}
+		SQI = { country_event = lngcivilwar.18 }
+	}	
 	else_if = {
 		limit = {
-			NOT = {
-				has_country_flag = NGxC_takeover
-				tag = LEP
-			}
 			LEP = {
 				exists = yes
-				NOT = {
-					has_country_flag = refused_old_guangxi_leaders
-				}
+				NOT = { has_country_flag = refused_old_guangxi_leaders }
 			}
 		}
 		every_unit_leader = {
@@ -357,29 +618,20 @@ old_guangxi_clique_flees = {
 					has_id = 1117 #Ma Ji
 					has_id = 1123 #Lu Yuguang
 				}
+			}			
+			if = {
+				limit = { is_field_marshal = yes }
+				demote_leader = yes
 			}
 			set_nationality = LEP
 		}
-		LEP = {
-			every_unit_leader = {
-				limit = {
-					has_id = 1117 #Ma Ji
-				}
-				unit_leader_event = lngcivilwar.18
-			}
-		}
-	}
+		LEP = { country_event = lngcivilwar.18 }
+	}		
 	else_if = {
 		limit = {
-			NOT = {
-				has_country_flag = NGxC_takeover
-				tag = ANQ
-			}
 			ANQ = {
 				exists = yes
-				NOT = {
-					has_country_flag = refused_old_guangxi_leaders
-				}
+				NOT = { has_country_flag = refused_old_guangxi_leaders }
 			}
 		}
 		every_unit_leader = {
@@ -388,17 +640,14 @@ old_guangxi_clique_flees = {
 					has_id = 1117 #Ma Ji
 					has_id = 1123 #Lu Yuguang
 				}
+			}			
+			if = {
+				limit = { is_field_marshal = yes }
+				demote_leader = yes
 			}
 			set_nationality = ANQ
 		}
-		ANQ = {
-			every_unit_leader = {
-				limit = {
-					has_id = 1117 #Ma Ji
-				}
-				unit_leader_event = lngcivilwar.18
-			}
-		}
+		ANQ = { country_event = lngcivilwar.18 }
 	}
 	else = {
 		every_unit_leader = {
@@ -408,8 +657,506 @@ old_guangxi_clique_flees = {
 					has_id = 1123 #Lu Yuguang
 				}
 			}
-			retire = yes
+			set_nationality = XXA
 		}
+	}
+}
+
+GXC_federalists_flee = {
+	hidden_effect = {
+		if = {
+			limit = { 
+				event_target:original_liangguang = { NOT = { has_country_flag = Chen_Jiongming_dead } } 
+			}
+			event_target:original_liangguang = {
+				every_unit_leader = {
+					limit = {
+						OR = {
+							has_id = 1116 #Chen Jiongming
+							has_id = 1122 #Lin Hu
+							has_id = 1142 #Hong Zhaolin
+							has_id = 5029 #Hong Zhaolin
+						}
+					}
+					demote_leader = yes
+					set_nationality = XXA
+				}
+			}
+			if = {
+				limit = { has_left_democratic_government = no }
+				every_character = {
+					limit = { has_unit_leader_flag = SZC_officer_leader }
+					retire = yes
+				}
+			}
+			if = {
+				limit = {
+					SZC = {
+						is_subject = no
+						is_in_faction = no
+						has_elected_government = yes
+					}
+				}
+				SZC = {
+					country_event = { id = sichuan.511 days = 20 random_days = 20 }
+				}
+			}
+		}
+		every_unit_leader = {
+			limit = {
+				OR = {
+					has_id = 1116 #Chen Jiongming
+					has_id = 1122 #Lin Hu
+					has_id = 1142 #Hong Zhaolin
+				}
+			}
+			set_nationality = XXA
+			remove_unit_leader_trait = GXC_guangdong_clique_officer
+		}
+	}
+	if = {
+		limit = {
+			SZC = {
+				is_subject = no
+				is_in_faction = no
+				OR = {
+					has_government = social_democrat
+					has_government = social_liberal
+					has_government = market_liberal
+					has_government = social_conservative
+				}
+				NOT = {
+					check_variable = { SZC_alliance = CHI }
+					check_variable = { SZC_alliance = QIE }
+				}
+			}
+		}
+		SZC = {
+			country_event = {
+				id = sichuan.511
+				days = 20
+				random = 480
+			}
+		}
+	}
+}
+
+
+GXC_remove_federalist_ideas = {
+	remove_ideas = {
+		GXC_integrated_militia
+		GXC_imp_officers_int_militia
+		GXC_improved_officers
+		GXC_reformed_minjun
+		GXC_guofangjun
+		GXC_reforming_guangdong_one
+		GXC_reforming_guangdong_two
+		GXC_reforming_guangdong_three
+		GXC_education_reform
+		GXC_professional_training_focus
+		GXC_literacy_campaign
+		GXC_decentralisation
+		GXC_gentry_dominance
+		GXC_agrarianism
+		GXC_land_reform
+		GXC_self_management
+		GXC_model_province_one
+		GXC_model_province_two
+		GXC_model_province_three
+		GXC_model_province_four
+	}
+}
+declare_war_on_GXC_revolter_if_in_civil_war = {
+	if = {
+		limit = { FROM = { original_tag = GXC } }
+		random_country_with_original_tag = {
+			original_tag_to_check = GXC
+			limit = {
+				is_dynamic_country = yes
+				has_civil_war = yes
+				can_declare_war_on = PREV
+			}
+			save_event_target_as = GXC_revolter
+		}
+		if = {
+			limit = { has_event_target = GXC_revolter }
+			declare_war_on = {
+				target = event_target:GXC_revolter
+				type = annex_everything
+			}
+		}
+	}
+}
+
+GXC_open_GXC_border_raid_decisions = {
+	activate_targeted_decision = { target = GEA decision = GXC_raid_german_indochina }
+	activate_targeted_decision = { target = INC decision = GXC_raid_indochina }
+	activate_targeted_decision = { target = YUN decision = GXC_raid_yunnan }
+	activate_targeted_decision = { target = HNN decision = GXC_raid_hunan }
+	activate_targeted_decision = { target = CHI decision = GXC_raid_kmt }
+	activate_targeted_decision = { target = LEP decision = GXC_raid_lep }
+	activate_targeted_decision = { target = LEC decision = GXC_raid_lec }
+	activate_targeted_decision = { target = GEA decision = GXC_raid_aog }
+}
+
+GXC_open_GXC_anti_banditry_decisions = {
+	if = {
+		limit = { tag = GEA }
+		activate_targeted_decision = { target = GXC decision = GXC_GEA_secure_border }
+	}
+	else_if = {
+		limit = { tag = INC }
+		activate_targeted_decision = { target = GXC decision = GXC_INC_secure_border }
+	}
+	else_if = {
+		limit = { tag = YUN }
+		activate_targeted_decision = { target = GXC decision = GXC_YUN_secure_border }
+	}
+	else_if = {
+		limit = { tag = HNN }
+		activate_targeted_decision = { target = GXC decision = GXC_HNN_secure_border }
+	}
+	else_if = {
+		limit = { tag = CHI }
+		activate_targeted_decision = { target = GXC decision = GXC_KMT_secure_border }
+	}
+	else_if = {
+		limit = { tag = LEP }
+		activate_targeted_decision = { target = GXC decision = GXC_LEP_secure_border }
+	}
+	else_if = {
+		limit = { tag = LEC }
+		activate_targeted_decision = { target = GXC decision = GXC_LEC_secure_border }
+	}
+}
+
+GXC_economic_reforms = {
+	if = {
+		limit = {
+			has_idea = GXC_three_year_plan_idea_4
+			has_idea = GXC_reorganised_economy
+			has_idea = GXC_mining2
+		}
+		remove_ideas = GXC_mining2
+		remove_ideas = GXC_reorganised_economy
+		remove_ideas = GXC_three_year_plan_idea_4
+		add_ideas = GXC_modernised_economy
+	}
+	if = {
+		limit = {
+			has_idea = GXC_unfinished_reforms
+			has_idea = GXC_warlord_economy_two
+			has_idea = GXC_mining2
+		}
+		remove_ideas = GXC_unfinished_reforms
+		remove_ideas = GXC_warlord_economy_two
+		remove_ideas = GXC_mining2
+		add_ideas = GXC_warlord_economy_idea
+	}
+}
+
+increase_RKMT_popular_support = {
+	if = {
+		limit = {
+			has_idea = KR_RKMT_popular_support_4
+		}
+		swap_ideas = {
+			remove_idea = KR_RKMT_popular_support_4
+			add_idea = KR_RKMT_popular_support_5
+		}
+	}
+	if = {
+		limit = {
+			has_idea = KR_RKMT_popular_support_3
+		}
+		swap_ideas = {
+			remove_idea = KR_RKMT_popular_support_3
+			add_idea = KR_RKMT_popular_support_4
+		}
+	}
+	if = {
+		limit = {
+			has_idea = KR_RKMT_popular_support_2
+		}
+		swap_ideas = {
+			remove_idea = KR_RKMT_popular_support_2
+			add_idea = KR_RKMT_popular_support_3
+		}
+	}
+	if = {
+		limit = {
+			has_idea = KR_RKMT_popular_support_1
+		}
+		swap_ideas = {
+			remove_idea = KR_RKMT_popular_support_1
+			add_idea = KR_RKMT_popular_support_2
+		}
+	}
+}
+
+decrease_RKMT_popular_support = {
+	if = {
+		limit = {
+			has_idea = KR_RKMT_popular_support_2
+		}
+		swap_ideas = {
+			remove_idea = KR_RKMT_popular_support_2
+			add_idea = KR_RKMT_popular_support_1
+		}
+	}
+	if = {
+		limit = {
+			has_idea = KR_RKMT_popular_support_3
+		}
+		swap_ideas = {
+			remove_idea = KR_RKMT_popular_support_3
+			add_idea = KR_RKMT_popular_support_2
+		}
+	}
+	if = {
+		limit = {
+			has_idea = KR_RKMT_popular_support_4
+		}
+		swap_ideas = {
+			remove_idea = KR_RKMT_popular_support_4
+			add_idea = KR_RKMT_popular_support_3
+		}
+	}
+	if = {
+		limit = {
+			has_idea = KR_RKMT_popular_support_5
+		}
+		swap_ideas = {
+			remove_idea = KR_RKMT_popular_support_5
+			add_idea = KR_RKMT_popular_support_4
+		}
+	}
+}
+
+RKMT_remove_political_ideas = {
+	if = {
+		limit = { has_idea = GXC_kmt_comissar_idea }
+		remove_ideas = 	GXC_kmt_comissar_idea
+	}
+	if = {
+		limit = { has_idea = GXC_RKMT_appeased_merchants }
+		remove_ideas = GXC_RKMT_appeased_merchants
+	}
+	if = {
+		limit = { has_idea = GXC_RKMT_weary_gentry }
+		remove_ideas = GXC_RKMT_weary_gentry
+	}
+	if = {
+		limit = { has_idea = GXC_RKMT_rent_caps }
+		remove_ideas = GXC_RKMT_rent_caps
+	}
+	if = {
+		limit = { has_idea = GXC_provisional_yuan_idea }
+		swap_ideas = {
+			remove_idea = 	GXC_provisional_yuan_idea
+			add_idea = GXC_legislative_yuan_idea
+		}
+	}
+}
+RKMT_remove_military_ideas = {
+	if = {
+		limit = { has_idea = GXC_steel_army_glory }
+		remove_ideas = GXC_steel_army_glory
+	}
+	if = {
+		limit = { has_idea = GXC_iron_army_legacy }
+		remove_ideas = GXC_iron_army_legacy
+	}
+	if = {
+		limit = { has_idea = GXC_professional_officers }
+		remove_ideas = 	GXC_professional_officers
+	}
+	if = {
+		limit = { has_idea = GXC_officer_vanguards_idea }
+		remove_ideas = GXC_officer_vanguards_idea
+	}
+	if = {
+		limit = { has_idea = GXC_NRA_idea1 }
+		remove_ideas = GXC_NRA_idea1
+	}
+	if = {
+		limit = { has_idea = GXC_NRA_idea2 }
+		remove_ideas = 	GXC_NRA_idea2
+	}
+	if = {
+		limit = { has_idea = GXC_new_defense_techniques }
+		remove_ideas = GXC_new_defense_techniques
+	}
+	if = {
+		limit = { has_idea = GXC_better_logistics }
+		remove_ideas = GXC_better_logistics
+	}
+	if = {
+		limit = { has_idea = GXC_russian_advisors_idea }
+		remove_ideas = GXC_russian_advisors_idea
+	}
+}
+RKMT_remove_econ_ideas = {
+	if = {
+		limit = { has_idea = GXC_reforming_guangxi }
+		remove_ideas = 	GXC_reforming_guangxi
+	}
+	if = {
+		limit = { has_idea = GXC_warlord_economy_one }
+		remove_ideas = GXC_warlord_economy_one
+	}
+	if = {
+		limit = { has_idea = GXC_warlord_economy_two }
+		remove_ideas = GXC_warlord_economy_two
+	}
+	if = {
+		limit = { has_idea = GXC_modernising_guangxi }
+		remove_ideas = GXC_modernising_guangxi
+	}
+	if = {
+		limit = { has_idea = GXC_reorganised_economy }
+		remove_ideas = GXC_reorganised_economy
+	}
+	if = {
+		limit = { has_idea = GXC_three_year_plan_idea }
+		remove_ideas = GXC_three_year_plan_idea
+	}
+	if = {
+		limit = { has_idea = GXC_three_year_plan_idea_2 }
+		remove_ideas = GXC_three_year_plan_idea_2
+	}
+	if = {
+		limit = { has_idea = GXC_three_year_plan_idea_3 }
+		remove_ideas = GXC_three_year_plan_idea_3
+	}
+	if = {
+		limit = { has_idea = GXC_three_year_plan_idea_4 }
+		remove_ideas = GXC_three_year_plan_idea_4
+	}
+	if = {
+		limit = { has_idea = GXC_unfinished_reforms }
+		remove_ideas = 	GXC_unfinished_reforms
+	}
+	if = {
+		limit = { has_idea = GXC_mining }
+		remove_ideas = 	GXC_mining
+	}
+	if = {
+		limit = { has_idea = GXC_mining2 }
+		remove_ideas = 	GXC_mining2
+	}
+	if = {
+		limit = { has_idea = GXC_modernised_economy }
+		remove_ideas = 	GXC_modernised_economy
+	}
+	if = {
+		limit = { has_idea = GXC_warlord_economy_idea }
+		remove_ideas = 	GXC_warlord_economy_idea
+	}
+}
+
+RKMT_economic_recovery = {
+	if = {
+		limit = { has_idea = GXC_economic_instability }
+		swap_ideas = {
+			remove_idea = GXC_economic_instability
+			add_idea = GXC_economic_instability2
+		}
+	}
+	else_if = {
+		limit = { has_idea = GXC_economic_instability2 }
+		swap_ideas = {
+			remove_idea = 	GXC_economic_instability2
+			add_idea = GXC_economic_instability3
+		}
+	}
+	else_if = {
+		limit = { has_idea = GXC_economic_instability3 }
+		swap_ideas = {
+			remove_idea = 	GXC_economic_instability3
+			add_idea = GXC_economic_instability4
+		}
+	}
+	else_if = {
+		limit = { has_idea = GXC_economic_instability4 }
+		swap_ideas = {
+			remove_idea = 	GXC_economic_instability4
+			add_idea = GXC_economic_instability5
+		}
+	}
+	else_if = {
+		limit = { has_idea = GXC_economic_instability5 }
+		remove_ideas = GXC_economic_instability5
+	}
+}
+
+RKMT_literacy_recovery = {
+	if = {
+		limit = { has_idea = GXC_low_literacy }
+		swap_ideas = {
+			remove_idea = GXC_low_literacy
+			add_idea = GXC_low_literacy2
+		}
+	}
+	else_if = {
+		limit = { has_idea = GXC_low_literacy2 }
+		swap_ideas = {
+			remove_idea = GXC_low_literacy2
+			add_idea = GXC_low_literacy3
+		}
+	}
+	else_if = {
+		limit = { has_idea = GXC_low_literacy3 }
+		swap_ideas = {
+			remove_idea = GXC_low_literacy3
+			add_idea = GXC_low_literacy4
+		}
+	}
+}
+RKMT_chinese_revolution = {
+	if = {
+		limit = { has_idea = GXC_rkmt_revolution }
+		swap_ideas = {
+			remove_idea = GXC_rkmt_revolution
+			add_idea = GXC_rkmt_revolution2
+		}
+	}
+	if = {
+		limit = { has_idea = GXC_rkmt_revolution2 }
+		swap_ideas = {
+			remove_idea = GXC_rkmt_revolution2
+			add_idea = GXC_rkmt_revolution3
+		}
+	}
+	else = {
+		custom_effect_tooltip = GXC_rkmt_chinese_revolution_tooltip
+	}
+}
+RKMT_military_recovery = {
+	if = {
+		limit = { has_idea = GXC_kmt_demobilisation }
+		swap_ideas = {
+			remove_idea = GXC_kmt_demobilisation
+			add_idea = GXC_kmt_demobilisation2
+		}
+	}
+	else_if = {
+		limit = { has_idea = GXC_kmt_demobilisation2 }
+		swap_ideas = {
+			remove_idea = GXC_kmt_demobilisation2
+			add_idea = GXC_kmt_demobilisation3
+		}
+	}
+	else_if = {
+		limit = { has_idea = GXC_kmt_demobilisation3 }
+		swap_ideas = {
+			remove_idea = GXC_kmt_demobilisation3
+			add_idea = 	GXC_kmt_demobilisation4
+		}
+	}
+	else_if = {
+		limit = { has_idea = GXC_kmt_demobilisation4 }
+		remove_ideas = GXC_kmt_demobilisation4
 	}
 }
 purge_support_from_CHI = {
@@ -779,178 +1526,42 @@ decrease_GXC_popular_support = {
 		}
 	}
 }
-create_NGxC_generals = {
-	create_field_marshal = {
-		name = "Li Zongren"
-		desc = "POLITICS_YUNNAN_LI_ZONGREN_ARMY_DESC"
-		portrait_path = "gfx/leaders/YUN/Portrait_Yunnan_Li_Zongren.png"
-		id = 1209
-		traits = {
-			GXC_guangxi_clique_officer
-			war_hero
-			offensive_doctrine
-			politically_connected
-			logistics_wizard
-		}
-		skill = 4
-		attack_skill = 3
-		defense_skill = 3
-		planning_skill = 3
-		logistics_skill = 4
-	}
-	create_corps_commander = {
-		name = "Bai Chongxi"
-		desc = "POLITICS_YUNNAN_BAI_CHONGXI_ARMY_DESC"
-		portrait_path = "gfx/leaders/YUN/Portrait_Yunnan_Bai_Chongxi.png"
-		skill = 3
-		id = 1143
-		traits = {
-			GXC_guangxi_clique_officer
-			infantry_officer
-			politically_connected
-			brilliant_strategist
-		}
-		attack_skill = 4
-		defense_skill = 2
-		planning_skill = 2
-		logistics_skill = 2
-	}
-	create_corps_commander = {
-		name = "Yu Zuobai"
-		desc = "POLITICS_YUNNAN_YU_ZUOBAI_ARMY_DESC"
-		portrait_path = "gfx/leaders/YUN/Portrait_Yunnan_Yu_Zuobai.png"
-		id = 1144
-		traits = {
-			GXC_guangxi_clique_officer
-			cavalry_officer
-			substance_abuser
-		}
-		skill = 2
-		attack_skill = 1
-		defense_skill = 1
-		planning_skill = 2
-		logistics_skill = 3
-	}
-}
-new_guangxi_clique_flees = {
-	hidden_effect = {
-		if = {
-			limit = {
-				NOT = {
-					has_country_flag = NGxC_takeover
-				}
-			}
-			hidden_effect = {
-				create_NGxC_generals = yes
-			}
-		}
-		if = {
-			limit = {
-				YUN = {
-					has_completed_focus = YUN_NRA_prevailed
-				}
-			}
-			every_unit_leader = {
-				limit = {
-					OR = {
-						has_id = 1209 #Li Zongren
-						has_id = 1143 #Bai Chongxi
-						has_id = 1144 #Yu Zuobai
-					}
-				}
-				set_nationality = YUN
-				remove_unit_leader_trait = GXC_guangxi_clique_officer
-			}
-			YUN = {
-				country_event = lngcivilwar.24
-			}
-			else = {
-				every_unit_leader = {
-					limit = {
-						OR = {
-							has_id = 1209 #Li Zongren
-							has_id = 1143 #Bai Chongxi
-							has_id = 1144 #Yu Zuobai
-						}
-					}
-					set_nationality = NSW
-					remove_unit_leader_trait = GXC_guangxi_clique_officer
-				}
-				YUN = {
-					set_country_flag = NGxC_in_hiding
-				}
-			}
-		}
-	}
-}
-new_guangxi_clique_leaves_hiding = {
-	hidden_effect = {
-		NSW = {
-			every_unit_leader = {
-				limit = {
-					OR = {
-						has_id = 1209 #Li Zongren
-						has_id = 1143 #Bai Chongxi
-						has_id = 1144 #Yu Zuobai
-					}
-				}
-				set_nationality = YUN
-			}
-		}
-	}
-}
-federalists_flee = {
-	hidden_effect = {
+GXC_create_NGxC_generals = {
+	event_target:original_liangguang = {
 		every_unit_leader = {
 			limit = {
 				OR = {
-					has_id = 1116 #Chen Jiongming
-					has_id = 1122 #Lin Hu
-					has_id = 1142 #Hong Zhaolin
+					has_id = 1209
+					has_id = 1143
+					has_id = 1144
 				}
 			}
-			set_nationality = NSW
-			remove_unit_leader_trait = GXC_guangdong_clique_officer
+			set_nationality = PREV.PREV
+			hidden_effect = { remove_unit_leader_trait = GXC_guangxi_clique_officer }
 		}
 	}
-	if = {
-		limit = {
-			SZC = {
-				is_subject = no
-				is_in_faction = no
-				OR = {
-					has_government = social_democrat
-					has_government = social_liberal
-					has_government = market_liberal
-					has_government = social_conservative
+}
+
+new_guangxi_clique_leaves_hiding = {
+	hidden_effect = {
+		XXA = {
+			every_unit_leader = {
+				limit = {
+					OR = {
+						has_id = 1209 #Li Zongren
+						has_id = 1143 #Bai Chongxi
+						has_id = 1144 #Yu Zuobai
+					}
 				}
-				NOT = {
-					check_variable = { SZC_alliance = CHI }
-					check_variable = { SZC_alliance = QIE }
-				}
-			}
-		}
-		SZC = {
-			country_event = {
-				id = sichuan.511
-				days = 20
-				random = 480
-			}
-		}
-	}
-	else = {
-		LEC = {
-			country_event = {
-				id = lechotung.21
-				days = 2
-				random = 120
+				set_nationality = YUN
 			}
 		}
 	}
 }
+
 federalists_arrive_SZC = {
 	hidden_effect = {
-		NSW = {
+		XXA = {
 			every_unit_leader = {
 				limit = {
 					OR = {
@@ -965,328 +1576,4 @@ federalists_arrive_SZC = {
 	}
 }
 
-GXC_into_CHI = {
-	hidden_effect = {
-		drop_cosmetic_tag = yes
-		CHI = {
-			#States
-			transfer_state = 594
-			transfer_state = 1053
-			transfer_state = 1054
-			transfer_state = 1055
 
-			#Techs
-			transfer_technology = yes
-
-			#Tech Boni
-			if = {
-				limit = {
-					ROOT = { has_completed_focus = GXC_Guangdong_Star }
-				}
-				add_tech_bonus = {
-					name = GXC_Guangdong_Star
-					bonus = 1
-					uses = 1
-					category = industry
-				}
-			}
-			if = {
-				limit = {
-					ROOT = { has_completed_focus = GXC_Guangdong_Industrial_Exhibition }
-				}
-				add_tech_bonus = {
-					name = GXC_Guangdong_Industrial_Exhibition
-					bonus = 1
-					uses = 1
-					category = industry
-				}
-			}
-			if = {
-				limit = {
-					ROOT = { has_completed_focus = GXC_provincial_armies }
-				}
-				add_doctrine_cost_reduction = {
-					name = GXC_provincial_armies
-					cost_reduction = 1
-					uses = 1
-					category = land_doctrine
-				}
-			}
-			if = {
-				limit = {
-					ROOT = { has_completed_focus = GXC_tooling_help }
-				}
-				add_tech_bonus = {
-					name = GXC_tooling_help
-					bonus = 1
-					uses = 1
-					category = industry
-				}
-			}
-			if = {
-				limit = {
-					ROOT = { has_completed_focus = GXC_second_arsenal }
-				}
-				add_tech_bonus = {
-					name = GXC_second_arsenal
-					bonus = 1
-					uses = 1
-					category = artillery
-				}
-			}
-			if = {
-				limit = {
-					ROOT = { has_completed_focus = GXC_improved_communications }
-				}
-				add_tech_bonus = {
-					name = GXC_improved_communications
-					bonus = 1
-					uses = 1
-					category = electronics
-				}
-			}
-			if = {
-				limit = {
-					ROOT = { has_completed_focus = GXC_specialized_artillery }
-				}
-				add_tech_bonus = {
-					name = GXC_specialized_artillery
-					bonus = 1
-					uses = 1
-					category = cat_anti_tank
-				}
-				add_tech_bonus = {
-					name = GXC_specialized_artillery
-					bonus = 1
-					uses = 1
-					category = cat_anti_air
-				}
-			}
-			if = {
-				limit = {
-					ROOT = { has_completed_focus = GXC_Liangguang_Aviation_School }
-				}
-				add_doctrine_cost_reduction = {
-					name = GXC_Liangguang_Aviation_School
-					cost_reduction = 1
-					uses = 2
-					category = air_doctrine
-				}
-			}
-			if = {
-				limit = {
-					ROOT = { has_completed_focus = GXC_rejuvenation_type_aircraft }
-				}
-				add_tech_bonus = {
-					name = GXC_rejuvenation_type_aircraft
-					bonus = 1
-					uses = 1
-					category = light_fighter
-				}
-			}
-			if = {
-				limit = {
-					ROOT = { has_completed_focus = GXC_civilwar_lessons }
-				}
-				add_doctrine_cost_reduction = {
-					name = GXC_civilwar_lessons
-					cost_reduction = 1
-					uses = 1
-					category = land_doctrine
-				}
-			}
-			if = {
-				limit = {
-					ROOT = { has_completed_focus = GXC_improved_logistics }
-				}
-				add_tech_bonus = {
-					name = GXC_improved_logistics
-					bonus = 1
-					uses = 1
-					category = logistics_tech
-				}
-			}
-			if = {
-				limit = {
-					ROOT = { has_completed_focus = GXC_proper_recon }
-				}
-				add_tech_bonus = {
-					name = GXC_proper_recon
-					bonus = 1
-					uses = 1
-					category = recon_tech
-				}
-			}
-			if = {
-				limit = {
-					ROOT = { has_completed_focus = GXC_mountain_warfare }
-				}
-				add_tech_bonus = {
-					name = GXC_mountain_warfare
-					bonus = 1
-					uses = 1
-					category = mountaineers_tech
-				}
-			}
-			if = {
-				limit = {
-					ROOT = { has_completed_focus = GXC_modern_engineers }
-				}
-				add_tech_bonus = {
-					name = GXC_modern_engineers
-					bonus = 1
-					uses = 2
-					technology = tech_engineers
-					technology = tech_engineers2
-					technology = tech_engineers3
-					technology = tech_engineers4
-				}
-			}
-			if = {
-				limit = {
-					ROOT = { has_completed_focus = GXC_fourth_army }
-				}
-				add_doctrine_cost_reduction = {
-					name = GXC_fourth_army
-					cost_reduction = 1
-					uses = 2
-					category = cat_superior_firepower
-				}
-			}
-			if = {
-				limit = {
-					ROOT = { has_completed_focus = GXC_seventh_army }
-				}
-				add_doctrine_cost_reduction = {
-					name = GXC_seventh_army
-					cost_reduction = 1
-					uses = 2
-					category = cat_mass_assault
-				}
-			}
-			if = {
-				limit = {
-					ROOT = { has_completed_focus = GXC_Economic_Modernization }
-				}
-				add_tech_bonus = {
-					name = GXC_Economic_Modernization
-					bonus = 1
-					uses = 1
-					category = industry
-				}
-			}
-			if = {
-				limit = {
-					ROOT = { has_completed_focus = GXC_Mountain_Battle_Training }
-				}
-				add_tech_bonus = {
-					name = GXC_Mountain_Battle_Training
-					bonus = 1
-					uses = 1
-					category = mountaineers_tech
-				}
-			}
-
-			#Ministers
-			remove_all_ministers = yes
-			if = {
-				limit = { has_country_flag = Zhou_Fohai_dead }
-				add_ideas = {
-					CHI_Li_Liejun_hog_sli
-					CHI_Chen_Youren_for_sde
-					CHI_Sun_Yueqi_eco_sde
-				}
-			}
-			else = {
-				add_ideas = {
-					CHI_Li_Liejun_hog_sli
-					CHI_Chen_Youren_for_sde
-					CHI_Zhou_Fohai_eco_sde
-				}
-			}
-
-			#Popularities
-			set_temp_variable = { CHI_popularity_total = 1 }
-			subtract_from_temp_variable = { CHI_popularity_total = ROOT.party_popularity@totalist }
-			subtract_from_temp_variable = { CHI_popularity_total = ROOT.party_popularity@syndicalist }
-			subtract_from_temp_variable = { CHI_popularity_total = ROOT.party_popularity@radical_socialist }
-			subtract_from_temp_variable = { CHI_popularity_total = ROOT.party_popularity@social_liberal }
-			subtract_from_temp_variable = { CHI_popularity_total = ROOT.party_popularity@market_liberal }
-			subtract_from_temp_variable = { CHI_popularity_total = ROOT.party_popularity@social_conservative }
-			subtract_from_temp_variable = { CHI_popularity_total = ROOT.party_popularity@authoritarian_democrat }
-			subtract_from_temp_variable = { CHI_popularity_total = ROOT.party_popularity@paternal_autocrat }
-			subtract_from_temp_variable = { CHI_popularity_total = ROOT.party_popularity@national_populist }
-
-			set_popularities = {
-				totalist = ROOT.party_popularity@totalist
-				syndicalist = ROOT.party_popularity@syndicalist
-				radical_socialist = ROOT.party_popularity@radical_socialist
-				social_democrat = CHI_popularity_total
-				social_liberal = ROOT.party_popularity@social_liberal
-				market_liberal = ROOT.party_popularity@market_liberal
-				social_conservative = ROOT.party_popularity@social_conservative
-				authoritarian_democrat = ROOT.party_popularity@authoritarian_democrat
-				paternal_autocrat = ROOT.party_popularity@paternal_autocrat
-				national_populist = ROOT.party_popularity@national_populist
-			}
-
-			add_popularity = { ideology = social_democrat popularity = 0.1 }
-			#add_popularity = { ideology = authoritarian_democrat popularity = 0.1 }
-			#add_popularity = { ideology = paternal_autocrat popularity = 0.1 }
-			#add_popularity = { ideology = national_populist popularity = 0.05 }
-
-			#Government
-			set_politics = {
-				ruling_party = social_democrat
-				elections_allowed = no
-			}
-			create_country_leader = {
-				name = "Chen Mingshu"
-				desc = "POLITICS_GXC_CHEN_MINGSHU_DESC"
-				picture = "gfx/leaders/GXC/Portrait_GXC_Chen_Mingshu.png"
-				expire = "1965.1.1"
-				ideology = social_democrat_subtype
-			}
-
-			#Final setup
-			set_country_flag = CHI_mingshu_lkmt
-			load_focus_tree = KR_LKMT_GND
-		}
-		every_unit_leader = {
-			set_nationality = CHI
-		}
-		every_state = {
-			limit = { is_core_of = ROOT }
-			add_core_of = CHI
-		}
-		CHI = {
-			annex_country = { target = ROOT transfer_troops = yes }
-			change_tag_from = ROOT
-		}
-	}
-}
-
-GXC_remove_federalist_ideas = {
-	remove_ideas = {
-		GXC_integrated_militia
-		GXC_imp_officers_int_militia
-		GXC_improved_officers
-		GXC_reformed_minjun
-		GXC_guofangjun
-		GXC_reforming_guangdong_one
-		GXC_reforming_guangdong_two
-		GXC_reforming_guangdong_three
-		GXC_education_reform
-		GXC_professional_training_focus
-		GXC_literacy_campaign
-		GXC_decentralisation
-		GXC_gentry_dominance
-		GXC_agrarianism
-		GXC_land_reform
-		GXC_self_management
-		GXC_model_province_one
-		GXC_model_province_two
-		GXC_model_province_three
-		GXC_model_province_four
-	}
-}
