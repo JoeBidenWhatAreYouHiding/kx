@@ -933,7 +933,7 @@ RUS_Duma = {
 			set_country_flag = RUS_LAW_SIBERIAN_AUTONOMY
 			set_country_flag = RUS_LAW_DUMA_LEVEL
 			set_country_flag = RUS_LAW_IN_PROGRESS
-			Get_initial_RUS_psr_law = yes
+			Get_initial_RUS_LAW_SIBERIAN_AUTONOMY = yes
 			activate_mission = RUS_LAW_DUMA_LEVEL_DEADLINE
 		}
 	}
@@ -3180,18 +3180,41 @@ RUS_Passing_Laws = {
 	RUS_LAW_GET_PLSR_DUMA_VOTES = {
 		icon = GFX_decision_generic_agreement
 		visible = {
-			has_country_flag = RUS_LAW_DUMA_LEVEL
-			check_variable = { Duma_Party_Seats^1 > 0 }
+			OR = {
+				has_country_flag = RUS_LAW_DUMA_LEVEL
+				has_country_flag = RUS_LAW_SENATE_LEVEL
+			}
+			if = {
+				limit = { has_country_flag = RUS_LAW_DUMA_LEVEL }
+				check_variable = { Duma_Party_Seats^1 > 0 }
+			}
+			else = {
+				check_variable = { Senate_Party_Total_Seats^1 > 0 }
+			}
 			NOT = { has_country_flag = RUS_LAW_OPPOSITION_VOTES }
 		}
 		available = {
 			NOT = { has_country_flag = RUS_LAW_LAND_QUOTAS }
-			check_variable = { CurrentDumaSupportForBill^1 < Duma_Party_Seats^1 }
+			if = {
+				limit = { has_country_flag = RUS_LAW_DUMA_LEVEL }
+				check_variable = { CurrentDumaSupportForBill^1 < Duma_Party_Seats^1 }
+			}
+			else = {
+				check_variable = { CurrentSenateSupportForBill^1 < Senate_Party_Total_Seats^1 }
+			}
 			if = {
 				limit = { has_country_flag = RUS_LAW_IMPEACH_PRESIDENT }
 				has_a_plsr_president = no
+			}			
+		}
+		cancel_trigger = {
+			hidden_trigger = {
+				NOT = {
+					has_country_flag = RUS_LAW_DUMA_LEVEL
+					has_country_flag = RUS_LAW_SENATE_LEVEL
+				}
 			}
-		}	
+		}
 		ai_will_do = {
 			base = 100
 			modifier = {
@@ -3208,13 +3231,55 @@ RUS_Passing_Laws = {
 				factor = 0.5
 				NOT = { check_variable = { Duma_Party_Status^1 = 1 } }
 			}
+			modifier = {
+				factor = 0
+				check_variable = { CurrentOverallSenateSupport > two_thirds_senate_plus_one }
+				has_country_flag = RUS_LAW_CHANGING_CONSTITUTION
+			}
+			modifier = {
+				factor = 0
+				check_variable = { CurrentOverallSenateSupport > half_senate_plus_one }
+				NOT = { has_country_flag = RUS_LAW_CHANGING_CONSTITUTION }
+			}
 		}
 		cost = 5
 		days_remove = 5
 		days_re_enable = 7
 		fire_only_once = no
 		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_LAW_GET_PLSR_DUMA_VOTES target: [From.GetName]"
 			custom_effect_tooltip = RUS_LAW_GET_PLSR_DUMA_VOTES_tt
+			if = {
+				limit = { has_country_flag = RUS_LAW_DUMA_LEVEL }
+				hidden_effect = {
+					set_temp_variable = { min_support = Duma_Party_Seats^1 }
+					multiply_temp_variable = { min_support = 0.125 }
+					set_temp_variable = { max_support = Duma_Party_Seats^1 }
+					multiply_temp_variable = { max_support = 0.25 }
+					set_temp_variable_to_random = {
+						var = support_for_bill
+						min = min_support
+						max = max_support
+						integer = yes
+					}
+					add_to_variable = { CurrentDumaSupportForBill^1 = support_for_bill }
+				}
+			}
+			else = {
+				hidden_effect = {
+					set_temp_variable = { min_support = Senate_Party_Total_Seats^1 }
+					multiply_temp_variable = { min_support = 0.125 }
+					set_temp_variable = { max_support = Senate_Party_Total_Seats^1 }
+					multiply_temp_variable = { max_support = 0.25 }
+					set_temp_variable_to_random = {
+						var = support_for_bill
+						min = min_support
+						max = max_support
+						integer = yes
+					}
+					add_to_variable = { CurrentSenateSupportForBill^1 = support_for_bill }
+				}
+			}
 			if = {
 				limit = {
 					NOT = {
@@ -3225,41 +3290,49 @@ RUS_Passing_Laws = {
 					}
 				}
 				custom_effect_tooltip = RUS_LAW_PLSR_POPULARITY_WILL_GREATLY_RISE
-				hidden_effect = {
-					RUS_increase_plsr_pop = yes
-				}
+				hidden_effect = { RUS_increase_plsr_pop = yes }
 			}
-			hidden_effect = {
-				set_temp_variable = { min_support = Duma_Party_Seats^1 }
-				multiply_temp_variable = { min_support = 0.125 }
-				set_temp_variable = { max_support = Duma_Party_Seats^1 }
-				multiply_temp_variable = { max_support = 0.25 }
-				set_temp_variable_to_random = {
-					var = support_for_bill
-					min = min_support
-					max = max_support
-					integer = yes
-				}
-				add_to_variable = { CurrentDumaSupportForBill^1 = support_for_bill }
-			}
-			count_votes_for_bill_sum = yes
+			count_votes_for_bill_sum = yes				
 		}
 	}
 	RUS_LAW_GET_NSP_DUMA_VOTES = {
 		icon = GFX_decision_generic_agreement
 		visible = {
-			has_country_flag = RUS_LAW_DUMA_LEVEL
-			check_variable = { Duma_Party_Seats^2 > 0 }
+			OR = {
+				has_country_flag = RUS_LAW_DUMA_LEVEL
+				has_country_flag = RUS_LAW_SENATE_LEVEL
+			}
+			if = {
+				limit = { has_country_flag = RUS_LAW_DUMA_LEVEL }
+				check_variable = { Duma_Party_Seats^2 > 0 }
+			}
+			else = {
+				check_variable = { Senate_Party_Total_Seats^2 > 0 }
+			}
 			NOT = { has_country_flag = RUS_LAW_OPPOSITION_VOTES }
 		}
 		available = {
 			NOT = { has_country_flag = RUS_LAW_LAND_QUOTAS }
-			check_variable = { CurrentDumaSupportForBill^2 < Duma_Party_Seats^2 }
+			if = {
+				limit = { has_country_flag = RUS_LAW_DUMA_LEVEL }
+				check_variable = { CurrentDumaSupportForBill^2 < Duma_Party_Seats^2 }
+			}
+			else = {
+				check_variable = { CurrentSenateSupportForBill^2 < Senate_Party_Total_Seats^2 }
+			}
 			if = {
 				limit = { has_country_flag = RUS_LAW_IMPEACH_PRESIDENT }
 				has_a_nsp_president = no
+			}			
+		}
+		cancel_trigger = {
+			hidden_trigger = {
+				NOT = {
+					has_country_flag = RUS_LAW_DUMA_LEVEL
+					has_country_flag = RUS_LAW_SENATE_LEVEL
+				}
 			}
-		}	
+		}
 		ai_will_do = {
 			base = 100
 			modifier = {
@@ -3276,58 +3349,108 @@ RUS_Passing_Laws = {
 				factor = 0.5
 				NOT = { check_variable = { Duma_Party_Status^2 = 1 } }
 			}
+			modifier = {
+				factor = 0
+				check_variable = { CurrentOverallSenateSupport > two_thirds_senate_plus_one }
+				has_country_flag = RUS_LAW_CHANGING_CONSTITUTION
+			}
+			modifier = {
+				factor = 0
+				check_variable = { CurrentOverallSenateSupport > half_senate_plus_one }
+				NOT = { has_country_flag = RUS_LAW_CHANGING_CONSTITUTION }
+			}
 		}
 		cost = 5
 		days_remove = 5
 		days_re_enable = 7
 		fire_only_once = no
 		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_LAW_GET_NSP_DUMA_VOTES target: [From.GetName]"
 			custom_effect_tooltip = RUS_LAW_GET_NSP_DUMA_VOTES_tt
+			if = {
+				limit = { has_country_flag = RUS_LAW_DUMA_LEVEL }
+				hidden_effect = {
+					set_temp_variable = { min_support = Duma_Party_Seats^2 }
+					multiply_temp_variable = { min_support = 0.125 }
+					set_temp_variable = { max_support = Duma_Party_Seats^2 }
+					multiply_temp_variable = { max_support = 0.25 }
+					set_temp_variable_to_random = {
+						var = support_for_bill
+						min = min_support
+						max = max_support
+						integer = yes
+					}
+					add_to_variable = { CurrentDumaSupportForBill^2 = support_for_bill }
+				}
+			}
+			else = {
+				hidden_effect = {
+					set_temp_variable = { min_support = Senate_Party_Total_Seats^2 }
+					multiply_temp_variable = { min_support = 0.125 }
+					set_temp_variable = { max_support = Senate_Party_Total_Seats^2 }
+					multiply_temp_variable = { max_support = 0.25 }
+					set_temp_variable_to_random = {
+						var = support_for_bill
+						min = min_support
+						max = max_support
+						integer = yes
+					}
+					add_to_variable = { CurrentSenateSupportForBill^2 = support_for_bill }
+				}
+			}
 			if = {
 				limit = {
 					NOT = {
-					OR = {
+						OR = {
 							check_variable = { Duma_Party_Status^2 = 1 }
 							check_variable = { Duma_Party_Status^2 = 2 }
+						}
 					}
 				}
-		}	
 				custom_effect_tooltip = RUS_LAW_NSP_POPULARITY_WILL_GREATLY_RISE
-				hidden_effect = {
-					RUS_increase_nsnp_pop = yes
-				}
+				hidden_effect = { RUS_increase_nsp_pop = yes }
 			}
-			hidden_effect = {
-				set_temp_variable = { min_support = Duma_Party_Seats^2 }
-				multiply_temp_variable = { min_support = 0.125 }
-				set_temp_variable = { max_support = Duma_Party_Seats^2 }
-				multiply_temp_variable = { max_support = 0.25 }
-				set_temp_variable_to_random = {
-					var = support_for_bill
-					min = min_support
-					max = max_support
-					integer = yes
-				}
-				add_to_variable = { CurrentDumaSupportForBill^2 = support_for_bill }
-			}
-			count_votes_for_bill_sum = yes
+			count_votes_for_bill_sum = yes				
 		}
 	}
 	RUS_LAW_GET_PSR_DUMA_VOTES = {
 		icon = GFX_decision_generic_agreement
 		visible = {
-			has_country_flag = RUS_LAW_DUMA_LEVEL
-			check_variable = { Duma_Party_Seats^3 > 0 }
+			OR = {
+				has_country_flag = RUS_LAW_DUMA_LEVEL
+				has_country_flag = RUS_LAW_SENATE_LEVEL
+			}
+			if = {
+				limit = { has_country_flag = RUS_LAW_DUMA_LEVEL }
+				check_variable = { Duma_Party_Seats^3 > 0 }
+			}
+			else = {
+				check_variable = { Senate_Party_Total_Seats^3 > 0 }
+			}
 			NOT = { has_country_flag = RUS_LAW_OPPOSITION_VOTES }
 		}
 		available = {
 			NOT = { has_country_flag = RUS_LAW_LAND_QUOTAS }
-			check_variable = { CurrentDumaSupportForBill^3 < Duma_Party_Seats^3 }
+			if = {
+				limit = { has_country_flag = RUS_LAW_DUMA_LEVEL }
+				check_variable = { CurrentDumaSupportForBill^3 < Duma_Party_Seats^3 }
+			}
+			else = {
+				check_variable = { CurrentSenateSupportForBill^3 < Senate_Party_Total_Seats^3 }
+			}
 			if = {
 				limit = { has_country_flag = RUS_LAW_IMPEACH_PRESIDENT }
 				has_a_psr_president = no
+			}			
+		}
+		cancel_trigger = {
+			hidden_trigger = {
+				NOT = {
+					has_country_flag = RUS_LAW_DUMA_LEVEL
+					has_country_flag = RUS_LAW_SENATE_LEVEL
+				}
 			}
-		}	
+		}
 		ai_will_do = {
 			base = 100
 			modifier = {
@@ -3344,58 +3467,108 @@ RUS_Passing_Laws = {
 				factor = 0.5
 				NOT = { check_variable = { Duma_Party_Status^3 = 1 } }
 			}
+			modifier = {
+				factor = 0
+				check_variable = { CurrentOverallSenateSupport > two_thirds_senate_plus_one }
+				has_country_flag = RUS_LAW_CHANGING_CONSTITUTION
+			}
+			modifier = {
+				factor = 0
+				check_variable = { CurrentOverallSenateSupport > half_senate_plus_one }
+				NOT = { has_country_flag = RUS_LAW_CHANGING_CONSTITUTION }
+			}
 		}
 		cost = 5
 		days_remove = 5
 		days_re_enable = 7
 		fire_only_once = no
 		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_LAW_GET_PSR_DUMA_VOTES target: [From.GetName]"
 			custom_effect_tooltip = RUS_LAW_GET_PSR_DUMA_VOTES_tt
+			if = {
+				limit = { has_country_flag = RUS_LAW_DUMA_LEVEL }
+				hidden_effect = {
+					set_temp_variable = { min_support = Duma_Party_Seats^3 }
+					multiply_temp_variable = { min_support = 0.125 }
+					set_temp_variable = { max_support = Duma_Party_Seats^3 }
+					multiply_temp_variable = { max_support = 0.25 }
+					set_temp_variable_to_random = {
+						var = support_for_bill
+						min = min_support
+						max = max_support
+						integer = yes
+					}
+					add_to_variable = { CurrentDumaSupportForBill^3 = support_for_bill }
+				}
+			}
+			else = {
+				hidden_effect = {
+					set_temp_variable = { min_support = Senate_Party_Total_Seats^3 }
+					multiply_temp_variable = { min_support = 0.125 }
+					set_temp_variable = { max_support = Senate_Party_Total_Seats^3 }
+					multiply_temp_variable = { max_support = 0.25 }
+					set_temp_variable_to_random = {
+						var = support_for_bill
+						min = min_support
+						max = max_support
+						integer = yes
+					}
+					add_to_variable = { CurrentSenateSupportForBill^3 = support_for_bill }
+				}
+			}
 			if = {
 				limit = {
 					NOT = {
-					OR = {
+						OR = {
 							check_variable = { Duma_Party_Status^3 = 1 }
 							check_variable = { Duma_Party_Status^3 = 2 }
+						}
+					}
 				}
-				}
-			}
 				custom_effect_tooltip = RUS_LAW_PSR_POPULARITY_WILL_GREATLY_RISE
-				hidden_effect = {
-					RUS_increase_psr_pop = yes
-					}
-				}
-				hidden_effect = {
-				set_temp_variable = { min_support = Duma_Party_Seats^3 }
-				multiply_temp_variable = { min_support = 0.125 }
-				set_temp_variable = { max_support = Duma_Party_Seats^3 }
-				multiply_temp_variable = { max_support = 0.25 }
-				set_temp_variable_to_random = {
-					var = support_for_bill
-					min = min_support
-					max = max_support
-					integer = yes
-					}
-				add_to_variable = { CurrentDumaSupportForBill^3 = support_for_bill }
-				}
-				count_votes_for_bill_sum = yes
+				hidden_effect = { RUS_increase_psr_pop = yes }
 			}
+			count_votes_for_bill_sum = yes				
 		}
+	}
 	RUS_LAW_GET_RSDRP_DUMA_VOTES = {
 		icon = GFX_decision_generic_agreement
 		visible = {
-			has_country_flag = RUS_LAW_DUMA_LEVEL
-			check_variable = { Duma_Party_Seats^4 > 0 }
+			OR = {
+				has_country_flag = RUS_LAW_DUMA_LEVEL
+				has_country_flag = RUS_LAW_SENATE_LEVEL
+			}
+			if = {
+				limit = { has_country_flag = RUS_LAW_DUMA_LEVEL }
+				check_variable = { Duma_Party_Seats^4 > 0 }
+			}
+			else = {
+				check_variable = { Senate_Party_Total_Seats^4 > 0 }
+			}
 			NOT = { has_country_flag = RUS_LAW_OPPOSITION_VOTES }
 		}
 		available = {
 			NOT = { has_country_flag = RUS_LAW_LAND_QUOTAS }
-			check_variable = { CurrentDumaSupportForBill^4 < Duma_Party_Seats^4 }
+			if = {
+				limit = { has_country_flag = RUS_LAW_DUMA_LEVEL }
+				check_variable = { CurrentDumaSupportForBill^4 < Duma_Party_Seats^4 }
+			}
+			else = {
+				check_variable = { CurrentSenateSupportForBill^4 < Senate_Party_Total_Seats^4 }
+			}
 			if = {
 				limit = { has_country_flag = RUS_LAW_IMPEACH_PRESIDENT }
 				has_a_rsdrp_president = no
+			}			
+		}
+		cancel_trigger = {
+			hidden_trigger = {
+				NOT = {
+					has_country_flag = RUS_LAW_DUMA_LEVEL
+					has_country_flag = RUS_LAW_SENATE_LEVEL
+				}
 			}
-		}	
+		}
 		ai_will_do = {
 			base = 100
 			modifier = {
@@ -3412,54 +3585,106 @@ RUS_Passing_Laws = {
 				factor = 0.5
 				NOT = { check_variable = { Duma_Party_Status^4 = 1 } }
 			}
+			modifier = {
+				factor = 0
+				check_variable = { CurrentOverallSenateSupport > two_thirds_senate_plus_one }
+				has_country_flag = RUS_LAW_CHANGING_CONSTITUTION
+			}
+			modifier = {
+				factor = 0
+				check_variable = { CurrentOverallSenateSupport > half_senate_plus_one }
+				NOT = { has_country_flag = RUS_LAW_CHANGING_CONSTITUTION }
+			}
 		}
 		cost = 5
 		days_remove = 5
 		days_re_enable = 7
 		fire_only_once = no
 		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_LAW_GET_RSDRP_DUMA_VOTES target: [From.GetName]"
 			custom_effect_tooltip = RUS_LAW_GET_RSDRP_DUMA_VOTES_tt
+			if = {
+				limit = { has_country_flag = RUS_LAW_DUMA_LEVEL }
+				hidden_effect = {
+					set_temp_variable = { min_support = Duma_Party_Seats^4 }
+					multiply_temp_variable = { min_support = 0.125 }
+					set_temp_variable = { max_support = Duma_Party_Seats^4 }
+					multiply_temp_variable = { max_support = 0.25 }
+					set_temp_variable_to_random = {
+						var = support_for_bill
+						min = min_support
+						max = max_support
+						integer = yes
+					}
+					add_to_variable = { CurrentDumaSupportForBill^4 = support_for_bill }
+				}
+			}
+			else = {
+				hidden_effect = {
+					set_temp_variable = { min_support = Senate_Party_Total_Seats^4 }
+					multiply_temp_variable = { min_support = 0.125 }
+					set_temp_variable = { max_support = Senate_Party_Total_Seats^4 }
+					multiply_temp_variable = { max_support = 0.25 }
+					set_temp_variable_to_random = {
+						var = support_for_bill
+						min = min_support
+						max = max_support
+						integer = yes
+					}
+					add_to_variable = { CurrentSenateSupportForBill^4 = support_for_bill }
+				}
+			}
 			if = {
 				limit = {
 					NOT = {
-					OR = {
+						OR = {
 							check_variable = { Duma_Party_Status^4 = 1 }
 							check_variable = { Duma_Party_Status^4 = 2 }
+						}
 					}
 				}
-			}
 				custom_effect_tooltip = RUS_LAW_RSDRP_POPULARITY_WILL_GREATLY_RISE
-				hidden_effect = {
-					RUS_increase_rsdrp_pop = yes
-					}
-				}
-				hidden_effect = {
-				set_temp_variable = { min_support = Duma_Party_Seats^4 }
-				multiply_temp_variable = { min_support = 0.125 }
-				set_temp_variable = { max_support = Duma_Party_Seats^4 }
-				multiply_temp_variable = { max_support = 0.25 }
-				set_temp_variable_to_random = {
-					var = support_for_bill
-					min = min_support
-					max = max_support
-					integer = yes
-				}
-				add_to_variable = { CurrentDumaSupportForBill^4 = support_for_bill }
+				hidden_effect = { RUS_increase_rsdrp_pop = yes }
 			}
+			count_votes_for_bill_sum = yes				
 		}
 	}
 	RUS_LAW_GET_LKDP_DUMA_VOTES = {
 		icon = GFX_decision_generic_agreement
 		visible = {
-			has_country_flag = RUS_LAW_DUMA_LEVEL
-			check_variable = { Duma_Party_Seats^5 > 0 }
+			OR = {
+				has_country_flag = RUS_LAW_DUMA_LEVEL
+				has_country_flag = RUS_LAW_SENATE_LEVEL
+			}
+			if = {
+				limit = { has_country_flag = RUS_LAW_DUMA_LEVEL }
+				check_variable = { Duma_Party_Seats^5 > 0 }
+			}
+			else = {
+				check_variable = { Senate_Party_Total_Seats^5 > 0 }
+			}
 			NOT = { has_country_flag = RUS_LAW_OPPOSITION_VOTES }
 		}
 		available = {
-			check_variable = { CurrentDumaSupportForBill^5 < Duma_Party_Seats^5 }
+			NOT = { has_country_flag = RUS_LAW_LAND_QUOTAS }
+			if = {
+				limit = { has_country_flag = RUS_LAW_DUMA_LEVEL }
+				check_variable = { CurrentDumaSupportForBill^5 < Duma_Party_Seats^5 }
+			}
+			else = {
+				check_variable = { CurrentSenateSupportForBill^5 < Senate_Party_Total_Seats^5 }
+			}
 			if = {
 				limit = { has_country_flag = RUS_LAW_IMPEACH_PRESIDENT }
 				has_a_lkdp_president = no
+			}			
+		}
+		cancel_trigger = {
+			hidden_trigger = {
+				NOT = {
+					has_country_flag = RUS_LAW_DUMA_LEVEL
+					has_country_flag = RUS_LAW_SENATE_LEVEL
+				}
 			}
 		}
 		ai_will_do = {
@@ -3478,59 +3703,107 @@ RUS_Passing_Laws = {
 				factor = 0.5
 				NOT = { check_variable = { Duma_Party_Status^5 = 1 } }
 			}
+			modifier = {
+				factor = 0
+				check_variable = { CurrentOverallSenateSupport > two_thirds_senate_plus_one }
+				has_country_flag = RUS_LAW_CHANGING_CONSTITUTION
+			}
+			modifier = {
+				factor = 0
+				check_variable = { CurrentOverallSenateSupport > half_senate_plus_one }
+				NOT = { has_country_flag = RUS_LAW_CHANGING_CONSTITUTION }
+			}
 		}
 		cost = 5
 		days_remove = 5
 		days_re_enable = 7
 		fire_only_once = no
 		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_LAW_GET_LKDP_DUMA_VOTES target: [From.GetName]"
 			custom_effect_tooltip = RUS_LAW_GET_LKDP_DUMA_VOTES_tt
+			if = {
+				limit = { has_country_flag = RUS_LAW_DUMA_LEVEL }
+				hidden_effect = {
+					set_temp_variable = { min_support = Duma_Party_Seats^5 }
+					multiply_temp_variable = { min_support = 0.125 }
+					set_temp_variable = { max_support = Duma_Party_Seats^5 }
+					multiply_temp_variable = { max_support = 0.25 }
+					set_temp_variable_to_random = {
+						var = support_for_bill
+						min = min_support
+						max = max_support
+						integer = yes
+					}
+					add_to_variable = { CurrentDumaSupportForBill^5 = support_for_bill }
+				}
+			}
+			else = {
+				hidden_effect = {
+					set_temp_variable = { min_support = Senate_Party_Total_Seats^5 }
+					multiply_temp_variable = { min_support = 0.125 }
+					set_temp_variable = { max_support = Senate_Party_Total_Seats^5 }
+					multiply_temp_variable = { max_support = 0.25 }
+					set_temp_variable_to_random = {
+						var = support_for_bill
+						min = min_support
+						max = max_support
+						integer = yes
+					}
+					add_to_variable = { CurrentSenateSupportForBill^5 = support_for_bill }
+				}
+			}
 			if = {
 				limit = {
 					NOT = {
-					OR = {
+						OR = {
 							check_variable = { Duma_Party_Status^5 = 1 }
 							check_variable = { Duma_Party_Status^5 = 2 }
-				}
+						}
 					}
 				}
 				custom_effect_tooltip = RUS_LAW_LKDP_POPULARITY_WILL_GREATLY_RISE
-				if = {
-					limit = { has_country_flag = kdp_united }
-					hidden_effect = { RUS_increase_kdp_pop = yes }
-				}
-				else = {
-					hidden_effect = { RUS_increase_lkdp_pop = yes }
-				}					
+				hidden_effect = { RUS_increase_lkdp_pop = yes }
 			}
-				hidden_effect = {
-				set_temp_variable = { min_support = Duma_Party_Seats^5 }
-				multiply_temp_variable = { min_support = 0.125 }
-				set_temp_variable = { max_support = Duma_Party_Seats^5 }
-				multiply_temp_variable = { max_support = 0.25 }
-				set_temp_variable_to_random = {
-					var = support_for_bill
-					min = min_support
-					max = max_support
-					integer = yes
-					}
-				add_to_variable = { CurrentDumaSupportForBill^5 = support_for_bill }
-				}
-				count_votes_for_bill_sum = yes
-			}
+			count_votes_for_bill_sum = yes				
 		}
+	}
 	RUS_LAW_GET_PP_DUMA_VOTES = {
 		icon = GFX_decision_generic_agreement
 		visible = {
-			has_country_flag = RUS_LAW_DUMA_LEVEL
-			check_variable = { Duma_Party_Seats^6 > 0 }
+			OR = {
+				has_country_flag = RUS_LAW_DUMA_LEVEL
+				has_country_flag = RUS_LAW_SENATE_LEVEL
+			}
+			if = {
+				limit = { has_country_flag = RUS_LAW_DUMA_LEVEL }
+				check_variable = { Duma_Party_Seats^6 > 0 }
+			}
+			else = {
+				check_variable = { Senate_Party_Total_Seats^6 > 0 }
+			}
 			NOT = { has_country_flag = RUS_LAW_OPPOSITION_VOTES }
+			has_country_flag = RUS_marlibs_progressives
 		}
 		available = {
-			check_variable = { CurrentDumaSupportForBill^5 < Duma_Party_Seats^6 }
+			NOT = { has_country_flag = RUS_LAW_LAND_QUOTAS }
+			if = {
+				limit = { has_country_flag = RUS_LAW_DUMA_LEVEL }
+				check_variable = { CurrentDumaSupportForBill^6 < Duma_Party_Seats^6 }
+			}
+			else = {
+				check_variable = { CurrentSenateSupportForBill^6 < Senate_Party_Total_Seats^6 }
+			}
 			if = {
 				limit = { has_country_flag = RUS_LAW_IMPEACH_PRESIDENT }
 				has_a_pp_president = no
+			}			
+		}
+		cancel_trigger = {
+			hidden_trigger = {
+				NOT = {
+					has_country_flag = RUS_LAW_DUMA_LEVEL
+					has_country_flag = RUS_LAW_SENATE_LEVEL
+				}
 			}
 		}
 		ai_will_do = {
@@ -3549,13 +3822,55 @@ RUS_Passing_Laws = {
 				factor = 0.5
 				NOT = { check_variable = { Duma_Party_Status^6 = 1 } }
 			}
+			modifier = {
+				factor = 0
+				check_variable = { CurrentOverallSenateSupport > two_thirds_senate_plus_one }
+				has_country_flag = RUS_LAW_CHANGING_CONSTITUTION
+			}
+			modifier = {
+				factor = 0
+				check_variable = { CurrentOverallSenateSupport > half_senate_plus_one }
+				NOT = { has_country_flag = RUS_LAW_CHANGING_CONSTITUTION }
+			}
 		}
 		cost = 5
 		days_remove = 5
 		days_re_enable = 7
 		fire_only_once = no
 		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_LAW_GET_PP_DUMA_VOTES target: [From.GetName]"
 			custom_effect_tooltip = RUS_LAW_GET_PP_DUMA_VOTES_tt
+			if = {
+				limit = { has_country_flag = RUS_LAW_DUMA_LEVEL }
+				hidden_effect = {
+					set_temp_variable = { min_support = Duma_Party_Seats^6 }
+					multiply_temp_variable = { min_support = 0.125 }
+					set_temp_variable = { max_support = Duma_Party_Seats^6 }
+					multiply_temp_variable = { max_support = 0.25 }
+					set_temp_variable_to_random = {
+						var = support_for_bill
+						min = min_support
+						max = max_support
+						integer = yes
+					}
+					add_to_variable = { CurrentDumaSupportForBill^6 = support_for_bill }
+				}
+			}
+			else = {
+				hidden_effect = {
+					set_temp_variable = { min_support = Senate_Party_Total_Seats^6 }
+					multiply_temp_variable = { min_support = 0.125 }
+					set_temp_variable = { max_support = Senate_Party_Total_Seats^6 }
+					multiply_temp_variable = { max_support = 0.25 }
+					set_temp_variable_to_random = {
+						var = support_for_bill
+						min = min_support
+						max = max_support
+						integer = yes
+					}
+					add_to_variable = { CurrentSenateSupportForBill^6 = support_for_bill }
+				}
+			}
 			if = {
 				limit = {
 					NOT = {
@@ -3566,38 +3881,48 @@ RUS_Passing_Laws = {
 					}
 				}
 				custom_effect_tooltip = RUS_LAW_PP_POPULARITY_WILL_GREATLY_RISE
-				hidden_effect = {
-					RUS_increase_pp_pop = yes
-				}
+				hidden_effect = { RUS_increase_pp_pop = yes }
 			}
-			hidden_effect = {
-				set_temp_variable = { min_support = Duma_Party_Seats^6 }
-				multiply_temp_variable = { min_support = 0.125 }
-				set_temp_variable = { max_support = Duma_Party_Seats^6 }
-				multiply_temp_variable = { max_support = 0.25 }
-				set_temp_variable_to_random = {
-					var = support_for_bill
-					min = min_support
-					max = max_support
-					integer = yes
-				}
-				add_to_variable = { CurrentDumaSupportForBill^6 = support_for_bill }
-			}
-			count_votes_for_bill_sum = yes
+			count_votes_for_bill_sum = yes				
 		}
 	}
 	RUS_LAW_GET_RKDP_DUMA_VOTES = {
 		icon = GFX_decision_generic_agreement
 		visible = {
-			has_country_flag = RUS_LAW_DUMA_LEVEL
-			check_variable = { Duma_Party_Seats^7 > 0 }
+			OR = {
+				has_country_flag = RUS_LAW_DUMA_LEVEL
+				has_country_flag = RUS_LAW_SENATE_LEVEL
+			}
+			if = {
+				limit = { has_country_flag = RUS_LAW_DUMA_LEVEL }
+				check_variable = { Duma_Party_Seats^6 > 0 }
+			}
+			else = {
+				check_variable = { Senate_Party_Total_Seats^6 > 0 }
+			}
 			NOT = { has_country_flag = RUS_LAW_OPPOSITION_VOTES }
+			NOT = { has_country_flag = RUS_marlibs_progressives }
 		}
 		available = {
-			check_variable = { CurrentDumaSupportForBill^7 < Duma_Party_Seats^7 }
+			NOT = { has_country_flag = RUS_LAW_LAND_QUOTAS }
+			if = {
+				limit = { has_country_flag = RUS_LAW_DUMA_LEVEL }
+				check_variable = { CurrentDumaSupportForBill^6 < Duma_Party_Seats^6 }
+			}
+			else = {
+				check_variable = { CurrentSenateSupportForBill^6 < Senate_Party_Total_Seats^6 }
+			}
 			if = {
 				limit = { has_country_flag = RUS_LAW_IMPEACH_PRESIDENT }
 				has_a_rkdp_president = no
+			}			
+		}
+		cancel_trigger = {
+			hidden_trigger = {
+				NOT = {
+					has_country_flag = RUS_LAW_DUMA_LEVEL
+					has_country_flag = RUS_LAW_SENATE_LEVEL
+				}
 			}
 		}
 		ai_will_do = {
@@ -3610,705 +3935,61 @@ RUS_Passing_Laws = {
 			modifier = {
 				factor = 0
 				check_variable = { var = CurrentOverallSupport value =  half_duma_plus_one compare = greater_than_or_equals }
-				NOT = { has_country_flag = RUS_LAW_CHANGING_CONSTITUTION }
-			}
-			modifier = {
-				factor = 0.5
-				NOT = { check_variable = { Duma_Party_Status^7 = 1 } }
-			}
-		}
-		cost = 5
-		days_remove = 5
-		days_re_enable = 7
-		fire_only_once = no
-		remove_effect = {
-			custom_effect_tooltip = RUS_LAW_GET_RKDP_DUMA_VOTES_tt
-			if = {
-				limit = {
-					NOT = {
-					OR = {
-							check_variable = { Duma_Party_Status^7 = 1 }
-							check_variable = { Duma_Party_Status^7 = 2 }
-					}
-				}
-			}
-				custom_effect_tooltip = RUS_LAW_RKDP_POPULARITY_WILL_GREATLY_RISE
-				hidden_effect = {
-					RUS_increase_rkdp_pop = yes
-					}
-				}
-				hidden_effect = {
-				set_temp_variable = { min_support = Duma_Party_Seats^7 }
-				multiply_temp_variable = { min_support = 0.125 }
-				set_temp_variable = { max_support = Duma_Party_Seats^7 }
-				multiply_temp_variable = { max_support = 0.25 }
-				set_temp_variable_to_random = {
-					var = support_for_bill
-					min = min_support
-					max = max_support
-					integer = yes
-					}
-				add_to_variable = { CurrentDumaSupportForBill^7 = support_for_bill }
-				}
-				count_votes_for_bill_sum = yes
-			}
-		}
-	RUS_LAW_GET_VNS_DUMA_VOTES = {
-		icon = GFX_decision_generic_agreement
-		visible = {
-			has_country_flag = RUS_LAW_DUMA_LEVEL
-			check_variable = { Duma_Party_Seats^8 > 0 }
-			NOT = { has_country_flag = RUS_LAW_OPPOSITION_VOTES }
-		}
-		available = {
-			check_variable = { CurrentDumaSupportForBill^8 < Duma_Party_Seats^8 }
-			if = {
-				limit = { has_country_flag = RUS_LAW_IMPEACH_PRESIDENT }
-				has_a_vns_president = no
-			}
-		}
-		ai_will_do = {
-			base = 100
-			modifier = {
-				factor = 0
-				check_variable = {  var = CurrentOverallSupport value = two_thirds_duma_plus_one compare = greater_than_or_equals }
-				has_country_flag = RUS_LAW_CHANGING_CONSTITUTION
-			}
-			modifier = {
-				factor = 0
-				check_variable = { var = CurrentOverallSupport value =  half_duma_plus_one compare = greater_than_or_equals }
-				NOT = { has_country_flag = RUS_LAW_CHANGING_CONSTITUTION }
-			}
-			modifier = {
-				factor = 0.5
-				NOT = { check_variable = { Duma_Party_Status^8 = 1 } }
-			}
-		}
-		cost = 5
-		days_remove = 5
-		days_re_enable = 7
-		fire_only_once = no
-		remove_effect = {
-			custom_effect_tooltip = RUS_LAW_GET_VNS_DUMA_VOTES_tt
-			if = {
-				limit = {
-					NOT = {
-					OR = {
-							check_variable = { Duma_Party_Status^8 = 1 }
-							check_variable = { Duma_Party_Status^8 = 2 }
-					}
-				}
-			}
-				custom_effect_tooltip = RUS_LAW_VNS_POPULARITY_WILL_GREATLY_RISE
-				hidden_effect = {
-					RUS_increase_vns_pop = yes
-					}
-				}
-				hidden_effect = {
-				set_temp_variable = { min_support = Duma_Party_Seats^8 }
-				multiply_temp_variable = { min_support = 0.125 }
-				set_temp_variable = { max_support = Duma_Party_Seats^8 }
-				multiply_temp_variable = { max_support = 0.25 }
-				set_temp_variable_to_random = {
-					var = support_for_bill
-					min = min_support
-					max = max_support
-					integer = yes
-					}
-				add_to_variable = { CurrentDumaSupportForBill^8 = support_for_bill }
-				}
-				count_votes_for_bill_sum = yes
-			}
-		}
-	RUS_LAW_GET_EP_DUMA_VOTES = {
-		icon = GFX_decision_generic_agreement
-		visible = {
-			has_country_flag = RUS_LAW_DUMA_LEVEL
-			check_variable = { Duma_Party_Seats^9 > 0 }
-			NOT = { has_country_flag = RUS_LAW_OPPOSITION_VOTES }
-		}
-		available = {
-			check_variable = { CurrentDumaSupportForBill^9 < Duma_Party_Seats^9 }
-			if = {
-				limit = { has_country_flag = RUS_LAW_IMPEACH_PRESIDENT }
-				has_a_vns_president = no
-				has_a_ep_president = no
-			}
-		}
-		ai_will_do = {
-			base = 100
-			modifier = {
-				factor = 0
-				check_variable = {  var = CurrentOverallSupport value = two_thirds_duma_plus_one compare = greater_than_or_equals }
-				has_country_flag = RUS_LAW_CHANGING_CONSTITUTION
-			}
-			modifier = {
-				factor = 0
-				check_variable = { var = CurrentOverallSupport value =  half_duma_plus_one compare = greater_than_or_equals }
-				NOT = { has_country_flag = RUS_LAW_CHANGING_CONSTITUTION }
-			}
-			modifier = {
-				factor = 0
-				check_variable = { party_popularity@authoritarian_democrat > 0.23 }
-			}
-			modifier = {
-				factor = 0.5
-				NOT = { check_variable = { Duma_Party_Status^9 = 1 } }
-			}
-		}
-		cost = 5
-		days_remove = 5
-		days_re_enable = 7
-		fire_only_once = no
-		remove_effect = {
-			custom_effect_tooltip = RUS_LAW_GET_EP_DUMA_VOTES_tt
-			if = {
-				limit = {
-					NOT = {
-					OR = {
-							check_variable = { Duma_Party_Status^9 = 1 }
-							check_variable = { Duma_Party_Status^9 = 2 }
-					}
-				}
-				}
-				custom_effect_tooltip = RUS_LAW_EP_POPULARITY_WILL_GREATLY_RISE
-				hidden_effect = {
-					RUS_increase_ep_pop = yes
-					}
-				}
-			hidden_effect = {
-				set_temp_variable = { min_support = Duma_Party_Seats^9 }
-				multiply_temp_variable = { min_support = 0.125 }
-				set_temp_variable = { max_support = Duma_Party_Seats^9 }
-				multiply_temp_variable = { max_support = 0.25 }
-				set_temp_variable_to_random = {
-					var = support_for_bill
-					min = min_support
-					max = max_support
-					integer = yes
-				}
-				add_to_variable = { CurrentDumaSupportForBill^9 = support_for_bill }
-			}
-				count_votes_for_bill_sum = yes
-			}
-	}
-	RUS_LAW_GET_NRPR_DUMA_VOTES = {
-		icon = GFX_decision_generic_agreement
-		visible = {
-			has_country_flag = RUS_LAW_DUMA_LEVEL
-			check_variable = { Duma_Party_Seats^12 > 0 }
-			NOT = { has_country_flag = RUS_LAW_OPPOSITION_VOTES }
-		}
-		available = {
-			check_variable = { CurrentDumaSupportForBill^12 < Duma_Party_Seats^12 }
-		}
-		ai_will_do = {
-			base = 100
-			modifier = {
-				factor = 0
-				check_variable = {  var = CurrentOverallSupport value = two_thirds_duma_plus_one compare = greater_than_or_equals }
-				has_country_flag = RUS_LAW_CHANGING_CONSTITUTION
-			}
-			modifier = {
-				factor = 0
-				check_variable = { var = CurrentOverallSupport value =  half_duma_plus_one compare = greater_than_or_equals }
-				NOT = { has_country_flag = RUS_LAW_CHANGING_CONSTITUTION }
-			}
-			modifier = {
-				factor = 0.5
-				NOT = { check_variable = { Duma_Party_Status^12 = 1 } }
-			}
-		}
-		cost = 5
-		days_remove = 5
-		days_re_enable = 7
-		fire_only_once = no
-		remove_effect = {
-			custom_effect_tooltip = RUS_LAW_GET_NRPR_DUMA_VOTES_tt
-			if = {
-				limit = {
-					NOT = {
-						OR = {
-							check_variable = { Duma_Party_Status^12 = 1 }
-							check_variable = { Duma_Party_Status^12 = 2 }
-						}
-					}
-				}
-				custom_effect_tooltip = RUS_LAW_NRPR_POPULARITY_WILL_GREATLY_RISE
-				hidden_effect = {
-					RUS_increase_nrpr_pop = yes
-					}
-				}
-				hidden_effect = {
-				set_temp_variable = { min_support = Duma_Party_Seats^12 }
-				multiply_temp_variable = { min_support = 0.125 }
-				set_temp_variable = { max_support = Duma_Party_Seats^12 }
-				multiply_temp_variable = { max_support = 0.25 }
-				set_temp_variable_to_random = {
-					var = support_for_bill
-					min = min_support
-					max = max_support
-					integer = yes
-					}
-				add_to_variable = { CurrentDumaSupportForBill^12 = support_for_bill }
-				}
-				count_votes_for_bill_sum = yes
-			}
-		}
-	RUS_LAW_GET_NSNP_DUMA_VOTES = {
-		icon = GFX_decision_generic_agreement
-		visible = {
-			has_country_flag = RUS_LAW_DUMA_LEVEL
-			check_variable = { Duma_Party_Seats^11 > 0 }
-			NOT = { has_country_flag = RUS_LAW_OPPOSITION_VOTES }
-		}
-		available = {
-			check_variable = { CurrentDumaSupportForBill^11 < Duma_Party_Seats^11 }
-			if = {
-				limit = { has_country_flag = RUS_LAW_IMPEACH_PRESIDENT }
-				has_a_nsnp_president = no
-			}
-		}
-		ai_will_do = {
-			base = 100
-			modifier = {
-				factor = 0
-				check_variable = {  var = CurrentOverallSupport value = two_thirds_duma_plus_one compare = greater_than_or_equals }
-				has_country_flag = RUS_LAW_CHANGING_CONSTITUTION
-			}
-			modifier = {
-				factor = 0
-				check_variable = { var = CurrentOverallSupport value =  half_duma_plus_one compare = greater_than_or_equals }
-				NOT = { has_country_flag = RUS_LAW_CHANGING_CONSTITUTION }
-			}
-			modifier = {
-				factor = 0.5
-				NOT = { check_variable = { Duma_Party_Status^11 = 1 } }
-			}
-		}
-		cost = 5
-		days_remove = 5
-		days_re_enable = 7
-		fire_only_once = no
-		remove_effect = {
-			custom_effect_tooltip = RUS_LAW_GET_NSNP_DUMA_VOTES_tt
-			if = {
-				limit = {
-					OR = {
-						check_variable = { Duma_Party_Status^11 = 1 }
-						check_variable = { Duma_Party_Status^11 = 2 }
-					}
-				}
-			}
-			else = {
-				custom_effect_tooltip = RUS_LAW_NSNP_POPULARITY_WILL_GREATLY_RISE
-				hidden_effect = {
-					RUS_increase_nsnp_pop = yes
-					}
-				}
-				hidden_effect = {
-				set_temp_variable = { min_support = Duma_Party_Seats^11 }
-				multiply_temp_variable = { min_support = 0.125 }
-				set_temp_variable = { max_support = Duma_Party_Seats^11 }
-				multiply_temp_variable = { max_support = 0.25 }
-				set_temp_variable_to_random = {
-					var = support_for_bill
-					min = min_support
-					max = max_support
-					integer = yes
-					}
-				add_to_variable = { CurrentDumaSupportForBill^11 = support_for_bill }
-			}
-			count_votes_for_bill_sum = yes
-		}
-	}
-	RUS_LAW_GET_PLSR_SENATE_VOTES = {
-		icon = GFX_decision_generic_agreement
-		visible = {
-			has_country_flag = RUS_LAW_SENATE_LEVEL
-			check_variable = { Senate_Party_Total_Seats^1 > 0 }
-			NOT = { has_country_flag = RUS_LAW_OPPOSITION_VOTES }
-		}
-		available = {
-			NOT = { has_country_flag = RUS_LAW_LAND_QUOTAS }
-			check_variable = { CurrentSenateSupportForBill^1 < Senate_Party_Total_Seats^1 }
-			if = {
-				limit = { has_country_flag = RUS_LAW_IMPEACH_PRESIDENT }
-				has_a_plsr_president = no
-				has_a_nsp_president = no
-				has_a_socialist_president = no
-			}
-		}	
-		ai_will_do = {
-			base = 100
-			modifier = {
-				factor = 0
-				check_variable = { CurrentOverallSenateSupport > two_thirds_senate_plus_one }
-				has_country_flag = RUS_LAW_CHANGING_CONSTITUTION
-			}
-			modifier = {
-				factor = 0
-				check_variable = { CurrentOverallSenateSupport > half_senate_plus_one }
-				NOT = { has_country_flag = RUS_LAW_CHANGING_CONSTITUTION }
-			}
-			modifier = {
-				factor = 0.5
-				NOT = { check_variable = { Duma_Party_Status^1 = 1 } }
-			}
-		}
-		cost = 5
-		days_remove = 5
-		days_re_enable = 7
-		fire_only_once = no
-		remove_effect = {
-			custom_effect_tooltip = RUS_LAW_GET_PLSR_SENATE_VOTES_tt
-			if = {
-				limit = {
-					NOT = {
-					OR = {
-							check_variable = { Duma_Party_Status^1 = 1 }
-							check_variable = { Duma_Party_Status^1 = 2 }
-					}
-				}
-			}
-				custom_effect_tooltip = RUS_LAW_PLSR_POPULARITY_WILL_GREATLY_RISE
-				hidden_effect = {
-					RUS_increase_plsr_pop = yes
-					}
-				}
-				hidden_effect = {
-				set_temp_variable = { min_support = Senate_Party_Total_Seats^1 }
-				multiply_temp_variable = { min_support = 0.125 }
-				set_temp_variable = { max_support = Senate_Party_Total_Seats^1 }
-				multiply_temp_variable = { max_support = 0.25 }
-				set_temp_variable_to_random = {
-					var = support_for_bill
-					min = min_support
-					max = max_support
-					integer = yes
-					}
-				add_to_variable = { CurrentSenateSupportForBill^1 = support_for_bill }
-				}
-				count_votes_for_bill_sum = yes
-			}
-		}
-	RUS_LAW_GET_NSP_SENATE_VOTES = {
-		icon = GFX_decision_generic_agreement
-		visible = {
-			has_country_flag = RUS_LAW_SENATE_LEVEL
-			check_variable = { Senate_Party_Total_Seats^2 > 0 }
-			NOT = { has_country_flag = RUS_LAW_OPPOSITION_VOTES }
-		}
-		available = {
-			NOT = { has_country_flag = RUS_LAW_LAND_QUOTAS }
-			check_variable = { CurrentSenateSupportForBill^2 < Senate_Party_Total_Seats^2 }
-			if = {
-				limit = { has_country_flag = RUS_LAW_IMPEACH_PRESIDENT }
-				has_a_plsr_president = no
-				has_a_nsp_president = no
-				has_a_socialist_president = no
-			}
-		}	
-		ai_will_do = {
-			base = 100
-			modifier = {
-				factor = 0
-				check_variable = { CurrentOverallSenateSupport > two_thirds_senate_plus_one }
-				has_country_flag = RUS_LAW_CHANGING_CONSTITUTION
-			}
-			modifier = {
-				factor = 0
-				check_variable = { CurrentOverallSenateSupport > half_senate_plus_one }
-				NOT = { has_country_flag = RUS_LAW_CHANGING_CONSTITUTION }
-			}
-			modifier = {
-				factor = 0.5
-				NOT = { check_variable = { Duma_Party_Status^2 = 1 } }
-			}
-		}
-		cost = 5
-		days_remove = 5
-		days_re_enable = 7
-		fire_only_once = no
-		remove_effect = {
-			custom_effect_tooltip = RUS_LAW_GET_NSP_SENATE_VOTES_tt
-			if = {
-				limit = {
-					NOT = {
-					OR = {
-							check_variable = { Duma_Party_Status^2 = 1 }
-							check_variable = { Duma_Party_Status^2 = 2 }
-					}
-				}
-			}
-				custom_effect_tooltip = RUS_LAW_NSP_POPULARITY_WILL_GREATLY_RISE
-				hidden_effect = {
-					RUS_increase_plsr_pop = yes
-					}
-				}
-				hidden_effect = {
-				set_temp_variable = { min_support = Senate_Party_Total_Seats^2 }
-				multiply_temp_variable = { min_support = 0.125 }
-				set_temp_variable = { max_support = Senate_Party_Total_Seats^2 }
-				multiply_temp_variable = { max_support = 0.25 }
-				set_temp_variable_to_random = {
-					var = support_for_bill
-					min = min_support
-					max = max_support
-					integer = yes
-					}
-				add_to_variable = { CurrentSenateSupportForBill^2 = support_for_bill }
-				}
-				count_votes_for_bill_sum = yes
-			}
-		}
-	RUS_LAW_GET_PSR_SENATE_VOTES = {
-		icon = GFX_decision_generic_agreement
-		visible = {
-			has_country_flag = RUS_LAW_SENATE_LEVEL
-			check_variable = { Senate_Party_Total_Seats^3 > 0 }
-			NOT = { has_country_flag = RUS_LAW_OPPOSITION_VOTES }
-		}
-		available = {
-			NOT = { has_country_flag = RUS_LAW_LAND_QUOTAS }
-			check_variable = { CurrentSenateSupportForBill^3 < Senate_Party_Total_Seats^3 }
-			if = {
-				limit = { has_country_flag = RUS_LAW_IMPEACH_PRESIDENT }
-				has_a_psr_president = no
-				has_a_rsdrp_president = no
-			}
-		}	
-		ai_will_do = {
-			base = 100
-			modifier = {
-				factor = 0
-				check_variable = { CurrentOverallSenateSupport > two_thirds_senate_plus_one }
-				has_country_flag = RUS_LAW_CHANGING_CONSTITUTION
-			}
-			modifier = {
-				factor = 0
-				check_variable = { CurrentOverallSenateSupport > half_senate_plus_one }
-				NOT = { has_country_flag = RUS_LAW_CHANGING_CONSTITUTION }
-			}
-			modifier = {
-				factor = 0.5
-				NOT = { check_variable = { Duma_Party_Status^3 = 1 } }
-			}
-		}
-		cost = 5
-		days_remove = 5
-		days_re_enable = 7
-		fire_only_once = no
-		remove_effect = {
-			custom_effect_tooltip = RUS_LAW_GET_PSR_SENATE_VOTES_tt
-			if = {
-				limit = {
-					NOT = {
-					OR = {
-							check_variable = { Duma_Party_Status^3 = 1 }
-							check_variable = { Duma_Party_Status^3 = 2 }
-					}
-				}
-			}
-				custom_effect_tooltip = RUS_LAW_PSR_POPULARITY_WILL_GREATLY_RISE
-				hidden_effect = {
-					RUS_increase_plsr_pop = yes
-					}
-				}
-				hidden_effect = {
-				set_temp_variable = { min_support = Senate_Party_Total_Seats^3 }
-				multiply_temp_variable = { min_support = 0.125 }
-				set_temp_variable = { max_support = Senate_Party_Total_Seats^3 }
-				multiply_temp_variable = { max_support = 0.25 }
-				set_temp_variable_to_random = {
-					var = support_for_bill
-					min = min_support
-					max = max_support
-					integer = yes
-					}
-				add_to_variable = { CurrentSenateSupportForBill^3 = support_for_bill }
-				}
-				count_votes_for_bill_sum = yes
-			}
-		}
-	RUS_LAW_GET_RSDRP_SENATE_VOTES = {
-		icon = GFX_decision_generic_agreement
-		visible = {
-			has_country_flag = RUS_LAW_SENATE_LEVEL
-			check_variable = { Senate_Party_Total_Seats^4 > 0 }
-			NOT = { has_country_flag = RUS_LAW_OPPOSITION_VOTES }
-		}
-		available = {
-			NOT = { has_country_flag = RUS_LAW_LAND_QUOTAS }
-			check_variable = { CurrentSenateSupportForBill^4 < Senate_Party_Total_Seats^4 }
-			if = {
-				limit = { has_country_flag = RUS_LAW_IMPEACH_PRESIDENT }
-				has_a_psr_president = no
-				has_a_rsdrp_president = no
-			}
-		}	
-		ai_will_do = {
-			base = 100
-			modifier = {
-				factor = 0
-				check_variable = { CurrentOverallSenateSupport > two_thirds_senate_plus_one }
-				has_country_flag = RUS_LAW_CHANGING_CONSTITUTION
-			}
-			modifier = {
-				factor = 0
-				check_variable = { CurrentOverallSenateSupport > half_senate_plus_one }
-				NOT = { has_country_flag = RUS_LAW_CHANGING_CONSTITUTION }
-			}
-			modifier = {
-				factor = 0.5
-				NOT = { check_variable = { Duma_Party_Status^4 = 1 } }
-			}
-		}
-		cost = 5
-		days_remove = 5
-		days_re_enable = 7
-		fire_only_once = no
-		remove_effect = {
-			custom_effect_tooltip = RUS_LAW_GET_RSDRP_SENATE_VOTES_tt
-			if = {
-				limit = {
-					NOT = {
-					OR = {
-							check_variable = { Duma_Party_Status^4 = 1 }
-							check_variable = { Duma_Party_Status^4 = 2 }
-					}
-				}
-			}
-				custom_effect_tooltip = RUS_LAW_RSDRP_POPULARITY_WILL_GREATLY_RISE
-				hidden_effect = {
-					RUS_increase_plsr_pop = yes
-					}
-				}
-				hidden_effect = {
-				set_temp_variable = { min_support = Senate_Party_Total_Seats^4 }
-				multiply_temp_variable = { min_support = 0.125 }
-				set_temp_variable = { max_support = Senate_Party_Total_Seats^4 }
-				multiply_temp_variable = { max_support = 0.25 }
-				set_temp_variable_to_random = {
-					var = support_for_bill
-					min = min_support
-					max = max_support
-					integer = yes
-					}
-				add_to_variable = { CurrentSenateSupportForBill^4 = support_for_bill }
-				}
-				count_votes_for_bill_sum = yes
-			}
-		}
-	RUS_LAW_GET_LKDP_SENATE_VOTES = {
-		icon = GFX_decision_generic_agreement
-		visible = {
-			has_country_flag = RUS_LAW_SENATE_LEVEL
-			check_variable = { Senate_Party_Total_Seats^5 > 0 }
-			NOT = { has_country_flag = RUS_LAW_OPPOSITION_VOTES }
-		}
-		available = {
-			check_variable = { CurrentSenateSupportForBill^5 < Senate_Party_Total_Seats^5 }
-			if = {
-				limit = { has_country_flag = RUS_LAW_IMPEACH_PRESIDENT }
-				has_a_psr_president = no
-				has_a_lkdp_president = no
-			}
-		}
-		ai_will_do = {
-			base = 100
-			modifier = {
-				factor = 0
-				check_variable = { CurrentOverallSenateSupport > two_thirds_senate_plus_one }
-				has_country_flag = RUS_LAW_CHANGING_CONSTITUTION
-			}
-			modifier = {
-				factor = 0
-				check_variable = { CurrentOverallSenateSupport > half_senate_plus_one }
-				NOT = { has_country_flag = RUS_LAW_CHANGING_CONSTITUTION }
-			}
-			modifier = {
-				factor = 0.5
-				NOT = { check_variable = { Duma_Party_Status^5 = 1 } }
-			}
-		}
-		cost = 5
-		days_remove = 5
-		days_re_enable = 7
-		fire_only_once = no
-		remove_effect = {
-			custom_effect_tooltip = RUS_LAW_GET_LKDP_SENATE_VOTES_tt
-			if = {
-				limit = {
-					NOT = {
-					OR = {
-							check_variable = { Duma_Party_Status^5 = 1 }
-							check_variable = { Duma_Party_Status^5 = 2 }
-						}
-					}
-				}
-				custom_effect_tooltip = RUS_LAW_LKDP_POPULARITY_WILL_GREATLY_RISE
-				if = {
-					limit = { has_country_flag = kdp_united }
-					hidden_effect = { RUS_increase_kdp_pop = yes }
-				}
-				else = {
-					hidden_effect = { RUS_increase_lkdp_pop = yes }
-					}
-				}
-				hidden_effect = {
-				set_temp_variable = { min_support = Senate_Party_Total_Seats^5 }
-				multiply_temp_variable = { min_support = 0.125 }
-				set_temp_variable = { max_support = Senate_Party_Total_Seats^5 }
-				multiply_temp_variable = { max_support = 0.25 }
-				set_temp_variable_to_random = {
-					var = support_for_bill
-					min = min_support
-					max = max_support
-					integer = yes
-					}
-				add_to_variable = { CurrentSenateSupportForBill^5 = support_for_bill }
-				}
-				count_votes_for_bill_sum = yes
-			}
-	}
-	RUS_LAW_GET_PP_SENATE_VOTES = {
-		icon = GFX_decision_generic_agreement
-		visible = {
-			has_country_flag = RUS_LAW_SENATE_LEVEL
-			check_variable = { Senate_Party_Total_Seats^6 > 0 }
-			NOT = { has_country_flag = RUS_LAW_OPPOSITION_VOTES }
-		}
-		available = {
-			check_variable = { CurrentSenateSupportForBill^7 < Senate_Party_Total_Seats^6 }
-			if = {
-				limit = { has_country_flag = RUS_LAW_IMPEACH_PRESIDENT }
-				has_a_pp_president = no
-			}
-		}
-		ai_will_do = {
-			base = 100
-			modifier = {
-				factor = 0
-				check_variable = { CurrentOverallSenateSupport > two_thirds_senate_plus_one }
-				has_country_flag = RUS_LAW_CHANGING_CONSTITUTION
-			}
-			modifier = {
-				factor = 0
-				check_variable = { CurrentOverallSenateSupport > half_senate_plus_one }
 				NOT = { has_country_flag = RUS_LAW_CHANGING_CONSTITUTION }
 			}
 			modifier = {
 				factor = 0.5
 				NOT = { check_variable = { Duma_Party_Status^6 = 1 } }
 			}
+			modifier = {
+				factor = 0
+				check_variable = { CurrentOverallSenateSupport > two_thirds_senate_plus_one }
+				has_country_flag = RUS_LAW_CHANGING_CONSTITUTION
+			}
+			modifier = {
+				factor = 0
+				check_variable = { CurrentOverallSenateSupport > half_senate_plus_one }
+				NOT = { has_country_flag = RUS_LAW_CHANGING_CONSTITUTION }
+			}
 		}
 		cost = 5
 		days_remove = 5
 		days_re_enable = 7
 		fire_only_once = no
 		remove_effect = {
-			custom_effect_tooltip = RUS_LAW_GET_PP_SENATE_VOTES_tt
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_LAW_GET_RKDP_DUMA_VOTES target: [From.GetName]"
+			custom_effect_tooltip = RUS_LAW_GET_RKDP_DUMA_VOTES_tt
+			if = {
+				limit = { has_country_flag = RUS_LAW_DUMA_LEVEL }
+				hidden_effect = {
+					set_temp_variable = { min_support = Duma_Party_Seats^6 }
+					multiply_temp_variable = { min_support = 0.125 }
+					set_temp_variable = { max_support = Duma_Party_Seats^6 }
+					multiply_temp_variable = { max_support = 0.25 }
+					set_temp_variable_to_random = {
+						var = support_for_bill
+						min = min_support
+						max = max_support
+						integer = yes
+					}
+					add_to_variable = { CurrentDumaSupportForBill^6 = support_for_bill }
+				}
+			}
+			else = {
+				hidden_effect = {
+					set_temp_variable = { min_support = Senate_Party_Total_Seats^6 }
+					multiply_temp_variable = { min_support = 0.125 }
+					set_temp_variable = { max_support = Senate_Party_Total_Seats^6 }
+					multiply_temp_variable = { max_support = 0.25 }
+					set_temp_variable_to_random = {
+						var = support_for_bill
+						min = min_support
+						max = max_support
+						integer = yes
+					}
+					add_to_variable = { CurrentSenateSupportForBill^6 = support_for_bill }
+				}
+			}
 			if = {
 				limit = {
 					NOT = {
@@ -4318,111 +3999,66 @@ RUS_Passing_Laws = {
 						}
 					}
 				}
-				custom_effect_tooltip = RUS_LAW_PP_POPULARITY_WILL_GREATLY_RISE
-				hidden_effect = {
-					RUS_increase_plsr_pop = yes
-					}
-				}
-				hidden_effect = {
-				set_temp_variable = { min_support = Senate_Party_Total_Seats^6 }
-				multiply_temp_variable = { min_support = 0.125 }
-				set_temp_variable = { max_support = Senate_Party_Total_Seats^6 }
-				multiply_temp_variable = { max_support = 0.25 }
-				set_temp_variable_to_random = {
-					var = support_for_bill
-					min = min_support
-					max = max_support
-					integer = yes
-					}
-				add_to_variable = { CurrentSenateSupportForBill^6 = support_for_bill }
-				}
-				count_votes_for_bill_sum = yes
+				custom_effect_tooltip = RUS_LAW_RKDP_POPULARITY_WILL_GREATLY_RISE
+				hidden_effect = { RUS_increase_rkdp_pop = yes }
 			}
+			count_votes_for_bill_sum = yes				
 		}
-	RUS_LAW_GET_RKDP_SENATE_VOTES = {
+	}
+	RUS_LAW_GET_VNS_DUMA_VOTES = {
 		icon = GFX_decision_generic_agreement
 		visible = {
-			has_country_flag = RUS_LAW_SENATE_LEVEL
-			check_variable = { Senate_Party_Total_Seats^7 > 0 }
+			OR = {
+				has_country_flag = RUS_LAW_DUMA_LEVEL
+				has_country_flag = RUS_LAW_SENATE_LEVEL
+			}
+			if = {
+				limit = { has_country_flag = RUS_LAW_DUMA_LEVEL }
+				check_variable = { Duma_Party_Seats^7 > 0 }
+			}
+			else = {
+				check_variable = { Senate_Party_Total_Seats^7 > 0 }
+			}
 			NOT = { has_country_flag = RUS_LAW_OPPOSITION_VOTES }
 		}
 		available = {
-			check_variable = { CurrentSenateSupportForBill^7 < Senate_Party_Total_Seats^7 }
+			NOT = { has_country_flag = RUS_LAW_LAND_QUOTAS }
+			if = {
+				limit = { has_country_flag = RUS_LAW_DUMA_LEVEL }
+				check_variable = { CurrentDumaSupportForBill^7 < Duma_Party_Seats^7 }
+			}
+			else = {
+				check_variable = { CurrentSenateSupportForBill^7 < Senate_Party_Total_Seats^7 }
+			}
 			if = {
 				limit = { has_country_flag = RUS_LAW_IMPEACH_PRESIDENT }
-				has_a_rkdp_president = no
+				has_a_vns_president = no
+			}			
+		}
+		cancel_trigger = {
+			hidden_trigger = {
+				NOT = {
+					has_country_flag = RUS_LAW_DUMA_LEVEL
+					has_country_flag = RUS_LAW_SENATE_LEVEL
+				}
 			}
 		}
 		ai_will_do = {
 			base = 100
 			modifier = {
 				factor = 0
-				check_variable = { CurrentOverallSenateSupport > two_thirds_senate_plus_one }
+				check_variable = {  var = CurrentOverallSupport value = two_thirds_duma_plus_one compare = greater_than_or_equals }
 				has_country_flag = RUS_LAW_CHANGING_CONSTITUTION
 			}
 			modifier = {
 				factor = 0
-				check_variable = { CurrentOverallSenateSupport > half_senate_plus_one }
+				check_variable = { var = CurrentOverallSupport value =  half_duma_plus_one compare = greater_than_or_equals }
 				NOT = { has_country_flag = RUS_LAW_CHANGING_CONSTITUTION }
 			}
 			modifier = {
 				factor = 0.5
 				NOT = { check_variable = { Duma_Party_Status^7 = 1 } }
 			}
-		}
-		cost = 5
-		days_remove = 5
-		days_re_enable = 7
-		fire_only_once = no
-		remove_effect = {
-			custom_effect_tooltip = RUS_LAW_GET_RKDP_SENATE_VOTES_tt
-			if = {
-				limit = {
-					NOT = {
-					OR = {
-							check_variable = { Duma_Party_Status^7 = 1 }
-							check_variable = { Duma_Party_Status^7 = 2 }
-					}
-				}
-				}
-				custom_effect_tooltip = RUS_LAW_RKDP_POPULARITY_WILL_GREATLY_RISE
-				hidden_effect = {
-					RUS_increase_plsr_pop = yes
-					}
-				}
-				hidden_effect = {
-				set_temp_variable = { min_support = Senate_Party_Total_Seats^7 }
-				multiply_temp_variable = { min_support = 0.125 }
-				set_temp_variable = { max_support = Senate_Party_Total_Seats^7 }
-				multiply_temp_variable = { max_support = 0.25 }
-				set_temp_variable_to_random = {
-					var = support_for_bill
-					min = min_support
-					max = max_support
-					integer = yes
-					}
-				add_to_variable = { CurrentSenateSupportForBill^7 = support_for_bill }
-				}
-				count_votes_for_bill_sum = yes
-			}
-		}
-	RUS_LAW_GET_VNS_SENATE_VOTES = {
-		icon = GFX_decision_generic_agreement
-		visible = {
-			has_country_flag = RUS_LAW_SENATE_LEVEL
-			check_variable = { Senate_Party_Total_Seats^8 > 0 }
-			NOT = { has_country_flag = RUS_LAW_OPPOSITION_VOTES }
-		}
-		available = {
-			check_variable = { CurrentSenateSupportForBill^8 < Senate_Party_Total_Seats^8 }
-			if = {
-				limit = { has_country_flag = RUS_LAW_IMPEACH_PRESIDENT }
-				has_a_vns_president = no
-				has_a_ep_president = no
-			}
-		}
-		ai_will_do = {
-			base = 100
 			modifier = {
 				factor = 0
 				check_variable = { CurrentOverallSenateSupport > two_thirds_senate_plus_one }
@@ -4433,155 +4069,237 @@ RUS_Passing_Laws = {
 				check_variable = { CurrentOverallSenateSupport > half_senate_plus_one }
 				NOT = { has_country_flag = RUS_LAW_CHANGING_CONSTITUTION }
 			}
+		}
+		cost = 5
+		days_remove = 5
+		days_re_enable = 7
+		fire_only_once = no
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_LAW_GET_VNS_DUMA_VOTES target: [From.GetName]"
+			custom_effect_tooltip = RUS_LAW_GET_VNS_DUMA_VOTES_tt
+			if = {
+				limit = { has_country_flag = RUS_LAW_DUMA_LEVEL }
+				hidden_effect = {
+					set_temp_variable = { min_support = Duma_Party_Seats^7 }
+					multiply_temp_variable = { min_support = 0.125 }
+					set_temp_variable = { max_support = Duma_Party_Seats^7 }
+					multiply_temp_variable = { max_support = 0.25 }
+					set_temp_variable_to_random = {
+						var = support_for_bill
+						min = min_support
+						max = max_support
+						integer = yes
+					}
+					add_to_variable = { CurrentDumaSupportForBill^7 = support_for_bill }
+				}
+			}
+			else = {
+				hidden_effect = {
+					set_temp_variable = { min_support = Senate_Party_Total_Seats^7 }
+					multiply_temp_variable = { min_support = 0.125 }
+					set_temp_variable = { max_support = Senate_Party_Total_Seats^7 }
+					multiply_temp_variable = { max_support = 0.25 }
+					set_temp_variable_to_random = {
+						var = support_for_bill
+						min = min_support
+						max = max_support
+						integer = yes
+					}
+					add_to_variable = { CurrentSenateSupportForBill^7 = support_for_bill }
+				}
+			}
+			if = {
+				limit = {
+					NOT = {
+						OR = {
+							check_variable = { Duma_Party_Status^7 = 1 }
+							check_variable = { Duma_Party_Status^7 = 2 }
+						}
+					}
+				}
+				custom_effect_tooltip = RUS_LAW_VNS_POPULARITY_WILL_GREATLY_RISE
+				hidden_effect = { RUS_increase_vns_pop = yes }
+			}
+			count_votes_for_bill_sum = yes				
+		}
+	}
+	RUS_LAW_GET_EP_DUMA_VOTES = {
+		icon = GFX_decision_generic_agreement
+		visible = {
+			OR = {
+				has_country_flag = RUS_LAW_DUMA_LEVEL
+				has_country_flag = RUS_LAW_SENATE_LEVEL
+			}
+			if = {
+				limit = { has_country_flag = RUS_LAW_DUMA_LEVEL }
+				check_variable = { Duma_Party_Seats^8 > 0 }
+			}
+			else = {
+				check_variable = { Senate_Party_Total_Seats^8 > 0 }
+			}
+			NOT = { has_country_flag = RUS_LAW_OPPOSITION_VOTES }
+		}
+		available = {
+			NOT = { has_country_flag = RUS_LAW_LAND_QUOTAS }
+			if = {
+				limit = { has_country_flag = RUS_LAW_DUMA_LEVEL }
+				check_variable = { CurrentDumaSupportForBill^8 < Duma_Party_Seats^8 }
+			}
+			else = {
+				check_variable = { CurrentSenateSupportForBill^8 < Senate_Party_Total_Seats^8 }
+			}
+			if = {
+				limit = { has_country_flag = RUS_LAW_IMPEACH_PRESIDENT }
+				has_a_ep_president = no
+			}			
+		}
+		cancel_trigger = {
+			hidden_trigger = {
+				NOT = {
+					has_country_flag = RUS_LAW_DUMA_LEVEL
+					has_country_flag = RUS_LAW_SENATE_LEVEL
+				}
+			}
+		}
+		ai_will_do = {
+			base = 100
 			modifier = {
-				factor = 0.5
-				has_government = social_liberal
+				factor = 0
+				check_variable = {  var = CurrentOverallSupport value = two_thirds_duma_plus_one compare = greater_than_or_equals }
+				has_country_flag = RUS_LAW_CHANGING_CONSTITUTION
+			}
+			modifier = {
+				factor = 0
+				check_variable = { var = CurrentOverallSupport value =  half_duma_plus_one compare = greater_than_or_equals }
+				NOT = { has_country_flag = RUS_LAW_CHANGING_CONSTITUTION }
 			}
 			modifier = {
 				factor = 0.5
 				NOT = { check_variable = { Duma_Party_Status^8 = 1 } }
 			}
+			modifier = {
+				factor = 0
+				check_variable = { CurrentOverallSenateSupport > two_thirds_senate_plus_one }
+				has_country_flag = RUS_LAW_CHANGING_CONSTITUTION
+			}
+			modifier = {
+				factor = 0
+				check_variable = { CurrentOverallSenateSupport > half_senate_plus_one }
+				NOT = { has_country_flag = RUS_LAW_CHANGING_CONSTITUTION }
+			}
 		}
 		cost = 5
 		days_remove = 5
 		days_re_enable = 7
 		fire_only_once = no
 		remove_effect = {
-			custom_effect_tooltip = RUS_LAW_GET_VNS_SENATE_VOTES_tt
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_LAW_GET_EP_DUMA_VOTES target: [From.GetName]"
+			custom_effect_tooltip = RUS_LAW_GET_EP_DUMA_VOTES_tt
+			if = {
+				limit = { has_country_flag = RUS_LAW_DUMA_LEVEL }
+				hidden_effect = {
+					set_temp_variable = { min_support = Duma_Party_Seats^8 }
+					multiply_temp_variable = { min_support = 0.125 }
+					set_temp_variable = { max_support = Duma_Party_Seats^8 }
+					multiply_temp_variable = { max_support = 0.25 }
+					set_temp_variable_to_random = {
+						var = support_for_bill
+						min = min_support
+						max = max_support
+						integer = yes
+					}
+					add_to_variable = { CurrentDumaSupportForBill^8 = support_for_bill }
+				}
+			}
+			else = {
+				hidden_effect = {
+					set_temp_variable = { min_support = Senate_Party_Total_Seats^8 }
+					multiply_temp_variable = { min_support = 0.125 }
+					set_temp_variable = { max_support = Senate_Party_Total_Seats^8 }
+					multiply_temp_variable = { max_support = 0.25 }
+					set_temp_variable_to_random = {
+						var = support_for_bill
+						min = min_support
+						max = max_support
+						integer = yes
+					}
+					add_to_variable = { CurrentSenateSupportForBill^8 = support_for_bill }
+				}
+			}
 			if = {
 				limit = {
 					NOT = {
-					OR = {
+						OR = {
 							check_variable = { Duma_Party_Status^8 = 1 }
 							check_variable = { Duma_Party_Status^8 = 2 }
+						}
 					}
 				}
-			}
-				custom_effect_tooltip = RUS_LAW_VNS_POPULARITY_WILL_GREATLY_RISE
-				hidden_effect = {
-					RUS_increase_plsr_pop = yes
-					}
-				}
-				hidden_effect = {
-				set_temp_variable = { min_support = Senate_Party_Total_Seats^8 }
-				multiply_temp_variable = { min_support = 0.125 }
-				set_temp_variable = { max_support = Senate_Party_Total_Seats^8 }
-				multiply_temp_variable = { max_support = 0.25 }
-				set_temp_variable_to_random = {
-					var = support_for_bill
-					min = min_support
-					max = max_support
-					integer = yes
-					}
-				add_to_variable = { CurrentSenateSupportForBill^8 = support_for_bill }
-				}
-				count_votes_for_bill_sum = yes
-			}
-		}
-	RUS_LAW_GET_EP_SENATE_VOTES = {
-		icon = GFX_decision_generic_agreement
-		visible = {
-			has_country_flag = RUS_LAW_SENATE_LEVEL
-			check_variable = { Senate_Party_Total_Seats^9 > 0 }
-			NOT = { has_country_flag = RUS_LAW_OPPOSITION_VOTES }
-		}
-		available = {
-			check_variable = { CurrentSenateSupportForBill^9 < Senate_Party_Total_Seats^9 }
-			if = {
-				limit = { has_country_flag = RUS_LAW_IMPEACH_PRESIDENT }
-				has_a_vns_president = no
-				has_a_ep_president = no
-			}
-		}
-		ai_will_do = {
-			base = 100
-			modifier = {
-				factor = 0
-				check_variable = { CurrentOverallSenateSupport > two_thirds_senate_plus_one }
-				has_country_flag = RUS_LAW_CHANGING_CONSTITUTION
-			}
-			modifier = {
-				factor = 0
-				check_variable = { CurrentOverallSenateSupport > half_senate_plus_one }
-				NOT = { has_country_flag = RUS_LAW_CHANGING_CONSTITUTION }
-			}
-			modifier = {
-				factor = 0
-				check_variable = { party_popularity@authoritarian_democrat > 0.23 }
-			}			
-			modifier = {
-				factor = 0
-				NOT = { check_variable = { Duma_Party_Status^9 = 1 } }
-			}
-		}
-		cost = 5
-		days_remove = 5
-		days_re_enable = 7
-		fire_only_once = no
-		remove_effect = {
-			custom_effect_tooltip = RUS_LAW_GET_EP_SENATE_VOTES_tt
-			if = {
-				limit = {
-					NOT = {
-					OR = {
-							check_variable = { Duma_Party_Status^4 = 1 }
-							check_variable = { Duma_Party_Status^4 = 2 }
-					}
-				}
-			}
 				custom_effect_tooltip = RUS_LAW_EP_POPULARITY_WILL_GREATLY_RISE
-				hidden_effect = {
-					RUS_increase_plsr_pop = yes
-					}
-				}
-				hidden_effect = {
-				set_temp_variable = { min_support = Senate_Party_Total_Seats^9 }
-				multiply_temp_variable = { min_support = 0.125 }
-				set_temp_variable = { max_support = Senate_Party_Total_Seats^9 }
-				multiply_temp_variable = { max_support = 0.25 }
-				set_temp_variable_to_random = {
-					var = support_for_bill
-					min = min_support
-					max = max_support
-					integer = yes
-					}
-				add_to_variable = { CurrentSenateSupportForBill^9 = support_for_bill }
-				}
-				count_votes_for_bill_sum = yes
+				hidden_effect = { RUS_increase_ep_pop = yes }
 			}
+			count_votes_for_bill_sum = yes				
 		}
-	RUS_LAW_GET_NRPR_SENATE_VOTES = {
+	}
+	RUS_LAW_GET_RMS_DUMA_VOTES = {
 		icon = GFX_decision_generic_agreement
 		visible = {
-			has_country_flag = RUS_LAW_SENATE_LEVEL
-			check_variable = { Senate_Party_Total_Seats^12 > 0 }
+			OR = {
+				has_country_flag = RUS_LAW_DUMA_LEVEL
+				has_country_flag = RUS_LAW_SENATE_LEVEL
+			}
+			if = {
+				limit = { has_country_flag = RUS_LAW_DUMA_LEVEL }
+				check_variable = { Duma_Party_Seats^9 > 0 }
+			}
+			else = {
+				check_variable = { Senate_Party_Total_Seats^9 > 0 }
+			}
 			NOT = { has_country_flag = RUS_LAW_OPPOSITION_VOTES }
 		}
 		available = {
-			check_variable = { CurrentSenateSupportForBill^12 < Senate_Party_Total_Seats^12 }
+			NOT = { has_country_flag = RUS_LAW_LAND_QUOTAS }
+			if = {
+				limit = { has_country_flag = RUS_LAW_DUMA_LEVEL }
+				check_variable = { CurrentDumaSupportForBill^9 < Duma_Party_Seats^9 }
+			}
+			else = {
+				check_variable = { CurrentSenateSupportForBill^9 < Senate_Party_Total_Seats^9 }
+			}
+		}
+		cancel_trigger = {
+			hidden_trigger = {
+				NOT = {
+					has_country_flag = RUS_LAW_DUMA_LEVEL
+					has_country_flag = RUS_LAW_SENATE_LEVEL
+				}
+			}
 		}
 		ai_will_do = {
 			base = 100
 			modifier = {
 				factor = 0
-				check_variable = { CurrentOverallSenateSupport > two_thirds_senate_plus_one }
+				check_variable = {  var = CurrentOverallSupport value = two_thirds_duma_plus_one compare = greater_than_or_equals }
 				has_country_flag = RUS_LAW_CHANGING_CONSTITUTION
 			}
 			modifier = {
 				factor = 0
-				check_variable = { CurrentOverallSenateSupport > half_senate_plus_one }
+				check_variable = { var = CurrentOverallSupport value =  half_duma_plus_one compare = greater_than_or_equals }
 				NOT = { has_country_flag = RUS_LAW_CHANGING_CONSTITUTION }
 			}
-			modifier = {
-				factor = 0
-				OR = {
-					has_government = social_liberal
-					has_socialist_government = yes
-				}
-			}			
 			modifier = {
 				factor = 0.5
-				NOT = { check_variable = { Duma_Party_Status^12 = 1 } }
+				NOT = { check_variable = { Duma_Party_Status^9 = 1 } }
+			}
+			modifier = {
+				factor = 0
+				check_variable = { CurrentOverallSenateSupport > two_thirds_senate_plus_one }
+				has_country_flag = RUS_LAW_CHANGING_CONSTITUTION
+			}
+			modifier = {
+				factor = 0
+				check_variable = { CurrentOverallSenateSupport > half_senate_plus_one }
+				NOT = { has_country_flag = RUS_LAW_CHANGING_CONSTITUTION }
 			}
 		}
 		cost = 5
@@ -4589,53 +4307,96 @@ RUS_Passing_Laws = {
 		days_re_enable = 7
 		fire_only_once = no
 		remove_effect = {
-			custom_effect_tooltip = RUS_LAW_GET_NRPR_SENATE_VOTES_tt
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_LAW_GET_RMS_DUMA_VOTES target: [From.GetName]"
+			custom_effect_tooltip = RUS_LAW_GET_RMS_DUMA_VOTES_tt
 			if = {
-				limit = {
-					NOT = {
-					OR = {
-							check_variable = { Duma_Party_Status^12 = 1 }
-							check_variable = { Duma_Party_Status^12 = 2 }
+				limit = { has_country_flag = RUS_LAW_DUMA_LEVEL }
+				hidden_effect = {
+					set_temp_variable = { min_support = Duma_Party_Seats^9 }
+					multiply_temp_variable = { min_support = 0.125 }
+					set_temp_variable = { max_support = Duma_Party_Seats^9 }
+					multiply_temp_variable = { max_support = 0.25 }
+					set_temp_variable_to_random = {
+						var = support_for_bill
+						min = min_support
+						max = max_support
+						integer = yes
 					}
+					add_to_variable = { CurrentDumaSupportForBill^9 = support_for_bill }
 				}
 			}
-				custom_effect_tooltip = RUS_LAW_NRPR_POPULARITY_WILL_GREATLY_RISE
+			else = {
 				hidden_effect = {
-					RUS_increase_plsr_pop = yes
+					set_temp_variable = { min_support = Senate_Party_Total_Seats^9 }
+					multiply_temp_variable = { min_support = 0.125 }
+					set_temp_variable = { max_support = Senate_Party_Total_Seats^9 }
+					multiply_temp_variable = { max_support = 0.25 }
+					set_temp_variable_to_random = {
+						var = support_for_bill
+						min = min_support
+						max = max_support
+						integer = yes
 					}
+					add_to_variable = { CurrentSenateSupportForBill^9 = support_for_bill }
 				}
-				hidden_effect = {
-				set_temp_variable = { min_support = Senate_Party_Total_Seats^12 }
-				multiply_temp_variable = { min_support = 0.125 }
-				set_temp_variable = { max_support = Senate_Party_Total_Seats^12 }
-				multiply_temp_variable = { max_support = 0.25 }
-				set_temp_variable_to_random = {
-					var = support_for_bill
-					min = min_support
-					max = max_support
-					integer = yes
-					}
-				add_to_variable = { CurrentSenateSupportForBill^12 = support_for_bill }
-				}
-				count_votes_for_bill_sum = yes
 			}
+			count_votes_for_bill_sum = yes				
 		}
-	RUS_LAW_GET_NSNP_SENATE_VOTES = {
+	}
+	RUS_LAW_GET_NSNP_DUMA_VOTES = {
 		icon = GFX_decision_generic_agreement
 		visible = {
-			has_country_flag = RUS_LAW_SENATE_LEVEL
-			check_variable = { Senate_Party_Total_Seats^11 > 0 }
+			OR = {
+				has_country_flag = RUS_LAW_DUMA_LEVEL
+				has_country_flag = RUS_LAW_SENATE_LEVEL
+			}
+			if = {
+				limit = { has_country_flag = RUS_LAW_DUMA_LEVEL }
+				check_variable = { Duma_Party_Seats^10 > 0 }
+			}
+			else = {
+				check_variable = { Senate_Party_Total_Seats^10 > 0 }
+			}
 			NOT = { has_country_flag = RUS_LAW_OPPOSITION_VOTES }
 		}
 		available = {
-			check_variable = { CurrentSenateSupportForBill^11 < Senate_Party_Total_Seats^11 }
+			NOT = { has_country_flag = RUS_LAW_LAND_QUOTAS }
+			if = {
+				limit = { has_country_flag = RUS_LAW_DUMA_LEVEL }
+				check_variable = { CurrentDumaSupportForBill^10 < Duma_Party_Seats^10 }
+			}
+			else = {
+				check_variable = { CurrentSenateSupportForBill^10 < Senate_Party_Total_Seats^10 }
+			}
 			if = {
 				limit = { has_country_flag = RUS_LAW_IMPEACH_PRESIDENT }
 				has_a_nsnp_president = no
+			}			
+		}
+		cancel_trigger = {
+			hidden_trigger = {
+				NOT = {
+					has_country_flag = RUS_LAW_DUMA_LEVEL
+					has_country_flag = RUS_LAW_SENATE_LEVEL
+				}
 			}
 		}
 		ai_will_do = {
 			base = 100
+			modifier = {
+				factor = 0
+				check_variable = {  var = CurrentOverallSupport value = two_thirds_duma_plus_one compare = greater_than_or_equals }
+				has_country_flag = RUS_LAW_CHANGING_CONSTITUTION
+			}
+			modifier = {
+				factor = 0
+				check_variable = { var = CurrentOverallSupport value =  half_duma_plus_one compare = greater_than_or_equals }
+				NOT = { has_country_flag = RUS_LAW_CHANGING_CONSTITUTION }
+			}
+			modifier = {
+				factor = 0.5
+				NOT = { check_variable = { Duma_Party_Status^10 = 1 } }
+			}
 			modifier = {
 				factor = 0
 				check_variable = { CurrentOverallSenateSupport > two_thirds_senate_plus_one }
@@ -4644,47 +4405,490 @@ RUS_Passing_Laws = {
 			modifier = {
 				factor = 0
 				check_variable = { CurrentOverallSenateSupport > half_senate_plus_one }
+				NOT = { has_country_flag = RUS_LAW_CHANGING_CONSTITUTION }
+			}
+		}
+		cost = 5
+		days_remove = 5
+		days_re_enable = 7
+		fire_only_once = no
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_LAW_GET_NSNP_DUMA_VOTES target: [From.GetName]"
+			custom_effect_tooltip = RUS_LAW_GET_NSNP_DUMA_VOTES_tt
+			if = {
+				limit = { has_country_flag = RUS_LAW_DUMA_LEVEL }
+				hidden_effect = {
+					set_temp_variable = { min_support = Duma_Party_Seats^10 }
+					multiply_temp_variable = { min_support = 0.125 }
+					set_temp_variable = { max_support = Duma_Party_Seats^10 }
+					multiply_temp_variable = { max_support = 0.25 }
+					set_temp_variable_to_random = {
+						var = support_for_bill
+						min = min_support
+						max = max_support
+						integer = yes
+					}
+					add_to_variable = { CurrentDumaSupportForBill^10 = support_for_bill }
+				}
+			}
+			else = {
+				hidden_effect = {
+					set_temp_variable = { min_support = Senate_Party_Total_Seats^10 }
+					multiply_temp_variable = { min_support = 0.125 }
+					set_temp_variable = { max_support = Senate_Party_Total_Seats^10 }
+					multiply_temp_variable = { max_support = 0.25 }
+					set_temp_variable_to_random = {
+						var = support_for_bill
+						min = min_support
+						max = max_support
+						integer = yes
+					}
+					add_to_variable = { CurrentSenateSupportForBill^10 = support_for_bill }
+				}
+			}
+			if = {
+				limit = {
+					NOT = {
+						OR = {
+							check_variable = { Duma_Party_Status^10 = 1 }
+							check_variable = { Duma_Party_Status^10 = 2 }
+						}
+					}
+				}
+				custom_effect_tooltip = RUS_LAW_NSNP_POPULARITY_WILL_GREATLY_RISE
+				hidden_effect = { RUS_increase_ep_pop = yes }
+			}
+			count_votes_for_bill_sum = yes				
+		}
+	}
+	RUS_LAW_GET_NRPR_DUMA_VOTES = {
+		icon = GFX_decision_generic_agreement
+		visible = {
+			OR = {
+				has_country_flag = RUS_LAW_DUMA_LEVEL
+				has_country_flag = RUS_LAW_SENATE_LEVEL
+			}
+			if = {
+				limit = { has_country_flag = RUS_LAW_DUMA_LEVEL }
+				check_variable = { Duma_Party_Seats^11 > 0 }
+			}
+			else = {
+				check_variable = { Senate_Party_Total_Seats^11 > 0 }
+			}
+			NOT = { has_country_flag = RUS_LAW_OPPOSITION_VOTES }
+		}
+		available = {
+			NOT = { has_country_flag = RUS_LAW_LAND_QUOTAS }
+			if = {
+				limit = { has_country_flag = RUS_LAW_DUMA_LEVEL }
+				check_variable = { CurrentDumaSupportForBill^11 < Duma_Party_Seats^11 }
+			}
+			else = {
+				check_variable = { CurrentSenateSupportForBill^11 < Senate_Party_Total_Seats^11 }
+			}
+			if = {
+				limit = { has_country_flag = RUS_LAW_IMPEACH_PRESIDENT }
+				has_a_nrpr_president = no
+			}			
+		}
+		cancel_trigger = {
+			hidden_trigger = {
+				NOT = {
+					has_country_flag = RUS_LAW_DUMA_LEVEL
+					has_country_flag = RUS_LAW_SENATE_LEVEL
+				}
+			}
+		}
+		ai_will_do = {
+			base = 100
+			modifier = {
+				factor = 0
+				check_variable = {  var = CurrentOverallSupport value = two_thirds_duma_plus_one compare = greater_than_or_equals }
+				has_country_flag = RUS_LAW_CHANGING_CONSTITUTION
+			}
+			modifier = {
+				factor = 0
+				check_variable = { var = CurrentOverallSupport value =  half_duma_plus_one compare = greater_than_or_equals }
 				NOT = { has_country_flag = RUS_LAW_CHANGING_CONSTITUTION }
 			}
 			modifier = {
 				factor = 0.5
 				NOT = { check_variable = { Duma_Party_Status^11 = 1 } }
 			}
+			modifier = {
+				factor = 0
+				check_variable = { CurrentOverallSenateSupport > two_thirds_senate_plus_one }
+				has_country_flag = RUS_LAW_CHANGING_CONSTITUTION
+			}
+			modifier = {
+				factor = 0
+				check_variable = { CurrentOverallSenateSupport > half_senate_plus_one }
+				NOT = { has_country_flag = RUS_LAW_CHANGING_CONSTITUTION }
+			}
 		}
 		cost = 5
 		days_remove = 5
 		days_re_enable = 7
 		fire_only_once = no
 		remove_effect = {
-			custom_effect_tooltip = RUS_LAW_GET_NSNP_SENATE_VOTES_tt
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_LAW_GET_NRPR_DUMA_VOTES target: [From.GetName]"
+			custom_effect_tooltip = RUS_LAW_GET_NRPR_DUMA_VOTES_tt
+			if = {
+				limit = { has_country_flag = RUS_LAW_DUMA_LEVEL }
+				hidden_effect = {
+					set_temp_variable = { min_support = Duma_Party_Seats^11 }
+					multiply_temp_variable = { min_support = 0.125 }
+					set_temp_variable = { max_support = Duma_Party_Seats^11 }
+					multiply_temp_variable = { max_support = 0.25 }
+					set_temp_variable_to_random = {
+						var = support_for_bill
+						min = min_support
+						max = max_support
+						integer = yes
+					}
+					add_to_variable = { CurrentDumaSupportForBill^11 = support_for_bill }
+				}
+			}
+			else = {
+				hidden_effect = {
+					set_temp_variable = { min_support = Senate_Party_Total_Seats^11 }
+					multiply_temp_variable = { min_support = 0.125 }
+					set_temp_variable = { max_support = Senate_Party_Total_Seats^11 }
+					multiply_temp_variable = { max_support = 0.25 }
+					set_temp_variable_to_random = {
+						var = support_for_bill
+						min = min_support
+						max = max_support
+						integer = yes
+					}
+					add_to_variable = { CurrentSenateSupportForBill^11 = support_for_bill }
+				}
+			}
 			if = {
 				limit = {
 					NOT = {
-					OR = {
+						OR = {
 							check_variable = { Duma_Party_Status^11 = 1 }
-							check_variable = { Duma_Party_Status^4 = 2 }
+							check_variable = { Duma_Party_Status^11 = 2 }
+						}
 					}
 				}
+				custom_effect_tooltip = RUS_LAW_NRPR_POPULARITY_WILL_GREATLY_RISE
+				hidden_effect = { RUS_increase_ep_pop = yes }
 			}
-				custom_effect_tooltip = RUS_LAW_NSNP_POPULARITY_WILL_GREATLY_RISE
-				hidden_effect = {
-					RUS_increase_plsr_pop = yes
+			count_votes_for_bill_sum = yes				
+		}
+	}
+	RUS_LAW_GET_AUTONOMISTS_DUMA_VOTES = {
+		icon = GFX_decision_generic_agreement
+		visible = {
+			OR = {
+				has_country_flag = RUS_LAW_DUMA_LEVEL
+				has_country_flag = RUS_LAW_SENATE_LEVEL
 			}
-		}		
-			hidden_effect = {
-				set_temp_variable = { min_support = Senate_Party_Total_Seats^11 }
-				multiply_temp_variable = { min_support = 0.125 }
-				set_temp_variable = { max_support = Senate_Party_Total_Seats^11 }
-				multiply_temp_variable = { max_support = 0.25 }
-				set_temp_variable_to_random = {
-					var = support_for_bill
-					min = min_support
-					max = max_support
-					integer = yes
+			if = {
+				limit = { has_country_flag = RUS_LAW_DUMA_LEVEL }
+				check_variable = { Duma_Party_Seats^12 > 0 }
+			}
+			else = {
+				check_variable = { Senate_Party_Total_Seats^12 > 0 }
+			}
+			NOT = { 
+				has_country_flag = RUS_LAW_OPPOSITION_VOTES 
+				has_country_flag = RUS_LAW_DESTROY_LOCAL_PARLIAMENTS
+			}
+		}
+		available = {
+			NOT = { has_country_flag = RUS_LAW_LAND_QUOTAS }
+			if = {
+				limit = { has_country_flag = RUS_LAW_DUMA_LEVEL }
+				check_variable = { CurrentDumaSupportForBill^12 < Duma_Party_Seats^12 }
+			}
+			else = {
+				check_variable = { CurrentSenateSupportForBill^12 < Senate_Party_Total_Seats^12 }
+			}
+		}
+		cancel_trigger = {
+			hidden_trigger = {
+				NOT = {
+					has_country_flag = RUS_LAW_DUMA_LEVEL
+					has_country_flag = RUS_LAW_SENATE_LEVEL
 				}
-				add_to_variable = { CurrentSenateSupportForBill^11 = support_for_bill }
 			}
-			count_votes_for_bill_sum = yes
+		}
+		ai_will_do = {
+			base = 100
+			modifier = {
+				factor = 0
+				check_variable = {  var = CurrentOverallSupport value = two_thirds_duma_plus_one compare = greater_than_or_equals }
+				has_country_flag = RUS_LAW_CHANGING_CONSTITUTION
+			}
+			modifier = {
+				factor = 0
+				check_variable = { var = CurrentOverallSupport value =  half_duma_plus_one compare = greater_than_or_equals }
+				NOT = { has_country_flag = RUS_LAW_CHANGING_CONSTITUTION }
+			}
+			modifier = {
+				factor = 0.5
+				NOT = { check_variable = { Duma_Party_Status^12 = 1 } }
+			}
+			modifier = {
+				factor = 0
+				check_variable = { CurrentOverallSenateSupport > two_thirds_senate_plus_one }
+				has_country_flag = RUS_LAW_CHANGING_CONSTITUTION
+			}
+			modifier = {
+				factor = 0
+				check_variable = { CurrentOverallSenateSupport > half_senate_plus_one }
+				NOT = { has_country_flag = RUS_LAW_CHANGING_CONSTITUTION }
+			}
+		}
+		cost = 15
+		days_remove = 5
+		days_re_enable = 7
+		fire_only_once = no
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_LAW_GET_AUTONOMISTS_DUMA_VOTES target: [From.GetName]"
+			custom_effect_tooltip = RUS_LAW_GET_AUTONOMISTS_DUMA_VOTES_tt
+			if = {
+				limit = { has_country_flag = RUS_LAW_DUMA_LEVEL }
+				hidden_effect = {
+					set_temp_variable = { min_support = Duma_Party_Seats^12 }
+					multiply_temp_variable = { min_support = 0.125 }
+					set_temp_variable = { max_support = Duma_Party_Seats^12 }
+					multiply_temp_variable = { max_support = 0.25 }
+					set_temp_variable_to_random = {
+						var = support_for_bill
+						min = min_support
+						max = max_support
+						integer = yes
+					}
+					add_to_variable = { CurrentDumaSupportForBill^12 = support_for_bill }
+				}
+			}
+			else = {
+				hidden_effect = {
+					set_temp_variable = { min_support = Senate_Party_Total_Seats^12 }
+					multiply_temp_variable = { min_support = 0.125 }
+					set_temp_variable = { max_support = Senate_Party_Total_Seats^12 }
+					multiply_temp_variable = { max_support = 0.25 }
+					set_temp_variable_to_random = {
+						var = support_for_bill
+						min = min_support
+						max = max_support
+						integer = yes
+					}
+					add_to_variable = { CurrentSenateSupportForBill^12 = support_for_bill }
+				}
+			}
+			count_votes_for_bill_sum = yes				
+		}
+	}
+	RUS_LAW_GET_FEDERALISTS_DUMA_VOTES = {
+		icon = GFX_decision_generic_agreement
+		visible = {
+			OR = {
+				has_country_flag = RUS_LAW_DUMA_LEVEL
+				has_country_flag = RUS_LAW_SENATE_LEVEL
+			}
+			if = {
+				limit = { has_country_flag = RUS_LAW_DUMA_LEVEL }
+				check_variable = { Duma_Party_Seats^13 > 0 }
+			}
+			else = {
+				check_variable = { Senate_Party_Total_Seats^13 > 0 }
+			}
+			NOT = { 
+				has_country_flag = RUS_LAW_OPPOSITION_VOTES 
+				has_country_flag = RUS_LAW_DESTROY_LOCAL_PARLIAMENTS
+			}
+		}
+		available = {
+			NOT = { has_country_flag = RUS_LAW_LAND_QUOTAS }
+			if = {
+				limit = { has_country_flag = RUS_LAW_DUMA_LEVEL }
+				check_variable = { CurrentDumaSupportForBill^13 < Duma_Party_Seats^13 }
+			}
+			else = {
+				check_variable = { CurrentSenateSupportForBill^13 < Senate_Party_Total_Seats^13 }
+			}
+		}
+		cancel_trigger = {
+			hidden_trigger = {
+				NOT = {
+					has_country_flag = RUS_LAW_DUMA_LEVEL
+					has_country_flag = RUS_LAW_SENATE_LEVEL
+				}
+			}
+		}
+		ai_will_do = {
+			base = 100
+			modifier = {
+				factor = 0
+				check_variable = {  var = CurrentOverallSupport value = two_thirds_duma_plus_one compare = greater_than_or_equals }
+				has_country_flag = RUS_LAW_CHANGING_CONSTITUTION
+			}
+			modifier = {
+				factor = 0
+				check_variable = { var = CurrentOverallSupport value =  half_duma_plus_one compare = greater_than_or_equals }
+				NOT = { has_country_flag = RUS_LAW_CHANGING_CONSTITUTION }
+			}
+			modifier = {
+				factor = 0.5
+				NOT = { check_variable = { Duma_Party_Status^13 = 1 } }
+			}
+			modifier = {
+				factor = 0
+				check_variable = { CurrentOverallSenateSupport > two_thirds_senate_plus_one }
+				has_country_flag = RUS_LAW_CHANGING_CONSTITUTION
+			}
+			modifier = {
+				factor = 0
+				check_variable = { CurrentOverallSenateSupport > half_senate_plus_one }
+				NOT = { has_country_flag = RUS_LAW_CHANGING_CONSTITUTION }
+			}
+		}
+		cost = 5
+		days_remove = 5
+		days_re_enable = 7
+		fire_only_once = no
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_LAW_GET_FEDERALISTS_DUMA_VOTES target: [From.GetName]"
+			custom_effect_tooltip = RUS_LAW_GET_FEDERALISTS_DUMA_VOTES_tt
+			if = {
+				limit = { has_country_flag = RUS_LAW_DUMA_LEVEL }
+				hidden_effect = {
+					set_temp_variable = { min_support = Duma_Party_Seats^13 }
+					multiply_temp_variable = { min_support = 0.125 }
+					set_temp_variable = { max_support = Duma_Party_Seats^13 }
+					multiply_temp_variable = { max_support = 0.25 }
+					set_temp_variable_to_random = {
+						var = support_for_bill
+						min = min_support
+						max = max_support
+						integer = yes
+					}
+					add_to_variable = { CurrentDumaSupportForBill^13 = support_for_bill }
+				}
+			}
+			else = {
+				hidden_effect = {
+					set_temp_variable = { min_support = Senate_Party_Total_Seats^13 }
+					multiply_temp_variable = { min_support = 0.125 }
+					set_temp_variable = { max_support = Senate_Party_Total_Seats^13 }
+					multiply_temp_variable = { max_support = 0.25 }
+					set_temp_variable_to_random = {
+						var = support_for_bill
+						min = min_support
+						max = max_support
+						integer = yes
+					}
+					add_to_variable = { CurrentSenateSupportForBill^13 = support_for_bill }
+				}
+			}
+			count_votes_for_bill_sum = yes				
+		}
+	}
+	RUS_LAW_GET_INDEPENDENTS_DUMA_VOTES = {
+		icon = GFX_decision_generic_agreement
+		visible = {
+			OR = {
+				has_country_flag = RUS_LAW_DUMA_LEVEL
+				has_country_flag = RUS_LAW_SENATE_LEVEL
+			}
+			if = {
+				limit = { has_country_flag = RUS_LAW_DUMA_LEVEL }
+				check_variable = { Duma_Party_Seats^14 > 0 }
+			}
+			else = {
+				check_variable = { Senate_Party_Total_Seats^14 > 0 }
+			}
+			NOT = { has_country_flag = RUS_LAW_OPPOSITION_VOTES }
+		}
+		available = {
+			NOT = { has_country_flag = RUS_LAW_LAND_QUOTAS }
+			if = {
+				limit = { has_country_flag = RUS_LAW_DUMA_LEVEL }
+				check_variable = { CurrentDumaSupportForBill^14 < Duma_Party_Seats^14 }
+			}
+			else = {
+				check_variable = { CurrentSenateSupportForBill^14 < Senate_Party_Total_Seats^14 }
+			}
+		}
+		cancel_trigger = {
+			hidden_trigger = {
+				NOT = {
+					has_country_flag = RUS_LAW_DUMA_LEVEL
+					has_country_flag = RUS_LAW_SENATE_LEVEL
+				}
+			}
+		}
+		ai_will_do = {
+			base = 100
+			modifier = {
+				factor = 0
+				check_variable = {  var = CurrentOverallSupport value = two_thirds_duma_plus_one compare = greater_than_or_equals }
+				has_country_flag = RUS_LAW_CHANGING_CONSTITUTION
+			}
+			modifier = {
+				factor = 0
+				check_variable = { var = CurrentOverallSupport value =  half_duma_plus_one compare = greater_than_or_equals }
+				NOT = { has_country_flag = RUS_LAW_CHANGING_CONSTITUTION }
+			}
+			modifier = {
+				factor = 0.5
+				NOT = { check_variable = { Duma_Party_Status^14 = 1 } }
+			}
+			modifier = {
+				factor = 0
+				check_variable = { CurrentOverallSenateSupport > two_thirds_senate_plus_one }
+				has_country_flag = RUS_LAW_CHANGING_CONSTITUTION
+			}
+			modifier = {
+				factor = 0
+				check_variable = { CurrentOverallSenateSupport > half_senate_plus_one }
+				NOT = { has_country_flag = RUS_LAW_CHANGING_CONSTITUTION }
+			}
+		}
+		cost = 5
+		days_remove = 5
+		days_re_enable = 7
+		fire_only_once = no
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_LAW_GET_INDEPENDENTS_DUMA_VOTES target: [From.GetName]"
+			custom_effect_tooltip = RUS_LAW_GET_INDEPENDENTS_DUMA_VOTES_tt
+			if = {
+				limit = { has_country_flag = RUS_LAW_DUMA_LEVEL }
+				hidden_effect = {
+					set_temp_variable = { min_support = Duma_Party_Seats^14 }
+					multiply_temp_variable = { min_support = 0.125 }
+					set_temp_variable = { max_support = Duma_Party_Seats^14 }
+					multiply_temp_variable = { max_support = 0.25 }
+					set_temp_variable_to_random = {
+						var = support_for_bill
+						min = min_support
+						max = max_support
+						integer = yes
+					}
+					add_to_variable = { CurrentDumaSupportForBill^14 = support_for_bill }
+				}
+			}
+			else = {
+				hidden_effect = {
+					set_temp_variable = { min_support = Senate_Party_Total_Seats^14 }
+					multiply_temp_variable = { min_support = 0.125 }
+					set_temp_variable = { max_support = Senate_Party_Total_Seats^14 }
+					multiply_temp_variable = { max_support = 0.25 }
+					set_temp_variable_to_random = {
+						var = support_for_bill
+						min = min_support
+						max = max_support
+						integer = yes
+					}
+					add_to_variable = { CurrentSenateSupportForBill^14 = support_for_bill }
+				}
+			}
+			count_votes_for_bill_sum = yes				
 		}
 	}	
 }	
