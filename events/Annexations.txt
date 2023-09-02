@@ -9947,6 +9947,47 @@ country_event = { #Fate of America
 		}
 	}
 
+	option = { #Liberate Gringos
+		trigger = {
+			tag = MEX
+		}
+		name = annex.52.h
+		ai_chance = {
+			factor = 60
+		}
+		every_owned_state = {
+			limit = {
+				OR = {
+					is_mainland_america = yes
+					is_core_of = HAW
+				}
+				is_not_claim_or_core_of_ROOT = yes
+			}
+			hidden_effect = {
+				remove_claim_by = USA
+				add_core_of = USA
+				remove_core_of = CSA
+				remove_claim_by = CSA
+				remove_core_of = TEX
+				remove_claim_by = TEX
+				remove_core_of = CAL
+				remove_claim_by = CAL
+			}
+			USA = {
+				transfer_state = PREV
+			}
+		}
+		set_temp_variable = { tag_to_release = USA }
+		puppet_released_tag = yes
+		hidden_effect = { 
+			USA = { 
+			   usa_setup_mexican_puppet = yes 
+			   set_cosmetic_tag = USA_Estados
+			   load_focus_tree = generic_focus
+		    }
+	    }
+	}
+
 	option = { #Occupy USA
 		name = annex.occupation
 		ai_chance = {
@@ -13726,8 +13767,8 @@ country_event = { #The fate of Kazakhstan
 			NOT = { country_exists = SIB }
 		}
 		ai_chance = { base = 80 }
-		set_temp_variable = { tag_to_release = ALO }
-		var:571.owner = { set_transfer_target_cores = yes }
+		ALO = { set_transfer_target_cores = yes }
+		set_temp_variable = { tag_to_release = var:571.owner }
 		transfer_targeted_territory = yes
 	}
 
@@ -18489,7 +18530,14 @@ country_event = { #Fate of Mexico
 			factor = 100
 		}
 		trigger = {
+			OR = {
 			has_socialist_government = no
+            AND = {
+				tag = CAL
+				has_completed_focus = CAL_Crown_Norton_II
+				has_government = radical_socialist
+			}
+			}
 			OR = {
 				tag = CAN
 				tag = AUS
@@ -18523,6 +18571,23 @@ country_event = { #Fate of Mexico
 				set_cosmetic_tag = MEE
 				set_country_flag = MEX_COUNTER_Monarchy_Restored
 				hidden_effect = {
+					if = {
+						limit = {
+							AND = {
+								tag = CAL
+								has_completed_focus = CAL_Crown_Norton_II
+								has_government = radical_socialist
+							}
+						}
+						create_country_leader = {
+							name = "María I"
+							desc = "POLITICS_DONA_ITURBIDE_DESC"
+							picture = "gfx/leaders/MEX/Portrait_Mexico_Maria.png"
+							expire = "1965.1.1"
+							ideology = radical_socialist_subtype
+							female = yes
+						}
+					}
 					create_country_leader = {
 						name = "María I"
 						desc = "POLITICS_DONA_ITURBIDE_DESC"
@@ -30089,7 +30154,7 @@ country_event = { #Fate of Kurdistan
 			KUR = { ROOT_can_grant_land = yes }
 			if = {
 				limit = { original_tag = TUR }
-				NOT = { tag = TUR }
+				NOT = { tag = OTT }
 				OR = {
 					417 = { is_valid_annexation_state = yes } #Urmia
 					421 = { is_valid_annexation_state = yes } #Kermanshah
@@ -30097,7 +30162,7 @@ country_event = { #Fate of Kurdistan
 			}
 		}
 		ai_chance = {
-			factor = 80
+			base = 80
 			modifier = {
 				factor = 0
 				NOT = { is_ally_with = KUR }
@@ -30106,23 +30171,23 @@ country_event = { #Fate of Kurdistan
 					TUR = { is_ally_of_ROOT = yes }
 					PER = { is_ally_of_ROOT = yes }
 				}
-				}
 			}
+		}
 		set_temp_variable = { tag_to_release = KUR }
 		every_owned_state = {
 			limit = {
 				if = {
 					limit = { ROOT = { original_tag = TUR } }
-				OR = {
+					OR = {
 						state = 417 #Urmia
 						state = 421 #Kermanshah
 					}
 				}
 				else = {
-					region = 252 #Kurdistan
-			}
+					is_kurdistan = yes
+				}
 				is_claim_or_core_of_ROOT = no
-		}
+			}
 			transfer_state_and_add_core = yes
 		}
 	}
@@ -30131,26 +30196,49 @@ country_event = { #Fate of Kurdistan
 		name = annex.248.c
 		trigger = {
 			NOT = {
-				tag = IRQ
-				tag = TUR
-				tag = PER
+				original_tag = TUR
+				original_tag = IRQ
+				original_tag = PER
 			}
-			IRQ = { ROOT_can_grant_land = yes }
+			OR = {
+				350 = { is_valid_annexation_state = yes } #Diyarbakir
+				352 = { is_valid_annexation_state = yes } #Van
+				TUR = { owns_state = 350 } #Diyarbakir
+				TUR = { owns_state = 352 } #Van
+			}
+			TUR = {
+				ROOT_can_grant_land = yes
+				if = {
+					limit = { NOT = { tag = OTT } }
+					OR = {
+						PER = { ROOT_can_grant_land = no }
+						AND = {
+							417 = { is_valid_annexation_state = no } #Urmia
+							421 = { is_valid_annexation_state = no } #Kermanshah
+						}
+					}
+				}
+			}
 		}
 		ai_chance = {
-			factor = 20
+			base = 20
 			modifier = {
 				factor = 0
 				OR = {
-					is_ally_with = TUR
-					is_ally_with = PER
+					IRQ = { is_ally_of_ROOT = yes }
+					PER = { is_ally_of_ROOT = yes }
 				}
-				NOT = { is_ally_with = IRQ }
+				NOT = { is_ally_with = TUR }
 			}
 		}
-		set_temp_variable = { tag_to_release = IRQ }
-		add_to_temp_array = { target_cores_to_release = KUR }
-		transfer_territory_from_core_regions_and_add_claims = yes
+		set_temp_variable = { tag_to_release = TUR }
+		every_owned_state = {
+			limit = {
+				is_kurdistan = yes
+				is_claim_or_core_of_ROOT = no
+			}
+			transfer_state_and_add_claim = yes
+		}
 	}
 
 	option = { #give to TUR ally
@@ -30195,7 +30283,7 @@ country_event = { #Fate of Kurdistan
 		set_temp_variable = { tag_to_release = TUR }
 		every_owned_state = {
 			limit = {
-				region = 252 #Kurdistan
+				is_kurdistan = yes
 				is_claim_or_core_of_ROOT = no
 			}
 			transfer_state_and_add_claim = yes
@@ -30232,7 +30320,7 @@ country_event = { #Fate of Kurdistan
 		set_temp_variable = { tag_to_release = PER }
 		every_owned_state = {
 			limit = {
-				region = 252 #Kurdistan
+				is_kurdistan = yes
 				is_claim_or_core_of_ROOT = no
 			}
 			transfer_state_and_add_claim = yes
@@ -30311,7 +30399,7 @@ country_event = { #Fate of Kurdistan
 		}
 		every_owned_state = {
 			limit = {
-				region = 252 #Kurdistan
+				is_kurdistan = yes
 				is_claim_or_core_of_ROOT = no
 			}
 			add_claim_of_ROOT = yes
@@ -30336,7 +30424,7 @@ country_event = { #Fate of Kurdistan
 			limit = { tag = TUR }
 		every_owned_state = {
 			limit = {
-					region = 252 #Kurdistan
+					is_kurdistan = yes
 					is_claim_or_core_of_ROOT = no
 				}
 				add_claim_of_ROOT = yes
@@ -39494,6 +39582,26 @@ country_event = { #Fate of Alaska
 					add_popularity = {
 						ideology = radical_socialist
 						popularity = 0.15
+					}
+				}
+			}
+			if = {
+				limit = { 
+					tag = CAN
+				}
+				ALA = {
+					country_event = {
+						id = Alaska.35
+					}
+				}
+			}
+			if = {
+				limit = { 
+					tag = JAP
+				}
+				ALA = {
+					country_event = {
+						id = Alaska.34
 					}
 				}
 			}
