@@ -124,7 +124,7 @@ focus_tree = {
 		icon = GFX_MON_reinforce_army
 		cost = 6
 		x = 3
-		y = 9
+		y = 10
 		ai_will_do = {
 			factor = 15
 		}
@@ -1146,7 +1146,7 @@ focus_tree = {
 	focus = {
 		id = MON_form_the_mongolian_empire
 		icon = GFX_MON_Empire_formantion
-		cost = 10.00
+		cost = 6
 		prerequisite = {
 			focus = MON_mongol_minority_in_xibei
 		}
@@ -3621,7 +3621,7 @@ focus_tree = {
 	focus = {
 		id = MON_khem_beldyr_resources
 		icon = GFX_MON_khem_beldyr_resources
-		cost = 10
+		cost = 7
 		prerequisite = { focus = MON_mongolian_war_economy }
 		x = 0
 		y = 3
@@ -5096,12 +5096,52 @@ focus_tree = {
 	}
 	
 	focus = {
-		id = MON_take_over_trm
-		icon = GFX_focus_rus_transamur_war
-		cost = 6
+		id = MON_peaceful_path
+		icon = GFX_goal_RUS_flag
+		cost = 2
+		relative_position_id = MON_conquest_path
+		x = -2
+		y = 0
+		mutually_exclusive = { focus = MON_conquest_path }
+		available = {
+			custom_trigger_tooltip = {
+				tooltip = MON_sternberg_tooltip
+				MON_sternberg_in_power = yes
+			}
+			RUS = { is_faction_leader = yes }
+			has_war = no
+		}
+		prerequisite = { 
+			focus = MON_mutual_guarentees
+		}
+		ai_will_do = {
+			factor = 10
+		}
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus MON_peaceful_path"
+			add_stability = 0.04
+			random_core_state = { 
+				add_extra_state_shared_building_slots = 1
+			}
+			random_core_state = { 
+				add_extra_state_shared_building_slots = 1
+			}
+			random_core_state = { 
+				add_extra_state_shared_building_slots = 1
+			}
+			RUS = { add_to_faction = MON }
+		}
+		search_filters = { FOCUS_FILTER_INDUSTRY }
+	}
+	
+	focus = {
+		id = MON_conquest_path
+		icon = GFX_goal_enlist_the_police
+		cost = 2
 		relative_position_id = MON_look_at_russia_policy
-		x = -1
+		x = 1
 		y = 6
+		mutually_exclusive = { focus = MON_peaceful_path }
 		available = {
 			custom_trigger_tooltip = {
 				tooltip = MON_sternberg_tooltip
@@ -5113,17 +5153,6 @@ focus_tree = {
 					has_country_flag = mon_no_expansion
 				}
 			}
-			has_completed_focus = MON_prepare_for_war
-		}
-		bypass = {
-			NOT = {
-				OR = {
-					country_exists = TRM
-					MON = {
-						is_in_faction_with = TRM
-					}
-				}
-			}
 		}
 		prerequisite = { 
 			focus = MON_we_stand_alone
@@ -5133,11 +5162,10 @@ focus_tree = {
 			factor = 10
 		}
 		completion_reward = {
-			log = "[GetDateText]: [Root.GetName]: Focus MON_take_over_trm"
-			create_wargoal = {
-				type = annex_everything
-				target = TRM
-			}
+			log = "[GetDateText]: [Root.GetName]: Focus MON_conquest_path"
+			add_war_support = 0.04
+			add_command_power = 25
+			add_manpower = 2500
 		}
 		search_filters = { FOCUS_FILTER_INDUSTRY }
 	}
@@ -5148,7 +5176,7 @@ focus_tree = {
 		cost = 6
 		relative_position_id = MON_look_at_russia_policy
 		x = 1
-		y = 6
+		y = 7
 		available = {
 			custom_trigger_tooltip = {
 				tooltip = MON_sternberg_tooltip
@@ -5162,8 +5190,7 @@ focus_tree = {
 			}
 		}
 		prerequisite = { 
-			focus = MON_we_stand_alone
-			focus = MON_mutual_guarentees
+			focus = MON_conquest_path
 		}
 		ai_will_do = {
 			factor = 10
@@ -5171,9 +5198,39 @@ focus_tree = {
 		completion_reward = {
 			log = "[GetDateText]: [Root.GetName]: Focus MON_prepare_for_war"
 			remove_ideas = MON_russian_military_mission
-			add_timed_idea = {
-				idea = MON_prepare_for_war
-				days = 350
+			if = {
+				limit = {
+					has_idea = MON_russian_military_mission
+				}
+				remove_idea = MON_russian_military_mission
+			}
+			if = {
+				limit = {
+					has_idea = MON_rus_help_less
+				}
+				remove_idea = MON_rus_help_less
+			}
+			if = {
+				limit = {
+					has_idea = MON_russian_eco_aid
+				}
+				remove_idea = MON_russian_eco_aid
+			}
+			if = {
+				limit = {
+					has_idea = MON_rus_help
+				}
+				remove_idea = MON_rus_help
+			}
+			add_ideas = MON_prepare_for_war
+			every_state = {
+				limit = {
+				OR = {
+					is_core_of = RUS
+					is_core_of = TRM
+					}
+				}
+			add_claim_by = MON
 			}
 			
 			if = {
@@ -5206,12 +5263,57 @@ focus_tree = {
 	}
 	
 	focus = {
+		id = MON_take_over_trm
+		icon = GFX_focus_rus_transamur_war
+		cost = 6
+		relative_position_id = MON_look_at_russia_policy
+		x = 0
+		y = 8
+		available = {
+			custom_trigger_tooltip = {
+				tooltip = MON_sternberg_tooltip
+				MON_sternberg_in_power = yes
+			}
+			custom_trigger_tooltip = {
+				tooltip = MON_will_expand
+				NOT = {
+					has_country_flag = mon_no_expansion
+				}
+			}
+		}
+		bypass = {
+			NOT = {
+				OR = {
+					country_exists = TRM
+					MON = {
+						is_in_faction_with = TRM
+					}
+				}
+			}
+		}
+		prerequisite = { 
+			focus = MON_prepare_for_war
+		}
+		ai_will_do = {
+			factor = 10
+		}
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus MON_take_over_trm"
+			create_wargoal = {
+				type = annex_everything
+				target = TRM
+			}
+		}
+		search_filters = { FOCUS_FILTER_INDUSTRY }
+	}
+	
+	focus = {
 		id = MON_take_over_russia
 		icon = GFX_DKB_Liberation_Army
 		cost = 6
 		relative_position_id = MON_look_at_russia_policy
-		x = 0
-		y = 7
+		x = 2
+		y = 8
 		available = {
 			custom_trigger_tooltip = {
 				tooltip = MON_sternberg_tooltip
@@ -5225,21 +5327,11 @@ focus_tree = {
 			}
 		}
 		prerequisite = { focus = MON_prepare_for_war }
-		prerequisite = { focus = MON_take_over_trm }
 		ai_will_do = {
 			factor = 10
 		}
 		completion_reward = {
 			log = "[GetDateText]: [Root.GetName]: Focus MON_take_over_russia"
-			every_state = {
-				limit = {
-				OR = {
-					is_core_of = RUS
-					is_core_of = TRM
-					}
-				}
-			add_claim_by = MON
-			}
 			create_wargoal = {
 				type = annex_everything
 				target = RUS
