@@ -1,8 +1,7 @@
 ##############################
 ### Japan Scripted Effects ###
-### By Zankoas and ~mw~	###
+### By Zankoas and ~mw~    ###
 ##############################
-
 
 JAP_capitulation_effect = {
 	JAP_fading_sun = yes
@@ -29,7 +28,6 @@ JAP_fading_sun = {
 				NOT = { has_global_flag = JAP_Fading_Sun }
 			}
 			set_global_flag = JAP_Fading_Sun
-			set_global_flag = JAP_fading_sun_fired
 			log = "KR_Event_Logging;JAPAN FADING SUN;[GetDateText]"
 
 			# fire country-specific events
@@ -43,29 +41,11 @@ JAP_fading_sun = {
 					JAP_rising_sun_idea_3
 					JAP_rising_sun_idea_4
 					JAP_rising_sun_idea_5
-					japan_NSA_act
-					JAP_imperial_gov
-					Fund_Adjustment_Ordinance
-					National_Total_Mobilisation_Ordinance_1
-					National_Total_Mobilisation_Ordinance_2
-					National_Service_Draft_Ordinance_1
-					National_Service_Draft_Ordinance_2
-					JAP_yokuseiha_idea_1
-					JAP_yokuseiha_idea_2
-					JAP_yokuseiha_idea_3
-					JAP_yokuseiha_idea_4
-					JAP_kodoha_idea_1
-					JAP_kodoha_idea_2
-					JAP_kodoha_idea_3
-					JAP_Kakushinha_idea_1
-					JAP_Kakushinha_idea_2
-					JAP_Kakushinha_idea_3
-					JAP_Kakushinha_idea_4
-					JAP_chinese_manpower_idea
-					JAP_three_alls_idea
-					JAP_ichigo
+					JAP_continental_warfare
+					JAP_continental_warfare_2
 					JAP_MANTETSU_COLLAPSE
-					JAP_COL_PREP
+					JAP_the_great_struggle
+					JAP_fengtian_bailout
 				}
 
 				if = {
@@ -132,20 +112,22 @@ JAP_fading_sun = {
 				}
 				remove_core_of = JAP
 				remove_claim_by = JAP
-				clear_variable = ambition_area_@JAP
+				clear_variable = ambition_area_JAP
 			}
 
-			#JAP_close_all = yes
+			JAP_close_all = yes
 
 			# end the economic sphere
-			clr_country_flag = JAP_economic_sphere_leader
-			every_country = {
-				limit = { is_in_array = { global.asian_economic_sphere = THIS } }
-				country_event = japfor.404
+			JAP = {
+				clr_country_flag = JAP_economic_sphere_member
+				if = {
+					limit = { has_dynamic_modifier = { modifier = JAP_asian_economic_sphere } }
+					remove_dynamic_modifier = { modifier = JAP_asian_economic_sphere }
+				}
 			}
-			if = {
-				limit = { has_dynamic_modifier = { modifier = JAP_asian_economic_sphere } }
-				remove_dynamic_modifier = { modifier = JAP_asian_economic_sphere }
+			every_country = {
+				limit = { has_country_flag = JAP_economic_sphere_member }
+				country_event = japfor.404
 			}
 			clear_array = global.asian_economic_sphere
 			clear_variable = global.sphere_industry_boost
@@ -158,6 +140,13 @@ JAP_fading_sun = {
 				limit = { is_in_tech_sharing_group = japan_research }
 				remove_from_tech_sharing_group = japan_research
 			}
+		}
+		FNG = {
+			# FNG_Commission_Japanese_Ships
+			remove_targeted_decision = { target = JAP decision = FNG_JAP_destroyers }
+			remove_targeted_decision = { target = JAP decision = FNG_JAP_subs }
+			remove_targeted_decision = { target = JAP decision = FNG_JAP_cruisers }
+			remove_targeted_decision = { target = JAP decision = FNG_JAP_convoys }
 		}
 	}
 }
@@ -191,239 +180,118 @@ JAP_china_peace_next_country = {
 	}
 }
 
-
-#####################################
-### Army / Navy Dominance effects ###
-#####################################
-
-JAP_increase_naval_bias = {
+JAP_add_to_economic_sphere = {
 	if = {
 		limit = {
-			check_variable = {
-				naval_bias > army_bias
-			}
+			JAP = { is_faction_leader = yes }
+			NOT = { has_country_flag = JAP_economic_sphere_member }
 		}
-		custom_effect_tooltip = JAP_increase_naval_bias_loc
-	}
-
-	hidden_effect = {
+		custom_effect_tooltip = JAP_member_of_co_prosperity_sphere
+		clr_country_flag = JAP_refused_sphere_invitation
+		set_country_flag = JAP_economic_sphere_member
+		add_to_array = { global.asian_economic_sphere = THIS }
 		if = {
-			limit = {
-				OR = {
-					has_idea = JAP_slight_naval_bias
-					has_idea = JAP_strong_naval_bias
-				}
-				check_variable = {
-					army_bias > 4
-				}
-			}
-			remove_ideas = {
-				JAP_slight_naval_bias
-				JAP_strong_naval_bias
+			limit = { NOT = { has_dynamic_modifier = { modifier = JAP_asian_economic_sphere_member } } }
+			add_dynamic_modifier = { modifier = JAP_asian_economic_sphere_member }
+		}
+		JAP = {
+			hidden_effect = {
+				remove_opinion_modifier = { target = PREV modifier = KR_disapproves_of_govt }
+				remove_opinion_modifier = { target = PREV modifier = KR_hates_govt }
+				remove_opinion_modifier = { target = PREV modifier = KR_outraged }
 			}
 		}
-
-		else_if = {
-			limit = {
-				check_variable = {
-					naval_bias > 8
-				}
-			}
-			remove_ideas = {
-				JAP_slight_army_bias
-				JAP_strong_army_bias
-			}
-			else = {
-				add_to_variable = {
-					var = naval_bias
-					value = 1
-				}
-				set_variable = {
-					naval_bias_plus = naval_bias
-				}
-				add_to_variable = {
-					naval_bias_plus = 2
-				}
-
-				set_variable = {
-					army_bias_plus = army_bias
-				}
-				add_to_variable = {
-					army_bias_plus = 1
-				}
-
-				set_variable = {
-					army_bias_doubleplus = army_bias
-				}
-				add_to_variable = {
-					army_bias_doubleplus = 3
-				}
-
-				if = {
-					limit = {
-						has_idea = JAP_strong_army_bias
-						check_variable = {
-							army_bias < naval_bias_plus
-						}
-					}
-					JAP_remove_all_bias = yes
-					add_ideas = JAP_slight_army_bias
-				}
-
-				if = {
-					limit = {
-						check_variable = {
-							naval_bias > army_bias_doubleplus
-						}
-					}
-					JAP_remove_all_bias = yes
-					add_ideas = JAP_strong_naval_bias
-				}
-
-				else_if = {
-					limit = {
-						check_variable = {
-							naval_bias > army_bias_plus
-						}
-					}
-					JAP_remove_all_bias = yes
-					add_ideas = JAP_slight_naval_bias
-					country_event = japdom.236
-				}
-
-				else_if = {
-					limit = {
-						OR = {
-							check_variable = {
-								naval_bias = army_bias
-							}
-						}
-					}
-					JAP_remove_all_bias = yes
-					add_ideas = JAP_no_bias
-				}
-			}
-		}
+		JAP_recalculate_economic_integration = yes
 	}
 }
 
-JAP_increase_army_bias = {
+JAP_remove_from_economic_sphere = {
 	if = {
-		limit = {
-			check_variable = {
-				army_bias > naval_bias
-			}
-		}
-		custom_effect_tooltip = JAP_increase_army_bias_loc
-	}
-
-	hidden_effect = {
+		limit = { has_country_flag = JAP_economic_sphere_member }
+		custom_effect_tooltip = JAP_withdraws_from_sphere
+		clr_country_flag = JAP_economic_sphere_member
+		remove_from_array = { global.asian_economic_sphere = THIS }
 		if = {
-			limit = {
-				OR = {
-					has_idea = JAP_slight_army_bias
-					has_idea = JAP_strong_army_bias
-				}
-				check_variable = {
-					naval_bias > 8
-				}
+			limit = { tag = ROOT }
+			if = {
+				limit = { has_idea = JAP_member_integration_1 }
+				remove_ideas = JAP_member_integration_1
 			}
-			remove_ideas = {
-				JAP_slight_army_bias
-				JAP_strong_army_bias
+			if = {
+				limit = { has_idea = JAP_member_integration_2 }
+				remove_ideas = JAP_member_integration_2
+			}
+			if = {
+				limit = { has_idea = JAP_member_integration_3 }
+				remove_ideas = JAP_member_integration_3
+			}
+			if = {
+				limit = { has_idea = JAP_nav_tra_idea }
+				remove_ideas = JAP_nav_tra_idea
+			}
+			if = {
+				limit = { has_dynamic_modifier = { modifier = JAP_asian_economic_sphere_member } }
+				remove_dynamic_modifier = { modifier = JAP_asian_economic_sphere_member }
 			}
 		}
-
-		else_if = {
-			limit = {
-				check_variable = {
-					army_bias > 4
-				}
-			}
-			remove_ideas = {
-				JAP_slight_naval_bias
-				JAP_strong_naval_bias
-			}
-			else = {
-				add_to_variable = {
-					var = army_bias
-					value = 1
-				}
-				set_variable = {
-					army_bias_plus = army_bias
-				}
-				add_to_variable = {
-					army_bias_plus = 2
-				}
-
-				set_variable = {
-					naval_bias_plus = naval_bias
-				}
-				add_to_variable = {
-					naval_bias_plus = 1
-				}
-
-				set_variable = {
-					naval_bias_doubleplus = naval_bias
-				}
-				add_to_variable = {
-					naval_bias_doubleplus = 3
-				}
-
+		else = {
+			hidden_effect = {
 				if = {
-					limit = {
-						has_idea = JAP_strong_naval_bias
-						check_variable = {
-							naval_bias < army_bias_plus
-						}
-					}
-					JAP_remove_all_bias = yes
-					add_ideas = JAP_slight_naval_bias
+					limit = { has_idea = JAP_member_integration_1 }
+					remove_ideas = JAP_member_integration_1
 				}
-
 				if = {
-					limit = {
-						check_variable = {
-							army_bias > naval_bias_doubleplus
-						}
-					}
-					JAP_remove_all_bias = yes
-					add_ideas = JAP_strong_army_bias
+					limit = { has_idea = JAP_member_integration_2 }
+					remove_ideas = JAP_member_integration_2
 				}
-
-				else_if = {
-					limit = {
-						check_variable = {
-							army_bias > naval_bias_plus
-						}
-					}
-					JAP_remove_all_bias = yes
-					add_ideas = JAP_slight_army_bias
-					country_event = japdom.237
+				if = {
+					limit = { has_idea = JAP_member_integration_3 }
+					remove_ideas = JAP_member_integration_3
 				}
-
-				else_if = {
-					limit = {
-						check_variable = {
-							naval_bias = army_bias
-						}
-					}
-					JAP_remove_all_bias = yes
-					add_ideas = JAP_no_bias
+				if = {
+					limit = { has_idea = JAP_nav_tra_idea }
+					remove_ideas = JAP_nav_tra_idea
+				}
+				if = {
+					limit = { has_dynamic_modifier = { modifier = JAP_asian_economic_sphere_member } }
+					remove_dynamic_modifier = { modifier = JAP_asian_economic_sphere_member }
 				}
 			}
 		}
-	}
-}
-
-JAP_remove_all_bias = {
-	hidden_effect = {
-		remove_ideas = {
-			JAP_no_bias
-			JAP_slight_naval_bias
-			JAP_strong_naval_bias
-			JAP_slight_army_bias
-			JAP_strong_army_bias
+		JAP_recalculate_economic_integration = yes
+		JAP = {
+			if = {
+				limit = { has_guaranteed = PREV }
+				diplomatic_relation = {
+					country = PREV
+					relation = guarantee
+					active = no
+				}
+			}
+			if = {
+				limit = { has_non_aggression_pact_with = PREV }
+				diplomatic_relation = {
+					country = PREV
+					relation = non_aggression_pact
+					active = no
+				}
+			}
+			hidden_effect = {
+				remove_targeted_decision = { decision = JAP_invest_in_sphere_member1 target = PREV }
+				remove_targeted_decision = { decision = JAP_invest_in_sphere_member2 target = PREV }
+				remove_targeted_decision = { decision = JAP_invest_in_sphere_member3 target = PREV }
+				remove_targeted_decision = { decision = JAP_economic_sphere_takeover target = PREV }
+				remove_targeted_decision = { decision = JAP_invest_in_sphere_member_docks target = PREV }
+				remove_targeted_decision = { decision = JAP_invest_in_sphere_naval_advisors target = PREV }
+				remove_targeted_decision = { decision = JAP_invest_in_sphere_prosperity_ships target = PREV }
+				remove_targeted_decision = { decision = JAP_invest_in_sphere_take_dockyards target = PREV }
+			}
+		}
+		hidden_effect = {
+			remove_targeted_decision = { decision = JAP_join_rikagaku_kenkyusho target = JAP }
+			remove_targeted_decision = { decision = JAP_request_nav_advisors target = JAP }
+			remove_targeted_decision = { decision = JAP_withdraw_from_alliance target = JAP }
+			remove_targeted_decision = { decision = JAP_withdraw_from_sphere target = JAP }
 		}
 	}
 }
@@ -435,36 +303,1604 @@ JAP_recalculate_economic_integration = {
 			array = global.asian_economic_sphere
 			add_to_variable = { global.var_sphere_factories = THIS.num_of_civilian_factories }
 		}
-		
-		#Japan's max factory boost
-		set_variable = { global.sphere_slots_boost = global.var_sphere_factories }
-		subtract_from_variable = { global.sphere_slots_boost = JAP.num_of_civilian_factories }
-		clamp_variable = { var = global.sphere_slots_boost max = 200 min = 0 }
-		multiply_variable = { global.sphere_slots_boost = 0.5 }
-		multiply_variable = { global.sphere_slots_boost = 0.01 }
 
 		#Japan's industry boost
 		set_variable = { global.sphere_industry_boost = global.var_sphere_factories }
 		clamp_variable = { var = global.sphere_industry_boost max = 60 min = 0 }
 		multiply_variable = { global.sphere_industry_boost = 0.5 }
 		multiply_variable = { global.sphere_industry_boost = 0.01 }
+		if = {
+			limit = { JAP = { has_country_flag = JAP_pressured_for_trade } }
+			multiply_variable = { global.sphere_industry_boost = 0.9 }
+		}
 
 		#Japan's consumer goods boost
 		set_variable = { global.sphere_goods_boost = global.var_sphere_factories }
 		clamp_variable = { var = global.sphere_goods_boost max = 100 min = 0 }
 		multiply_variable = { global.sphere_goods_boost = 1.5 }
 		multiply_variable = { global.sphere_goods_boost = -0.001 }
+		if = {
+			limit = { JAP = { has_country_flag = JAP_pressured_for_trade } }
+			multiply_variable = { global.sphere_goods_boost = 0.9 }
+		}
 
 		#Member's consumer goods boost
 		set_variable = { global.sphere_goods_boost_member = global.var_sphere_factories }
 		add_to_variable = { global.sphere_goods_boost_member = JAP.num_of_civilian_factories }
 		clamp_variable = { var = global.sphere_goods_boost_member max = 100 min = 0 }
 		multiply_variable = { global.sphere_goods_boost_member = -0.001 }
+		if = {
+			limit = { JAP = { has_country_flag = JAP_pressured_for_trade } }
+			multiply_variable = { global.sphere_goods_boost_member = 1.1 }
+		}
 
 		#Member's resources boost
 		set_variable = { global.sphere_resources_boost_member = global.var_sphere_factories }
 		add_to_variable = { global.sphere_resources_boost_member = JAP.num_of_civilian_factories }
 		clamp_variable = { var = global.sphere_resources_boost_member max = 100 min = 0 }
 		multiply_variable = { global.sphere_resources_boost_member = 0.002 }
+		if = {
+			limit = { JAP = { has_country_flag = JAP_pressured_for_trade } }
+			multiply_variable = { global.sphere_resources_boost_member = 1.1 }
+		}
 	}
 }
+
+### Targeted Decisions
+JAP_open_JAP_land_reform = {
+	activate_targeted_decision = { target = THIS decision = JAP_land_reform_1 }
+	activate_targeted_decision = { target = THIS decision = JAP_land_reform_2 }
+	activate_targeted_decision = { target = THIS decision = JAP_land_reform_3 }
+	activate_targeted_decision = { target = THIS decision = JAP_land_adjustment }
+	activate_targeted_decision = { target = THIS decision = JAP_rent_control }
+	activate_targeted_decision = { target = THIS decision = JAP_agriculture_land_control }
+	activate_targeted_decision = { target = THIS decision = JAP_finish_land_reform }
+}
+
+JAP_close_JAP_land_reform = {
+	remove_targeted_decision = { target = THIS decision = JAP_land_reform_1 }
+	remove_targeted_decision = { target = THIS decision = JAP_land_reform_2 }
+	remove_targeted_decision = { target = THIS decision = JAP_land_reform_3 }
+	remove_targeted_decision = { target = THIS decision = JAP_land_adjustment }
+	remove_targeted_decision = { target = THIS decision = JAP_rent_control }
+	remove_targeted_decision = { target = THIS decision = JAP_agriculture_land_control }
+	remove_targeted_decision = { target = THIS decision = JAP_finish_land_reform }
+}
+
+JAP_open_JAP_influence_china_JAP_support_allies = {
+	# JAP_china_army_training
+	activate_targeted_decision = { target = FNG decision = JAP_china_army_training }
+	activate_targeted_decision = { target = ANQ decision = JAP_china_army_training }
+	activate_targeted_decision = { target = GXC decision = JAP_china_army_training }
+	activate_targeted_decision = { target = SHX decision = JAP_china_army_training }
+	activate_targeted_decision = { target = SQI decision = JAP_china_army_training }
+	activate_targeted_decision = { target = SZC decision = JAP_china_army_training }
+	activate_targeted_decision = { target = XSM decision = JAP_china_army_training }
+	# JAP_china_army_training
+	activate_targeted_decision = { target = FNG decision = JAP_provide_arms_facilities }
+	activate_targeted_decision = { target = ANQ decision = JAP_provide_arms_facilities }
+	activate_targeted_decision = { target = GXC decision = JAP_provide_arms_facilities }
+	activate_targeted_decision = { target = SHX decision = JAP_provide_arms_facilities }
+	activate_targeted_decision = { target = SQI decision = JAP_provide_arms_facilities }
+	activate_targeted_decision = { target = SZC decision = JAP_provide_arms_facilities }
+	activate_targeted_decision = { target = XSM decision = JAP_provide_arms_facilities }
+	# JAP_support_offensive
+	activate_targeted_decision = { target = FNG decision = JAP_support_offensive }
+	activate_targeted_decision = { target = ANQ decision = JAP_support_offensive }
+	activate_targeted_decision = { target = GXC decision = JAP_support_offensive }
+	activate_targeted_decision = { target = SHX decision = JAP_support_offensive }
+	activate_targeted_decision = { target = SQI decision = JAP_support_offensive }
+	activate_targeted_decision = { target = SZC decision = JAP_support_offensive }
+	activate_targeted_decision = { target = XSM decision = JAP_support_offensive }
+	# JAP_provide_planes
+	activate_targeted_decision = { target = FNG decision = JAP_provide_planes }
+	activate_targeted_decision = { target = ANQ decision = JAP_provide_planes }
+	activate_targeted_decision = { target = GXC decision = JAP_provide_planes }
+	activate_targeted_decision = { target = SHX decision = JAP_provide_planes }
+	activate_targeted_decision = { target = SQI decision = JAP_provide_planes }
+	activate_targeted_decision = { target = SZC decision = JAP_provide_planes }
+	activate_targeted_decision = { target = XSM decision = JAP_provide_planes }
+}
+
+JAP_open_JAP_influence_china_JAP_sow_chaos = {
+	# support_chinese_separatists
+	activate_targeted_decision = { target = TIB decision = support_chinese_separatists }
+	activate_targeted_decision = { target = ETS decision = support_chinese_separatists }
+	activate_targeted_decision = { target = MON decision = support_chinese_separatists }
+	activate_targeted_decision = { target = KAC decision = support_chinese_separatists }
+	activate_targeted_decision = { target = SHA decision = support_chinese_separatists }
+	activate_targeted_decision = { target = SIA decision = support_chinese_separatists }
+	activate_targeted_decision = { target = BRM decision = support_chinese_separatists }
+	# send_ETS_tartar_guy
+	activate_targeted_decision = { target = ETS decision = send_ETS_tartar_guy }
+}
+
+JAP_open_JAP_mantetsu_projects = {
+	# develop_fengtian
+	activate_targeted_decision = { target = FNG decision = develop_fengtian }
+	# develop_generic_tag
+	activate_targeted_decision = { target = ANQ decision = develop_generic_tag }
+	activate_targeted_decision = { target = GXC decision = develop_generic_tag }
+	activate_targeted_decision = { target = SHX decision = develop_generic_tag }
+	activate_targeted_decision = { target = SQI decision = develop_generic_tag }
+	activate_targeted_decision = { target = SZC decision = develop_generic_tag }
+	activate_targeted_decision = { target = XSM decision = develop_generic_tag }
+	# minor_railroad_investment
+	activate_targeted_decision = { target = ANQ decision = minor_railroad_investment }
+	activate_targeted_decision = { target = GXC decision = minor_railroad_investment }
+	activate_targeted_decision = { target = SHX decision = minor_railroad_investment }
+	activate_targeted_decision = { target = SQI decision = minor_railroad_investment }
+	activate_targeted_decision = { target = SZC decision = minor_railroad_investment }
+	activate_targeted_decision = { target = XSM decision = minor_railroad_investment }
+	# harbin_chemical_research
+	activate_targeted_decision = { target = FNG decision = harbin_chemical_research }
+	# changchun_industry_investment
+	activate_targeted_decision = { target = FNG decision = changchun_industry_investment }
+}
+
+JAP_open_JAP_co_prosperity_decisions_JAP_osaka_conference = {
+	# JAP_invite_into_economic_sphere :tester:
+	activate_targeted_decision = { target = ANQ decision = JAP_invite_into_economic_sphere }
+	activate_targeted_decision = { target = AST decision = JAP_invite_into_economic_sphere }
+	activate_targeted_decision = { target = BRM decision = JAP_invite_into_economic_sphere }
+	activate_targeted_decision = { target = CAM decision = JAP_invite_into_economic_sphere }
+	activate_targeted_decision = { target = CEY decision = JAP_invite_into_economic_sphere }
+	activate_targeted_decision = { target = ETS decision = JAP_invite_into_economic_sphere }
+	activate_targeted_decision = { target = MAN decision = JAP_invite_into_economic_sphere }
+	activate_targeted_decision = { target = GXC decision = JAP_invite_into_economic_sphere }
+	activate_targeted_decision = { target = HAW decision = JAP_invite_into_economic_sphere }
+	activate_targeted_decision = { target = BHC decision = JAP_invite_into_economic_sphere }
+	activate_targeted_decision = { target = PRF decision = JAP_invite_into_economic_sphere }
+	activate_targeted_decision = { target = INC decision = JAP_invite_into_economic_sphere }
+	activate_targeted_decision = { target = INS decision = JAP_invite_into_economic_sphere }
+	activate_targeted_decision = { target = KAC decision = JAP_invite_into_economic_sphere }
+	activate_targeted_decision = { target = KAS decision = JAP_invite_into_economic_sphere }
+	activate_targeted_decision = { target = KOR decision = JAP_invite_into_economic_sphere }
+	activate_targeted_decision = { target = LAO decision = JAP_invite_into_economic_sphere }
+	activate_targeted_decision = { target = LEC decision = JAP_invite_into_economic_sphere }
+	activate_targeted_decision = { target = MLY decision = JAP_invite_into_economic_sphere }
+	activate_targeted_decision = { target = MAD decision = JAP_invite_into_economic_sphere }
+	activate_targeted_decision = { target = MON decision = JAP_invite_into_economic_sphere }
+	activate_targeted_decision = { target = MYS decision = JAP_invite_into_economic_sphere }
+	activate_targeted_decision = { target = NZL decision = JAP_invite_into_economic_sphere }
+	activate_targeted_decision = { target = PHI decision = JAP_invite_into_economic_sphere }
+	activate_targeted_decision = { target = PNG decision = JAP_invite_into_economic_sphere }
+	activate_targeted_decision = { target = PRF decision = JAP_invite_into_economic_sphere }
+	activate_targeted_decision = { target = SAR decision = JAP_invite_into_economic_sphere }
+	activate_targeted_decision = { target = SHA decision = JAP_invite_into_economic_sphere }
+	activate_targeted_decision = { target = SHX decision = JAP_invite_into_economic_sphere }
+	activate_targeted_decision = { target = SIA decision = JAP_invite_into_economic_sphere }
+	activate_targeted_decision = { target = SQI decision = JAP_invite_into_economic_sphere }
+	activate_targeted_decision = { target = SZC decision = JAP_invite_into_economic_sphere }
+	activate_targeted_decision = { target = TIB decision = JAP_invite_into_economic_sphere }
+	activate_targeted_decision = { target = TRM decision = JAP_invite_into_economic_sphere }
+	activate_targeted_decision = { target = TRV decision = JAP_invite_into_economic_sphere }
+	activate_targeted_decision = { target = XSM decision = JAP_invite_into_economic_sphere }
+	activate_targeted_decision = { target = VIN decision = JAP_invite_into_economic_sphere }
+	activate_targeted_decision = { target = NEP decision = JAP_invite_into_economic_sphere }
+	activate_targeted_decision = { target = AFG decision = JAP_invite_into_economic_sphere }
+	activate_targeted_decision = { target = ALO decision = JAP_invite_into_economic_sphere }
+	activate_targeted_decision = { target = TRK decision = JAP_invite_into_economic_sphere }
+	activate_targeted_decision = { target = KYR decision = JAP_invite_into_economic_sphere }
+	activate_targeted_decision = { target = UZB decision = JAP_invite_into_economic_sphere }
+}
+
+JAP_close_all = {
+	### > JAP_close_JAP_land_reform < ###
+	remove_targeted_decision = { target = THIS decision = JAP_land_reform_1 }
+	remove_targeted_decision = { target = THIS decision = JAP_land_reform_2 }
+	remove_targeted_decision = { target = THIS decision = JAP_land_reform_3 }
+	remove_targeted_decision = { target = THIS decision = JAP_land_adjustment }
+	remove_targeted_decision = { target = THIS decision = JAP_rent_control }
+	remove_targeted_decision = { target = THIS decision = JAP_agriculture_land_control }
+	remove_targeted_decision = { target = THIS decision = JAP_finish_land_reform }
+
+	### > JAP_open_JAP_influence_china_JAP_support_allies < ###
+	# JAP_china_army_training
+	remove_targeted_decision = { target = FNG decision = JAP_china_army_training }
+	remove_targeted_decision = { target = ANQ decision = JAP_china_army_training }
+	remove_targeted_decision = { target = GXC decision = JAP_china_army_training }
+	remove_targeted_decision = { target = SHX decision = JAP_china_army_training }
+	remove_targeted_decision = { target = SQI decision = JAP_china_army_training }
+	remove_targeted_decision = { target = SZC decision = JAP_china_army_training }
+	remove_targeted_decision = { target = XSM decision = JAP_china_army_training }
+	# JAP_china_army_training
+	remove_targeted_decision = { target = FNG decision = JAP_provide_arms_facilities }
+	remove_targeted_decision = { target = ANQ decision = JAP_provide_arms_facilities }
+	remove_targeted_decision = { target = GXC decision = JAP_provide_arms_facilities }
+	remove_targeted_decision = { target = SHX decision = JAP_provide_arms_facilities }
+	remove_targeted_decision = { target = SQI decision = JAP_provide_arms_facilities }
+	remove_targeted_decision = { target = SZC decision = JAP_provide_arms_facilities }
+	remove_targeted_decision = { target = XSM decision = JAP_provide_arms_facilities }
+	# JAP_support_offensive
+	remove_targeted_decision = { target = FNG decision = JAP_support_offensive }
+	remove_targeted_decision = { target = ANQ decision = JAP_support_offensive }
+	remove_targeted_decision = { target = GXC decision = JAP_support_offensive }
+	remove_targeted_decision = { target = SHX decision = JAP_support_offensive }
+	remove_targeted_decision = { target = SQI decision = JAP_support_offensive }
+	remove_targeted_decision = { target = SZC decision = JAP_support_offensive }
+	remove_targeted_decision = { target = XSM decision = JAP_support_offensive }
+	# JAP_provide_planes
+	remove_targeted_decision = { target = FNG decision = JAP_provide_planes }
+	remove_targeted_decision = { target = ANQ decision = JAP_provide_planes }
+	remove_targeted_decision = { target = GXC decision = JAP_provide_planes }
+	remove_targeted_decision = { target = SHX decision = JAP_provide_planes }
+	remove_targeted_decision = { target = SQI decision = JAP_provide_planes }
+	remove_targeted_decision = { target = SZC decision = JAP_provide_planes }
+	remove_targeted_decision = { target = XSM decision = JAP_provide_planes }
+
+	### > JAP_open_JAP_influence_china_JAP_sow_chaos < ###
+	# support_chinese_separatists
+	remove_targeted_decision = { target = TIB decision = support_chinese_separatists }
+	remove_targeted_decision = { target = ETS decision = support_chinese_separatists }
+	remove_targeted_decision = { target = MON decision = support_chinese_separatists }
+	remove_targeted_decision = { target = KAC decision = support_chinese_separatists }
+	remove_targeted_decision = { target = SHA decision = support_chinese_separatists }
+	remove_targeted_decision = { target = SIA decision = support_chinese_separatists }
+	remove_targeted_decision = { target = BRM decision = support_chinese_separatists }
+	# send_ETS_tartar_guy
+	remove_targeted_decision = { target = ETS decision = send_ETS_tartar_guy }
+
+	### > JAP_open_JAP_mantetsu_projects < ###
+	# develop_fengtian
+	remove_targeted_decision = { target = FNG decision = develop_fengtian }
+	# major_railroad_investment
+	remove_targeted_decision = { target = ANQ decision = major_railroad_investment }
+	remove_targeted_decision = { target = GXC decision = major_railroad_investment }
+	remove_targeted_decision = { target = SHX decision = major_railroad_investment }
+	remove_targeted_decision = { target = SQI decision = major_railroad_investment }
+	remove_targeted_decision = { target = SZC decision = major_railroad_investment }
+	remove_targeted_decision = { target = XSM decision = major_railroad_investment }
+	# minor_railroad_investment
+	remove_targeted_decision = { target = ANQ decision = minor_railroad_investment }
+	remove_targeted_decision = { target = GXC decision = minor_railroad_investment }
+	remove_targeted_decision = { target = SHX decision = minor_railroad_investment }
+	remove_targeted_decision = { target = SQI decision = minor_railroad_investment }
+	remove_targeted_decision = { target = SZC decision = minor_railroad_investment }
+	remove_targeted_decision = { target = XSM decision = minor_railroad_investment }
+	# harbin_chemical_research
+	remove_targeted_decision = { target = FNG decision = harbin_chemical_research }
+	# changchun_industry_investment
+	remove_targeted_decision = { target = FNG decision = changchun_industry_investment }
+
+	### > JAP_open_JAP_co_prosperity_decisions < ###
+	for_each_scope_loop = {
+		array = global.JAP_possible_allies_array
+		PREV = { remove_targeted_decision = { target = PREV decision = JAP_invite_into_faction } }
+	}
+
+	### > JAP_open_JAP_co_prosperity_decisions_JAP_osaka_conference < ###
+	# JAP_invite_into_economic_sphere :tester:
+	remove_targeted_decision = { target = ANQ decision = JAP_invite_into_economic_sphere }
+	remove_targeted_decision = { target = AST decision = JAP_invite_into_economic_sphere }
+	remove_targeted_decision = { target = BNG decision = JAP_invite_into_economic_sphere }
+	remove_targeted_decision = { target = BRM decision = JAP_invite_into_economic_sphere }
+	remove_targeted_decision = { target = CAM decision = JAP_invite_into_economic_sphere }
+	remove_targeted_decision = { target = CEY decision = JAP_invite_into_economic_sphere }
+	remove_targeted_decision = { target = ETS decision = JAP_invite_into_economic_sphere }
+	remove_targeted_decision = { target = MAN decision = JAP_invite_into_economic_sphere }
+	remove_targeted_decision = { target = GXC decision = JAP_invite_into_economic_sphere }
+	remove_targeted_decision = { target = HAW decision = JAP_invite_into_economic_sphere }
+	remove_targeted_decision = { target = BHC decision = JAP_invite_into_economic_sphere }
+	remove_targeted_decision = { target = PRF decision = JAP_invite_into_economic_sphere }
+	remove_targeted_decision = { target = INC decision = JAP_invite_into_economic_sphere }
+	remove_targeted_decision = { target = INS decision = JAP_invite_into_economic_sphere }
+	remove_targeted_decision = { target = KOR decision = JAP_invite_into_economic_sphere }
+	remove_targeted_decision = { target = LAO decision = JAP_invite_into_economic_sphere }
+	remove_targeted_decision = { target = LEC decision = JAP_invite_into_economic_sphere }
+	remove_targeted_decision = { target = MLY decision = JAP_invite_into_economic_sphere }
+	remove_targeted_decision = { target = MAD decision = JAP_invite_into_economic_sphere }
+	remove_targeted_decision = { target = MON decision = JAP_invite_into_economic_sphere }
+	remove_targeted_decision = { target = MYS decision = JAP_invite_into_economic_sphere }
+	remove_targeted_decision = { target = NZL decision = JAP_invite_into_economic_sphere }
+	remove_targeted_decision = { target = PHI decision = JAP_invite_into_economic_sphere }
+	remove_targeted_decision = { target = PNG decision = JAP_invite_into_economic_sphere }
+	remove_targeted_decision = { target = PRF decision = JAP_invite_into_economic_sphere }
+	remove_targeted_decision = { target = SHA decision = JAP_invite_into_economic_sphere }
+	remove_targeted_decision = { target = SHX decision = JAP_invite_into_economic_sphere }
+	remove_targeted_decision = { target = SIA decision = JAP_invite_into_economic_sphere }
+	remove_targeted_decision = { target = SQI decision = JAP_invite_into_economic_sphere }
+	remove_targeted_decision = { target = SZC decision = JAP_invite_into_economic_sphere }
+	remove_targeted_decision = { target = TIB decision = JAP_invite_into_economic_sphere }
+	remove_targeted_decision = { target = TRM decision = JAP_invite_into_economic_sphere }
+	remove_targeted_decision = { target = TRV decision = JAP_invite_into_economic_sphere }
+	remove_targeted_decision = { target = XSM decision = JAP_invite_into_economic_sphere }
+	remove_targeted_decision = { target = VIN decision = JAP_invite_into_economic_sphere }
+	remove_targeted_decision = { target = NEP decision = JAP_invite_into_economic_sphere }
+	remove_targeted_decision = { target = AFG decision = JAP_invite_into_economic_sphere }
+	remove_targeted_decision = { target = ALO decision = JAP_invite_into_economic_sphere }
+	remove_targeted_decision = { target = TRK decision = JAP_invite_into_economic_sphere }
+	remove_targeted_decision = { target = KYR decision = JAP_invite_into_economic_sphere }
+	remove_targeted_decision = { target = UZB decision = JAP_invite_into_economic_sphere }
+
+	### > JAP_economy_cat < ###
+	remove_targeted_decision = { target = THIS decision = JAP_support_yokohama_auto_industries }
+	remove_targeted_decision = { target = THIS decision = JAP_support_ota_jidosha }
+	remove_targeted_decision = { target = THIS decision = JAP_support_kurasiki_kensyoku }
+	remove_targeted_decision = { target = THIS decision = JAP_support_mitsubishi }
+	remove_targeted_decision = { target = THIS decision = JAP_subisidies_for_nakajima }
+	remove_targeted_decision = { target = THIS decision = JAP_support_nippon_soda }
+	remove_targeted_decision = { target = THIS decision = JAP_aid_for_chugoku_arms_industries }
+	remove_targeted_decision = { target = THIS decision = JAP_support_nissan }
+	remove_targeted_decision = { target = THIS decision = JAP_industrial_partnership_with_sumitomo }
+	remove_targeted_decision = { target = THIS decision = JAP_support_nichitsu_expansion }
+	remove_targeted_decision = { target = THIS decision = JAP_back_isuzu }
+	remove_targeted_decision = { target = THIS decision = JAP_fund_nec_plant }
+	remove_targeted_decision = { target = THIS decision = JAP_invest_in_mitsui }
+	remove_targeted_decision = { target = THIS decision = JAP_aid_toyo_rayon }
+	remove_targeted_decision = { target = THIS decision = JAP_kawasaki_aircraft_plant }
+	remove_targeted_decision = { target = THIS decision = JAP_expand_tamano_shipyards }
+	remove_targeted_decision = { target = THIS decision = JAP_expand_kure_naval_arsenal }
+	remove_targeted_decision = { target = THIS decision = JAP_expand_sasebo_naval_arsenal }
+	remove_targeted_decision = { target = THIS decision = JAP_expand_yokosuka_naval_arsenal }
+	remove_targeted_decision = { target = THIS decision = JAP_expand_maizuru_naval_arsenal }
+
+	### > political_actions ###
+	remove_targeted_decision = { target = THIS decision = JAP_the_great_struggle }
+	remove_targeted_decision = { target = THIS decision = JAP_divert_workers_towards_production }
+
+	### > JAP_open_JAP_co_prosperity_decisions < ###
+	for_each_scope_loop = {
+		array = global.asian_economic_sphere
+		FROM = {
+			remove_targeted_decision = { target = PREV decision = JAP_invest_in_sphere_member1 }
+			remove_targeted_decision = { target = PREV decision = JAP_invest_in_sphere_member2 }
+			remove_targeted_decision = { target = PREV decision = JAP_invest_in_sphere_member3 }
+			remove_targeted_decision = { target = PREV decision = JAP_economic_sphere_takeover }
+			remove_targeted_decision = { target = PREV decision = JAP_invest_in_sphere_member_docks }
+			remove_targeted_decision = { target = PREV decision = JAP_invest_in_sphere_naval_advisors }
+			remove_targeted_decision = { target = PREV decision = JAP_invest_in_sphere_prosperity_ships }
+			remove_targeted_decision = { target = PREV decision = JAP_invest_in_sphere_take_dockyards }
+		}
+		remove_targeted_decision = { target = JAP decision = JAP_join_rikagaku_kenkyusho }
+		remove_targeted_decision = { target = JAP decision = JAP_request_nav_advisors }
+		remove_targeted_decision = { target = JAP decision = JAP_withdraw_from_sphere }
+		# JAP_nationalize_japanese_investments handled through on_remove in ideas
+	}
+	every_country = {
+		limit = { is_in_faction_with = JAP }
+		remove_targeted_decision = { target = JAP decision = JAP_withdraw_from_alliance }
+	}
+
+	### > operations < ###
+	remove_targeted_decision = { target = PHI decision = JAP_threaten_philippines }
+	remove_targeted_decision = { target = INC decision = JAP_attack_indochina }
+	remove_targeted_decision = { target = VIN decision = JAP_attack_indochina }
+	remove_targeted_decision = { target = LAO decision = JAP_attack_indochina }
+	remove_targeted_decision = { target = CAM decision = JAP_attack_indochina }
+	remove_targeted_decision = { target = SIA decision = JAP_attack_siam }
+	for_each_scope_loop = {
+		array = global.indian_tags_array
+		JAP = { remove_targeted_decision = { target = PREV decision = JAP_attack_india } }
+	}
+	remove_targeted_decision = { target = CEY decision = JAP_attack_india }
+	remove_targeted_decision = { target = BRM decision = JAP_attack_india }
+	remove_targeted_decision = { target = NEP decision = JAP_attack_india }
+	remove_targeted_decision = { target = BHU decision = JAP_attack_india }
+	remove_targeted_decision = { target = SHA decision = JAP_attack_india }
+	remove_targeted_decision = { target = KAC decision = JAP_attack_india }
+	remove_targeted_decision = { target = AST decision = JAP_attack_australia }
+	remove_targeted_decision = { target = NZL decision = JAP_attack_australia }
+	remove_targeted_decision = { target = FNG decision = JAP_invade_manchuria }
+	remove_targeted_decision = { target = RUS decision = JAP_attack_russia }
+	remove_targeted_decision = { target = SOV decision = JAP_attack_russia }
+	remove_targeted_decision = { target = TRM decision = JAP_attack_russia }
+}
+
+JAP_log_war_progress_in_china = {
+	# Base value - no progress
+	set_temp_variable = { JAP_progress_in_china = 0 }
+	# Conquered coastal states
+	if = {
+		limit = {
+			614 = { is_controlled_by_ROOT_or_ally = yes }    # Tangshan - coastal QIE
+			1065 = { is_controlled_by_ROOT_or_ally = yes }   # Nantong - coastal SQI
+			803 = { is_controlled_by_ROOT_or_ally = yes }    # Wenzhou - coastal LEP
+		}
+		add_to_temp_variable = { JAP_progress_in_china = 1 }
+	}
+	# Conquered interior
+	if = {
+		limit = {
+			606 = { is_controlled_by_ROOT_or_ally = yes }    # Anqing - ANQ
+			608 = { is_controlled_by_ROOT_or_ally = yes }    # Beijing - QIE
+			613 = { is_controlled_by_ROOT_or_ally = yes }    # Nanjing - LEP
+			602 = { is_controlled_by_ROOT_or_ally = yes }    # Changsha - HNN
+			592 = { is_controlled_by_ROOT_or_ally = yes }    # Guangzhou - GXC
+			1048 = { is_controlled_by_ROOT_or_ally = yes }   # Wuchang - QIE
+		}
+		add_to_temp_variable = { JAP_progress_in_china = 2 }
+	}
+	# Conquered outer
+	if = {
+		limit = {
+			1072 = { is_controlled_by_ROOT_or_ally = yes }    # Shanxi - SXH
+			605 = { is_controlled_by_ROOT_or_ally = yes }     # Sichuan - SZC
+			325 = { is_controlled_by_ROOT_or_ally = yes }     # Yunnan - YUN
+		}
+		add_to_temp_variable = { JAP_progress_in_china = 4 }
+	}
+	if = {
+		limit = { check_variable = { JAP_progress_in_china = 0 } }
+		log = "KR_Event_Logging;JAP WAR PROGRESS - Could not push into China;[GetDateText]"
+	}
+	else_if = {
+		limit = { check_variable = { JAP_progress_in_china < 2 } }
+		log = "KR_Event_Logging;JAP WAR PROGRESS - Conquered only the coastal states;[GetDateText]"
+	}
+	else_if = {
+		limit = { check_variable = { JAP_progress_in_china < 7 } }
+		log = "KR_Event_Logging;JAP WAR PROGRESS - Conquered all but the interior (Sichuan, Yunnan, Shanxi);[GetDateText]"
+	}
+	else_if = {
+		limit = { check_variable = { JAP_progress_in_china = 7 } }
+		log = "KR_Event_Logging;JAP WAR PROGRESS - Conquered all of China;[GetDateText]"
+	}
+}
+
+JAP_kodoha_bonuses = {
+	if = {
+		limit = { check_variable = { JAP_kodoha_focuses = 1 } }
+		custom_effect_tooltip = JAP_kodoha_bonuses_tt
+		add_war_support = 0.05
+		if = {
+			limit = { has_country_flag = JAP_eliminate_party_politics_flag }
+			clr_country_flag = JAP_eliminate_party_politics_flag
+		}
+		else = {
+			add_timed_idea = {
+				idea = JAP_coalition_partners_sidelined
+				days = 35
+			}
+		}
+	}
+	else_if = {
+		limit = { check_variable = { JAP_kodoha_focuses = 2 } }
+		custom_effect_tooltip = JAP_kodoha_bonuses_tt
+		add_war_support = 0.1
+		if = {
+			limit = { has_country_flag = JAP_eliminate_party_politics_flag }
+			clr_country_flag = JAP_eliminate_party_politics_flag
+		}
+		else = {
+			add_timed_idea = {
+				idea = JAP_coalition_partners_frustrated
+				days = 35
+			}
+		}
+	}
+	else_if = {
+		limit = { check_variable = { JAP_kodoha_focuses > 2 } }
+		custom_effect_tooltip = JAP_kodoha_bonuses_tt
+		add_war_support = 0.15
+		if = {
+			limit = { has_country_flag = JAP_eliminate_party_politics_flag }
+			clr_country_flag = JAP_eliminate_party_politics_flag
+		}
+		else = {
+			add_timed_idea = {
+				idea = JAP_coalition_partners_outraged
+				days = 35
+			}
+		}
+	}
+	JAP_check_seido_focuses = yes
+	JAP_check_dojinkai_focuses = yes
+}
+
+JAP_seido_bonuses = {
+	if = {
+		limit = { check_variable = { JAP_seido_focuses = 1 } }
+		custom_effect_tooltip = JAP_seido_bonuses_tt
+		add_political_power = 50
+		if = {
+			limit = { has_country_flag = JAP_eliminate_party_politics_flag }
+			clr_country_flag = JAP_eliminate_party_politics_flag
+		}
+		else = {
+			add_timed_idea = {
+				idea = JAP_coalition_partners_sidelined
+				days = 35
+			}
+		}
+	}
+	else_if = {
+		limit = { check_variable = { JAP_seido_focuses = 2 } }
+		custom_effect_tooltip = JAP_seido_bonuses_tt
+		add_political_power = 75
+		if = {
+			limit = { has_country_flag = JAP_eliminate_party_politics_flag }
+			clr_country_flag = JAP_eliminate_party_politics_flag
+		}
+		else = {
+			add_timed_idea = {
+				idea = JAP_coalition_partners_frustrated
+				days = 35
+			}
+		}
+	}
+	else_if = {
+		limit = { check_variable = { JAP_seido_focuses > 2 } }
+		custom_effect_tooltip = JAP_seido_bonuses_tt
+		add_political_power = 100
+		if = {
+			limit = { has_country_flag = JAP_eliminate_party_politics_flag }
+			clr_country_flag = JAP_eliminate_party_politics_flag
+		}
+		else = {
+			add_timed_idea = {
+				idea = JAP_coalition_partners_outraged
+				days = 35
+			}
+		}
+	}
+	JAP_check_kodoha_focuses = yes
+	JAP_check_dojinkai_focuses = yes
+}
+
+JAP_dojinkai_bonuses = {
+	if = {
+		limit = { check_variable = { JAP_dojinkai_focuses = 1 } }
+		custom_effect_tooltip = JAP_dojinkai_bonuses_tt
+		add_offsite_building = {
+			type = industrial_complex
+			level = 1
+		}
+		if = {
+			limit = { has_country_flag = JAP_eliminate_party_politics_flag }
+			clr_country_flag = JAP_eliminate_party_politics_flag
+		}
+		else = {
+			add_timed_idea = {
+				idea = JAP_coalition_partners_sidelined
+				days = 35
+			}
+		}
+	}
+	else_if = {
+		limit = { check_variable = { JAP_dojinkai_focuses = 2 } }
+		custom_effect_tooltip = JAP_dojinkai_bonuses_tt
+		add_offsite_building = {
+			type = industrial_complex
+			level = 2
+		}
+		if = {
+			limit = { has_country_flag = JAP_eliminate_party_politics_flag }
+			clr_country_flag = JAP_eliminate_party_politics_flag
+		}
+		else = {
+			add_timed_idea = {
+				idea = JAP_coalition_partners_frustrated
+				days = 35
+			}
+		}
+	}
+	else_if = {
+		limit = { check_variable = { JAP_dojinkai_focuses > 2 } }
+		custom_effect_tooltip = JAP_dojinkai_bonuses_tt
+		add_offsite_building = {
+			type = industrial_complex
+			level = 3
+		}
+		if = {
+			limit = { has_country_flag = JAP_eliminate_party_politics_flag }
+			clr_country_flag = JAP_eliminate_party_politics_flag
+		}
+		else = {
+			add_timed_idea = {
+				idea = JAP_coalition_partners_outraged
+				days = 35
+			}
+		}
+	}
+	JAP_check_kodoha_focuses = yes
+	JAP_check_seido_focuses = yes
+}
+
+JAP_check_kodoha_focuses = {
+	if = {
+		limit = { check_variable = { JAP_kodoha_focuses > 0 } }
+		set_variable = { JAP_kodoha_focuses = 0 }
+	}
+}
+
+JAP_check_seido_focuses = {
+	if = {
+		limit = { check_variable = { JAP_seido_focuses > 0 } }
+		set_variable = { JAP_seido_focuses = 0 }
+	}
+}
+
+JAP_check_dojinkai_focuses = {
+	if = {
+		limit = { check_variable = { JAP_dojinkai_focuses > 0 } }
+		set_variable = { JAP_dojinkai_focuses = 0 }
+	}
+}
+
+JAP_check_autdem_focus_limit = {
+	if = {
+		limit = { has_country_flag = JAP_elected_autdem }
+		add_to_variable = { JAP_autdem_focus_variable = 1 }
+	}
+}
+
+JAP_swap_dem_ideas_left = {
+	if = {
+		limit = { has_idea = JAP_eastern_democracy_minseito }
+		swap_ideas = {
+			remove_idea = JAP_eastern_democracy_minseito
+			add_idea = JAP_eastern_democracy_minseito_a
+		}
+	}
+	else_if = {
+		limit = { has_idea = JAP_eastern_democracy_minseito_a }
+		swap_ideas = {
+			remove_idea = JAP_eastern_democracy_minseito_a
+			add_idea = JAP_eastern_democracy_minseito_a_2
+		}
+	}
+	else_if = {
+		limit = { has_idea = JAP_eastern_democracy_seiyukai }
+		swap_ideas = {
+			remove_idea = JAP_eastern_democracy_seiyukai
+			add_idea = JAP_eastern_democracy_seiyukai_a
+		}
+	}
+	else_if = {
+		limit = { has_idea = JAP_eastern_democracy_seiyukai_a }
+		swap_ideas = {
+			remove_idea = JAP_eastern_democracy_seiyukai_a
+			add_idea = JAP_eastern_democracy_seiyukai_a_2
+		}
+	}
+}
+
+JAP_swap_dem_ideas_right = {
+	if = {
+		limit = { has_idea = JAP_eastern_democracy_minseito }
+		swap_ideas = {
+			remove_idea = JAP_eastern_democracy_minseito
+			add_idea = JAP_eastern_democracy_minseito_b
+		}
+	}
+	else_if = {
+		limit = { has_idea = JAP_eastern_democracy_minseito_b }
+		swap_ideas = {
+			remove_idea = JAP_eastern_democracy_minseito_b
+			add_idea = JAP_eastern_democracy_minseito_b_2
+		}
+	}
+	else_if = {
+		limit = { has_idea = JAP_eastern_democracy_seiyukai }
+		swap_ideas = {
+			remove_idea = JAP_eastern_democracy_seiyukai
+			add_idea = JAP_eastern_democracy_seiyukai_b
+		}
+	}
+	else_if = {
+		limit = { has_idea = JAP_eastern_democracy_seiyukai_b }
+		swap_ideas = {
+			remove_idea = JAP_eastern_democracy_seiyukai_b
+			add_idea = JAP_eastern_democracy_seiyukai_b_2
+		}
+	}
+}
+
+JAP_land_reform_reward_decent = {
+	remove_ideas = JAP_bad_land
+	set_temp_variable = { ideology_change_var = 0.05 }
+	change_ruling_party_popularity = yes
+	528 = { increase_state_category_by_one_level = yes }
+	1104 = { increase_state_category_by_one_level = yes }
+	531 = { increase_state_category_by_one_level = yes }
+	282 = { increase_state_category_by_one_level = yes }
+}
+
+JAP_land_reform_reward_good = {
+	JAP_land_reform_reward_decent = yes
+	529 = { increase_state_category_by_one_level = yes }
+	1103 = { increase_state_category_by_one_level = yes }
+	532 = { increase_state_category_by_one_level = yes }
+	536 = { increase_state_category_by_one_level = yes }
+}
+
+JAP_land_reform_best = {
+	JAP_land_reform_reward_good = yes
+	533 = { increase_state_category_by_one_level = yes }
+	1106 = { increase_state_category_by_one_level = yes }
+	1101 = { increase_state_category_by_one_level = yes }
+	1102 = { increase_state_category_by_one_level = yes }
+}
+
+JAP_clr_land_reform = {
+	clear_variable = JAP_land_reform_cost_1
+	clear_variable = JAP_land_reform_cost_2
+	clear_variable = JAP_land_reform_cost_3
+	clear_variable = JAP_land_reform_cost_4
+	clear_variable = JAP_land_reform_pp_1
+	clear_variable = JAP_land_reform_pp_2
+	clear_variable = JAP_land_reform_pp_3
+	clear_variable = JAP_land_reform_variable
+	clr_country_flag = JAP_seiyukai_land_reform
+}
+
+JAP_clear_ideas = { # Removes all non-puppet ideas. Some are removed by JAP_fading_sun
+	remove_ideas = {
+		JAP_mass_propaganda
+		JAP_nationalist_education
+		JAP_new_policy_organ_1
+		JAP_new_policy_organ_2
+		JAP_new_industrial_policy
+		JAP_aerial_reorganisation
+		JAP_cooperative_unions
+		JAP_cooperative_unions_2
+		JAP_eastern_democracy
+		JAP_eastern_democracy_minseito
+		JAP_eastern_democracy_minseito_a
+		JAP_eastern_democracy_minseito_a_2
+		JAP_eastern_democracy_minseito_b
+		JAP_eastern_democracy_minseito_b_2
+		JAP_eastern_democracy_seiyukai
+		JAP_eastern_democracy_seiyukai_a
+		JAP_eastern_democracy_seiyukai_a_2
+		JAP_eastern_democracy_seiyukai_b
+		JAP_eastern_democracy_seiyukai_b_2
+		JAP_NSA_idea
+		JAP_NSA_idea_final_minseito
+		JAP_NSA_idea_final_seiyukai
+		JAP_unstable_democracy
+		JAP_unstable_democracy_2
+		JAP_unstable_democracy_3
+		JAP_restoring_trust_in_system
+		JAP_elite_support_idea
+		JAP_elite_support_idea_2
+		JAP_japan_for_the_masses
+		JAP_japan_for_the_masses_2
+		JAP_parliament_centric_politics
+		JAP_parliament_centric_politics_2
+		JAP_conservative_reforms
+		JAP_conservative_reforms_2
+		JAP_state_controlled_economy
+		JAP_aerial_reorganisation
+		JAP_zaibatsu_contracts
+		JAP_railway_nationalisation
+		JAP_national_defence_state_1
+		JAP_national_defence_state_2
+		JAP_military_centralism_idea_1
+		JAP_military_centralism_idea_2
+		JAP_military_centralism_idea_3
+		JAP_military_centralism_idea_4
+		JAP_national_mobilisation
+		JAP_national_mobilisation_2
+		JAP_state_controlled_banking
+		JAP_independent_nation
+		JAP_cooperative_elites
+		JAP_unbroken_zaibatsu_ties
+		JAP_a_new_way
+		JAP_shison_danran_idea
+		JAP_shison_danran_idea_2
+		JAP_curtailed_Zaibatsu
+		JAP_the_showa_restoration_idea_1
+		JAP_the_showa_restoration_idea_2
+		JAP_the_showa_restoration_idea_3
+		JAP_bureaucratic_economy_idea
+		JAP_bureaucratic_economy_idea_2
+		JAP_bureaucratic_economy_idea_3
+		JAP_bureaucratic_economy_idea_4
+		JAP_bureaucratic_economy_idea_5
+		JAP_bureaucratic_economy_idea_6
+		JAP_coordinated_intelligence
+		JAP_coordinated_intelligence_2
+		JAP_coordinated_intelligence_no_lar
+		JAP_coordinated_intelligence_no_lar_2
+		JAP_equipment_lw_1
+		JAP_equipment_lw_2
+		JAP_equipment_lw_3
+		JAP_research_modernisation_lw_1
+		JAP_research_modernisation_lw_2
+		JAP_research_modernisation_lw_3
+		JAP_staff_modernisation_lw_1
+		JAP_staff_modernisation_lw_2
+		JAP_staff_modernisation_lw_3
+		JAP_long_war_army_lw
+		JAP_quality_equipment_lw
+		JAP_quality_equipment_lw_2
+		JAP_quality_equipment_lw_3
+		JAP_quality_equipment_lw_4
+		JAP_equipment_sw_0
+		JAP_equipment_sw_1
+		JAP_equipment_sw_2
+		JAP_equipment_sw_3
+		JAP_equipment_sw_4
+		JAP_equipment_sw_5
+		JAP_traditionalist_air_force_sw
+		JAP_sw_air_2
+		JAP_sw_air_3
+		JAP_reformist_air_force_lw
+		JAP_reformist_air_force_lw_2
+		JAP_reformist_air_force_lw_3
+		JAP_shared_modernisation_1
+		JAP_army_modernization_2
+		JAP_decisive_strike_idea
+		JAP_naval_innovation
+		JAP_naval_innovation_2
+		JAP_naval_aviation_breakthroughs
+		JAP_quality_shipbuilding_1
+		JAP_quality_shipbuilding_2
+		JAP_mass_shipbuilding_1
+		JAP_mass_shipbuilding_2
+		JAP_mass_shipbuilding_3
+		JAP_naval_personnel_expansion
+	}
+}
+
+### Socialist Puppet Content Set Up
+JAP_socialist_puppet_effect = {
+	JAP = {
+		hidden_effect = { JAP_fading_sun = yes }
+	}
+	if = {
+		limit = {
+			OR = {
+				has_socialist_government = yes
+				is_ruled_by_left_kmt = yes
+			}
+		}
+		JAP_socialist_government = yes
+	}
+}
+JAP_socialist_government = {
+	if = {
+		limit = { is_ruled_by_left_kmt = yes }
+		JAP = {
+			create_country_leader = {
+				name = "Nosaka Sanzō"
+				desc = "JAP_nosaka_sanzo_leader_desc"
+				picture = "gfx/leaders/JAP/Portrait_JAP_Nosaka_Sanzo.png"
+				expire = "1981.3.6"
+				ideology = tot_tridemism_subtype
+			}
+			create_country_leader = {
+				name = "Nosaka Sanzō"
+				desc = "JAP_nosaka_sanzo_leader_desc"
+				picture = "gfx/leaders/JAP/Portrait_JAP_Nosaka_Sanzo.png"
+				expire = "1981.3.6"
+				ideology = syndicalist_subtype
+			}
+			create_country_leader = {
+				name = "Nosaka Sanzō"
+				desc = "JAP_nosaka_sanzo_leader_desc"
+				picture = "gfx/leaders/JAP/Portrait_JAP_Nosaka_Sanzo.png"
+				expire = "1981.3.6"
+				ideology = radsoc_tridemism_subtype
+			}
+			if = { #Transfer Nosaka Sanzo from CHI to JAP
+				limit = { NOT = { has_unit_leader = 3277 } }
+				CHI = {
+					random_army_leader = {
+						limit = {
+							has_id = 3277
+						}
+						hidden_effect = {
+							unit_leader_event = CHI.endgame.045
+							set_nationality = JAP
+						}
+					}
+				}
+			}
+			set_country_flag = JAP_under_the_kmt
+			set_country_flag = JAP_defeated_nation
+			mark_focus_tree_layout_dirty = yes
+			effect_tooltip = {
+				set_party_name = {
+					ideology = radical_socialist
+					long_name = JAP_nippon_kokuminto
+					name = JAP_nippon_kokuminto
+				}
+			}
+			hidden_effect = { #Rename all socialist parties to Nippon Kokuminto, sets RadSoc as leading party
+				set_politics = {
+					ruling_party = radical_socialist
+					elections_allowed = no
+				}
+				set_party_name = {
+					ideology = radical_socialist
+					long_name = JAP_nippon_kokuminto_long
+					name = JAP_nippon_kokuminto
+				}
+				set_party_name = {
+					ideology = syndicalist
+					long_name = JAP_nippon_kokuminto_long
+					name = JAP_nippon_kokuminto
+				}
+				set_party_name = {
+					ideology = totalist
+					long_name = JAP_nippon_kokuminto_long
+					name = JAP_nippon_kokuminto
+				}
+			}
+			add_ideas = {
+				JAP_shattered_people_idea
+				JAP_devastated_national_economy_idea
+				JAP_disarmed_nation_idea
+			}
+			complete_national_focus = JAP_white_dawn_eclipses_red_sun
+		}
+	}
+	else = {
+		JAP = {
+			set_country_flag = JAP_socialist
+			set_country_flag = JAP_defeated_nation
+			mark_focus_tree_layout_dirty = yes
+			add_ideas = {
+				JAP_shattered_people_idea
+				JAP_devastated_national_economy_idea
+				JAP_disarmed_nation_idea
+			}
+			custom_effect_tooltip = tooltip_white_line
+			complete_national_focus = JAP_dawn_of_a_revolution
+		}
+	}
+}
+
+### Democratic Puppet Content Set Up
+
+JAP_puppet_hirohito_initial_trait_effect = {
+	add_country_leader_trait = JAP_hirohito_defeat_trait
+	if = {	
+		limit = { has_country_leader = { name = "Hirohito" ruling_only = yes } }
+		set_country_leader_portrait = {
+			portrait = "gfx/leaders/JAP/Portrait_JAP_Hirohito_Civilian.png"
+		}
+	}
+	set_country_leader_description = { desc = JAP_hirohito_defeat_desc ideology = authoritarian_democrat }
+	set_country_leader_description = { desc = JAP_hirohito_defeat_desc ideology = paternal_autocrat }
+	set_country_leader_description = { desc = JAP_hirohito_defeat_desc ideology = national_populist }
+	set_country_leader_description = { desc = JAP_hirohito_defeat_desc ideology = social_conservative }
+	set_country_leader_description = { desc = JAP_hirohito_defeat_desc ideology = market_liberal }
+	set_country_leader_description = { desc = JAP_hirohito_defeat_desc ideology = social_liberal }
+	set_country_leader_description = { desc = JAP_hirohito_defeat_desc ideology = social_democrat }
+}
+JAP_puppet_hirohito_followup_trait_effect = {
+	remove_country_leader_trait = JAP_hirohito_defeat_trait
+	add_country_leader_trait = JAP_hirohito_symbol_trait
+	set_country_leader_description = { desc = JAP_hirohito_symbol_desc ideology = authoritarian_democrat }
+	set_country_leader_description = { desc = JAP_hirohito_symbol_desc ideology = paternal_autocrat }
+	set_country_leader_description = { desc = JAP_hirohito_symbol_desc ideology = national_populist }
+	set_country_leader_description = { desc = JAP_hirohito_symbol_desc ideology = social_conservative }
+	set_country_leader_description = { desc = JAP_hirohito_symbol_desc ideology = market_liberal }
+	set_country_leader_description = { desc = JAP_hirohito_symbol_desc ideology = social_liberal }
+	set_country_leader_description = { desc = JAP_hirohito_symbol_desc ideology = social_democrat }
+}
+
+JAP_democratic_puppet_effect = {
+	JAP = {
+		hidden_effect = {
+			JAP_fading_sun = yes
+			if = {
+				limit = { has_country_leader = { name = "Hirohito" ruling_only = yes } }
+				JAP_puppet_hirohito_initial_trait_effect = yes
+			}
+			else_if = {
+				limit = { has_country_leader = { name = "Yasuhito" ruling_only = yes } }
+				JAP_regent_effect = yes
+			}
+			else = {
+			}
+			set_party_name = {
+				ideology = authoritarian_democrat
+				long_name = JAP_zantei_gunseifu_long
+				name = JAP_zantei_gunseifu
+			}
+			set_party_name = {
+				ideology = paternal_autocrat
+				long_name = JAP_zantei_gunseifu_long
+				name = JAP_zantei_gunseifu
+			}
+			set_party_name = {
+				ideology = national_populist
+				long_name = JAP_zantei_gunseifu_long
+				name = JAP_zantei_gunseifu
+			}
+		}
+		remove_all_ministers = yes
+		JAP_democratic_government = yes
+	}
+}
+
+JAP_democratic_government = {
+	if = {
+		limit = {
+			has_authoritarian_government = yes
+		}
+		JAP = { set_country_flag = JAP_authoritarian_puppet_flag }
+	}
+	else_if = {
+		limit = {
+			has_democratic_government = yes
+		}
+		JAP = { set_country_flag = JAP_liberal_puppet_flag }
+	}
+	effect_tooltip = {
+		set_party_name = {
+			ideology = authoritarian_democrat
+			long_name = JAP_zantei_gunseifu
+			name = JAP_zantei_gunseifu
+		}
+	}
+	custom_effect_tooltip = JAP_imperial_to_national_diet_tt
+	custom_effect_tooltip = JAP_appoint_naruhiko_hog
+	JAP = {
+		add_ideas = {
+			JAP_shattered_people_idea
+			JAP_devastated_national_economy_idea
+			JAP_disarmed_nation_idea
+		}
+		hidden_effect = {
+			remove_all_ministers = yes
+			add_ideas = JAP_Higashikuni_Naruhiko_hog_ade
+			add_ideas = JAP_Ogawa_Gotaro_for_ade
+			add_ideas = JAP_Nakajima_Chikuhei_eco_ade
+			add_ideas = JAP_Mochizuki_Keisuke_sec_ade
+			set_politics = {
+				ruling_party = authoritarian_democrat
+				elections_allowed = no
+			}
+			set_popularities = {
+				totalist = 4
+				radical_socialist = 8
+				syndicalist = 1
+				social_democrat = 12
+				social_liberal = 9
+				market_liberal = 13
+				social_conservative = 15
+				authoritarian_democrat = 26
+				paternal_autocrat = 8
+				national_populist = 4
+			}
+		}
+		custom_effect_tooltip = tooltip_white_line
+		complete_national_focus = JAP_form_transitional_government
+		set_country_flag = JAP_democratic
+		set_country_flag = JAP_defeated_nation
+		mark_focus_tree_layout_dirty = yes
+	}
+}
+
+### General Puppet Effects
+JAP_puppet_economy_reconstruction_effect = {
+	if = {
+		limit = { has_idea = JAP_devastated_national_economy_idea }
+		swap_ideas = {
+			remove_idea = 	JAP_devastated_national_economy_idea
+			add_idea = 	JAP_devastated_national_economy_idea2
+		}
+	}
+	else_if = {
+		limit = { has_idea = JAP_devastated_national_economy_idea2 }
+		swap_ideas = {
+			remove_idea = JAP_devastated_national_economy_idea2
+			add_idea = JAP_devastated_national_economy_idea3
+		}
+	}
+	else_if = {
+		limit = { has_idea = JAP_devastated_national_economy_idea3 }
+		swap_ideas = {
+			remove_idea = JAP_devastated_national_economy_idea3
+			add_idea = JAP_rising_new_economy_idea
+		}
+	}
+}
+
+JAP_purge_military_effect = {
+	random_army_leader = {
+		remove_unit_leader = yes
+	}
+	random_army_leader = {
+		remove_unit_leader = yes
+	}
+	random_army_leader = {
+		remove_unit_leader = yes
+	}
+	random_army_leader = {
+		remove_unit_leader = yes
+	}
+	increase_ruling_party_popularity_by_5 = yes
+}
+
+JAP_shattered_people_effect = {
+	if = {
+		limit = { has_idea = JAP_shattered_people_idea }
+		swap_ideas = {
+			remove_idea = JAP_shattered_people_idea
+			add_idea = JAP_shattered_people_idea2
+		}
+	}
+	else_if = {
+		limit = { has_idea = JAP_shattered_people_idea2 }
+		swap_ideas = {
+			remove_idea = JAP_shattered_people_idea2
+			add_idea = JAP_shattered_people_idea3
+		}
+	}
+	else_if = {
+		limit = { has_idea = JAP_shattered_people_idea3 }
+		swap_ideas = {
+			remove_idea = JAP_shattered_people_idea3
+			add_idea = JAP_shattered_people_idea4
+		}
+	}
+}
+
+### Democratic Puppet Effects
+JAP_regent_effect = {
+	custom_effect_tooltip = JAP_hirohito_abdicate_tt
+	hidden_effect = {
+		if = {
+			limit = { has_country_leader = { name = "Hirohito" ruling_only = yes } }
+			create_country_leader = {
+				name = "Takamatsu Nobuhito"
+				desc = "POLITICS_NOBUHITO_DESC"
+				picture = "gfx/leaders/JAP/Portrait_JAP_Takamatsu_Nobuhito.png"
+				expire = "1965.1.1"
+				ideology = socdem_agrarianism_subtype
+				traits = { JAP_regent_trait }
+			}
+			create_country_leader = {
+				name = "Takamatsu Nobuhito"
+				desc = "POLITICS_NOBUHITO_DESC"
+				picture = "gfx/leaders/JAP/Portrait_JAP_Takamatsu_Nobuhito.png"
+				expire = "1965.1.1"
+				ideology = soclib_progressive_democracy_subtype
+				traits = { JAP_regent_trait }
+			}
+			create_country_leader = {
+				name = "Takamatsu Nobuhito"
+				desc = "POLITICS_NOBUHITO_DESC"
+				picture = "gfx/leaders/JAP/Portrait_JAP_Takamatsu_Nobuhito.png"
+				expire = "1965.1.1"
+				ideology = progressive_democracy_subtype
+				traits = { JAP_regent_trait }
+			}
+			create_country_leader = {
+				name = "Takamatsu Nobuhito"
+				desc = "POLITICS_NOBUHITO_DESC"
+				picture = "gfx/leaders/JAP/Portrait_JAP_Takamatsu_Nobuhito.png"
+				expire = "1965.1.1"
+				ideology = social_conservative_subtype
+				traits = { JAP_regent_trait }
+			}
+			create_country_leader = {
+				name = "Takamatsu Nobuhito"
+				desc = "POLITICS_NOBUHITO_DESC"
+				picture = "gfx/leaders/JAP/Portrait_JAP_Takamatsu_Nobuhito.png"
+				expire = "1965.1.1"
+				ideology = authdem_national_conservative_subtype
+				traits = { JAP_regent_trait }
+			}
+			create_country_leader = {
+				name = "Takamatsu Nobuhito"
+				desc = "POLITICS_NOBUHITO_DESC"
+				picture = "gfx/leaders/JAP/Portrait_JAP_Takamatsu_Nobuhito.png"
+				expire = "1965.1.1"
+				ideology = junta_subtype
+				traits = { JAP_regent_trait }
+			}
+			create_country_leader = {
+				name = "Takamatsu Nobuhito"
+				desc = "POLITICS_NOBUHITO_DESC"
+				picture = "gfx/leaders/JAP/Portrait_JAP_Takamatsu_Nobuhito.png"
+				expire = "1965.1.1"
+				ideology = right_syndicalism_subtype
+				traits = { JAP_regent_trait }
+			}
+		}
+	}
+	set_country_flag = JAP_hirohito_abdicated
+}
+
+JAP_become_republic = {
+	set_cosmetic_tag = JAP_republic
+	create_country_leader = {
+		name = "Katayama Tetsu"
+		picture = "gfx/leaders/JAP/Portrait_JAP_Tetsu_Katayama_KX.png"
+		expire = "1965.1.1"
+		ideology = socdem_agrarianism_subtype
+		traits = {}
+	}
+	create_country_leader = {
+		name = "Ishibashi Tanzan"
+		picture = "gfx/leaders/JAP/Portrait_JAP_Tanzan_Ishibashi.png"
+		expire = "1965.1.1"
+		ideology = soclib_progressive_democracy_subtype
+		traits = {}
+	}
+	create_country_leader = {
+		name = "Shigeru Yoshida"
+		picture = "gfx/leaders/JAP/Portrait_JAP_Yoshida_Shigeru.png"
+		expire = "1965.1.1"
+		ideology = progressive_democracy_subtype
+		traits = {}
+	}
+	create_country_leader = {
+		name = "Shigeru Yoshida"
+		picture = "gfx/leaders/JAP/Portrait_JAP_Yoshida_Shigeru.png"
+		expire = "1965.1.1"
+		ideology = social_conservative_subtype
+		traits = {}
+	}
+	create_country_leader = {
+		name = "Kishi Nobusuke"
+		picture = "gfx/leaders/JAP/Portrait_JAP_Nobusuke_Kishi.png"
+		expire = "1965.1.1"
+		ideology = authdem_national_conservative_subtype
+		traits = {}
+	}
+	create_country_leader = {
+		name = "Kishi Nobusuke"
+		picture = "gfx/leaders/JAP/Portrait_JAP_Nobusuke_Kishi.png"
+		expire = "1965.1.1"
+		ideology = pataut_national_conservative_subtype
+		traits = {}
+	}
+	create_country_leader = {
+		name = "Kishi Nobusuke"
+		picture = "gfx/leaders/JAP/Portrait_JAP_Nobusuke_Kishi.png"
+		expire = "1965.1.1"
+		ideology = natpop_pan_asianism_subtype
+		traits = {}
+	}
+}
+
+JAP_create_shogun_eddy = {
+	hidden_effect = {
+		set_cosmetic_tag = JAP_EDDIE
+		create_country_leader = {
+			name = "Edowādo"
+			desc = "POLITICS_WEEB_EDWARD_DESC"
+			picture = "gfx/leaders/JAP/JAP_Edward_portrait.png"
+			expire = "1965.1.1"
+			ideology = socdem_agrarianism_subtype
+			traits = { Gaijin_Shogun }
+		}
+		create_country_leader = {
+			name = "Edowādo"
+			desc = "POLITICS_WEEB_EDWARD_DESC"
+			picture = "gfx/leaders/JAP/JAP_Edward_portrait.png"
+			expire = "1965.1.1"
+			ideology = soclib_progressive_democracy_subtype
+			traits = { Gaijin_Shogun }
+		}
+		create_country_leader = {
+			name = "Edowādo"
+			desc = "POLITICS_WEEB_EDWARD_DESC"
+			picture = "gfx/leaders/JAP/JAP_Edward_portrait.png"
+			expire = "1965.1.1"
+			ideology = progressive_democracy_subtype
+			traits = { Gaijin_Shogun }
+		}
+		create_country_leader = {
+			name = "Edowādo"
+			desc = "POLITICS_WEEB_EDWARD_DESC"
+			picture = "gfx/leaders/JAP/JAP_Edward_portrait.png"
+			expire = "1965.1.1"
+			ideology = social_conservative_subtype
+			traits = { Gaijin_Shogun }
+		}
+		create_country_leader = {
+			name = "Edowādo"
+			desc = "POLITICS_WEEB_EDWARD_DESC"
+			picture = "gfx/leaders/JAP/JAP_Edward_portrait.png"
+			expire = "1965.1.1"
+			ideology = authdem_national_conservative_subtype
+			traits = { Gaijin_Shogun }
+		}
+		create_country_leader = {
+			name = "Edowādo"
+			desc = "POLITICS_WEEB_EDWARD_DESC"
+			picture = "gfx/leaders/JAP/JAP_Edward_portrait.png"
+			expire = "1965.1.1"
+			ideology = junta_subtype
+			traits = { Gaijin_Shogun }
+		}
+		create_country_leader = {
+			name = "Edowādo"
+			desc = "POLITICS_WEEB_EDWARD_DESC"
+			picture = "gfx/leaders/JAP/JAP_Edward_portrait.png"
+			expire = "1965.1.1"
+			ideology = right_syndicalism_subtype
+			traits = { Gaijin_Shogun }
+		}
+	}
+}
+
+JAP_replace_wartime_cabinet_effect = {
+	if = {
+		limit = { has_country_flag = JAP_dem_tree }
+		add_popularity = {
+			ideology = national_populist
+			popularity = 0.05
+		}
+		add_popularity = {
+			ideology = paternal_autocrat
+			popularity = 0.05
+		}
+		army_experience = 60
+		add_command_power = 60
+	}
+	else_if = {
+		limit = { has_country_flag = JAP_milcentralism_tree }
+		add_popularity = {
+			ideology = social_democrat
+			popularity = 0.05
+		}
+		add_popularity = {
+			ideology = market_liberal
+			popularity = 0.05
+		}
+		add_popularity = {
+			ideology = social_conservative
+			popularity = 0.05
+		}
+		add_popularity = {
+			ideology = authoritarian_democrat
+			popularity = 0.05
+		}
+		add_political_power = 60
+		add_stability = 0.06
+	}
+	else = {
+		army_experience = 60
+		add_stability = 0.06
+	}
+}
+JAP_pro_zaibatsu_effect = {
+	if = {
+		limit = { has_idea = JAP_dem_puppet_pro_zaibatsu_idea12 }
+		swap_ideas = {
+			remove_idea = JAP_dem_puppet_pro_zaibatsu_idea12
+			add_idea = JAP_dem_puppet_pro_zaibatsu_idea4
+		}
+	}
+	else_if = {
+		limit = { has_idea = JAP_dem_puppet_pro_zaibatsu_idea13 }
+		swap_ideas = {
+			remove_idea = JAP_dem_puppet_pro_zaibatsu_idea13
+			add_idea = JAP_dem_puppet_pro_zaibatsu_idea4
+		}
+	}
+}
+
+JAP_anti_zaibatsu_effect = {
+	if = {
+		limit = { has_idea = JAP_dem_puppet_anti_zaibatsu_idea12 }
+		swap_ideas = {
+			remove_idea = JAP_dem_puppet_anti_zaibatsu_idea12
+			add_idea = JAP_dem_puppet_anti_zaibatsu_idea4
+		}
+	}
+	else_if = {
+		limit = { has_idea = JAP_dem_puppet_anti_zaibatsu_idea13 }
+		swap_ideas = {
+			remove_idea = JAP_dem_puppet_anti_zaibatsu_idea13
+			add_idea = JAP_dem_puppet_anti_zaibatsu_idea4
+		}
+	}
+}
+
+### Puppet Military Tree effects
+JAP_maritime_sdf_effect = {
+	if = {
+		limit = { has_idea = JAP_maritime_sdf_idea_1 }
+		swap_ideas = {
+			remove_idea = JAP_maritime_sdf_idea_1
+			add_idea = JAP_maritime_sdf_idea_2
+		}
+	}
+	else_if = {
+		limit = { has_idea = JAP_maritime_sdf_idea_2 }
+		swap_ideas = {
+			remove_idea = JAP_maritime_sdf_idea_2
+			add_idea = JAP_maritime_sdf_idea_3
+		}
+	}
+	else_if = {
+		limit = { has_idea = JAP_maritime_sdf_idea_3 }
+		swap_ideas = {
+			remove_idea = JAP_maritime_sdf_idea_3
+			add_idea = JAP_maritime_sdf_idea_4
+		}
+	}
+	else = {
+		add_ideas = JAP_maritime_sdf_idea_1
+	}
+}
+
+JAP_create_the_national_police_reserve_effect = {
+	hidden_effect = {
+		if = {
+			limit = { has_template = "Police Reserve" }
+			delete_unit_template_and_units = { division_template = "Police Reserve" disband = yes } #no cheating
+		}
+		division_template = {
+			name = "Police Reserve"
+			division_names_group = JAP_IGU_01
+			regiments = {
+				militia = { x = 0 y = 0 }
+				militia = { x = 0 y = 1 }
+				militia = { x = 0 y = 2 }
+				militia = { x = 0 y = 3 }
+				militia = { x = 1 y = 0 }
+				militia = { x = 1 y = 1 }
+				militia = { x = 1 y = 2 }
+				militia = { x = 1 y = 3 }
+			}
+			template_counter = 68
+		}
+		282 = {
+			create_unit = {
+				division = "division_template = \"Police Reserve\" start_experience_factor = 0.1"
+				owner = JAP
+			}
+			create_unit = {
+				division = "division_template = \"Police Reserve\" start_experience_factor = 0.1"
+				owner = JAP
+			}
+			create_unit = {
+				division = "division_template = \"Police Reserve\" start_experience_factor = 0.1"
+				owner = JAP
+			}
+		}
+		532 = {
+			create_unit = {
+				division = "division_template = \"Police Reserve\" start_experience_factor = 0.1"
+				owner = JAP
+			}
+			create_unit = {
+				division = "division_template = \"Police Reserve\" start_experience_factor = 0.1"
+				owner = JAP
+			}
+		}
+		531 = {
+			create_unit = {
+				division = "division_template = \"Police Reserve\" start_experience_factor = 0.1"
+				owner = JAP
+			}
+			create_unit = {
+				division = "division_template = \"Police Reserve\" start_experience_factor = 0.1"
+				owner = JAP
+			}
+			create_unit = {
+				division = "division_template = \"Police Reserve\" start_experience_factor = 0.1"
+				owner = JAP
+			}
+		}
+		530 = {
+			create_unit = {
+				division = "division_template = \"Police Reserve\" start_experience_factor = 0.1"
+				owner = JAP
+			}
+		}
+		528 = {
+			create_unit = {
+				division = "division_template = \"Police Reserve\" start_experience_factor = 0.1"
+				owner = JAP
+			}
+			create_unit = {
+				division = "division_template = \"Police Reserve\" start_experience_factor = 0.1"
+				owner = JAP
+			}
+		}
+		1102 = {
+			create_unit = {
+				division = "division_template = \"Police Reserve\" start_experience_factor = 0.1"
+				owner = JAP
+			}
+		}
+		1104 = {
+			create_unit = {
+				division = "division_template = \"Police Reserve\" start_experience_factor = 0.1"
+				owner = JAP
+			}
+		}
+		535 = {
+			create_unit = {
+				division = "division_template = \"Police Reserve\" start_experience_factor = 0.1"
+				owner = JAP
+			}
+		}
+		534 = {
+			create_unit = {
+				division = "division_template = \"Police Reserve\" start_experience_factor = 0.1"
+				owner = JAP
+			}
+		}
+		1101 = {
+			create_unit = {
+				division = "division_template = \"Police Reserve\" start_experience_factor = 0.1"
+				owner = JAP
+			}
+		}
+		536 = {
+			create_unit = {
+				division = "division_template = \"Police Reserve\" start_experience_factor = 0.1"
+				owner = JAP
+			}
+			create_unit = {
+				division = "division_template = \"Police Reserve\" start_experience_factor = 0.1"
+				owner = JAP
+			}
+		}
+		1106 = {
+			create_unit = {
+				division = "division_template = \"Police Reserve\" start_experience_factor = 0.1"
+				owner = JAP
+			}
+		}
+		533 = {
+			create_unit = {
+				division = "division_template = \"Police Reserve\" start_experience_factor = 0.1"
+				owner = JAP
+			}
+		}
+		529 = {
+			create_unit = {
+				division = "division_template = \"Police Reserve\" start_experience_factor = 0.1"
+				owner = JAP
+			}
+		}
+	}
+}
+
+JAP_self_defense_corps_effect = {
+	if = {
+		limit = { has_idea = JAP_self_defense_corps_idea_1 }
+		swap_ideas = {
+			remove_idea = JAP_self_defense_corps_idea_1
+			add_idea = JAP_self_defense_corps_idea_2
+		}
+	}
+	else_if = {
+		limit = { has_idea = JAP_self_defense_corps_idea_2 }
+		swap_ideas = {
+			remove_idea = JAP_self_defense_corps_idea_2
+			add_idea = JAP_self_defense_corps_idea_4
+		}
+	}
+	else_if = {
+		limit = { has_idea = JAP_self_defense_corps_idea_3 }
+		swap_ideas = {
+			remove_idea = JAP_self_defense_corps_idea_3
+			add_idea = JAP_self_defense_corps_idea_4
+		}
+	}
+	else_if = {
+		limit = { has_idea = JAP_self_defense_corps_idea_4 }
+		swap_ideas = {
+			remove_idea = JAP_self_defense_corps_idea_4
+			add_idea = JAP_self_defense_corps_idea_5
+		}
+	}
+	else = {
+		add_ideas = JAP_self_defense_corps_idea_1
+	}
+}
+
+JAP_modern_air_force_effect = {
+	if = {
+		limit = { has_idea = JAP_modern_air_force_11 }
+		swap_ideas = {
+			remove_idea = JAP_modern_air_force_11
+			add_idea = JAP_modern_air_force_12
+		}
+	}
+	else_if = {
+		limit = { has_idea = JAP_modern_air_force_12 }
+		swap_ideas = {
+			remove_idea = JAP_modern_air_force_12
+			add_idea = JAP_modern_air_force_22
+		}
+	}
+}
+
