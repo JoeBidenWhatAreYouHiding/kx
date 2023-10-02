@@ -2901,6 +2901,259 @@ ITA_foreign_policy = {# Foreign Policy Stuff
 		}
 	}
 	
+	ITA_claim_east_africa = {
+		icon = generic_form_nation
+
+		allowed = {
+			OR = {
+				tag = ITA
+				tag = SIC
+				tag = SRD
+			}
+		}
+
+		available = {
+			is_subject = no
+			custom_trigger_tooltip = {
+				tooltip = ITA_can_war_for_east_africa
+				can_declare_war_on = 550.owner
+			}
+		}
+
+		visible = {
+			ITA_has_irridentist_focus = yes
+			550 = {
+				owner = {
+					NOT = {
+						tag = ROOT
+						is_subject_of = ROOT
+					}
+				}
+			}
+		}
+
+		fire_only_once = yes
+		cost = 100
+
+		ai_will_do = {
+			factor = 5
+			modifier = {
+				factor = 0
+				has_country_flag = SIC_confed
+			}
+			modifier = {
+				factor = 0
+				NOT = {
+					has_government = national_populist
+					has_country_flag = SIC_empire
+					has_completed_focus = SRD_italia_riunita
+				}
+			}
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision ITA_claim_libya"
+			set_country_flag = ITA_claimed_east_africa
+			every_state = {
+				limit = {
+					is_core_of = ETH
+					is_not_claim_or_core_of_ROOT = yes
+				}
+				add_claim_by = ROOT
+			}
+			every_state = {
+				limit = {
+					is_core_of = ERI
+					is_not_claim_or_core_of_ROOT = yes
+				}
+				add_claim_by = ROOT
+			}
+			every_state = {
+				limit = {
+					is_core_of = SOM
+					is_not_claim_or_core_of_ROOT = yes
+				}
+				add_claim_by = ROOT
+			}
+			268 = { add_claim_by = ROOT }
+			550 = {
+				owner = {
+					country_event = italianrepublic.187
+					if = {
+						limit = { is_subject = yes }
+						overlord = { country_event = italianrepublic.187 }
+					}
+				}
+			}
+		}
+	}
+	
+	ITA_war_for_east_africa = {
+		icon = generic_prepare_civil_war
+
+		allowed = {
+			OR = {
+				tag = ITA
+				tag = SIC
+				tag = SRD
+			}
+		}
+
+		available = {
+			ITA_has_irridentist_focus = yes
+			has_country_flag = ITA_claimed_east_africa
+			ROOT = {
+				is_subject = no
+				controls_all_owned_states = yes
+			}
+			can_declare_war_on = FROM
+		}
+
+		visible = {
+			ITA_has_irridentist_focus = yes
+			has_country_flag = ITA_claimed_east_africa
+			FROM = {
+				NOT = {
+					has_war_with = ROOT
+					is_subject_of = TUR
+					is_subject_of = EGY
+					is_subject_of = PER
+					is_subject_of = ROOT
+				}
+			}
+		}
+
+		fire_only_once = yes
+		cost = 0
+		days_remove = 20
+		war_with_target_on_remove = yes
+
+		target_root_trigger = {
+			has_country_flag = ITA_claimed_east_africa
+		}
+
+		targets = { ETH SOM ERI DJI }
+
+		target_trigger = {
+			FROM = {
+				NOT = {
+					has_war_with = ROOT
+					is_subject_of = TUR
+					is_subject_of = EGY
+					is_subject_of = PER
+					is_subject_of = ROOT
+				}
+			}
+		}
+
+		ai_will_do = {
+			factor = 10
+			modifier = {
+				factor = 0
+				is_in_faction = yes
+				is_faction_leader = no
+			}
+			modifier = {
+				factor = 0
+				has_navy_size = { size < 200 type = convoy }
+			}
+			modifier = {
+				factor = 0
+				NOT = { has_tech = landing_craft }
+			}
+			modifier = {
+				factor = 0
+				is_in_faction = no
+				FROM = { is_in_faction_with = EGY }
+				strength_ratio = { tag = EGY ratio < 2.5 }
+			}
+			modifier = {
+				factor = 0
+				OR = {
+					has_war = yes
+					strength_ratio = { tag = FROM ratio < 1.0 }
+					# neither of us is in a faction and FROM is stronger
+					AND = {
+						FROM = {
+							is_in_faction = no
+							is_subject = no
+						}
+						is_in_faction = no
+						strength_ratio = { tag = FROM ratio < 1.5 }
+					}
+					# they're in a faction which is not at war
+					FROM = {
+						OR = {
+							is_in_faction = yes
+							is_subject = yes
+						}
+						has_war = no
+						NOT = { is_in_faction_with = EGY }
+					}
+					# they're in a faction which is at war but not with a major and not losing
+					FROM = {
+						is_in_faction = yes
+						has_war = yes
+						NOT = {
+							is_in_faction_with = EGY
+							any_enemy_country = {
+								OR = {
+									tag = GER
+									tag = RUS
+									tag = FRA
+								}
+							}
+							surrender_progress > 0.10
+							faction_leader = {
+								surrender_progress > 0.20
+							}
+						}
+					}
+				}
+			}
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision ITA_war_for_libya target: [From.GetName]"
+			add_war_support = 0.10
+			hidden_effect = {
+				add_ai_strategy = {
+					type = prepare_for_war
+					id = FROM
+					value = 1000
+				}
+				FROM = {
+					add_ai_strategy = {
+						type = prepare_for_war
+						id = ROOT
+						value = 1000
+					}
+				}
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove ITA_war_for_libya target: [From.GetName]"
+			create_wargoal = {
+					target = FROM
+					type = annex_everything
+			}
+			hidden_effect = {
+				add_ai_strategy = {
+					type = prepare_for_war
+					id = FROM
+					value = -1000
+				}
+				FROM = {
+					add_ai_strategy = {
+						type = prepare_for_war
+						id = ROOT
+						value = -1000
+					}
+				}
+			}
+		}
+	}
+	
 	ITA_form_east_africa = {
 		icon = generic_form_nation
 		highlight_states = { highlight_state_targets = { state = 271 } }
@@ -2910,6 +3163,7 @@ ITA_foreign_policy = {# Foreign Policy Stuff
 			owns_state = 550
 			owns_state = 559
 			ITA_has_irridentist_focus = yes
+			has_country_flag = ITA_claimed_east_africa
 			ETH = {
 				exists = no
 			}
@@ -2925,14 +3179,17 @@ ITA_foreign_policy = {# Foreign Policy Stuff
 			OR = {
 			tag = ITA
 			tag = SIC
+			tag = SRD
 			}
 			ITA_has_irridentist_focus = yes
+			has_country_flag = ITA_claimed_east_africa
 		}
 		
 		allowed = {
 			OR = {
 			tag = ITA
 			tag = SIC
+			tag = SRD
 			}
 		}
 		fire_only_once = yes
@@ -2992,6 +3249,7 @@ ITA_foreign_policy = {# Foreign Policy Stuff
 				OR = {
 						is_owned_by = SIC
 						is_owned_by = ITA
+						is_owned_by = SRD
 						is_owned_by = ETH
 							}
 						}
@@ -3055,6 +3313,14 @@ ITA_foreign_policy = {# Foreign Policy Stuff
 				}
 				if = {
 				limit = {
+				SRD = {
+				has_country_leader = { ruling_only = yes name = "Amedeo I" }
+					}
+				}
+				set_cosmetic_tag = ITA_EAST_AFRICA_KING_SRD
+				}
+				if = {
+				limit = {
 				ITA = {
 				OR = {
 				has_country_leader = { ruling_only = yes name = "Napoleon II" }
@@ -3078,6 +3344,7 @@ ITA_foreign_policy = {# Foreign Policy Stuff
 			owns_state = 663
 			owns_state = 450
 			ITA_has_irridentist_focus = yes
+			has_country_flag = ITA_claimed_libya
 			LBA = {
 				exists = no
 			}
@@ -3090,14 +3357,17 @@ ITA_foreign_policy = {# Foreign Policy Stuff
 			OR = {
 			tag = ITA
 			tag = SIC
+			tag = SRD
 			}
 			ITA_has_irridentist_focus = yes
+			has_country_flag = ITA_claimed_libya
 		}
 		
 		allowed = {
 			OR = {
 			tag = ITA
 			tag = SIC
+			tag = SRD
 			}
 		}
 		fire_only_once = yes
@@ -3153,6 +3423,7 @@ ITA_foreign_policy = {# Foreign Policy Stuff
 				limit = {
 				OR = {
 						is_owned_by = SIC
+						is_owned_by = SRD
 						is_owned_by = ITA
 						is_owned_by = TRP
 							}
@@ -3213,6 +3484,14 @@ ITA_foreign_policy = {# Foreign Policy Stuff
 					}
 				}
 				set_cosmetic_tag = ITA_LIBYA_BOURBON
+				}
+				if = {
+				limit = {
+				SRD = {
+				has_country_leader = { ruling_only = yes name = "Amedeo I" }
+					}
+				}
+				set_cosmetic_tag = ITA_LIBYA_KING_SRD
 				}
 				if = {
 				limit = {
