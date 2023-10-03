@@ -665,3 +665,74 @@ italy_enable_coring_decisions_on_state = {
 	}
 }
 
+italy_claim_irredentist_state_effect = {
+	#set up variables
+	save_event_target_as = claimed_state
+
+	#add claim
+	if = {
+		limit = { is_claim_or_core_of_ROOT = no }
+		add_claim_by = ROOT
+	}
+
+	#if owned by puppet, transfer
+	if = {
+		limit = { owner = { is_subject_of = ROOT } }
+		hidden_effect = { owner = { country_event = ita.170 } }
+		if = {
+			limit = { is_fully_controlled_by = owner }
+			transfer_state_to = ROOT
+		}
+		else = {
+			set_state_owner_to = ROOT
+			set_state_province_controller = {
+				controller = ROOT
+				limit = { NOT = { has_war_with = PREV.owner } }
+			}
+		}
+	}
+
+	#if owned by someone else, notify
+	else_if = {
+		limit = { NOT = { is_owned_by = ROOT } }
+		if = {
+			limit = {
+				owner = {
+					OR = {
+						event_target:claimed_state = { is_claim_or_core_of_PREV = yes }
+						any_subject_country = { event_target:claimed_state = { is_claim_or_core_of_PREV = yes } }
+						any_allied_country = { event_target:claimed_state = { is_claim_or_core_of_PREV = yes } }
+					}
+				}
+			}
+			owner = { country_event = ita.170 }
+		}
+
+		#if owned by ally, notify all members and leave faction
+		ROOT = {
+			if = {
+				limit = {
+					is_in_faction = yes
+					any_allied_country = {
+						event_target:claimed_state = { is_claim_or_core_of_PREV = yes }
+						NOT = { is_subject_of = ROOT }
+					}
+				}
+				every_other_country = {
+					limit = {
+						is_in_faction_with = ROOT
+						NOT = { is_subject_of = ROOT }
+						NOT = { owns_state = PREV.PREV }
+						OR = {
+							event_target:claimed_state = { is_claim_or_core_of_PREV = yes }
+							is_faction_leader = yes
+						}
+					}
+					country_event = ita.171
+				}
+				leave_faction = yes
+			}
+		}
+	}
+}
+
