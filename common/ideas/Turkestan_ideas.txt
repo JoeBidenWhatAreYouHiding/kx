@@ -525,6 +525,7 @@ ideas = {
 			allowed = { always = no }
 			picture = TRK_lasting_political_crisis
 			modifier = {
+				stability_factor = -0.2
 				war_support_factor = -0.3
 			}
 		}
@@ -631,17 +632,23 @@ ideas = {
 		TRK_east_pamir_revolt = {
 			on_add = { log = "[GetDateText]: [Root.GetName]: add idea TRK_east_pamir_revolt"}
 			on_add = {
+				divide_variable = { TRK_mujahideen_civ_war_var = 2 }
 				1211 = { 
+					set_demilitarized_zone = yes
 					remove_core_of = ROOT
 					add_claim_by = ROOT
 					add_core_of = TAJ 
 					start_resistance = yes
 				}
-				1042 = { 
-					remove_core_of = ROOT
-					add_claim_by = ROOT
-					add_core_of = TAJ
-					start_resistance = yes					
+				if = {
+					limit = { has_country_flag = TRK_east_pamir_seize_osh }
+					1042 = { 
+						set_demilitarized_zone = yes
+						remove_core_of = ROOT
+						add_claim_by = ROOT
+						add_core_of = TAJ
+						start_resistance = yes					
+					}
 				}
 				country_event = {
 					id = turkestan.2
@@ -653,17 +660,23 @@ ideas = {
 			allowed = { always = no }
 			picture = TRK_basmachi_resistance
 			on_remove = {
-				1211 = { 
-					set_demilitarized_zone = no 
-					remove_core_of = TAJ
-					add_core_of = ROOT
-					cancel_resistance = yes
-				}
-				1042 = { 
-					set_demilitarized_zone = no 
-					remove_core_of = TAJ
-					add_core_of = ROOT
-					cancel_resistance = yes
+				every_owned_state = { 
+					if = {
+						limit = { is_demilitarized_zone = yes }
+						set_demilitarized_zone = no 
+					}
+					if = {
+						limit = { is_core_of = TAJ }
+						remove_core_of = TAJ
+					}
+					if = {
+						limit = { NOT = { is_core_of = ROOT } }
+						add_core_of = ROOT
+					}
+					if = {
+						limit = { has_resistance = yes }
+						cancel_resistance = yes
+					}
 				}
 				remove_targeted_decision = { target = 1209 decision = TRK_retake_samarqand }
 				remove_targeted_decision = { target = 1279 decision = TRK_fortify_fergana }
@@ -671,6 +684,7 @@ ideas = {
 				remove_targeted_decision = { target = TAJ decision = TRK_counter_insurgency_tactics }
 				remove_targeted_decision = { target = TAJ decision = TRK_aerial_bombardment }
 				remove_targeted_decision = { target = TAJ decision = TRK_psychological_warfare }
+				remove_targeted_decision = { target = TAJ decision = TRK_train_the_troops }
 			}
 			modifier = {
 				stability_weekly_factor = -0.35
@@ -938,8 +952,8 @@ ideas = {
 			on_add = { log = "[GetDateText]: [Root.GetName]: add idea TRK_jadidist_modernisation_1"}
 			allowed = { always = no }
 			available = { TRK_has_jadidist_government = yes }
-			picture = give_money
-			name = islamic_schools
+			picture = islamic_schools
+			name = TRK_jadidist_modernisation
 			modifier = {
 				political_power_gain = 0.15
 				drift_defence_factor = -0.3
@@ -949,8 +963,8 @@ ideas = {
 			on_add = { log = "[GetDateText]: [Root.GetName]: add idea TRK_jadidist_modernisation_2"}
 			allowed = { always = no }
 			available = { TRK_has_jadidist_government = yes }
-			picture = give_money
-			name = islamic_schools
+			picture = islamic_schools
+			name = TRK_jadidist_modernisation
 			modifier = {
 				political_power_gain = 0.15
 				drift_defence_factor = -0.3
@@ -1074,6 +1088,7 @@ ideas = {
 			allowed = { always = no }
 			available = { TRK = { has_idea = TRK_russian_settler_repatriation } }
 			picture = POL_looming_peasants_strike
+			name = TRK_russian_settler_repatriation
 			modifier = {
 				monthly_population = 0.1
 				weekly_manpower = 100
@@ -1083,12 +1098,25 @@ ideas = {
 		TRK_russian_settler_unrest = {
 			on_add = {log = "[GetDateText]: [Root.GetName]: add idea TRK_russian_settler_unrest"}
 			allowed = { always = no }
+			available = { TRK_monstrov_in_power = no }
 			picture = POL_the_peasants_strike
 			modifier = {
 				stability_factor = -0.1
 				stability_weekly = -0.002
 				political_power_cost = 0.15
-				command_power_gain_mult = -0.5
+				command_power_gain_mult = -0.25
+			}
+		}
+		TRK_mirshab_revolt = {
+			on_add = {log = "[GetDateText]: [Root.GetName]: add idea TRK_mirshab_revolt"}
+			allowed = { always = no }
+			available = { TRK_katta_ergash_in_power = no }
+			picture = raj_marginalized_muslim_community_angry
+			modifier = {
+				stability_factor = -0.1
+				stability_weekly = -0.002
+				political_power_cost = 0.15
+				command_power_gain_mult = -0.25
 			}
 		}
 		TRK_industry_focus = {
@@ -1199,7 +1227,7 @@ ideas = {
 			}
 		}
 		TRK_tashkent_military_school = {
-			on_add = { log = "[GetDateText]: [Root.GetName]: add idea TRK_peoples_militia_1"}
+			on_add = { log = "[GetDateText]: [Root.GetName]: add idea TRK_tashkent_military_school"}
 			allowed = { always = no }
 			name = TRK_peoples_militia
 			picture = selective_training_act
@@ -1423,6 +1451,22 @@ ideas = {
 	
 	#### General ####
 	industrial_concern = {
+		turkestan_academy_of_science = {
+			on_add = { log = "[GetDateText]: [Root.GetName]: add idea turkestan_academy_of_science"}
+			allowed = { is_turkestan_tag = yes }
+			available = { 
+				controls_state = 407 
+				has_global_flag = turkestan_academy_of_science_unlocked
+			}			
+			traits = { academy_of_sciences }
+			modifier = {
+				research_speed_factor = 0.1
+			}
+			research_bonus = {
+				electronics = 0.1
+				industry = 0.05
+			}
+		}
 		tashkent_tz = {
 			on_add = { log = "[GetDateText]: [Root.GetName]: add idea tashkent_tz"}
 			allowed = { is_turkestan_tag = yes }

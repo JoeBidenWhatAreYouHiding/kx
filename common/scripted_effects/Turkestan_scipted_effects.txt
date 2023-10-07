@@ -13,6 +13,67 @@ TRK_setup_initial_vars = {
 		set_value = 0.15
 	}
 }
+TRK_recalc_pop_before_election = {
+	# ERK
+	set_variable = { TKR_erk_pop = party_popularity@syndicalist }
+	add_to_variable = { TKR_erk_pop = party_popularity@totalist }
+	add_to_variable = { TKR_erk_pop = party_popularity@radical_socialist }
+	if = {
+		limit = { has_country_flag = TRK_socdem_erk }
+		add_to_variable = { TKR_erk_pop = party_popularity@social_democrat }
+	}
+	
+	# Milliy Ittihod #
+	if = {
+		limit = {
+			NOT = { has_country_flag = TRK_yosh_turkiston_soclib }
+		}
+		set_variable = { TRK_milliy_pop = party_popularity@social_liberal }
+		if = {
+			limit = { NOT = { has_country_flag = TRK_socdem_erk } }
+			add_to_variable = { TRK_milliy_pop = party_popularity@social_democrat }
+		}
+		if = {
+			limit = { NOT = { has_country_flag = TRK_yosh_turkiston_marlib } }
+			add_to_variable = { TRK_milliy_pop = party_popularity@market_liberal }
+		}
+	}
+	else = {
+		set_variable = { TRK_milliy_pop = party_popularity@market_liberal }
+		if = {
+			limit = { NOT = { has_country_flag = TRK_socdem_erk } }
+			add_to_variable = { TRK_milliy_pop = party_popularity@social_democrat }
+		}
+	}
+	
+	# Yosh Turkiston #
+	if = {
+		limit = { has_country_flag = TRK_yosh_turkiston_soclib }
+		set_variable = { TRK_yosh_pop = party_popularity@social_liberal }
+	}
+	else_if = {
+		limit = { has_country_flag = TRK_yosh_turkiston_marlib }
+		set_variable = { TRK_yosh_pop = party_popularity@social_democrat }
+	}
+	else_if = {
+		limit = { has_country_flag = TRK_yosh_turkiston_authdem }
+		set_variable = { TRK_yosh_pop = party_popularity@authoritarian_democrat }
+	}
+	
+	# Ittifoqi Muslimin #
+	set_variable = { TRK_ittifoqi_pop = party_popularity@social_conservative }
+	if = {
+		limit = { 
+			NOT = { has_country_flag = TRK_yosh_turkiston_authdem }
+		}
+		add_to_variable = { TRK_ittifoqi_pop = party_popularity@authoritarian_democrat }
+	}
+	if = {
+		limit = { has_country_flag = TRK_ittifoqi_pataut }
+		add_to_variable = { TRK_ittifoqi_pop = party_popularity@paternal_autocrat }
+	}
+	
+}
 TRK_bop_ruling_large_effect = {
 	if = {
 		limit = { has_socialist_government = yes }
@@ -157,6 +218,62 @@ TRK_shokai_authoritarian = {
 			ideology = authoritarian_democrat
 			name = TRK_social_liberal_party
 			long_name = TRK_social_liberal_party_long
+		}
+	}
+}
+TRK_shokai_remove_authoritarian = {
+	clr_country_flag = TRK_shokai_authoritarian
+	clr_country_flag = TRK_yosh_turkiston_authdem
+	hidden_effect = {
+		set_temp_variable = { TRK_new_authdem = TRK.party_popularity_100@authoritarian_democrat }
+		divide_temp_variable = { TRK_new_authdem = 2 }
+
+		set_temp_variable = { TRK_new_marlib = TRK.party_popularity_100@market_liberal }
+		add_to_temp_variable = { TRK_new_marlib = TRK_new_authdem }
+
+		set_temp_variable = { sum = 100 }
+		subtract_from_temp_variable = { sum = party_popularity_100@totalist }
+		subtract_from_temp_variable = { sum = party_popularity_100@syndicalist }
+		subtract_from_temp_variable = { sum = party_popularity_100@radical_socialist }
+		subtract_from_temp_variable = { sum = party_popularity_100@social_democrat }
+		subtract_from_temp_variable = { sum = party_popularity_100@social_liberal }
+		subtract_from_temp_variable = { sum = TRK_new_marlib }
+		subtract_from_temp_variable = { sum = party_popularity_100@social_conservative }
+		subtract_from_temp_variable = { sum = UKR_new_authdem }
+		subtract_from_temp_variable = { sum = party_popularity_100@paternal_autocrat }
+		subtract_from_temp_variable = { sum = party_popularity_100@national_populist }
+
+		add_to_temp_variable = { TRK_new_marlib = sum } #avoid rounding errors
+
+		set_popularities = {
+			totalist = party_popularity_100@totalist
+			syndicalist = party_popularity_100@syndicalist
+			radical_socialist = party_popularity_100@radical_socialist
+			social_democrat = party_popularity_100@social_democrat
+			social_liberal = party_popularity_100@social_liberal
+			market_liberal = TRK_new_marlib
+			social_conservative = party_popularity_100@social_conservative
+			authoritarian_democrat = TRK_new_authdem
+			paternal_autocrat = party_popularity_100@paternal_autocrat
+			national_populist = party_popularity_100@national_populist
+		}
+				
+		create_country_leader = {
+			name = "Mustafa Shokay"
+			picture = "gfx/leaders/TRK/Portrait_TRK_Mustafa_Shokay.png"
+			expire = "1965.1.1"
+			ideology = marlib_jadidism_subtype
+		}
+		create_country_leader = {
+			name = "Katta Ergash"
+			picture = "gfx/leaders/TRK/Portrait_TRK_Katta_Ergash.png"
+			expire = "1965.1.1"
+			ideology = authdem_junta_subtype
+		}
+		set_party_name = {
+			ideology = authoritarian_democrat
+			name = TRK_authoritarian_democrat_party
+			long_name = TRK_authoritarian_democrat_party_long
 		}
 	}
 }
@@ -323,22 +440,6 @@ TRK_shokai_small_effect = {
 			}
 		}
 	}
-	if = {
-		limit = { 
-			TRK_shokai_in_power = yes 
-			has_country_flag = TRK_shokai_authoritarian
-		}
-		add_popularity = {
-			ideology = authoritarian_democrat
-			popularity = 0.02
-		}
-	}
-	else = {
-		add_popularity = {
-			ideology = social_liberal
-			popularity = 0.02
-		}
-	}
 	add_to_variable = { TRK_shokai_civ_war_var = 2 }
 }
 TRK_shokai_medium_effect = {
@@ -366,22 +467,6 @@ TRK_shokai_medium_effect = {
 				id = TRK_dual_power_bop
 				value = -0.06
 			}
-		}
-	}
-	if = {
-		limit = { 
-			TRK_shokai_in_power = yes 
-			has_country_flag = TRK_shokai_authoritarian
-		}
-		add_popularity = {
-			ideology = authoritarian_democrat
-			popularity = 0.06
-		}
-	}
-	else = {
-		add_popularity = {
-			ideology = social_liberal
-			popularity = 0.06
 		}
 	}
 	add_to_variable = { TRK_shokai_civ_war_var = 6 }
@@ -413,22 +498,6 @@ TRK_shokai_large_effect = {
 			}
 		}
 	}
-	if = {
-		limit = { 
-			TRK_shokai_in_power = yes 
-			has_country_flag = TRK_shokai_authoritarian
-		}
-		add_popularity = {
-			ideology = authoritarian_democrat
-			popularity = 0.10
-		}
-	}
-	else = {
-		add_popularity = {
-			ideology = social_liberal
-			popularity = 0.10
-		}
-	}
 	add_to_variable = { TRK_shokai_civ_war_var = 10 }
 }
 TRK_shokai_mega_effect = {
@@ -456,22 +525,6 @@ TRK_shokai_mega_effect = {
 				id = TRK_dual_power_bop
 				value = -0.20
 			}
-		}
-	}
-	if = {
-		limit = { 
-			TRK_shokai_in_power = yes 
-			has_country_flag = TRK_shokai_authoritarian
-		}
-		add_popularity = {
-			ideology = authoritarian_democrat
-			popularity = 0.20
-		}
-	}
-	else = {
-		add_popularity = {
-			ideology = social_liberal
-			popularity = 0.20
 		}
 	}
 	add_to_variable = { TRK_shokai_civ_war_var = 20 }
@@ -504,22 +557,6 @@ TRK_shokai_small_decrease_effect = {
 			}
 		}
 	}
-	if = {
-		limit = { 
-			TRK_shokai_in_power = yes 
-			has_country_flag = TRK_shokai_authoritarian
-		}
-		add_popularity = {
-			ideology = authoritarian_democrat
-			popularity = -0.02
-		}
-	}
-	else = {
-		add_popularity = {
-			ideology = social_liberal
-			popularity = -0.02
-		}
-	}
 	add_to_variable = { TRK_shokai_civ_war_var = -2 }
 }
 TRK_shokai_medium_decrease_effect = {
@@ -547,22 +584,6 @@ TRK_shokai_medium_decrease_effect = {
 				id = TRK_dual_power_bop
 				value = 0.06
 			}
-		}
-	}
-	if = {
-		limit = { 
-			TRK_shokai_in_power = yes 
-			has_country_flag = TRK_shokai_authoritarian
-		}
-		add_popularity = {
-			ideology = authoritarian_democrat
-			popularity = -0.06
-		}
-	}
-	else = {
-		add_popularity = {
-			ideology = social_liberal
-			popularity = -0.06
 		}
 	}
 	add_to_variable = { TRK_shokai_civ_war_var = -6 }
@@ -594,22 +615,6 @@ TRK_shokai_large_decrease_effect = {
 			}
 		}
 	}
-	if = {
-		limit = { 
-			TRK_shokai_in_power = yes 
-			has_country_flag = TRK_shokai_authoritarian
-		}
-		add_popularity = {
-			ideology = authoritarian_democrat
-			popularity = -0.10
-		}
-	}
-	else = {
-		add_popularity = {
-			ideology = social_liberal
-			popularity = -0.10
-		}
-	}
 	add_to_variable = { TRK_shokai_civ_war_var = -10 }
 }
 TRK_shokai_mega_decrease_effect = {
@@ -637,22 +642,6 @@ TRK_shokai_mega_decrease_effect = {
 				id = TRK_dual_power_bop
 				value = 0.20
 			}
-		}
-	}
-	if = {
-		limit = { 
-			TRK_shokai_in_power = yes 
-			has_country_flag = TRK_shokai_authoritarian
-		}
-		add_popularity = {
-			ideology = authoritarian_democrat
-			popularity = -0.20
-		}
-	}
-	else = {
-		add_popularity = {
-			ideology = social_liberal
-			popularity = -0.20
 		}
 	}
 	add_to_variable = { TRK_shokai_civ_war_var = -20 }
@@ -685,10 +674,6 @@ TRK_ferghana_small_effect = {
 			}
 		}
 	}
-	add_popularity = {
-		ideology = paternal_autocrat
-		popularity = 0.02
-	}
 	add_to_variable = { TRK_ferghana_civ_war_var = 2 }
 }
 TRK_ferghana_medium_effect = {
@@ -717,10 +702,6 @@ TRK_ferghana_medium_effect = {
 				value = 0.06
 			}
 		}
-	}
-	add_popularity = {
-		ideology = paternal_autocrat
-		popularity = 0.06
 	}
 	add_to_variable = { TRK_ferghana_civ_war_var = 6 }
 }
@@ -751,10 +732,6 @@ TRK_ferghana_large_effect = {
 			}
 		}
 	}
-	add_popularity = {
-		ideology = paternal_autocrat
-		popularity = 0.10
-	}
 	add_to_variable = { TRK_ferghana_civ_war_var = 10 }
 }
 TRK_ferghana_mega_effect = {
@@ -783,10 +760,6 @@ TRK_ferghana_mega_effect = {
 				value = 0.20
 			}
 		}
-	}
-	add_popularity = {
-		ideology = paternal_autocrat
-		popularity = 0.20
 	}
 	add_to_variable = { TRK_ferghana_civ_war_var = 20 }
 }
@@ -817,10 +790,6 @@ TRK_ferghana_small_decrease_effect = {
 			}
 		}
 	}
-	add_popularity = {
-		ideology = paternal_autocrat
-		popularity = -0.02
-	}
 	add_to_variable = { TRK_ferghana_civ_war_var = -2 }
 }
 TRK_ferghana_medium_decrease_effect = {
@@ -849,10 +818,6 @@ TRK_ferghana_medium_decrease_effect = {
 				value = -0.06
 			}
 		}
-	}
-	add_popularity = {
-		ideology = paternal_autocrat
-		popularity = -0.06
 	}
 	add_to_variable = { TRK_ferghana_civ_war_var = -6 }
 }
@@ -883,10 +848,6 @@ TRK_ferghana_large_decrease_effect = {
 			}
 		}
 	}
-	add_popularity = {
-		ideology = paternal_autocrat
-		popularity = -0.10
-	}
 	add_to_variable = { TRK_ferghana_civ_war_var = -10 }
 }
 TRK_ferghana_mega_decrease_effect = {
@@ -916,10 +877,6 @@ TRK_ferghana_mega_decrease_effect = {
 			}
 		}
 	}
-	add_popularity = {
-		ideology = paternal_autocrat
-		popularity = -0.20
-	}
 	add_to_variable = { TRK_ferghana_civ_war_var = -20 }
 }
 # Mujahideen
@@ -931,10 +888,6 @@ TRK_mujahideen_small_effect = {
 			value = 0.02
 		}
 	}
-	add_popularity = {
-		ideology = national_populist
-		popularity = 0.02
-	}
 	add_to_variable = { TRK_mujahideen_civ_war_var = 2 }
 }
 TRK_mujahideen_medium_effect = {
@@ -944,10 +897,6 @@ TRK_mujahideen_medium_effect = {
 			id = TRK_dual_power_bop
 			value = 0.06
 		}
-	}
-	add_popularity = {
-		ideology = national_populist
-		popularity = 0.06
 	}
 	add_to_variable = { TRK_mujahideen_civ_war_var = 6 }
 }
@@ -959,10 +908,6 @@ TRK_mujahideen_large_effect = {
 			value = 0.10
 		}
 	}
-	add_popularity = {
-		ideology = national_populist
-		popularity = 0.10
-	}
 	add_to_variable = { TRK_mujahideen_civ_war_var = 10 }
 }
 TRK_mujahideen_mega_effect = {
@@ -972,10 +917,6 @@ TRK_mujahideen_mega_effect = {
 			id = TRK_dual_power_bop
 			value = 0.20
 		}
-	}
-	add_popularity = {
-		ideology = national_populist
-		popularity = 0.20
 	}
 	add_to_variable = { TRK_mujahideen_civ_war_var = 20 }
 }
@@ -987,10 +928,6 @@ TRK_mujahideen_small_decrease_effect = {
 			value = -0.02
 		}
 	}
-	add_popularity = {
-		ideology = national_populist
-		popularity = -0.02
-	}
 	add_to_variable = { TRK_mujahideen_civ_war_var = -2 }
 }
 TRK_mujahideen_medium_decrease_effect = {
@@ -1000,10 +937,6 @@ TRK_mujahideen_medium_decrease_effect = {
 			id = TRK_dual_power_bop
 			value = -0.06
 		}
-	}
-	add_popularity = {
-		ideology = national_populist
-		popularity = -0.06
 	}
 	add_to_variable = { TRK_mujahideen_civ_war_var = -6 }
 }
@@ -1015,10 +948,6 @@ TRK_mujahideen_large_decrease_effect = {
 			value = -0.10
 		}
 	}
-	add_popularity = {
-		ideology = national_populist
-		popularity = -0.10
-	}
 	add_to_variable = { TRK_mujahideen_civ_war_var = -10 }
 }
 TRK_mujahideen_mega_decrease_effect = {
@@ -1029,11 +958,240 @@ TRK_mujahideen_mega_decrease_effect = {
 			value = -0.20
 		}
 	}
-	add_popularity = {
-		ideology = national_populist
-		popularity = -0.20
-	}
 	add_to_variable = { TRK_mujahideen_civ_war_var = -20 }
+}
+# Ittifoqi Muslimin
+TRK_ulema_small_effect = {
+	if = {
+		limit = { 
+			OR = {
+				is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_ulema_side }
+				is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_ulema_left_side }
+			}
+		}
+		if = {
+			limit = { 
+				is_power_balance_side_active = {
+					id = TRK_dual_power_bop
+					side = TRK_ulema_left_side
+				}
+			}
+			add_power_balance_value = {
+				id = TRK_dual_power_bop
+				value = -0.02
+			}
+		}
+		else = {
+			add_power_balance_value = {
+				id = TRK_dual_power_bop
+				value = 0.02
+			}
+		}
+	}
+	add_to_variable = { TRK_ittifoq_civ_war_var = 2 }
+}
+TRK_ulema_medium_effect = {
+	if = {
+		limit = { 
+			OR = {
+				is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_ulema_side }
+				is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_ulema_left_side }
+			}
+		}
+		if = {
+			limit = { 
+				is_power_balance_side_active = {
+					id = TRK_dual_power_bop
+					side = TRK_ulema_left_side
+				}
+			}
+			add_power_balance_value = {
+				id = TRK_dual_power_bop
+				value = -0.06
+			}
+		}
+		else = {
+			add_power_balance_value = {
+				id = TRK_dual_power_bop
+				value = 0.06
+			}
+		}
+	}
+	add_to_variable = { TRK_ittifoq_civ_war_var = 6 }
+}
+TRK_ulema_large_effect = {
+	if = {
+		limit = { 
+			OR = {
+				is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_ulema_side }
+				is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_ulema_left_side }
+			}
+		}
+		if = {
+			limit = { 
+				is_power_balance_side_active = {
+					id = TRK_dual_power_bop
+					side = TRK_ulema_left_side
+				}
+			}
+			add_power_balance_value = {
+				id = TRK_dual_power_bop
+				value = -0.10
+			}
+		}
+		else = {
+			add_power_balance_value = {
+				id = TRK_dual_power_bop
+				value = 0.10
+			}
+		}
+	}
+	add_to_variable = { TRK_ittifoq_civ_war_var = 10 }
+}
+TRK_ulema_mega_effect = {
+	if = {
+		limit = { 
+			OR = {
+				is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_ulema_side }
+				is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_ulema_left_side }
+			}
+		}
+		if = {
+			limit = { 
+				is_power_balance_side_active = {
+					id = TRK_dual_power_bop
+					side = TRK_ulema_left_side
+				}
+			}
+			add_power_balance_value = {
+				id = TRK_dual_power_bop
+				value = -0.20
+			}
+		}
+		else = {
+			add_power_balance_value = {
+				id = TRK_dual_power_bop
+				value = 0.20
+			}
+		}
+	}
+	add_to_variable = { TRK_ittifoq_civ_war_var = 20 }
+}
+TRK_ulema_small_decrease_effect = {
+	if = {
+		limit = { 
+			OR = {
+				is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_ulema_side }
+				is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_ulema_left_side }
+			}
+		}
+		if = {
+			limit = { 
+				is_power_balance_side_active = {
+					id = TRK_dual_power_bop
+					side = TRK_ulema_left_side
+				}
+			}
+			add_power_balance_value = {
+				id = TRK_dual_power_bop
+				value = 0.02
+			}
+		}
+		else = {
+			add_power_balance_value = {
+				id = TRK_dual_power_bop
+				value = -0.02
+			}
+		}
+	}
+	add_to_variable = { TRK_ittifoq_civ_war_var = -2 }
+}
+TRK_ulema_medium_decrease_effect = {
+	if = {
+		limit = { 
+			OR = {
+				is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_ulema_side }
+				is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_ulema_left_side }
+			}
+		}
+		if = {
+			limit = { 
+				is_power_balance_side_active = {
+					id = TRK_dual_power_bop
+					side = TRK_ulema_left_side
+				}
+			}
+			add_power_balance_value = {
+				id = TRK_dual_power_bop
+				value = 0.06
+			}
+		}
+		else = {
+			add_power_balance_value = {
+				id = TRK_dual_power_bop
+				value = -0.06
+			}
+		}
+	}
+	add_to_variable = { TRK_ittifoq_civ_war_var = -6 }
+}
+TRK_ulema_large_decrease_effect = {
+	if = {
+		limit = { 
+			OR = {
+				is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_ulema_side }
+				is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_ulema_left_side }
+			}
+		}
+		if = {
+			limit = { 
+				is_power_balance_side_active = {
+					id = TRK_dual_power_bop
+					side = TRK_ulema_left_side
+				}
+			}
+			add_power_balance_value = {
+				id = TRK_dual_power_bop
+				value = 0.10
+			}
+		}
+		else = {
+			add_power_balance_value = {
+				id = TRK_dual_power_bop
+				value = -0.10
+			}
+		}
+	}
+	add_to_variable = { TRK_ittifoq_civ_war_var = -10 }
+}
+TRK_ulema_mega_decrease_effect = {
+	if = {
+		limit = { 
+			OR = {
+				is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_ulema_side }
+				is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_ulema_left_side }
+			}
+		}
+		if = {
+			limit = { 
+				is_power_balance_side_active = {
+					id = TRK_dual_power_bop
+					side = TRK_ulema_left_side
+				}
+			}
+			add_power_balance_value = {
+				id = TRK_dual_power_bop
+				value = 0.20
+			}
+		}
+		else = {
+			add_power_balance_value = {
+				id = TRK_dual_power_bop
+				value = -0.20
+			}
+		}
+	}
+	add_to_variable = { TRK_ittifoq_civ_war_var = -20 }
 }
 # ERK
 TRK_erk_small_effect = {
@@ -1043,10 +1201,6 @@ TRK_erk_small_effect = {
 			id = TRK_dual_power_bop
 			value = -0.02
 		}
-	}
-	add_popularity = {
-		ideology = syndicalist
-		popularity = 0.02
 	}
 	if = {
 		limit = { has_country_flag = TRK_shokai_alliance_with_erk }
@@ -1065,10 +1219,6 @@ TRK_erk_medium_effect = {
 			value = -0.06
 		}
 	}
-	add_popularity = {
-		ideology = syndicalist
-		popularity = 0.06
-	}	
 	if = {
 		limit = { has_country_flag = TRK_shokai_alliance_with_erk }
 		add_to_variable = { TRK_shokai_civ_war_var = 6 }
@@ -1085,10 +1235,6 @@ TRK_erk_large_effect = {
 			id = TRK_dual_power_bop
 			value = -0.10
 		}
-	}
-	add_popularity = {
-		ideology = syndicalist
-		popularity = 0.10
 	}
 	if = {
 		limit = { has_country_flag = TRK_shokai_alliance_with_erk }
@@ -1107,10 +1253,6 @@ TRK_erk_mega_effect = {
 			value = -0.20
 		}
 	}
-	add_popularity = {
-		ideology = syndicalist
-		popularity = 0.20
-	}
 	if = {
 		limit = { has_country_flag = TRK_shokai_alliance_with_erk }
 		add_to_variable = { TRK_shokai_civ_war_var = 20 }
@@ -1127,10 +1269,6 @@ TRK_erk_small_decrease_effect = {
 			id = TRK_dual_power_bop
 			value = 0.02
 		}
-	}
-	add_popularity = {
-		ideology = syndicalist
-		popularity = -0.02
 	}
 	if = {
 		limit = { has_country_flag = TRK_shokai_alliance_with_erk }
@@ -1149,10 +1287,6 @@ TRK_erk_medium_decrease_effect = {
 			value = 0.06
 		}
 	}
-	add_popularity = {
-		ideology = syndicalist
-		popularity = -0.06
-	}	
 	if = {
 		limit = { has_country_flag = TRK_shokai_alliance_with_erk }
 		add_to_variable = { TRK_shokai_civ_war_var = -6 }
@@ -1169,10 +1303,6 @@ TRK_erk_large_decrease_effect = {
 			id = TRK_dual_power_bop
 			value = 0.10
 		}
-	}
-	add_popularity = {
-		ideology = syndicalist
-		popularity = -0.10
 	}
 	if = {
 		limit = { has_country_flag = TRK_shokai_alliance_with_erk }
@@ -1191,10 +1321,6 @@ TRK_erk_mega_decrease_effect = {
 			value = 0.20
 		}
 	}
-	add_popularity = {
-		ideology = syndicalist
-		popularity = -0.20
-	}
 	if = {
 		limit = { has_country_flag = TRK_shokai_alliance_with_erk }
 		add_to_variable = { TRK_shokai_civ_war_var = -20 }
@@ -1203,6 +1329,217 @@ TRK_erk_mega_decrease_effect = {
 	else = {
 		add_to_variable = { TRK_erk_civ_war_var = -20 }
 	}
+}
+TRK_swap_shokai_with_ergash_side = {
+	if = {
+		limit = {
+			is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_shokai_side }
+		}
+		if = {
+			limit = {
+				is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_kurshirmat_side }
+			}
+			set_power_balance = {
+				id = TRK_dual_power_bop
+				left_side = TRK_ulema_left_side
+				right_side = TRK_kurshirmat_side
+			}
+			set_power_balance_gfx = {
+				id = TRK_dual_power_bop
+				side = TRK_ulema_left_side
+				gfx = GFX_bop_TRK_ergash_side
+			}
+		}
+		else = {
+			remove_power_balance = { id = TRK_dual_power_bop }
+			remove_ideas = TRK_lasting_political_crisis
+		}
+	}
+	else_if = {
+		limit = {
+			is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_shokai_right_side }
+		}
+		set_power_balance = {
+			id = TRK_dual_power_bop
+			left_side = TRK_erk_side
+			right_side = TRK_ulema_side
+		}
+		set_power_balance_gfx = {
+			id = TRK_dual_power_bop
+			side = TRK_ulema_side
+			gfx = GFX_bop_TRK_ergash_side
+		}
+	}
+}
+TRK_swap_monstrov_with_ergash_side = {
+	if = {
+		limit = {
+			is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_madamin_left_side }
+		}
+		if = {
+			limit = {
+				is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_kurshirmat_side }
+			}
+			set_power_balance = {
+				id = TRK_dual_power_bop
+				left_side = TRK_ulema_left_side
+				right_side = TRK_kurshirmat_side
+			}
+			set_power_balance_gfx = {
+				id = TRK_dual_power_bop
+				side = TRK_ulema_left_side
+				gfx = GFX_bop_TRK_ergash_side
+			}
+		}
+		else = {
+			remove_power_balance = { id = TRK_dual_power_bop }
+			remove_ideas = TRK_lasting_political_crisis
+		}
+	}
+	else_if = {
+		limit = {
+			is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_madamin_side }
+		}
+		if = {
+			limit = {
+				is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_erk_side }
+			}
+			set_power_balance = {
+				id = TRK_dual_power_bop
+				left_side = TRK_erk_side
+				right_side = TRK_ulema_side
+			}
+			set_power_balance_gfx = {
+				id = TRK_dual_power_bop
+				side = TRK_ulema_side
+				gfx = GFX_bop_TRK_ergash_side
+			}
+		}
+		else = {
+			set_power_balance = {
+				id = TRK_dual_power_bop
+				left_side = TRK_shokai_side
+				right_side = TRK_ulema_side
+			}
+			set_power_balance_gfx = {
+				id = TRK_dual_power_bop
+				side = TRK_ulema_side
+				gfx = GFX_bop_TRK_ergash_side
+			}
+		}
+	}
+}
+TRK_swap_erk_with_ergash_side = {
+	if = {
+		limit = {
+			is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_erk_side }
+		}
+		if = {
+			limit = {
+				is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_shokai_right_side }
+			}
+			set_power_balance = {
+				id = TRK_dual_power_bop
+				left_side = TRK_ulema_left_side
+				right_side = TRK_shokai_right_side
+			}
+			set_power_balance_gfx = {
+				id = TRK_dual_power_bop
+				side = TRK_ulema_left_side
+				gfx = GFX_bop_TRK_ergash_side
+			}
+		}
+		else_if = {
+			limit = {
+				is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_madamin_side }
+			}
+			set_power_balance = {
+				id = TRK_dual_power_bop
+				left_side = TRK_ulema_left_side
+				right_side = TRK_madamin_side
+			}
+			set_power_balance_gfx = {
+				id = TRK_dual_power_bop
+				side = TRK_ulema_left_side
+				gfx = GFX_bop_TRK_ergash_side
+			}
+		}
+		else_if = {
+			limit = {
+				is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_kurshirmat_side }
+			}
+			set_power_balance = {
+				id = TRK_dual_power_bop
+				left_side = TRK_ulema_left_side
+				right_side = TRK_kurshirmat_side
+			}
+			set_power_balance_gfx = {
+				id = TRK_dual_power_bop
+				side = TRK_ulema_left_side
+				gfx = GFX_bop_TRK_ergash_side
+			}
+		}
+		else = {
+			remove_power_balance = { id = TRK_dual_power_bop }
+			remove_ideas = TRK_lasting_political_crisis
+		}
+	}	
+}
+TRK_swap_kurshirmat_with_ergash_side = {
+	if = {
+		limit = {
+			is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_kurshirmat_side }
+		}
+		if = {
+			limit = {
+				is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_madamin_left_side }
+			}
+			set_power_balance = {
+				id = TRK_dual_power_bop
+				left_side = TRK_madamin_left_side
+				right_side = TRK_ulema_side
+			}
+			set_power_balance_gfx = {
+				id = TRK_dual_power_bop
+				side = TRK_ulema_side
+				gfx = GFX_bop_TRK_ergash_side
+			}
+		}
+		else_if = {
+			limit = {
+				is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_shokai_side }
+			}
+			set_power_balance = {
+				id = TRK_dual_power_bop
+				left_side = TRK_shokai_side
+				right_side = TRK_ulema_side
+			}
+			set_power_balance_gfx = {
+				id = TRK_dual_power_bop
+				side = TRK_ulema_side
+				gfx = GFX_bop_TRK_ergash_side
+			}
+		}
+		else_if = {
+			limit = {
+				is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_erk_side }
+			}
+			set_power_balance = {
+				id = TRK_dual_power_bop
+				left_side = TRK_erk_side
+				right_side = TRK_ulema_side
+			}
+			set_power_balance_gfx = {
+				id = TRK_dual_power_bop
+				side = TRK_ulema_side
+				gfx = GFX_bop_TRK_ergash_side
+			}
+		}
+		else = {
+			remove_power_balance = { id = TRK_dual_power_bop }
+			remove_ideas = TRK_lasting_political_crisis
+		}
+	}	
 }
 TRK_decrease_coalition_strength = {
 	if = {
@@ -1333,8 +1670,15 @@ TRK_create_tashkent_controlled_dummy = {
 		}
 	}
 }
+TRK_recalc_civ_war_vars = {
+	clamp_variable = { var = TRK_shokai_civ_war_var min = 0 }
+	clamp_variable = { var = TRK_erk_civ_war_var min = 0 }
+	clamp_variable = { var = TRK_ittifoq_civ_war_var min = 0 }
+	clamp_variable = { var = TRK_ferghana_civ_war_var min = 0 }
+	clamp_variable = { var = TRK_mujahideen_civ_war_var min = 0 }
+}
 TRK_calculate_success_of_the_act = {
-	set_variable = { UKR_act_success = 0 }
+	set_variable = { TRK_bill_success = 0 }
 	if = {
 		limit = {
 			check_variable = { TRK_erk_support > 30 }
@@ -1678,13 +2022,10 @@ TRK_setup_modernisation_for_each_tag = {
 		if = {
 			limit = { is_kokand_splinter_tag = yes }
 			TRK_increase_social_modernisation = yes
-			TRK_increase_social_modernisation = yes
 		}
 		if = {
 			limit = { tag = UZB }
 			TRK_increase_economic_modernisation = yes
-			TRK_increase_economic_modernisation = yes
-			TRK_increase_social_modernisation = yes
 		}
 		if = {
 			limit = { tag = KHI }
@@ -1693,7 +2034,6 @@ TRK_setup_modernisation_for_each_tag = {
 		if = {
 			limit = { tag = ALO }
 			TRK_increase_economic_modernisation = yes
-			TRK_increase_social_modernisation = yes
 			TRK_increase_social_modernisation = yes
 		}
 	}
@@ -1908,6 +2248,7 @@ basmachi_leave_region = {
 					has_id = 68598
 					has_id = 68600
 				}
+				NOT = { has_unit_leader_flag = loyal_mujahideen }
 			}
 			set_nationality = var:target
 			add_unit_leader_trait = exiled_leader
@@ -1943,7 +2284,36 @@ TRK_setup_kyrgyzstan_splinter = {
 		ALO = { give_guarantee = PREV }
 		hidden_effect = {
 			586 = { set_demilitarized_zone = no }
-			load_oob = "KYR"
+			division_template = {
+				name = "Militsiya"
+				division_names_group = CA_MIL_01
+
+				regiments = {
+					militia = { x = 0 y = 0 }
+					militia = { x = 0 y = 1 }
+					militia = { x = 0 y = 2 }
+					militia = { x = 0 y = 3 }
+				}
+				
+			}
+			division_template = {
+				name = "Attar Belum"
+				division_names_group = ALO_CAV_01
+
+				regiments = {
+					cavalry = { x = 0 y = 0 }
+					cavalry = { x = 0 y = 1 }
+					cavalry = { x = 0 y = 2 }
+					cavalry = { x = 0 y = 3 }
+				}
+			}
+			586 = {
+				create_unit = {
+					division = "division_template = \"Militsiyasy\" start_experience_factor = 0.1"
+					count = 3
+					owner = PREV
+				}
+			}
 			set_party_name = {
 				ideology = social_conservative
 				name = TRK_social_conservative_party

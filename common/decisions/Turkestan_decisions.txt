@@ -778,7 +778,7 @@ TRK_executive_empowerment_act_category = {
 		fire_only_once = yes
 		selectable_mission = no
 		is_good = yes
-		days_mission_timeout = 150
+		days_mission_timeout = 250
 		timeout_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision timeout TRK_executive_empowerment_mission"
 			TRK_calculate_success_of_the_act = yes
@@ -939,7 +939,20 @@ TRK_government_decisions = {
 		
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_cultural_reconciliation"
-			TRK_shokai_medium_effect = yes
+			if = {
+				limit = {
+					OR = {
+						is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_shokai_side }
+						is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_shokai_right_side }
+						is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_ulema_side }
+						is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_ulema_left_side }
+					}
+				}
+				TRK_shokai_medium_effect = yes
+			}
+			else = {
+				TRK_shokai_medium_effect = yes
+			}
 			TRK_increase_coalition_strength = yes
 		}
 	}
@@ -950,6 +963,7 @@ TRK_government_decisions = {
 				is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_shokai_side }
 				is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_shokai_right_side }
 			}
+			TRK_shokai_in_power = yes
 		}
 		fire_only_once = no
 		days_re_enable = 180
@@ -2487,12 +2501,12 @@ TRK_east_pamir_revolt_category = {
 		available = {
 			hidden_trigger = { always = no }
 		}
-		allowed = { always = no } # manually activated by event ukraine_relief.1
-		visible = { check_variable = { TRK_mujahideen_civ_war_var > 0 } }
+		allowed = { always = no } # manually activated
+		visible = { check_variable = { TRK_mujahideen_civ_war_var > 29 } }
 		cancel_if_not_visible = yes
 		fire_only_once = yes
 		selectable_mission = no
-		is_good = yes
+		is_good = no
 		days_mission_timeout = 250
 		
 		cancel_effect = {
@@ -2511,8 +2525,12 @@ TRK_east_pamir_revolt_category = {
 				}
 				country_event = turkestan.66
 			}
-			else = {
+			else_if = {
+				limit = { has_idea = TRK_mirshab_revolt }
 				country_event = turkestan.67
+			}
+			else = {
+				country_event = turkestan.71
 			}
 		}
 	}
@@ -2574,9 +2592,9 @@ TRK_east_pamir_revolt_category = {
 		icon = GFX_decision_generic_prepare_civil_war
 		allowed = { always = no }				
 		custom_cost_trigger = {
-			command_power > 59.99
+			command_power > 39.99
 		}
-		custom_cost_text = CP_60
+		custom_cost_text = CP_40
 		target_non_existing = yes
 		fire_only_once = no
 		days_remove = 80
@@ -2586,7 +2604,7 @@ TRK_east_pamir_revolt_category = {
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision TRK_direct_military_offensive"
 			hidden_effect = {
-				add_command_power = -60
+				add_command_power = -40
 			}
 		}
 		remove_effect = {
@@ -2622,9 +2640,9 @@ TRK_east_pamir_revolt_category = {
 		icon = GFX_decision_ETH_chitet
 		allowed = { always = no }				
 		custom_cost_trigger = {
-			command_power > 49.99
+			command_power > 29.99
 		}
-		custom_cost_text = CP_50
+		custom_cost_text = CP_30
 		target_non_existing = yes
 		fire_only_once = no
 		days_remove = 35
@@ -2634,12 +2652,12 @@ TRK_east_pamir_revolt_category = {
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision TRK_counter_insurgency_tactics"
 			hidden_effect = {
-				add_command_power = -50
+				add_command_power = -30
 			}
 		}
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_counter_insurgency_tactics"
-			TRK_mujahideen_small_decrease_effect = yes
+			TRK_mujahideen_medium_decrease_effect = yes
 			set_temp_variable_to_random = {
 				var = TRK_manpower_lost
 				min = -600
@@ -2670,7 +2688,7 @@ TRK_east_pamir_revolt_category = {
 		icon = GFX_decision_generic_ignite_civil_war
 		allowed = { always = no }				
 		
-		cost = 70
+		cost = 50
 		target_non_existing = yes
 		fire_only_once = yes
 		
@@ -2703,6 +2721,7 @@ TRK_east_pamir_revolt_category = {
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision TRK_psychological_warfare"
 			TRK_mujahideen_medium_decrease_effect = yes
+			add_war_support = 0.15
 		}
 	}
 	TRK_train_the_troops = {
@@ -2716,6 +2735,7 @@ TRK_east_pamir_revolt_category = {
 		
 		modifier = {
 			command_power_gain_mult = 1
+			political_power_gain = 0.15
 		}
 		
 		ai_will_do = { base = 100 }
@@ -2898,6 +2918,251 @@ special_projects = {
 				start_province = 14731
   				target_province = 2058
 			}
+		}
+	}
+}
+operations = {
+	TRK_deal_with_russian_settler_unrest = {
+		icon = GFX_decision_revolt
+		allowed = { always = no } # manually activated
+		activation = {
+			always = no
+		}
+		cancel_trigger = {
+			hidden_trigger = { TRK_monstrov_in_power = yes }
+		}
+		cost = 50
+		
+		fire_only_once = yes
+		selectable_mission = yes
+		is_good = no
+		days_mission_timeout = 150
+		
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel TRK_deal_with_russian_settler_unrest"
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete TRK_deal_with_russian_settler_unrest"
+			remove_ideas = TRK_russian_settler_unrest
+		}
+		timeout_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision timeout TRK_deal_with_russian_settler_unrest"
+			country_event = turkestan.72
+		}
+	}
+	TRK_deal_with_mirshab_revolt = {
+		icon = GFX_decision_revolt
+		allowed = { always = no } # manually activated
+		activation = {
+			always = no
+		}
+		cancel_trigger = {
+			hidden_trigger = { TRK_katta_ergash_in_power = yes }
+		}
+		cost = 50
+		
+		fire_only_once = yes
+		selectable_mission = yes
+		is_good = no
+		days_mission_timeout = 150
+		
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel TRK_deal_with_mirshab_revolt"
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete TRK_deal_with_mirshab_revolt"
+			remove_ideas = TRK_mirshab_revolt
+		}
+		timeout_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision timeout TRK_deal_with_mirshab_revolt"
+			country_event = turkestan.73
+		}
+	}
+}
+TRK_elections_race = {
+	TRK_campaign_erk = {
+		icon = GFX_decision_generic_flags
+		available = { 
+			custom_trigger_tooltip = {
+				tooltip = TRK_not_campaign_ongoing
+				check_variable = { TRK_campaign_ongoing = 0 }
+			}
+		}
+		visible = {
+			NOT = { 
+				has_event_target = tashkent 
+				has_country_flag = TRK_erk_destroyed
+			}			
+		}
+		cancel_if_not_visible = yes
+		cost = 50
+		fire_only_once = yes
+		days_remove = 25
+		
+		ai_will_do = { base = 0 }
+		
+		cancel_effect= {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel TRK_campaign_erk"
+			set_variable = { TRK_campaign_ongoing = 0 }
+			TRK_recalc_pop_before_election = yes
+		}
+		complete_effect= {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_campaign_erk"
+			set_variable = { TRK_campaign_ongoing = 1 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_campaign_erk"			
+			set_variable = { TRK_campaign_ongoing = 0 }
+			TRK_erk_medium_effect = yes
+			TRK_recalc_pop_before_election = yes
+		}
+	}
+	TRK_campaign_milliy = {
+		icon = GFX_decision_generic_flags
+		available = { 
+			custom_trigger_tooltip = {
+				tooltip = TRK_not_campaign_ongoing
+				check_variable = { TRK_campaign_ongoing = 0 }
+			}
+		}
+		visible = {
+			NOT = { 
+				has_country_flag = TRK_milliy_ittihod_banned
+			}			
+		}
+		cost = 50
+		fire_only_once = yes
+		days_remove = 25
+		
+		ai_will_do = { base = 0 }
+		
+		cancel_effect= {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel TRK_campaign_milliy"
+			set_variable = { TRK_campaign_ongoing = 0 }
+			TRK_recalc_pop_before_election = yes
+		}
+		complete_effect= {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_campaign_milliy"
+			set_variable = { TRK_campaign_ongoing = 1 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_campaign_milliy"			
+			set_variable = { TRK_campaign_ongoing = 0 }
+			if = {
+				limit = { 
+					TRK_shokai_in_power = yes 
+					NOT = {
+						has_country_flag = TRK_yosh_turkiston_authdem
+						has_country_flag = TRK_yosh_turkiston_marlib
+						has_country_flag = TRK_yosh_turkiston_soclib
+					}
+				}
+				TRK_shokai_medium_effect = yes
+			}
+			else = {
+				add_popularity = {
+					ideology = social_liberal
+					popularity = 0.06
+				}
+			}
+			TRK_recalc_pop_before_election = yes
+		}
+	}
+	TRK_campaign_yosh = {
+		icon = GFX_decision_generic_flags
+		available = { 
+			custom_trigger_tooltip = {
+				tooltip = TRK_not_campaign_ongoing
+				check_variable = { TRK_campaign_ongoing = 0 }
+			}
+		}
+		visible = {
+			OR = {
+				has_country_flag = TRK_yosh_turkiston_authdem
+				has_country_flag = TRK_yosh_turkiston_marlib
+				has_country_flag = TRK_yosh_turkiston_soclib
+			}			
+		}
+		cost = 50
+		fire_only_once = yes
+		days_remove = 25
+		
+		ai_will_do = { base = 0 }
+		
+		cancel_effect= {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel TRK_campaign_yosh"
+			set_variable = { TRK_campaign_ongoing = 0 }
+			TRK_recalc_pop_before_election = yes
+		}
+		complete_effect= {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_campaign_yosh"
+			set_variable = { TRK_campaign_ongoing = 1 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_campaign_yosh"			
+			set_variable = { TRK_campaign_ongoing = 0 }
+			if = {
+				limit = { TRK_shokai_in_power = yes }
+				TRK_shokai_medium_effect = yes
+			}
+			else_if = {
+				limit = { has_country_flag = TRK_yosh_turkiston_authdem }
+				add_popularity = {
+					ideology = authoritarian_democrat
+					popularity = 0.06
+				}
+			}
+			else_if = {
+				limit = { has_country_flag = TRK_yosh_turkiston_marlib }
+				add_popularity = {
+					ideology = market_liberal
+					popularity = 0.06
+				}
+			}
+			else = {
+				add_popularity = {
+					ideology = social_liberal
+					popularity = 0.06
+				}
+			}
+			TRK_recalc_pop_before_election = yes
+		}
+	}
+	TRK_campaign_ittifoqi = {
+		icon = GFX_decision_generic_flags
+		available = { 
+			custom_trigger_tooltip = {
+				tooltip = TRK_not_campaign_ongoing
+				check_variable = { TRK_campaign_ongoing = 0 }
+			}
+		}
+		visible = {
+			OR = {
+				has_country_flag = TRK_yosh_turkiston_authdem
+				has_country_flag = TRK_yosh_turkiston_marlib
+				has_country_flag = TRK_yosh_turkiston_soclib
+			}			
+		}
+		cost = 50
+		fire_only_once = yes
+		days_remove = 25
+		
+		ai_will_do = { base = 0 }
+		
+		cancel_effect= {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel TRK_campaign_ittifoqi"
+			set_variable = { TRK_campaign_ongoing = 0 }
+			TRK_recalc_pop_before_election = yes
+		}
+		complete_effect= {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_campaign_ittifoqi"
+			set_variable = { TRK_campaign_ongoing = 1 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_campaign_ittifoqi"			
+			set_variable = { TRK_campaign_ongoing = 0 }
+			TRK_ulema_medium_effect = yes
+			TRK_recalc_pop_before_election = yes
 		}
 	}
 }
