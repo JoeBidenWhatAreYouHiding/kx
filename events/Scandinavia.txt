@@ -8,126 +8,101 @@ add_namespace = scandinavia #Post-Formation
 
 ### Scandinavian Intergration ###
 
-country_event = { #Found the Nordic Council
+country_event = { #Nordic Council founded
 	id = nordic_formation.1
-	immediate = { log = "[GetDateText]: [Root.GetName]: event nordic_formation.1 FROM = [From.GetName]" }
 	title = nordic_formation.1.t
 	desc = nordic_formation.1.d
 	picture = GFX_report_event_NOR_syndicalist_constitution
 
 	is_triggered_only = yes
 
-	option = {
+	option = { #Good idea
+		log = "[GetLogInfo]: event nordic_formation.1 option nordic_formation.1.a"
 		name = nordic_formation.1.a
+		ai_chance = {
+			base = 1
+		}
 		set_country_flag = SCA_nordic_council_accepted
-		create_faction = SCA_nordic_council_faction
-		add_ideas = SCA_nordic_council_idea
-		every_other_country = {
-			limit = { SCA_is_valid_nordic_member = yes }
-			country_event = { id = nordic_formation.2 days = 1 }
+		effect_tooltip = {
+			add_ideas = SCA_nordic_council_idea
+			event_target:SCA_nordic_council_leader = { country_event = nordic_formation.2 }
+		}
+		hidden_effect = {
+			every_subject_country = {
+				limit = { is_scandinavian_tag = yes }
+				set_country_flag = SCA_nordic_council_accepted
+			}
+			if = {
+				limit = {
+					any_other_country = {
+						is_scandinavian_tag = yes
+						NOT = { has_country_flag = SCA_nordic_council_accepted }
+						is_subject = no
+					}
+				}
+				random_other_country = {
+					limit = {
+						is_scandinavian_tag = yes
+						NOT = { has_country_flag = SCA_nordic_council_accepted }
+						is_subject = no
+					}
+					country_event = nordic_formation.2
+				}
+			}
+			else = {
+				event_target:SCA_nordic_council_leader = { country_event = { id = nordic_formation.2 hours = 8 } }
+			}
+		}
+	}
+
+	option = { #Bad idea
+		log = "[GetLogInfo]: event nordic_formation.1 option nordic_formation.2.b"
+		name = nordic_formation.2.b
+		ai_chance = {
+			base = 0
+		}
+		set_global_flag = SCA_nordic_council_refused
+		every_country = {
+			limit = { has_country_flag = SCA_nordic_council_accepted }
+			clr_country_flag = SCA_nordic_council_accepted
+			country_event = { id = nordic_formation.3 days = 1 }
 		}
 	}
 }
 
-country_event = { #Nordic Council founded
+country_event = { #Found the Nordic Council
 	id = nordic_formation.2
-	immediate = { log = "[GetDateText]: [Root.GetName]: event nordic_formation.2 FROM = [From.GetName]" }
 	title = nordic_formation.2.t
 	desc = nordic_formation.2.d
 	picture = GFX_report_event_NOR_syndicalist_constitution
 
 	is_triggered_only = yes
 
-	trigger = {
-		NOT = {
-			has_country_flag = SCA_nordic_council_accepted
-		}
-	}
-
-	option = { #Good idea
+	option = {
+		log = "[GetLogInfo]: event nordic_formation.2 option nordic_formation.2.a"
 		name = nordic_formation.2.a
-		ai_chance = { base = 100 }
+		create_faction = SCA_nordic_council_faction
 		add_ideas = SCA_nordic_council_idea
 		every_other_country = {
 			limit = { has_country_flag = SCA_nordic_council_accepted }
 			clr_country_flag = SCA_nordic_council_accepted
 			add_ideas = SCA_nordic_council_idea
-			event_target:SCA_nordic_council_leader = { add_to_faction = PREV }
+			ROOT = { add_to_faction = PREV }
 		}
-		set_country_flag = SCA_nordic_council_accepted
-		add_ideas = SCA_nordic_council_idea
-	}
-
-	option = { #Bad idea
-		name = nordic_formation.2.b
-		ai_chance = {
-			base = 0
-		}
-		set_country_flag = sca_no_nordic_council
-		FROM = { country_event = { id = nordic_formation.19 days = 1 } }
 	}
 }
 
-country_event = { #Scandinavian Defense Union (For the would-be faction leader, default Sweden)
+country_event = { #[From.GetCountryDef] rejects other proposal
 	id = nordic_formation.3
-	immediate = { log = "[GetDateText]: [Root.GetName]: event nordic_formation.3 FROM = [From.GetName]" }
 	title = nordic_formation.3.t
 	desc = nordic_formation.3.d
-	picture = GFX_report_event_SWE_Scandinavia
+	picture = GFX_report_event_NOR_syndicalist_constitution
 
 	is_triggered_only = yes
 
-	option = { #Great!
+	option = { #Sad
+		log = "[GetLogInfo]: event nordic_formation.3 option nordic_formation.3.a"
 		name = nordic_formation.3.a
-		ai_chance = {
-			base = 100
-			modifier = {
-				factor = 0
-				has_game_rule = {
-					rule = SCA_formation
-					option = SCA_FORMATION_NEVER
-				}
-			}
-		}
-		set_country_flag = SCA_scandinavian_defense_union_accepted
-		create_faction = SCA_faction_scandinavian_defense_union
-		every_other_country = {
-			limit = { SCA_is_valid_nordic_member = yes }
-			country_event = { id = nordic_formation.4 days = 1 }
-		}
-	}
-
-	option = { #No thank you (faction leadership reverts to Denmark or the project ends here)
-		name = nordic_formation.3.b
-		ai_chance = {
-			base = 0
-			modifier = { #AI might bail out if they're already in a faction.
-				factor = 0
-				NOT = {
-					is_in_faction = yes
-				}
-			}
-			modifier = {
-				add = 100
-				has_game_rule = {
-					rule = SCA_formation
-					option = SCA_FORMATION_NEVER
-				}
-			}
-		}
-		if = { #Revert to Denmark if Norway can join them
-			limit = {
-				NOT = {
-					tag = DEN
-				}
-				country_exists = DEN
-				country_exists = NOR
-			}
-			DEN = {
-				country_event = { id = nordic_formation.3 }
-			}
-		}
-		set_country_flag = sca_no_defense_union
 		if = {
 			limit = { has_completed_focus = SCANDINAVIA_nordic_council }
 			uncomplete_national_focus = {
@@ -135,362 +110,12 @@ country_event = { #Scandinavian Defense Union (For the would-be faction leader, 
 				uncomplete_children = yes
 			}
 		}
-	}
-}
-
-country_event = { #Scandinavian Defense Union (Others)
-	id = nordic_formation.4
-	immediate = { log = "[GetDateText]: [Root.GetName]: event nordic_formation.4 FROM = [From.GetName]" }
-	title = nordic_formation.4.t
-	desc = nordic_formation.4.d
-	picture = GFX_report_event_SWE_Scandinavia
-
-	is_triggered_only = yes
-
-	trigger = {
-		NOT = {
-			has_country_flag = SCA_scandinavian_defense_union_accepted
-		}
-	}
-
-	option = { #Great!
-		name = nordic_formation.4.a
-		ai_chance = {
-			base = 100
-			modifier = {
-				factor = 0
-				has_game_rule = {
-					rule = SCA_formation
-					option = SCA_FORMATION_NEVER
-				}
-			}
-		}
-		set_country_flag = SCA_scandinavian_defense_union_accepted
-		FROM = {
-			add_to_faction = ROOT
-		}
-	}
-
-	option = { #No thank you (faction leadership reverts to Denmark or the project ends here)
-		name = nordic_formation.4.b
-		ai_chance = {
-			base = 0
-			modifier = { #AI might bail out if they're already in a faction.
-				factor = 0
-				NOT = {
-					is_in_faction = yes
-				}
-			}
-			modifier = {
-				add = 100
-				has_game_rule = {
-					rule = SCA_formation
-					option = SCA_FORMATION_NEVER
-				}
-			}
-		}
-		set_country_flag = sca_no_defense_union
-		if = {
-			limit = { has_completed_focus = SCANDINAVIA_nordic_council }
-			uncomplete_national_focus = {
-				focus = SCANDINAVIA_nordic_council
-				uncomplete_children = yes
-			}
-		}
-		FROM = { country_event = { id = nordic_formation.19 days = 1 } }
-	}
-}
-
-country_event = { #Nordic Passport Convention
-	id = nordic_formation.5
-	immediate = { log = "[GetDateText]: [Root.GetName]: event nordic_formation.5 FROM = [From.GetName]" }
-	title = nordic_formation.5.t
-	desc = nordic_formation.5.d
-	picture = GFX_report_event_NOR_syndicalist_constitution
-
-	is_triggered_only = yes
-
-	option = {
-		name = nordic_formation.5.a
-		set_country_flag = SCA_passport_convention_accepted
-		add_ideas = SCA_passport_union_idea
-		every_other_country = {
-			limit = { SCA_is_valid_nordic_member = yes }
-			country_event = { id = nordic_formation.6 days = 1 }
-		}
-	}
-}
-
-country_event = { #Nordic Passport Convention
-	id = nordic_formation.6
-	immediate = { log = "[GetDateText]: [Root.GetName]: event nordic_formation.6 FROM = [From.GetName]" }
-	title = nordic_formation.6.t
-	desc = nordic_formation.6.d
-	picture = GFX_report_event_NOR_syndicalist_constitution
-
-	is_triggered_only = yes
-
-	option = {
-		name = nordic_formation.6.a
-		ai_chance = {
-			base = 100
-			modifier = {
-				factor = 0
-				has_game_rule = {
-					rule = SCA_formation
-					option = SCA_FORMATION_NEVER
-				}
-			}
-		}
-		set_country_flag = SCA_passport_convention_accepted
-		add_ideas = SCA_passport_union_idea
-	}
-
-	option = {
-		name = nordic_formation.6.b
-		ai_chance = {
-			base = 0
-			modifier = { #Norway might bail out
-				factor = 0
-				NOT = {
-					tag = NOR
-				}
-			}
-			modifier = {
-				add = 100
-				has_game_rule = {
-					rule = SCA_formation
-					option = SCA_FORMATION_NEVER
-				}
-			}
-		}
-		set_country_flag = sca_no_passport_convention
-		FROM = { country_event = { id = nordic_formation.19 days = 1 } }
-	}
-}
-
-country_event = { #Scandinavian Monetary Union
-	id = nordic_formation.7
-	immediate = { log = "[GetDateText]: [Root.GetName]: event nordic_formation.7 FROM = [From.GetName]" }
-	title = nordic_formation.7.t
-	desc = nordic_formation.7.d
-	picture = GFX_report_event_NOR_syndicalist_constitution
-
-	is_triggered_only = yes
-
-	option = {
-		name = nordic_formation.7.a
-		GER_kick_from_mitteleuropa = yes
-		set_country_flag = SCA_monetary_union_accepted
-		add_ideas = SCA_monetary_union_idea
-		every_other_country = {
-			limit = { SCA_is_valid_nordic_member = yes }
-			country_event = { id = nordic_formation.8 days = 1 }
-		}
-	}
-}
-
-country_event = { #Scandinavian Monetary Union
-	id = nordic_formation.8
-	immediate = { log = "[GetDateText]: [Root.GetName]: event nordic_formation.8 FROM = [From.GetName]" }
-	title = nordic_formation.8.t
-	desc = nordic_formation.8.d
-	picture = GFX_report_event_NOR_syndicalist_constitution
-
-	is_triggered_only = yes
-
-	option = {
-		name = nordic_formation.8.a
-		ai_chance = {
-			base = 100
-			modifier = {
-				factor = 0
-				has_game_rule = {
-					rule = SCA_formation
-					option = SCA_FORMATION_NEVER
-				}
-			}
-		}
-		GER_kick_from_mitteleuropa = yes
-		set_country_flag = SCA_monetary_union_accepted
-		add_ideas = SCA_monetary_union_idea
-	}
-
-	option = {
-		name = nordic_formation.8.b
-		ai_chance = {
-			base = 0
-			modifier = { #Norway might bail out
-				factor = 0
-				NOT = {
-					tag = NOR
-				}
-			}
-			modifier = {
-				add = 100
-				has_game_rule = {
-					rule = SCA_formation
-					option = SCA_FORMATION_NEVER
-				}
-			}
-		}
-		set_country_flag = sca_no_monetary_union
-		FROM = { country_event = { id = nordic_formation.19 days = 1 } }
-	}
-}
-
-country_event = { #Single Market
-	id = nordic_formation.9
-	immediate = { log = "[GetDateText]: [Root.GetName]: event nordic_formation.9 FROM = [From.GetName]" }
-	title = nordic_formation.9.t
-	desc = nordic_formation.9.d
-	picture = GFX_report_event_NOR_syndicalist_constitution
-
-	is_triggered_only = yes
-
-	option = {
-		name = nordic_formation.9.a
-		set_country_flag = SCA_single_market_accepted
-		swap_ideas = {
-			remove_idea = SCA_monetary_union_idea
-			add_idea = SCA_custom_union_idea
-		}
-		every_other_country = {
-			limit = { SCA_is_valid_nordic_member = yes }
-			country_event = { id = nordic_formation.10 days = 1 }
-		}
-		NOR_remove_weak_economy = yes
-	}
-}
-
-country_event = { #Single Market
-	id = nordic_formation.10
-	immediate = { log = "[GetDateText]: [Root.GetName]: event nordic_formation.10 FROM = [From.GetName]" }
-	title = nordic_formation.10.t
-	desc = nordic_formation.10.d
-	picture = GFX_report_event_NOR_syndicalist_constitution
-
-	is_triggered_only = yes
-
-	option = {
-		name = nordic_formation.10.a
-		ai_chance = {
-			base = 100
-			modifier = {
-				factor = 0
-				has_game_rule = {
-					rule = SCA_formation
-					option = SCA_FORMATION_NEVER
-				}
-			}
-		}
-		set_country_flag = SCA_single_market_accepted
-		swap_ideas = {
-			remove_idea = SCA_monetary_union_idea
-			add_idea = SCA_custom_union_idea
-		}
-		NOR_remove_weak_economy = yes
-	}
-
-	option = {
-		name = nordic_formation.10.b
-		ai_chance = {
-			base = 0
-			modifier = { #Norway might bail out - chance is lower because this will actually help their economy.
-				factor = 0
-				NOT = {
-					tag = NOR
-				}
-			}
-			modifier = {
-				add = 100
-				has_game_rule = {
-					rule = SCA_formation
-					option = SCA_FORMATION_NEVER
-				}
-			}
-		}
-		set_country_flag = sca_no_customs_union
-		FROM = { country_event = { id = nordic_formation.19 days = 1 } }
-	}
-}
-
-country_event = { #Scientist Cooperation
-	id = nordic_formation.11
-	immediate = { log = "[GetDateText]: [Root.GetName]: event nordic_formation.11 FROM = [From.GetName]" }
-	title = nordic_formation.11.t
-	desc = nordic_formation.11.d
-	picture = GFX_report_event_NOR_syndicalist_constitution
-
-	is_triggered_only = yes
-
-	fire_only_once = yes
-
-	option = {
-		name = nordic_formation.11.a
-		if = {
-			limit = { has_dlc = "Together for Victory" }
-			add_to_tech_sharing_group = scandinavian_research
-		}
-		else = {
-			add_tech_bonus = {
-				name = nordic_formation.11.t
-				bonus = 0.5
-				uses = 1
-				category = industry
-			}
-		}
-		set_country_flag = SCA_research_cooperation_accepted
-		every_other_country = {
-			limit = { SCA_is_valid_nordic_member = yes }
-			country_event = { id = nordic_formation.12 days = 1 }
-		}
-	}
-}
-
-country_event = { #Scientist Cooperation
-	id = nordic_formation.12
-	immediate = { log = "[GetDateText]: [Root.GetName]: event nordic_formation.12 FROM = [From.GetName]" }
-	title = nordic_formation.12.t
-	desc = nordic_formation.12.d
-	picture = GFX_report_event_NOR_syndicalist_constitution
-
-	is_triggered_only = yes
-
-	option = {
-		name = nordic_formation.12.a
-		ai_chance = { base = 100 }
-		if = {
-			limit = { has_dlc = "Together for Victory" }
-			add_to_tech_sharing_group = scandinavian_research
-		}
-		else = {
-			add_tech_bonus = {
-				name = nordic_formation.12.t
-				bonus = 0.5
-				uses = 1
-				category = industry
-			}
-		}
-		set_country_flag = SCA_research_cooperation_accepted
-	}
-
-	option = {
-		name = nordic_formation.12.b
-		ai_chance = {
-			base = 0
-			modifier = {
-				factor = 0
-			}
-		}
-		set_country_flag = sca_no_science_cooperation
-		FROM = { country_event = { id = nordic_formation.19 days = 1 } }
+		mark_focus_tree_layout_dirty = yes
 	}
 }
 
 country_event = { #[From.GetCountryDef] proposes Federation
 	id = nordic_formation.13
-	immediate = { log = "[GetDateText]: [Root.GetName]: event nordic_formation.13 FROM = [From.GetName]" }
 	title = nordic_formation.13.t
 	desc = nordic_formation.13.d
 	picture = GFX_report_event_NOR_syndicalist_constitution
@@ -498,17 +123,10 @@ country_event = { #[From.GetCountryDef] proposes Federation
 	is_triggered_only = yes
 
 	option = { #Yes
+		log = "[GetLogInfo]: event nordic_formation.13 option nordic_formation.13.a"
 		name = nordic_formation.13.a
-		ai_chance = {
-			base = 100
-			modifier = {
-				factor = 0
-				has_game_rule = {
-					rule = SCA_formation
-					option = SCA_FORMATION_NEVER
-				}
-			}
-		}
+		ai_chance = { base = 100 }
+		set_country_flag = SCA_federation_accepted
 		effect_tooltip = {
 			event_target:SCA_federation_initiator = { country_event = nordic_formation.16 }
 		}
@@ -538,35 +156,23 @@ country_event = { #[From.GetCountryDef] proposes Federation
 				event_target:SCA_federation_initiator = { country_event = { id = nordic_formation.16 hours = 8 } }
 			}
 		}
-		set_country_flag = SCA_accepted_federation
-		FROM = { country_event = { id = nordic_formation.14 days = 1 } }
 	}
 
 	option = { #No
+		log = "[GetLogInfo]: event nordic_formation.13 option nordic_formation.13.b"
 		name = nordic_formation.13.b
-		ai_chance = {
-			base = 0
-			modifier = {
-				add = 100
-				has_game_rule = {
-					rule = SCA_formation
-					option = SCA_FORMATION_NEVER
-				}
-			}
-		}
+		ai_chance = { base = 0 }
 		set_global_flag = SCA_federation_refused
 		every_country = {
 			limit = { has_country_flag = SCA_federation_accepted }
 			clr_country_flag = SCA_federation_accepted
 			country_event = { id = nordic_formation.15 days = 1 }
 		}
-		set_country_flag = sca_no_federation
 	}
 }
 
 country_event = { #[From.GetCountryDef] accepts Federation proposal
 	id = nordic_formation.14
-	immediate = { log = "[GetDateText]: [Root.GetName]: event nordic_formation.14 FROM = [From.GetName]" }
 	title = nordic_formation.14.t
 	desc = nordic_formation.14.d
 	picture = GFX_report_event_NOR_syndicalist_constitution
@@ -574,13 +180,13 @@ country_event = { #[From.GetCountryDef] accepts Federation proposal
 	is_triggered_only = yes
 
 	option = { #Great
+		log = "[GetLogInfo]: event nordic_formation.14 option nordic_formation.14.a"
 		name = nordic_formation.14.a
 	}
 }
 
 country_event = { #[From.GetCountryDef] rejects Federation proposal (hates fun)
 	id = nordic_formation.15
-	immediate = { log = "[GetDateText]: [Root.GetName]: event nordic_formation.15 FROM = [From.GetName]" }
 	title = nordic_formation.15.t
 	desc = nordic_formation.15.d
 	picture = GFX_report_event_NOR_syndicalist_constitution
@@ -588,6 +194,7 @@ country_event = { #[From.GetCountryDef] rejects Federation proposal (hates fun)
 	is_triggered_only = yes
 
 	option = { #Sad
+		log = "[GetLogInfo]: event nordic_formation.15 option nordic_formation.15.a"
 		name = nordic_formation.15.a
 	}
 }
