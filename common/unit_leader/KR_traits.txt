@@ -20,10 +20,14 @@
 #	custom_prerequisite_tooltip = "" # loc key
 #	custom_gain_xp_trigger_tooltip = "" # loc key
 #	mutually_exclusive = other_trait # trait key
-#	parent = other_trait # trait key
-#	num_parents_needed = -1 # integer, -1 means "all"
-#	gui_row = -1 # integer, starts at 0, -1 means auto
-#	gui_column = -1 # integer, starts at 0, -1 means auto
+#	parent = { # Can be added multiple times
+#		traits = { XXX YYY ZZZ }  # A list of other traits that
+#       num_parents_needed = 1 # The number of the above traits that must be true
+#   }
+#   any_parent = { XXX YYY ZZZ } # shorthand for parent when num_parents_needed are defaulted to 1
+#   all_parents = { XXX YYY ZZZ } # shorthand for parent when num_parents_needed are the same as the number of parents
+#	gui_row = 0 # integer, starts at 0, unset or -1 means the trait does not appear in unlockable trait tree.
+#	gui_column = 0 # integer, starts at 0, unset or -1 means auto
 #	allowed = trigger # scope is a unit leader
 #	prerequisites = trigger # scope is an unit leader
 #	gain_xp = trigger # scope is a combatant
@@ -51,13 +55,61 @@
 #	enable_ability = ability_key
 #}
 
-
 leader_traits = {
 
 	##
 	##	GENERIC
 	##
 
+	militias_officer = {
+		type = corps_commander
+		trait_type = personality_trait
+
+		trait_xp_factor = {
+			militias_specialist = 1	#+100%
+		}
+	}
+
+	militias_specialist = {
+		type = corps_commander
+		gain_xp = {
+			set_temp_variable = { temp = num_units }
+			multiply_temp_variable = { temp = 0.3 }
+			check_variable = { num_militia > temp }
+		}
+		custom_gain_xp_trigger_tooltip = militia_ratio_over_30
+
+		cost = 1000
+		modifier = {
+			modifier_army_sub_unit_militia_defence_factor = 0.05
+			modifier_army_sub_unit_militia_speed_factor = 0.05
+			modifier_army_sub_unit_militia_max_org_factor = 0.05
+		}
+
+		ai_will_do = { factor = 1 }
+
+		gui_row = 7
+	}
+
+	militias_expert = {
+		type = corps_commander
+		gain_xp = {
+			always = no # not gainable
+		}
+		cost = 500
+		modifier = {
+			modifier_army_sub_unit_militia_defence_factor = 0.05
+			modifier_army_sub_unit_militia_speed_factor = 0.05
+			modifier_army_sub_unit_militia_max_org_factor = 0.15
+		}
+
+		ai_will_do = { factor = 1 }
+
+		trait_type = assignable_trait
+		any_parent = { militias_specialist }
+		gui_row = 7
+	}
+	
 	artillery_officer = {
 		type = corps_commander
 		trait_type = personality_trait
@@ -81,11 +133,14 @@ leader_traits = {
 			army_artillery_attack_factor = 0.1
 		}
 
-		ai_will_do = {
-			factor = 1
-		}
+		slot = chief_of_army
+		specialist_advisor_trait = army_artillery_1
+		expert_advisor_trait = army_artillery_2
+		genius_advisor_trait = army_artillery_3
 
-		gui_row = 16
+		ai_will_do = { factor = 1 }
+
+		gui_row = 4
 	}
 
 	artillery_expert = {
@@ -98,150 +153,13 @@ leader_traits = {
 			army_artillery_attack_factor = 0.1
 		}
 
-		ai_will_do = {
-			factor = 1
-		}
+		ai_will_do = { factor = 1 }
 
 		trait_type = assignable_trait
-		parent = artillery_specialist
-		gui_row = 16
+		any_parent = { artillery_specialist }
+		gui_row = 4
+		mutually_exclusive = fortress_buster
+		mutually_exclusive = scavenger
 	}
 
-	##
-	##	COUNTRY-SPECIFIC TRAITS
-	##
-
-	four_musketeers = { # actually 5 of them, but is called 4 historically
-		type = all
-		trait_type = personality_trait
-		modifier = {
-			planning_speed = 0.025
-			army_morale_factor = 0.05
-		}
-		non_shared_modifier = {
-			reassignment_duration_factor = 1
-		}
-		new_commander_weight = {
-			factor = 0 # Only added for 5 commander
-		}
-	}
-	GXC_guangdong_clique_officer = {
-		type = all
-		trait_type = personality_trait
-		new_commander_weight = {
-			factor = 0
-		}
-	}
-	GXC_guangxi_clique_officer = {
-		type = all
-		trait_type = personality_trait
-		new_commander_weight = {
-			factor = 0
-		}
-	}
-	GXC_rkmt_officer = {
-		type = all
-		trait_type = personality_trait
-		new_commander_weight = {
-			factor = 0
-		}
-	}
-	LEC_british_commander = {
-		type = all
-		trait_type = personality_trait
-		new_commander_weight = {
-			factor = 0
-		}
-	}
-	LEC_german_commander = {
-		type = all
-		trait_type = personality_trait
-		new_commander_weight = {
-			factor = 0
-		}
-	}
-	LEC_japanese_commander = {
-		type = all
-		trait_type = personality_trait
-		new_commander_weight = {
-			factor = 0
-		}
-	}
-	LEC_international_commander = {
-		type = all
-		trait_type = personality_trait
-		new_commander_weight = {
-			factor = 0
-		}
-	}
-	LEC_triad_commander = {
-		type = all
-		trait_type = personality_trait
-		new_commander_weight = {
-			factor = 0
-		}
-	}
-	AST_new_zealander = {
-		type = all
-		trait_type = personality_trait
-		new_commander_weight = {
-			factor = 0
-		}
-	}
-	POL_german_commander = {
-		type = all
-		trait_type = personality_trait
-		new_commander_weight = {
-			factor = 0
-		}
-	}
-	GBR_british_exile_trait = {
-		type = all
-		trait_type = personality_trait
-		new_commander_weight = {
-			factor = 0
-		}
-	}
-	TRM_british_expeditionary = {
-		type = all
-		trait_type = personality_trait
-		new_commander_weight = {
-			factor = 0
-		}
-	}
-	incorporeal = {
-		type = all
-		trait_type = personality_trait
-		new_commander_weight = {
-			factor = 0
-		}
-	}
-	KOR_korean_exile = {
-		type = all
-		trait_type = personality_trait
-		new_commander_weight = {
-			factor = 0
-		}
-	}
-	CHI_left_kmt_officer = {
-		type = all
-		trait_type = personality_trait
-		new_commander_weight = {
-			factor = 0
-		}
-	}
-	SHX_gmj_officer = {
-		type = all
-		trait_type = personality_trait
-		new_commander_weight = {
-			factor = 0
-		}
-	}
-	SHX_yan_loyalist = {
-		type = all
-		trait_type = personality_trait
-		new_commander_weight = {
-			factor = 0
-		}
-	}
 }
