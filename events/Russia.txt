@@ -47175,6 +47175,7 @@ country_event = { #
 					is_ally_of_ROOT = no
 					NOT = { is_guaranteed_by = GER }
 				}
+				NOT = { has_global_flag = RUS_Karelian_Crisis_global } #for now
 			}
 			AND = {
 				RUS = { has_war_with = LIT }
@@ -50678,29 +50679,17 @@ country_event = { #Karelian crisis
 				limit = { has_resistance = no }
 				start_resistance = yes
 			}
-		}
-		add_resistance_target = {
-			id = 215
-			amount = 30
-			days = 90
-			tooltip = RUS_karelian_crisis_border_skirmish
+			add_resistance_target = {
+				amount = 30
+				days = 90
+				tooltip = RUS_karelian_crisis_border_skirmish
+			}
 		}
 		custom_effect_tooltip = tooltip_white_line
 		unlock_decision_category_tooltip = RUS_Karelian_Crisis
 		RUS_unlock_karelia_crisis_decisions = yes
-		hidden_effect = {
-			activate_targeted_decision = { target = 1328 decision = RUS_prepare_defences_in_petrograd }
-			activate_targeted_decision = { target = 215 decision = RUS_Develop_Infrastructure_In_State }
-			activate_targeted_decision = { target = 215 decision = RUS_supply_lines_in_karelia }
-			activate_targeted_decision = { target = 1274 decision = RUS_secure_murmansk_railway }
-			activate_targeted_decision = { target = ROOT decision = RUS_revive_jager_regiments }
-		}
-		FIN_unlock_karelia_crisis_decisions = yes
-		hidden_effect = {
-			activate_targeted_decision = { target = RUS decision = FIN_spread_propaganda }
-			activate_targeted_decision = { target = KAR decision = FIN_support_karjalan_liitto }
-			activate_targeted_decision = { target = ROOT decision = FIN_prepare_jagers }
-			activate_targeted_decision = { target = GER decision = FIN_request_german_mediation }
+		FIN = {
+			FIN_unlock_karelia_crisis_decisions = yes
 		}
 	}	
 }
@@ -50839,7 +50828,12 @@ country_event = { #Karelian crisis
 					threat = 5
 					name = "Karelian Crisis"
 				}
-			}
+				add_ai_strategy = {
+					type = prepare_for_war
+					id = "FIN"
+					value = 100
+				}
+			} 
 		}
 	}
 	title = rus_karelian_crisis.7.t
@@ -50857,6 +50851,11 @@ country_event = { #Karelian crisis
 			days = 1
 			random = 48
 		}
+		add_ai_strategy = {
+			type = prepare_for_war
+			id = "RUS"
+			value = 100
+		}
 	}
 }
 
@@ -50873,10 +50872,18 @@ country_event = { #Karelian crisis
 	option = { #
 		name = rus_karelian_crisis.8.a
 		add_war_support = 0.05
+		decrease_ruling_party_popularity_by_5 = yes
+		if = {
+			limit = { has_government = social_democrat }
+			add_to_variable = { FIN_sdp_strength = -10 }	
+		}
+		else = {
+			add_to_variable = { FIN_kokoomus_strength = -10 }
+		}
 		hidden_effect = {
 			RUS = { 
 				country_event = {
-					id = rus_karelian_crisis.8
+					id = rus_karelian_crisis.9
 					days = 1
 					random = 48
 				}
@@ -51053,34 +51060,109 @@ country_event = { #Karelian crisis
 
 	option = { #
 		name = rus_karelian_crisis.15.a
-		effect_tooltip = {
-			declare_war_on = {
-				target = FROM
-				type = annex_everything
-			}
+		clear_decision_attack_AI = yes 
+		declare_war_on = {
+			target = FROM
+			type = annex_everything
 		}
-		FROM = {
-			country_event = rus_karelian_crisis.16
+		hidden_effect = {
+			random_other_country = {
+				country_event = rus_karelian_crisis.16
+			}
 		}
 	}
 }
 
-country_event = { #Karelian crisis
+news_event = { #Karelian crisis
 	id = rus_karelian_crisis.16
 	immediate = { log = "[GetDateText]: [Root.GetName]: event rus_karelian_crisis.16" }
 	title = rus_karelian_crisis.16.t
 	desc = rus_karelian_crisis.16.d
 	
+	picture = GFX_news_event_KAR_karelian_crisis
+	
+	major = yes
 	is_triggered_only = yes	
-	trigger = { russian_civil_war = no }
+	trigger = {
+		wants_world_news = yes
+	}
+
+	show_major = {
+		NOT = {
+			tag = RUS
+			tag = FIN
+		}
+		OR = {
+			regional_europe_news = yes
+			regional_asia_news = yes
+		}
+	}
 
 	option = { #
 		name = rus_karelian_crisis.16.a
-		FROM = {
-			declare_war_on = {
-				target = ROOT
-				type = annex_everything
+		trigger = {
+			NOT = {
+				original_tag = GER
+				original_tag = AUS
+				is_ally_with = GER
+				is_ally_with = AUS
 			}
+		}
+	}
+	option = { #
+		name = rus_karelian_crisis.16.b
+		trigger = {
+			OR = {
+				original_tag = GER
+				original_tag = AUS
+				is_ally_with = GER
+				is_ally_with = AUS
+			}
+			FIN = { 
+				has_socialist_government = no
+				NOT = { has_government = national_populist }
+			}
+		}
+	}
+	option = { #
+		name = rus_karelian_crisis.16.b2
+		trigger = {
+			OR = {
+				original_tag = GER
+				original_tag = AUS
+				is_ally_with = GER
+				is_ally_with = AUS
+			}
+			FIN = { 
+				OR = {
+					has_socialist_government = yes
+					has_government = national_populist
+				}
+			}
+		}
+	}
+	option = { #
+		name = rus_karelian_crisis.16.c
+		trigger = {
+			has_socialist_government = yes
+			FIN = { has_socialist_government = yes }
+			RUS = { has_socialist_government = no }
+		}
+	}
+	option = { #
+		name = rus_karelian_crisis.16.c2
+		trigger = {
+			has_socialist_government = yes
+			FIN = { has_socialist_government = no }
+			RUS = { has_socialist_government = yes }
+		}
+	}
+	option = { #
+		name = rus_karelian_crisis.16.c3
+		trigger = {
+			has_socialist_government = yes
+			FIN = { has_socialist_government = yes }
+			RUS = { has_socialist_government = yes }
 		}
 	}
 }
@@ -51500,7 +51582,7 @@ country_event = { #Karelian crisis
 				set_country_flag = FIN_treaty_of_tampere_neutral_status
 				set_rule = {
 					desc = FIN_treaty_of_tampere_neutral_status
-					can_join_factions_not_allowed_diplomacy = no
+					can_join_factions = no
 				}
 			}
 		}
@@ -51544,23 +51626,9 @@ country_event = { #Karelian crisis
 			}
 		}
 	}
-	title = {
-		text = rus_karelian_crisis.27.t
-		trigger = { original_tag = FIN }
-	}
-	title = {
-		text = rus_karelian_crisis.27.t.rus
-		trigger = { original_tag = RUS }
-	}
-	desc = {
-		text = rus_karelian_crisis.27.d
-		trigger = { original_tag = FIN }
-	}
-	desc = {
-		text = rus_karelian_crisis.27.d.rus
-		trigger = { original_tag = RUS }
-	}
-		
+	title = rus_karelian_crisis.27.t
+	desc = rus_karelian_crisis.27.d
+			
 	is_triggered_only = yes
 	trigger = {
 		has_global_flag = RUS_Karelian_Crisis_global		
@@ -51587,7 +51655,7 @@ country_event = { #Karelian crisis
 			#Finland wins
 			OR = {
 				AND = {
-					var:RUS_enemy_tag = { surrender_progress > 0.1 }
+					RUS = { surrender_progress > 0.1 }
 					controls_state = 195 #Petrograd
 				}
 				count_triggers = {
@@ -51626,7 +51694,12 @@ country_event = { #Karelian crisis
 						}
 					}
 				}
-				#event
+				FIN = { 
+					country_event = rus_karelian_crisis.29 
+					country_event = rus_karelian_crisis.30 
+					country_event = rus_karelian_crisis.31 
+					country_event = rus_karelian_crisis.32 
+				}
 			}			
 		}
 		every_state = {
@@ -51644,6 +51717,14 @@ country_event = { #Karelian crisis
 					FIN = { controls_state = PREV }
 				}
 				transfer_state_to = FIN
+				hidden_effect = {
+					FIN = { 
+						country_event = {
+							id = rus_karelian_crisis.33 
+							days = 15
+						}
+					}
+				}
 			}
 		}		
 		every_state = {
@@ -51662,7 +51743,10 @@ country_event = { #Karelian crisis
 				transfer_state_to = RUS
 			}
 		}		
-		RUS = { white_peace_with_ROOT = yes }
+		RUS = { 
+			white_peace_with_ROOT = yes 
+			set_truce = { target = ROOT days = 730 }
+		}
 		clr_global_flag = RUS_Karelian_Crisis_global
 		set_global_flag = RUS_Karelian_Crisis_global_over
 	}
@@ -51705,7 +51789,302 @@ country_event = { #Karelian crisis
 					transfer_state_to = RUS
 				}
 			}		
-			FIN = { white_peace_with_ROOT = yes }
+			FIN = { 
+				white_peace_with_ROOT = yes 
+				set_truce = { target = ROOT days = 730 }
+			}
 		}
 	}
+}
+country_event = { #Karelian crisis
+	id = rus_karelian_crisis.28
+	immediate = { log = "[GetDateText]: [Root.GetName]: event rus_karelian_crisis.28" }
+	title = rus_karelian_crisis.28.t
+	desc = rus_karelian_crisis.28.d
+	
+	is_triggered_only = yes	
+
+	option = { #
+		name = rus_karelian_crisis.28.a
+		ai_chance = { 
+			base = 99
+			modifier = {
+				factor = 0
+				OR = {
+					RUS_dont_attack_if_vulnerable_or_preparing = yes
+					FROM = { RUS_dont_attack_if_target_is_stronger = yes }
+					FROM = { RUS_dont_attack_if_faction_is_stronger = yes }
+					FROM = { RUS_dont_attack_if_overlord_is_stronger = yes }
+				}
+			}
+		}
+		add_stability = -0.05
+		RUS_increase_ruling_party_pop_small = yes
+		declare_war_on = {
+			target = FROM
+			type = annex_everything
+		}
+	}
+	option = { #
+		name = rus_karelian_crisis.28.b
+		ai_chance = { base = 1 }
+		add_political_power = 15
+	}	
+}
+country_event = { #Karelian crisis
+	id = rus_karelian_crisis.29
+	immediate = { log = "[GetDateText]: [Root.GetName]: event rus_karelian_crisis.29" }
+	title = rus_karelian_crisis.29.t
+	desc = rus_karelian_crisis.29.d
+	
+	is_triggered_only = yes	
+	fire_only_once = yes
+	
+	trigger = {
+		tag = FIN
+		OR = {
+			has_country_flag = FIN_rebellion_prevented
+			has_country_flag = FIN_national_coalition_victory
+			has_country_flag = FIN_monarchist_victory
+		}
+		has_idea = FIN_Pehr_Evind_Svinhufvud_hog_pau
+	}
+
+	option = { #
+		name = rus_karelian_crisis.29.a
+		remove_all_ministers = yes
+		add_ideas = FIN_Rafael_Erich_hog_pau
+		add_ideas = {
+			FIN_Paavo_Hynninen_for_pau
+			FIN_Juho_Kusti_Paasikivi_eco_pau
+			FIN_Hjalmar_Procope_sec_pau
+		}
+		add_political_power = -50
+		add_stability = 0.05
+		add_war_support = -0.15
+	}	
+}
+country_event = { #Karelian crisis
+	id = rus_karelian_crisis.30
+	immediate = { log = "[GetDateText]: [Root.GetName]: event rus_karelian_crisis.30" }
+	title = rus_karelian_crisis.30.t
+	desc = rus_karelian_crisis.30.d
+	
+	is_triggered_only = yes	
+	fire_only_once = yes
+	
+	trigger = {
+		tag = FIN
+		has_country_flag = FIN_mannerheim_victory
+	}
+
+	option = { #
+		name = rus_karelian_crisis.30.a
+		clr_country_flag = FIN_mannerheim_victory		
+		add_political_power = 100
+		hidden_effect = {
+			country_event = { id = finland.21 days = 10 }
+			news_event = worldnews.415
+		}
+	}	
+}
+country_event = { #Karelian crisis
+	id = rus_karelian_crisis.31
+	immediate = { log = "[GetDateText]: [Root.GetName]: event rus_karelian_crisis.31" }
+	title = rus_karelian_crisis.31.t
+	desc = rus_karelian_crisis.31.d
+	
+	is_triggered_only = yes	
+	fire_only_once = yes
+	
+	trigger = {
+		tag = FIN
+		has_country_flag = FIN_mannerheim_victory
+	}
+
+	option = { #
+		name = rus_karelian_crisis.30.a
+		decrease_ruling_party_popularity_by_30 = yes
+		hidden_effect = {
+			country_event = { id = finland.21 days = 10 }
+			news_event = worldnews.415
+		}
+	}	
+}
+country_event = { #Karelian crisis
+	id = rus_karelian_crisis.32
+	immediate = { log = "[GetDateText]: [Root.GetName]: event rus_karelian_crisis.32" }
+	title = {
+		text = rus_karelian_crisis.32.t2
+		trigger = { has_government = national_populist }
+	}
+	title = {
+		text = rus_karelian_crisis.32.t
+		trigger = { 
+			NOT = { has_government = national_populist }
+		}
+	}
+	desc = {
+		text = rus_karelian_crisis.32.d2
+		trigger = { has_government = national_populist }
+	}
+	desc = {
+		text = rus_karelian_crisis.32.d
+		trigger = { 
+			NOT = { has_government = national_populist }
+		}
+	}
+	
+	is_triggered_only = yes	
+	fire_only_once = yes
+	
+	trigger = {
+		tag = FIN
+		OR = {
+			AND = {
+				has_country_flag = FIN_lapua_movement_victory
+				NOT = { has_completed_focus = FIN_crack_down_on_socialism }
+			}
+			AND = {
+				has_government = totalist
+				NOT = { has_completed_focus = FIN_second_red_terror }
+			}
+		}
+	}
+
+	option = { #
+		name = rus_karelian_crisis.30.a
+		decrease_ruling_party_popularity_by_20 = yes
+		if = {
+			limit = { has_country_flag = FIN_lapua_movement_victory }
+			clr_country_flag = FIN_lapua_movement_victory
+			set_country_flag = FIN_socialist_victory_flag
+			add_political_power = -100			
+			add_popularity = { ideology = totalist popularity = 0.35 }
+			set_politics = { ruling_party = totalist elections_allowed = no }
+			drop_cosmetic_tag = yes
+			remove_all_ministers = yes
+			add_ideas = {
+				FIN_Tuomas_Hyrskymurto_hog_tot
+				FIN_Arvo_Tuominen_for_tot
+				FIN_Eero_Haapalainen_eco_tot
+				FIN_Akseli_Anttila_sec_tot
+			}
+			hidden_effect = {
+				if = {
+					limit = { country_exists = KAR }
+					KAR = {
+						country_event = {
+							id = kar.26
+							days = 1
+						}
+						country_event = {
+							id = kar.72
+							days = 60
+							random_days = 40
+						}
+					}
+				}
+				activate_targeted_decision = { target = INT decision = fin_join_internationale }
+				activate_targeted_decision = { target = RUS decision = fin_join_internationale }
+			}
+		}
+		else = {
+			clr_country_flag = FIN_socialist_victory_flag
+			remove_targeted_decision = { target = INT decision = fin_join_internationale }
+			remove_targeted_decision = { target = RUS decision = fin_join_internationale }			
+			set_country_flag = FIN_lapua_movement_victory
+			add_popularity = { ideology = national_populist popularity = 0.4 }
+			set_politics = { ruling_party = national_populist elections_allowed = no }
+			drop_cosmetic_tag = yes
+			remove_all_ministers = yes
+			add_ideas = {
+				FIN_Bruno_Salmiala_hog_npo
+				FIN_Arne_Somersalo_for_npo
+				FIN_Jussi_Muilu_eco_npo
+				FIN_Vihtori_Kosola_sec_npo
+			}
+			hidden_effect = {
+				country_event = { id = finland.14 days = 6 }
+			}
+		}		
+		effect_tooltip = {
+			random_unit_leader = {
+				limit = { has_id = 311 }
+				remove_unit_leader = yes
+			}
+		}
+		hidden_effect = {
+			random_unit_leader = {
+				limit = { has_id = 311 }
+				set_nationality = NSW
+			}
+		}
+		if = {
+			limit = { has_idea = FIN_mounting_dissent_idea }
+			remove_ideas = FIN_mounting_dissent_idea
+		}
+		if = {
+			limit = { gives_military_access_to = GER }
+			GER = {
+				diplomatic_relation = {
+					country = FIN
+					relation = military_access
+					active = no
+				}
+			}
+		}
+		if = {
+			limit = { has_military_access_to = GER }
+			diplomatic_relation = {
+				country = GER
+				relation = military_access
+				active = no
+			}
+		}
+		if = {
+			limit = { is_guaranteed_by = GER }
+			GER = {
+				diplomatic_relation = {
+					country = FIN
+					relation = guarantee
+					active = no
+				}
+			}
+		}
+		if = {
+			limit = { has_non_aggression_pact_with = GER }
+			diplomatic_relation = {
+				country = GER
+				relation = non_aggression_pact
+				active = no
+			}
+		}
+		remove_opinion_modifier = {
+			target = GER
+			modifier = KR_approves_of_govt
+		}
+		GER = {
+			remove_opinion_modifier = {
+				target = ROOT
+				modifier = KR_approves_of_govt
+			}
+		}
+		remove_targeted_decision = { target = GER decision = FIN_join_reichspakt }
+		remove_targeted_decision = { target = SCA decision = fin_join_sdu }
+		remove_targeted_decision = { target = SWE decision = fin_join_sdu }
+		hidden_effect = {
+			GER_leave_mitteleuropa = yes
+			leave_faction = yes
+			drop_cosmetic_tag = yes
+			random_other_country = { news_event = worldnews.415 }
+			create_country_leader = {
+				name = "Juho Kusti Paasikivi"
+				desc = "POLITICS_JUHO_KUSTI_PAASIKIVI_DESC"
+				picture = "gfx/leaders/FIN/Portrait_FIN_Juho_Kusti_Paasikivi_KX.png"
+				expire = "1965.1.1"
+				ideology = pataut_national_conservative_subtype
+			}
+		}
+	}	
 }
