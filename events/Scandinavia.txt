@@ -8,599 +8,114 @@ add_namespace = scandinavia #Post-Formation
 
 ### Scandinavian Intergration ###
 
-country_event = { #Found the Nordic Council
+country_event = { #Nordic Council founded
 	id = nordic_formation.1
-	immediate = { log = "[GetDateText]: [Root.GetName]: event nordic_formation.1 FROM = [From.GetName]" }
 	title = nordic_formation.1.t
 	desc = nordic_formation.1.d
 	picture = GFX_report_event_NOR_syndicalist_constitution
 
 	is_triggered_only = yes
 
-	trigger = {
-		NOT = {
-			has_country_flag = SCA_nordic_council_accepted
+	option = { #Good idea
+		log = "[GetLogInfo]: event nordic_formation.1 option nordic_formation.1.a"
+		name = nordic_formation.1.a
+		ai_chance = {
+			base = 1
+		}
+		set_country_flag = SCA_nordic_council_accepted
+		effect_tooltip = {
+			add_ideas = SCA_nordic_council_idea
+			event_target:SCA_nordic_council_leader = { country_event = nordic_formation.2 }
+		}
+		hidden_effect = {
+			every_subject_country = {
+				limit = { is_scandinavian_tag = yes }
+				set_country_flag = SCA_nordic_council_accepted
+			}
+			if = {
+				limit = {
+					any_other_country = {
+						is_scandinavian_tag = yes
+						NOT = { has_country_flag = SCA_nordic_council_accepted }
+						is_subject = no
+					}
+				}
+				random_other_country = {
+					limit = {
+						is_scandinavian_tag = yes
+						NOT = { has_country_flag = SCA_nordic_council_accepted }
+						is_subject = no
+					}
+					country_event = nordic_formation.2
+				}
+			}
+			else = {
+				event_target:SCA_nordic_council_leader = { country_event = { id = nordic_formation.2 hours = 8 } }
+			}
 		}
 	}
 
-	option = {
-		name = nordic_formation.1.a
-		set_country_flag = SCA_nordic_council_accepted
-		add_ideas = SCA_nordic_council_idea
-		every_other_country = {
-			limit = { SCA_is_valid_nordic_member = yes }
-			country_event = { id = nordic_formation.2 days = 1 }
+	option = { #Bad idea
+		log = "[GetLogInfo]: event nordic_formation.1 option nordic_formation.2.b"
+		name = nordic_formation.2.b
+		ai_chance = {
+			base = 0
+		}
+		set_global_flag = SCA_nordic_council_refused
+		every_country = {
+			limit = { has_country_flag = SCA_nordic_council_accepted }
+			clr_country_flag = SCA_nordic_council_accepted
+			country_event = { id = nordic_formation.3 days = 1 }
 		}
 	}
 }
 
-country_event = { #Nordic Council founded
+country_event = { #Found the Nordic Council
 	id = nordic_formation.2
-	immediate = { log = "[GetDateText]: [Root.GetName]: event nordic_formation.2 FROM = [From.GetName]" }
 	title = nordic_formation.2.t
 	desc = nordic_formation.2.d
 	picture = GFX_report_event_NOR_syndicalist_constitution
 
 	is_triggered_only = yes
 
-	trigger = {
-		NOT = {
-			has_country_flag = SCA_nordic_council_accepted
-		}
-	}
-
-	option = { #Good idea
+	option = {
+		log = "[GetLogInfo]: event nordic_formation.2 option nordic_formation.2.a"
 		name = nordic_formation.2.a
-		ai_chance = { base = 100 }
-		set_country_flag = SCA_nordic_council_accepted
+		create_faction = SCA_nordic_council_faction
 		add_ideas = SCA_nordic_council_idea
-		if = {
-			limit = {
-				tag = DEN
-				NOT = { has_completed_focus = DEN_DEM_nordic_council }
-			}
-			unlock_national_focus = DEN_DEM_nordic_council
+		every_other_country = {
+			limit = { has_country_flag = SCA_nordic_council_accepted }
+			clr_country_flag = SCA_nordic_council_accepted
+			add_ideas = SCA_nordic_council_idea
+			ROOT = { add_to_faction = PREV }
 		}
-		else_if = {
-			limit = {
-				tag = NOR
-				NOT = { has_completed_focus = NOR_DEM_nordic_council }
-			}
-			unlock_national_focus = NOR_DEM_nordic_council
-		}
-		else_if = {
-			limit = {
-				tag = SWE
-				NOT = { has_completed_focus = SWE_DEM_nordic_council }
-			}
-			unlock_national_focus = SWE_DEM_nordic_council
-		}
-	}
-
-	option = { #Bad idea
-		name = nordic_formation.2.b
-		ai_chance = {
-			base = 0
-		}
-		set_country_flag = sca_no_nordic_council
-		FROM = { country_event = { id = nordic_formation.19 days = 1 } }
 	}
 }
 
-country_event = { #Scandinavian Defense Union (For the would-be faction leader, default Sweden)
+country_event = { #[From.GetCountryDef] rejects other proposal
 	id = nordic_formation.3
-	immediate = { log = "[GetDateText]: [Root.GetName]: event nordic_formation.3 FROM = [From.GetName]" }
 	title = nordic_formation.3.t
 	desc = nordic_formation.3.d
-	picture = GFX_report_event_SWE_Scandinavia
+	picture = GFX_report_event_NOR_syndicalist_constitution
 
 	is_triggered_only = yes
 
-	option = { #Great!
+	option = { #Sad
+		log = "[GetLogInfo]: event nordic_formation.3 option nordic_formation.3.a"
 		name = nordic_formation.3.a
-		ai_chance = {
-			base = 100
-			modifier = {
-				factor = 0
-				has_game_rule = {
-					rule = SCA_formation
-					option = SCA_FORMATION_NEVER
-				}
-			}
-		}
-		set_country_flag = SCA_scandinavian_defense_union_accepted
-		create_faction = SCA_faction_scandinavian_defense_union
-		every_other_country = {
-			limit = { SCA_is_valid_nordic_member = yes }
-			country_event = { id = nordic_formation.4 days = 1 }
-		}
-	}
-
-	option = { #No thank you (faction leadership reverts to Denmark or the project ends here)
-		name = nordic_formation.3.b
-		ai_chance = {
-			base = 0
-			modifier = { #AI might bail out if they're already in a faction.
-				factor = 0
-				NOT = {
-					is_in_faction = yes
-				}
-			}
-			modifier = {
-				add = 100
-				has_game_rule = {
-					rule = SCA_formation
-					option = SCA_FORMATION_NEVER
-				}
-			}
-		}
-		if = { #Revert to Denmark if Norway can join them
-			limit = {
-				NOT = {
-					tag = DEN
-				}
-				country_exists = DEN
-				country_exists = NOR
-			}
-			DEN = {
-				country_event = { id = nordic_formation.3 }
-			}
-		}
-		set_country_flag = sca_no_defense_union
-	}
-}
-
-country_event = { #Scandinavian Defense Union (Others)
-	id = nordic_formation.4
-	immediate = { log = "[GetDateText]: [Root.GetName]: event nordic_formation.4 FROM = [From.GetName]" }
-	title = nordic_formation.4.t
-	desc = nordic_formation.4.d
-	picture = GFX_report_event_SWE_Scandinavia
-
-	is_triggered_only = yes
-
-	trigger = {
-		NOT = {
-			has_country_flag = SCA_scandinavian_defense_union_accepted
-		}
-	}
-
-	option = { #Great!
-		name = nordic_formation.4.a
-		ai_chance = {
-			base = 100
-			modifier = {
-				factor = 0
-				has_game_rule = {
-					rule = SCA_formation
-					option = SCA_FORMATION_NEVER
-				}
-			}
-		}
-		set_country_flag = SCA_scandinavian_defense_union_accepted
-		FROM = {
-			add_to_faction = ROOT
-		}
 		if = {
-			limit = {
-				tag = DEN
-				NOT = { has_completed_focus = DEN_DEM_defense_union }
-			}
-			unlock_national_focus = DEN_DEM_defense_union
-		}
-		else_if = {
-			limit = {
-				tag = NOR
-				NOT = { has_completed_focus = NOR_DEM_defense_union }
-			}
-			unlock_national_focus = NOR_DEM_defense_union
-		}
-		else_if = {
-			limit = {
-				tag = SWE
-				NOT = { has_completed_focus = SWE_DEM_defense_union }
-			}
-			unlock_national_focus = SWE_DEM_defense_union
-		}
-	}
-
-	option = { #No thank you (faction leadership reverts to Denmark or the project ends here)
-		name = nordic_formation.4.b
-		ai_chance = {
-			base = 0
-			modifier = { #AI might bail out if they're already in a faction.
-				factor = 0
-				NOT = {
-					is_in_faction = yes
-				}
-			}
-			modifier = {
-				add = 100
-				has_game_rule = {
-					rule = SCA_formation
-					option = SCA_FORMATION_NEVER
-				}
+			limit = { has_completed_focus = SCANDINAVIA_nordic_council }
+			uncomplete_national_focus = {
+				focus = SCANDINAVIA_nordic_council
+				uncomplete_children = yes
 			}
 		}
-		set_country_flag = sca_no_defense_union
-		FROM = { country_event = { id = nordic_formation.19 days = 1 } }
-	}
-}
-
-country_event = { #Nordic Passport Convention
-	id = nordic_formation.5
-	immediate = { log = "[GetDateText]: [Root.GetName]: event nordic_formation.5 FROM = [From.GetName]" }
-	title = nordic_formation.5.t
-	desc = nordic_formation.5.d
-	picture = GFX_report_event_NOR_syndicalist_constitution
-
-	is_triggered_only = yes
-
-	option = {
-		name = nordic_formation.5.a
-		set_country_flag = SCA_passport_convention_accepted
-		add_ideas = SCA_passport_union_idea
-		every_other_country = {
-			limit = { SCA_is_valid_nordic_member = yes }
-			country_event = { id = nordic_formation.6 days = 1 }
-		}
-	}
-}
-
-country_event = { #Nordic Passport Convention
-	id = nordic_formation.6
-	immediate = { log = "[GetDateText]: [Root.GetName]: event nordic_formation.6 FROM = [From.GetName]" }
-	title = nordic_formation.6.t
-	desc = nordic_formation.6.d
-	picture = GFX_report_event_NOR_syndicalist_constitution
-
-	is_triggered_only = yes
-
-	option = {
-		name = nordic_formation.6.a
-		ai_chance = {
-			base = 100
-			modifier = {
-				factor = 0
-				has_game_rule = {
-					rule = SCA_formation
-					option = SCA_FORMATION_NEVER
-				}
-			}
-		}
-		set_country_flag = SCA_passport_convention_accepted
-		add_ideas = SCA_passport_union_idea
-		if = {
-			limit = {
-				tag = DEN
-				NOT = { has_completed_focus = DEN_DEM_passport_union }
-			}
-			unlock_national_focus = DEN_DEM_passport_union
-		}
-		else_if = {
-			limit = {
-				tag = NOR
-				NOT = { has_completed_focus = NOR_DEM_passport_union }
-			}
-			unlock_national_focus = NOR_DEM_passport_union
-		}
-		else_if = {
-			limit = {
-				tag = SWE
-				NOT = { has_completed_focus = SWE_DEM_passport_union }
-			}
-			unlock_national_focus = SWE_DEM_passport_union
-		}
-	}
-
-	option = {
-		name = nordic_formation.6.b
-		ai_chance = {
-			base = 0
-			modifier = { #Norway might bail out
-				factor = 0
-				NOT = {
-					tag = NOR
-				}
-			}
-			modifier = {
-				add = 100
-				has_game_rule = {
-					rule = SCA_formation
-					option = SCA_FORMATION_NEVER
-				}
-			}
-		}
-		set_country_flag = sca_no_passport_convention
-		FROM = { country_event = { id = nordic_formation.19 days = 1 } }
-	}
-}
-
-country_event = { #Scandinavian Monetary Union
-	id = nordic_formation.7
-	immediate = { log = "[GetDateText]: [Root.GetName]: event nordic_formation.7 FROM = [From.GetName]" }
-	title = nordic_formation.7.t
-	desc = nordic_formation.7.d
-	picture = GFX_report_event_NOR_syndicalist_constitution
-
-	is_triggered_only = yes
-
-	option = {
-		name = nordic_formation.7.a
-		GER_kick_from_mitteleuropa = yes
-		set_country_flag = SCA_monetary_union_accepted
-		add_ideas = SCA_monetary_union_idea
-		every_other_country = {
-			limit = { SCA_is_valid_nordic_member = yes }
-			country_event = { id = nordic_formation.8 days = 1 }
-		}
-	}
-}
-
-country_event = { #Scandinavian Monetary Union
-	id = nordic_formation.8
-	immediate = { log = "[GetDateText]: [Root.GetName]: event nordic_formation.8 FROM = [From.GetName]" }
-	title = nordic_formation.8.t
-	desc = nordic_formation.8.d
-	picture = GFX_report_event_NOR_syndicalist_constitution
-
-	is_triggered_only = yes
-
-	option = {
-		name = nordic_formation.8.a
-		ai_chance = {
-			base = 100
-			modifier = {
-				factor = 0
-				has_game_rule = {
-					rule = SCA_formation
-					option = SCA_FORMATION_NEVER
-				}
-			}
-		}
-		GER_kick_from_mitteleuropa = yes
-		set_country_flag = SCA_monetary_union_accepted
-		add_ideas = SCA_monetary_union_idea
-		if = {
-			limit = {
-				tag = DEN
-				NOT = { has_completed_focus = DEN_DEM_monetary_union }
-			}
-			unlock_national_focus = DEN_DEM_monetary_union
-		}
-		else_if = {
-			limit = {
-				tag = NOR
-				NOT = { has_completed_focus = NOR_DEM_monetary_union }
-			}
-			unlock_national_focus = NOR_DEM_monetary_union
-		}
-		else_if = {
-			limit = {
-				tag = SWE
-				NOT = { has_completed_focus = SWE_DEM_monetary_union }
-			}
-			unlock_national_focus = SWE_DEM_monetary_union
-		}
-	}
-
-	option = {
-		name = nordic_formation.8.b
-		ai_chance = {
-			base = 0
-			modifier = { #Norway might bail out
-				factor = 0
-				NOT = {
-					tag = NOR
-				}
-			}
-			modifier = {
-				add = 100
-				has_game_rule = {
-					rule = SCA_formation
-					option = SCA_FORMATION_NEVER
-				}
-			}
-		}
-		set_country_flag = sca_no_monetary_union
-		FROM = { country_event = { id = nordic_formation.19 days = 1 } }
-	}
-}
-
-country_event = { #Single Market
-	id = nordic_formation.9
-	immediate = { log = "[GetDateText]: [Root.GetName]: event nordic_formation.9 FROM = [From.GetName]" }
-	title = nordic_formation.9.t
-	desc = nordic_formation.9.d
-	picture = GFX_report_event_NOR_syndicalist_constitution
-
-	is_triggered_only = yes
-
-	option = {
-		name = nordic_formation.9.a
-		set_country_flag = SCA_single_market_accepted
-		swap_ideas = {
-			remove_idea = SCA_monetary_union_idea
-			add_idea = SCA_custom_union_idea
-		}
-		every_other_country = {
-			limit = { SCA_is_valid_nordic_member = yes }
-			country_event = { id = nordic_formation.10 days = 1 }
-		}
-		NOR_remove_weak_economy = yes
-	}
-}
-
-country_event = { #Single Market
-	id = nordic_formation.10
-	immediate = { log = "[GetDateText]: [Root.GetName]: event nordic_formation.10 FROM = [From.GetName]" }
-	title = nordic_formation.10.t
-	desc = nordic_formation.10.d
-	picture = GFX_report_event_NOR_syndicalist_constitution
-
-	is_triggered_only = yes
-
-	option = {
-		name = nordic_formation.10.a
-		ai_chance = {
-			base = 100
-			modifier = {
-				factor = 0
-				has_game_rule = {
-					rule = SCA_formation
-					option = SCA_FORMATION_NEVER
-				}
-			}
-		}
-		set_country_flag = SCA_single_market_accepted
-		swap_ideas = {
-			remove_idea = SCA_monetary_union_idea
-			add_idea = SCA_custom_union_idea
-		}
-		if = {
-			limit = {
-				tag = DEN
-				NOT = { has_completed_focus = DEN_DEM_custom_union }
-			}
-			unlock_national_focus = DEN_DEM_custom_union
-		}
-		else_if = {
-			limit = {
-				tag = NOR
-				NOT = { has_completed_focus = NOR_DEM_custom_union }
-			}
-			unlock_national_focus = NOR_DEM_custom_union
-		}
-		else_if = {
-			limit = {
-				tag = SWE
-				NOT = { has_completed_focus = SWE_DEM_custom_union }
-			}
-			unlock_national_focus = SWE_DEM_custom_union
-		}
-		NOR_remove_weak_economy = yes
-	}
-
-	option = {
-		name = nordic_formation.10.b
-		ai_chance = {
-			base = 0
-			modifier = { #Norway might bail out - chance is lower because this will actually help their economy.
-				factor = 0
-				NOT = {
-					tag = NOR
-				}
-			}
-			modifier = {
-				add = 100
-				has_game_rule = {
-					rule = SCA_formation
-					option = SCA_FORMATION_NEVER
-				}
-			}
-		}
-		set_country_flag = sca_no_customs_union
-		FROM = { country_event = { id = nordic_formation.19 days = 1 } }
-	}
-}
-
-country_event = { #Scientist Cooperation
-	id = nordic_formation.11
-	immediate = { log = "[GetDateText]: [Root.GetName]: event nordic_formation.11 FROM = [From.GetName]" }
-	title = nordic_formation.11.t
-	desc = nordic_formation.11.d
-	picture = GFX_report_event_NOR_syndicalist_constitution
-
-	is_triggered_only = yes
-
-	fire_only_once = yes
-
-	option = {
-		name = nordic_formation.11.a
-		if = {
-			limit = { has_dlc = "Together for Victory" }
-			add_to_tech_sharing_group = scandinavian_research
-		}
-		else = {
-			add_tech_bonus = {
-				name = nordic_formation.11.t
-				bonus = 0.5
-				uses = 1
-				category = industry
-			}
-		}
-		set_country_flag = SCA_research_cooperation_accepted
-		every_other_country = {
-			limit = { SCA_is_valid_nordic_member = yes }
-			country_event = { id = nordic_formation.12 days = 1 }
-		}
-	}
-}
-
-country_event = { #Scientist Cooperation
-	id = nordic_formation.12
-	immediate = { log = "[GetDateText]: [Root.GetName]: event nordic_formation.12 FROM = [From.GetName]" }
-	title = nordic_formation.12.t
-	desc = nordic_formation.12.d
-	picture = GFX_report_event_NOR_syndicalist_constitution
-
-	is_triggered_only = yes
-
-	option = {
-		name = nordic_formation.12.a
-		ai_chance = { base = 100 }
-		if = {
-			limit = { has_dlc = "Together for Victory" }
-			add_to_tech_sharing_group = scandinavian_research
-		}
-		else = {
-			add_tech_bonus = {
-				name = nordic_formation.12.t
-				bonus = 0.5
-				uses = 1
-				category = industry
-			}
-		}
-		set_country_flag = SCA_research_cooperation_accepted
-		if = {
-			limit = {
-				tag = DEN
-				NOT = { has_completed_focus = DEN_DEM_common_tech }
-			}
-			unlock_national_focus = DEN_DEM_common_tech
-		}
-		else_if = {
-			limit = {
-				tag = NOR
-				NOT = { has_completed_focus = NOR_DEM_common_tech }
-			}
-			unlock_national_focus = NOR_DEM_common_tech
-		}
-		else_if = {
-			limit = {
-				tag = SWE
-				NOT = { has_completed_focus = SWE_DEM_common_tech }
-			}
-			unlock_national_focus = SWE_DEM_common_tech
-		}
-	}
-
-	option = {
-		name = nordic_formation.12.b
-		ai_chance = {
-			base = 0
-			modifier = {
-				factor = 0
-			}
-		}
-		set_country_flag = sca_no_science_cooperation
-		FROM = { country_event = { id = nordic_formation.19 days = 1 } }
+		mark_focus_tree_layout_dirty = yes
 	}
 }
 
 country_event = { #[From.GetCountryDef] proposes Federation
 	id = nordic_formation.13
-	immediate = { log = "[GetDateText]: [Root.GetName]: event nordic_formation.13 FROM = [From.GetName]" }
 	title = nordic_formation.13.t
 	desc = nordic_formation.13.d
 	picture = GFX_report_event_NOR_syndicalist_constitution
@@ -608,41 +123,56 @@ country_event = { #[From.GetCountryDef] proposes Federation
 	is_triggered_only = yes
 
 	option = { #Yes
+		log = "[GetLogInfo]: event nordic_formation.13 option nordic_formation.13.a"
 		name = nordic_formation.13.a
-		ai_chance = {
-			base = 100
-			modifier = {
-				factor = 0
-				has_game_rule = {
-					rule = SCA_formation
-					option = SCA_FORMATION_NEVER
+		ai_chance = { base = 100 }
+		set_country_flag = SCA_federation_accepted
+		effect_tooltip = {
+			event_target:SCA_federation_initiator = { country_event = nordic_formation.16 }
+		}
+		hidden_effect = {
+			every_subject_country = {
+				limit = { is_scandinavian_tag = yes }
+				set_country_flag = SCA_federation_accepted
+			}
+			if = {
+				limit = {
+					any_other_country = {
+						is_scandinavian_tag = yes
+						NOT = { has_country_flag = SCA_federation_accepted }
+						is_subject = no
+					}
+				}
+				random_other_country = {
+					limit = {
+						is_scandinavian_tag = yes
+						NOT = { has_country_flag = SCA_federation_accepted }
+						is_subject = no
+					}
+					country_event = nordic_formation.13
 				}
 			}
+			else = {
+				event_target:SCA_federation_initiator = { country_event = { id = nordic_formation.16 hours = 8 } }
+			}
 		}
-		set_country_flag = SCA_accepted_federation
-		FROM = { country_event = { id = nordic_formation.14 days = 1 } }
 	}
 
 	option = { #No
+		log = "[GetLogInfo]: event nordic_formation.13 option nordic_formation.13.b"
 		name = nordic_formation.13.b
-		ai_chance = {
-			base = 0
-			modifier = {
-				add = 100
-				has_game_rule = {
-					rule = SCA_formation
-					option = SCA_FORMATION_NEVER
-				}
-			}
+		ai_chance = { base = 0 }
+		set_global_flag = SCA_federation_refused
+		every_country = {
+			limit = { has_country_flag = SCA_federation_accepted }
+			clr_country_flag = SCA_federation_accepted
+			country_event = { id = nordic_formation.15 days = 1 }
 		}
-		FROM = { country_event = { id = nordic_formation.15 days = 1 } }
-		set_country_flag = sca_no_federation
 	}
 }
 
 country_event = { #[From.GetCountryDef] accepts Federation proposal
 	id = nordic_formation.14
-	immediate = { log = "[GetDateText]: [Root.GetName]: event nordic_formation.14 FROM = [From.GetName]" }
 	title = nordic_formation.14.t
 	desc = nordic_formation.14.d
 	picture = GFX_report_event_NOR_syndicalist_constitution
@@ -650,13 +180,13 @@ country_event = { #[From.GetCountryDef] accepts Federation proposal
 	is_triggered_only = yes
 
 	option = { #Great
+		log = "[GetLogInfo]: event nordic_formation.14 option nordic_formation.14.a"
 		name = nordic_formation.14.a
 	}
 }
 
 country_event = { #[From.GetCountryDef] rejects Federation proposal (hates fun)
 	id = nordic_formation.15
-	immediate = { log = "[GetDateText]: [Root.GetName]: event nordic_formation.15 FROM = [From.GetName]" }
 	title = nordic_formation.15.t
 	desc = nordic_formation.15.d
 	picture = GFX_report_event_NOR_syndicalist_constitution
@@ -664,6 +194,7 @@ country_event = { #[From.GetCountryDef] rejects Federation proposal (hates fun)
 	is_triggered_only = yes
 
 	option = { #Sad
+		log = "[GetLogInfo]: event nordic_formation.15 option nordic_formation.15.a"
 		name = nordic_formation.15.a
 	}
 }
@@ -674,6 +205,24 @@ country_event = { # Norwegian Federation is Accepted
 	title = nordic_formation.16.t
 	desc = nordic_formation.16.d
 	picture = GFX_report_event_NOR_new_government
+	
+	immediate = {
+		hidden_effect = {
+			SCA_get_ideologies = yes
+			random_country = {
+				limit = {
+					OR = {
+						tag = NOR
+						tag = SWE
+						tag = DEN
+						tag = ICE
+					}
+					is_ai = no
+				}
+				save_event_target_as = SCA_player
+			}
+		}
+	}
 
 	is_triggered_only = yes
 	trigger = {
@@ -700,164 +249,177 @@ country_event = { # Norwegian Federation is Accepted
 
 	option = {
 		name = nordic_formation.16.a
-		news_event = {
-			id = worldnews.451
-		}
-		random_owned_controlled_state = {
-			SCA = { transfer_state = PREV }
-		}
-		every_country = { #Transfer puppets
-			limit = {
-				OR = {
-					is_subject_of = DEN
-					is_subject_of = SWE
-					is_subject_of = NOR
-				}
-			}
-			SCA = {
-				puppet = PREV
-			}
-		}
-		if = {
-			limit = {
-				NOR = {
-					NOT = {
-						is_ai = yes
-					}
-				}
-			}
-			SCA = {
-				change_tag_from = NOR
-			}
-		}
-		if = {
-			limit = {
-				SWE = {
-					NOT = {
-						is_ai = yes
-					}
-				}
-			}
-			SCA = {
-				change_tag_from = SWE
-			}
-		}
-		if = {
-			limit = {
-				DEN = {
-					NOT = {
-						is_ai = yes
-					}
-				}
-			}
-			SCA = {
-				change_tag_from = DEN
-			}
-		}
-		if = {
-			limit = {
-				ICE = {
-					NOT = {
-						is_ai = yes
-					}
-					is_subject_of = SCA
-				}
-			}
-			SCA = {
-				change_tag_from = ICE
-			}
-		}
-		every_state = {
-			limit = {
-				OR = {
-					is_core_of = SWE
-					is_core_of = DEN
-				}
-			}
-			SCA = {
-				add_state_core = PREV
-			}
-		}
-		if = {
-			limit = {
-				NOR = {
-					has_country_flag = SCA_accepted_federation
-				}
-			}
-			every_state = {
-				limit = {
-					is_core_of = NOR
-				}
+		name = nordic_formation.16.a
+		hidden_effect = {
+			news_event = worldnews.451
+			capital_scope = {
 				SCA = {
 					add_state_core = PREV
+					transfer_state = PREV
 				}
-			}
-		}
-		if = {
-			limit = {
-				ICE = {
-					is_subject_of = SCA
-				}
-			}
-			every_state = {
-				limit = {
-					is_core_of = ICE
-				}
-				SCA = {
-					add_state_core = PREV
-				}
-			}
-			ICE = {
-				transfer_navy = { target = SCA }
-				every_unit_leader = { set_nationality = SCA }
 			}
 			SCA = {
-				annex_country = {
-					target = ICE
-					transfer_troops = yes
+				set_politics = {
+					ruling_party = authoritarian_democrat
+					elections_allowed = no
 				}
+			}
+			every_country = { #Transfer puppets
+				limit = {
+					OR = {
+						is_subject_of = DEN
+						is_subject_of = SWE
+						is_subject_of = NOR
+					}
+				}
+				set_temp_variable = { target = THIS }
+				SCA = { puppet_country_without_changing_government = yes }
 			}
 		}
 		if = {
-			limit = {
-				SWE = {
-					is_in_faction_with = FIN
+			limit = { is_faction_leader = yes }
+			set_global_flag = TEMPORARY_DISABLED_FACTION_POPUP
+			add_to_faction = SCA
+			SCA = { set_faction_leader = yes }
+		}
+		else_if = {
+			limit = { is_in_faction = yes }
+			faction_leader = { add_to_faction = SCA }
+			set_global_flag = TEMPORARY_DISABLED_FACTION_POPUP
+			if = {
+				limit = {
+					faction_leader = {
+						OR = {
+							tag = SWE
+							tag = DEN
+							tag = NOR
+						}
+					}
+				}
+				SCA = { set_faction_leader = yes }
+			}
+		}
+		hidden_effect = {
+			NOR = {
+				every_core_state = { add_core_of = SCA }
+				hidden_effect = { every_owned_state = { save_current_factory_count = yes } }
+				every_unit_leader = {
+					set_nationality = SCA
 				}
 			}
 			SWE = {
-				dismantle_faction = yes
+				every_core_state = { add_core_of = SCA }
+				hidden_effect = { every_owned_state = { save_current_factory_count = yes } }
+				every_unit_leader = {
+					set_nationality = SCA
+				}
 			}
-			SCA = {
-				create_faction = SCA_faction_scandinavian_defense_union
-				add_to_faction = FIN
+			DEN = {
+				every_core_state = { add_core_of = SCA }
+				hidden_effect = { every_owned_state = { save_current_factory_count = yes } }
+				every_unit_leader = {
+					set_nationality = SCA
+				}
 			}
-		}
-		NOR = {
-			transfer_navy = { target = SCA }
-			every_unit_leader = { set_nationality = SCA }
-		}
-		SWE = {
-			transfer_navy = { target = SCA }
-			every_unit_leader = { set_nationality = SCA }
-		}
-		DEN = {
-			transfer_navy = { target = SCA }
-			every_unit_leader = { set_nationality = SCA }
 		}
 		SCA = {
 			transfer_technology = yes
 			transfer_int_upgrade = yes
 			annex_country = {
-				target = NOR transfer_troops = yes
+				target = NOR
+				transfer_troops = yes
 			}
 			annex_country = {
-				target = SWE transfer_troops = yes
+				target = SWE
+				transfer_troops = yes
 			}
 			annex_country = {
-				target = DEN transfer_troops = yes
+				target = DEN
+				transfer_troops = yes
+			}
+			if = {
+				limit = { has_subject = ICE }
+				ICE = {
+					every_core_state = { add_core_of = SCA }
+					hidden_effect = {
+						every_owned_state = { save_current_factory_count = yes }
+						every_unit_leader = {
+							set_nationality = SCA
+						}
+					}
+				}
+				annex_country = {
+					target = ICE
+					transfer_troops = yes
+				}
+			}
+			custom_effect_tooltip = tooltip_white_line
+			custom_effect_tooltip = SCA_tt_nordic_fed_formation_tech
+			custom_effect_tooltip = tooltip_white_line
+			hidden_effect = {
+				set_capital = { state = 140 remember_old_capital = no }
+				every_owned_state = { restore_previous_factory_count = yes }
+				load_oob = SCA_naval
+			}
+			# SWE
+			if = {
+				limit = { SWE = { has_completed_focus = SWE_hms_karl_xii } }
+				create_equipment_variant = {
+					name = "Kustflottan Class"
+					type = ship_hull_heavy_2
+					parent_version = 0
+					name_group = SWE_CA_HISTORICAL
+					modules = {
+						fixed_ship_battery_slot = ship_heavy_battery_2
+						fixed_ship_anti_air_slot = ship_anti_air_2
+						fixed_ship_fire_control_system_slot = ship_fire_control_system_1
+						fixed_ship_radar_slot = empty
+						fixed_ship_engine_slot = heavy_ship_engine_2
+						fixed_ship_secondaries_slot = ship_secondaries_2
+						fixed_ship_armor_slot = ship_armor_bc_2
+						front_1_custom_slot = ship_anti_air_2
+						mid_1_custom_slot = ship_heavy_battery_2
+						mid_2_custom_slot = ship_secondaries_2
+						rear_1_custom_slot = ship_heavy_battery_2
+					}
+				}
+			}
+			# NOR
+			if = {
+				limit = { NOR = { has_completed_focus = NOR_submarines } }
+				create_equipment_variant = {
+					name = "U Class"
+					type = ship_hull_submarine_2
+					parent_version = 0
+					name_group = NOR_SS_HISTORICAL
+					modules = {
+						fixed_ship_torpedo_slot = ship_torpedo_sub_2
+						fixed_ship_engine_slot = sub_ship_engine_2
+						rear_1_custom_slot = ship_torpedo_sub_2
+					}
+				}
+			}
+			if = {
+				limit = { NOR = { has_completed_focus = NOR_destroyers } }
+				create_equipment_variant = {
+					name = "Balder Class"
+					type = ship_hull_light_2
+					parent_version = 0
+					name_group = NOR_DD_HISTORICAL
+					modules = {
+						fixed_ship_battery_slot = ship_light_battery_2
+						fixed_ship_anti_air_slot = ship_anti_air_1
+						fixed_ship_fire_control_system_slot = ship_fire_control_system_0
+						fixed_ship_radar_slot = empty
+						fixed_ship_engine_slot = light_ship_engine_2
+						fixed_ship_torpedo_slot = ship_torpedo_1
+						mid_1_custom_slot = ship_torpedo_1
+						rear_1_custom_slot = ship_depth_charge_1
+					}
+				}
 			}
 			country_event = { id = scandinavia.1 days = 2 }
-			hidden_effect = { country_event = kr.political.41 }
+			change_tag_from = event_target:SCA_player
 		}
 	}
 }
@@ -974,15 +536,16 @@ country_event = {
 	is_triggered_only = yes
 
 	immediate = {
+		SCA_determine_election = yes
 		set_country_flag = SCA_first_elections_held
 		set_country_flag = LEADER_GUI_VISIBLE
 	}
 
 	option = {
 		name = scandinavia.2.a # Social Democrat Majority
-		ai_chance = { base = 40
+		ai_chance = { base = SCA.socdem_gov_var
 		modifier = {
-				factor = 0
+			factor = 0
 				OR = {
 					has_game_rule = {
 						rule = SCA_election
@@ -1055,7 +618,7 @@ country_event = {
 
 	option = {
 		name = scandinavia.2.b # Social Liberal Majority
-		ai_chance = { base = 30
+		ai_chance = { base = SCA.liberal_gov_var
 		modifier = {
 				factor = 0
 				OR = {
@@ -1113,7 +676,7 @@ country_event = {
 	option = {
 		name = scandinavia.2.c # Agrarian-Conservative Majority
 		trigger = { NOT = { has_country_flag = SCA_MarLibs_Lead_Coalition } }
-		ai_chance = { base = 30 
+		ai_chance = { base = SCA.soccon_gov_var
 		modifier = {
 				factor = 0
 				OR = {
@@ -1184,7 +747,7 @@ country_event = {
 	
 	option = {
 		name = scandinavia.2.c # Agrarian-Conservative Majority
-		ai_chance = { base = 30 
+		ai_chance = { base = SCA.soccon_gov_var
 		modifier = {
 				factor = 0
 				OR = {
@@ -1271,7 +834,7 @@ country_event = {
 
 	option = {
 		name = scandinavia.2.a # Social Democrat Majority
-		ai_chance = {  base = 40 
+		ai_chance = {  base = SCA.socdem_gov_var
 		modifier = {
 				factor = 0
 				OR = {
@@ -1339,7 +902,7 @@ country_event = {
 
 	option = {
 		name = scandinavia.2.b # Social Liberal Majority
-		ai_chance = { base = 30
+		ai_chance = { base = SCA.liberal_gov_var
 		modifier = {
 				factor = 0
 				OR = {
@@ -1390,7 +953,7 @@ country_event = {
 	option = {
 		name = scandinavia.2.c # Agrarian-Conservative Majority
 		trigger = { NOT = { has_country_flag = SCA_MarLibs_Lead_Coalition } }
-		ai_chance = { base = 30 
+		ai_chance = { base = SCA.soccon_gov_var
 		modifier = {
 				factor = 0
 				OR = {
@@ -1456,7 +1019,7 @@ country_event = {
 	
 	option = {
 		name = scandinavia.2.e # Agrarian-Conservative Majority
-		ai_chance = { base = 30 
+		ai_chance = { base = SCA.soccon_gov_var
 		modifier = {
 				factor = 0
 				OR = {
@@ -2013,151 +1576,290 @@ country_event = {
 	trigger = {
 		tag = SCA
 	}
+	
+	### Progression normally should go Haakon -> Gustav -> Christian/Frederick -> Haakon (again and loop around}
+	### If Finland Joins then it should go Haakon -> Gustav -> Christian/Frederick -> Frederick Kaarle/Väinö -> Haakon (again and loop around}
 
 	option = {
 		name = scandinavia.17.a
-		if = {
-			limit = {
-				has_country_leader = {
-					name = "Haakon VII"
-					ruling_only = yes
-				}
-			}
-			create_country_leader = {
-				name = "Gustaf V"
-				desc = "POLITICS_Gustaf_V_DESC"
-				picture = "gfx/leaders/SWE/Portrait_Sweden_Gustaf_V.png"
-				expire = "1965.1.1"
-				ideology = scandinavism_subtype
-			}
-			create_country_leader = {
-				name = "Gustaf V"
-				desc = "POLITICS_Gustaf_V_DESC"
-				picture = "gfx/leaders/SWE/Portrait_Sweden_Gustaf_V.png"
-				expire = "1965.1.1"
-				ideology = soclib_scandinavism_subtype
-			}
-			create_country_leader = {
-				name = "Gustaf V"
-				desc = "POLITICS_Gustaf_V_DESC"
-				picture = "gfx/leaders/SWE/Portrait_Sweden_Gustaf_V.png"
-				expire = "1965.1.1"
-				ideology = marlib_scandinavism_subtype
-			}
-			create_country_leader = {
-				name = "Gustaf V"
-				desc = "POLITICS_Gustaf_V_DESC"
-				picture = "gfx/leaders/SWE/Portrait_Sweden_Gustaf_V.png"
-				expire = "1965.1.1"
-				ideology = soccon_scandinavism_subtype
-			}
-			hidden_effect = { country_event = { id = scandinavia.17 days = 730 } }
-		}
-		else_if = {
-			limit = {
-				has_country_leader = {
-					name = "Gustaf V"
-					ruling_only = yes
-				}
-				NOT = {
-					has_global_flag = SCA_Frederick_Danish_king
-					has_global_flag = SCA_Denmark_Republic
-				}
-			}
-			create_country_leader = {
-				name = "Christian X"
-				desc = "CHRISTIAN_X_DESC"
-				picture = "gfx/leaders/DEN/Portrait_Denmark_Christian_X.png"
-				expire = "1965.1.1"
-				ideology = scandinavism_subtype
-			}
-
-			create_country_leader = {
-				name = "Christian X"
-				desc = "CHRISTIAN_X_DESC"
-				picture = "gfx/leaders/DEN/Portrait_Denmark_Christian_X.png"
-				expire = "1965.1.1"
-				ideology = soclib_scandinavism_subtype
-			}
-
-			create_country_leader = {
-				name = "Christian X"
-				desc = "CHRISTIAN_X_DESC"
-				picture = "gfx/leaders/DEN/Portrait_Denmark_Christian_X.png"
-				expire = "1965.1.1"
-				ideology = marlib_scandinavism_subtype
-			}
-
-			create_country_leader = {
-				name = "Christian X"
-				desc = "CHRISTIAN_X_DESC"
-				picture = "gfx/leaders/DEN/Portrait_Denmark_Christian_X.png"
-				expire = "1965.1.1"
-				ideology = soccon_scandinavism_subtype
+		trigger = {
+			has_country_leader = {
+				name = "Haakon VII"
+				ruling_only = yes
 			}
 		}
-		else_if = {
-			limit = {
-				has_country_leader = {
-					name = "Gustaf V"
-					ruling_only = yes
-				}
+		create_country_leader = {
+			name = "Gustaf V"
+			desc = "POLITICS_Gustaf_V_DESC"
+			picture = "gfx/leaders/SWE/Portrait_Sweden_Gustaf_V.png"
+			expire = "1965.1.1"
+			ideology = scandinavism_subtype
+		}
+		create_country_leader = {
+			name = "Gustaf V"
+			desc = "POLITICS_Gustaf_V_DESC"
+			picture = "gfx/leaders/SWE/Portrait_Sweden_Gustaf_V.png"
+			expire = "1965.1.1"
+			ideology = soclib_scandinavism_subtype
+		}
+		create_country_leader = {
+			name = "Gustaf V"
+			desc = "POLITICS_Gustaf_V_DESC"
+			picture = "gfx/leaders/SWE/Portrait_Sweden_Gustaf_V.png"
+			expire = "1965.1.1"
+			ideology = marlib_scandinavism_subtype
+		}
+		create_country_leader = {
+			name = "Gustaf V"
+			desc = "POLITICS_Gustaf_V_DESC"
+			picture = "gfx/leaders/SWE/Portrait_Sweden_Gustaf_V.png"
+			expire = "1965.1.1"
+			ideology = soccon_scandinavism_subtype
+		}
+		hidden_effect = { country_event = { id = scandinavia.17 days = 730 } }
+	}
+	option = {
+		name = scandinavia.17.a
+		trigger = {
+			has_country_leader = {
+				name = "Gustaf V"
+				ruling_only = yes
+			}
+			NOT = {
 				has_global_flag = SCA_Frederick_Danish_king
 			}
+		}
+		create_country_leader = {
+			name = "Christian X"
+			desc = "CHRISTIAN_X_DESC"
+			picture = "gfx/leaders/DEN/Portrait_Denmark_Christian_X.png"
+			expire = "1965.1.1"
+			ideology = scandinavism_subtype
+		}
+
+		create_country_leader = {
+			name = "Christian X"
+			desc = "CHRISTIAN_X_DESC"
+			picture = "gfx/leaders/DEN/Portrait_Denmark_Christian_X.png"
+			expire = "1965.1.1"
+			ideology = soclib_scandinavism_subtype
+		}
+
+		create_country_leader = {
+			name = "Christian X"
+			desc = "CHRISTIAN_X_DESC"
+			picture = "gfx/leaders/DEN/Portrait_Denmark_Christian_X.png"
+			expire = "1965.1.1"
+			ideology = marlib_scandinavism_subtype
+		}
+
+		create_country_leader = {
+			name = "Christian X"
+			desc = "CHRISTIAN_X_DESC"
+			picture = "gfx/leaders/DEN/Portrait_Denmark_Christian_X.png"
+			expire = "1965.1.1"
+			ideology = soccon_scandinavism_subtype
+		}
+	}
+	option = {
+		name = scandinavia.17.a
+		trigger = {
+			has_country_leader = {
+				name = "Gustaf V"
+				ruling_only = yes
+			}
+			has_global_flag = SCA_Frederick_Danish_king
+		}
+		create_country_leader = {
+			name = "Frederick IX"
+			picture = "gfx/leaders/DEN/Portrait_Denmark_Frederick.png"
+			expire = "1965.1.1"
+			ideology = scandinavism_subtype
+		}
+		create_country_leader = {
+			name = "Frederick IX"
+			picture = "gfx/leaders/DEN/Portrait_Denmark_Frederick.png"
+			expire = "1965.1.1"
+			ideology = soclib_scandinavism_subtype
+		}
+		create_country_leader = {
+			name = "Frederick IX"
+			picture = "gfx/leaders/DEN/Portrait_Denmark_Frederick.png"
+			expire = "1965.1.1"
+			ideology = marlib_scandinavism_subtype
+		}
+		create_country_leader = {
+			name = "Frederick IX"
+			picture = "gfx/leaders/DEN/Portrait_Denmark_Frederick.png"
+			expire = "1965.1.1"
+			ideology = soccon_scandinavism_subtype
+		}
+	}
+	option = {	
+		name = scandinavia.17.a
+		trigger = {
+			OR = {
+				has_country_leader = {
+					name = "Frederick IX"
+					ruling_only = yes
+				}
+				has_country_leader = {
+					name = "Christian X"
+					ruling_only = yes
+				}
+			}
+			has_global_flag = SCA_Finnish_King_Joins_Rotation
+		}
+		if = {
+			limit = { 
+				NOT = { has_global_flag = FIN_Frederik_Kaarle_dead }
+			}
 			create_country_leader = {
-				name = "Frederick IX"
-				picture = "gfx/leaders/DEN/Portrait_Denmark_Frederick.png"
+				name = "Fredrik Kaarle I"
+				desc = "POLITICS_FREDRIK_KAARLE_DESC"
+				picture = "gfx/leaders/FIN/Portrait_FIN_Fredrik_Kaarle_I.png"
 				expire = "1965.1.1"
 				ideology = scandinavism_subtype
 			}
 			create_country_leader = {
-				name = "Frederick IX"
-				picture = "gfx/leaders/DEN/Portrait_Denmark_Frederick.png"
+				name = "Fredrik Kaarle I"
+				desc = "POLITICS_FREDRIK_KAARLE_DESC"
+				picture = "gfx/leaders/FIN/Portrait_FIN_Fredrik_Kaarle_I.png"
 				expire = "1965.1.1"
 				ideology = soclib_scandinavism_subtype
 			}
 			create_country_leader = {
-				name = "Frederick IX"
-				picture = "gfx/leaders/DEN/Portrait_Denmark_Frederick.png"
+				name = "Fredrik Kaarle I"
+				desc = "POLITICS_FREDRIK_KAARLE_DESC"
+				picture = "gfx/leaders/FIN/Portrait_FIN_Fredrik_Kaarle_I.png"
 				expire = "1965.1.1"
 				ideology = marlib_scandinavism_subtype
 			}
 			create_country_leader = {
-				name = "Frederick IX"
-				picture = "gfx/leaders/DEN/Portrait_Denmark_Frederick.png"
+				name = "Fredrik Kaarle I"
+				desc = "POLITICS_FREDRIK_KAARLE_DESC"
+				picture = "gfx/leaders/FIN/Portrait_FIN_Fredrik_Kaarle_I.png"
 				expire = "1965.1.1"
 				ideology = soccon_scandinavism_subtype
 			}
 		}
 		else = {
 			create_country_leader = {
-				name = "Haakon VII"
-				desc = "POLITICS_Haakon_VII_DESC"
-				picture = "gfx/leaders/NOR/Portrait_Norway_Haakon_VII.png"
+				name = "Väinö I"
+				desc = "POLITICS_VAINO_DESC"
+				picture = "gfx/leaders/FIN/Portrait_FIN_Vaino_I.png"
 				expire = "1965.1.1"
 				ideology = scandinavism_subtype
 			}
 			create_country_leader = {
-				name = "Haakon VII"
-				desc = "POLITICS_Haakon_VII_DESC"
-				picture = "gfx/leaders/NOR/Portrait_Norway_Haakon_VII.png"
+				name = "Väinö I"
+				desc = "POLITICS_VAINO_DESC"
+				picture = "gfx/leaders/FIN/Portrait_FIN_Vaino_I.png"
 				expire = "1965.1.1"
 				ideology = soclib_scandinavism_subtype
 			}
 			create_country_leader = {
-				name = "Haakon VII"
-				desc = "POLITICS_Haakon_VII_DESC"
-				picture = "gfx/leaders/NOR/Portrait_Norway_Haakon_VII.png"
+				name = "Väinö I"
+				desc = "POLITICS_VAINO_DESC"
+				picture = "gfx/leaders/FIN/Portrait_FIN_Vaino_I.png"
 				expire = "1965.1.1"
 				ideology = marlib_scandinavism_subtype
 			}
 			create_country_leader = {
-				name = "Haakon VII"
-				desc = "POLITICS_Haakon_VII_DESC"
-				picture = "gfx/leaders/NOR/Portrait_Norway_Haakon_VII.png"
+				name = "Väinö I"
+				desc = "POLITICS_VAINO_DESC"
+				picture = "gfx/leaders/FIN/Portrait_FIN_Vaino_I.png"
 				expire = "1965.1.1"
 				ideology = soccon_scandinavism_subtype
 			}
+		}
+	}
+	option = { #Finland Edition
+		name = scandinavia.17.a
+		trigger = {
+			OR = {
+				has_country_leader = {
+					name = "Fredrik Kaarle I"
+					ruling_only = yes
+				}
+				has_country_leader = {
+					name = "Väinö I"
+					ruling_only = yes
+				}
+			}
+			has_global_flag = SCA_Finnish_King_Joins_Rotation
+		}
+		create_country_leader = {
+			name = "Haakon VII"
+			desc = "POLITICS_Haakon_VII_DESC"
+			picture = "gfx/leaders/NOR/Portrait_Norway_Haakon_VII.png"
+			expire = "1965.1.1"
+			ideology = scandinavism_subtype
+		}
+		create_country_leader = {
+			name = "Haakon VII"
+			desc = "POLITICS_Haakon_VII_DESC"
+			picture = "gfx/leaders/NOR/Portrait_Norway_Haakon_VII.png"
+			expire = "1965.1.1"
+			ideology = soclib_scandinavism_subtype
+		}
+		create_country_leader = {
+			name = "Haakon VII"
+			desc = "POLITICS_Haakon_VII_DESC"
+			picture = "gfx/leaders/NOR/Portrait_Norway_Haakon_VII.png"
+			expire = "1965.1.1"
+			ideology = marlib_scandinavism_subtype
+		}
+		create_country_leader = {
+			name = "Haakon VII"
+			desc = "POLITICS_Haakon_VII_DESC"
+			picture = "gfx/leaders/NOR/Portrait_Norway_Haakon_VII.png"
+			expire = "1965.1.1"
+			ideology = soccon_scandinavism_subtype
+		}
+	}
+	option = { #Normal
+		name = scandinavia.17.a
+		trigger = {
+			OR = {
+				has_country_leader = {
+					name = "Frederick IX"
+					ruling_only = yes
+				}
+				has_country_leader = {
+					name = "Christian X"
+					ruling_only = yes
+				}
+			}
+			NOT = { has_global_flag = SCA_Finnish_King_Joins_Rotation }
+		}
+		create_country_leader = {
+			name = "Haakon VII"
+			desc = "POLITICS_Haakon_VII_DESC"
+			picture = "gfx/leaders/NOR/Portrait_Norway_Haakon_VII.png"
+			expire = "1965.1.1"
+			ideology = scandinavism_subtype
+		}
+		create_country_leader = {
+			name = "Haakon VII"
+			desc = "POLITICS_Haakon_VII_DESC"
+			picture = "gfx/leaders/NOR/Portrait_Norway_Haakon_VII.png"
+			expire = "1965.1.1"
+			ideology = soclib_scandinavism_subtype
+		}
+		create_country_leader = {
+			name = "Haakon VII"
+			desc = "POLITICS_Haakon_VII_DESC"
+			picture = "gfx/leaders/NOR/Portrait_Norway_Haakon_VII.png"
+			expire = "1965.1.1"
+			ideology = marlib_scandinavism_subtype
+		}
+		create_country_leader = {
+			name = "Haakon VII"
+			desc = "POLITICS_Haakon_VII_DESC"
+			picture = "gfx/leaders/NOR/Portrait_Norway_Haakon_VII.png"
+			expire = "1965.1.1"
+			ideology = soccon_scandinavism_subtype
 		}
 	}
 }
@@ -2725,6 +2427,7 @@ country_event = {
 		1291 = { add_core_of = FROM }
 		208 = { add_core_of = FROM }
 		195 = { add_core_of = FROM }
+		1328 = { add_core_of = FROM }
 		if = {
 		limit = {
 		ICE = {
