@@ -805,6 +805,27 @@ country_event = {
 
 	option = {
 		name = kr.hungary.300.a # Sue for peace.
+		trigger = {
+			OR = {
+				surrender_progress > 0.75
+				has_global_flag = white_peace_illyria
+			}
+		}
+		add_political_power = -50
+		HUN = { country_event = kr.hungary.301 } # Send the peace offer to Hungary
+	}
+	option = {
+		name = kr.hungary.300.c # Sue for peace, but keep Illyria
+		trigger = {
+			OR = {
+				surrender_progress < 0.75
+				NOT = {
+					CRO = { 
+					is_in_faction_with = AUS
+				}
+			}
+			NOT = { has_global_flag = white_peace_illyria }
+		}
 		add_political_power = -50
 		HUN = { country_event = kr.hungary.301 } # Send the peace offer to Hungary
 	}
@@ -821,7 +842,33 @@ country_event = {
 	id = kr.hungary.301
 	immediate = {log = "[GetDateText]: [Root.GetName]: event kr.hungary.301"}
 	title = kr.hungary.301.t
-	desc = kr.hungary.301.d
+	desc = {
+		text = kr.hungary.301.d
+		trigger = {
+			AUS = {
+				OR = {
+					surrender_progress < 0.75
+					has_global_flag = white_peace_illyria
+				}
+			}
+		}
+	}
+	desc = {
+		text = kr.hungary.301.d.noillyria
+		trigger = {
+			OR = {
+				AUS = {
+					surrender_progress > 0.75
+					NOT = { has_global_flag = white_peace_illyria }
+				}
+				NOT = {
+					CRO = { 
+						is_in_faction_with = AUS
+					}
+				}
+			}
+		}
+	}
 	picture = GFX_report_event_generic_diplomacy2
 
 	is_triggered_only = yes
@@ -832,8 +879,19 @@ country_event = {
 			factor = 100
 		}
 		add_political_power = 200
-		if = {	
-			limit = { CRO = { is_in_faction_with = AUS } }
+		
+		#Annex Illyria if they were losing outright
+		
+		if = {
+			limit = {
+				AND = {
+					CRO = { is_in_faction_with = AUS }
+					OR = {
+						AUS = { surrender_progress > 0.75 }
+						has_global_flag = white_peace_illyria
+					}
+				}
+			}
 			annex_country = {
 				target = CRO
 				transfer_troops = no
@@ -843,12 +901,13 @@ country_event = {
 		AUS = { white_peace_with_ROOT = yes }
 		
 
-		# separate peace for Poland if it joined the war
+		# separate peace for Poland if it joined the war and held out
 		if = {
 			limit = {
 				POL = {
 					has_country_flag = POL_joined_HUN_war
 					has_war_with = AUS
+					surrender_progress < 0.4
 				}
 			}
 			AUS = { white_peace = POL }
@@ -862,6 +921,14 @@ country_event = {
 				annex_country = {
 					target = GAL
 					transfer_troops = no
+				}
+			}
+			if = {
+				limit = {
+					country_exists = WSU
+				}
+				HUN = {
+					transfer_state = 73
 				}
 			}
 		}
@@ -897,12 +964,12 @@ country_event = {
 
 	option = {
 		name = kr.hungary.302.a # So be it
-		hidden_effect = {
-			news_event = {
-				id = worldnews.247
-				days = 1
-			}
-		}
+		#hidden_effect = {
+		#	news_event = {
+		#		id = worldnews.247
+		#		days = 1
+		#	}
+		#}
 		ai_chance = {
 			factor = 100
 		}
