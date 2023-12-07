@@ -910,13 +910,13 @@ shared_focus = {
 				GER = {
 					has_war = yes
 				}
-				has_country_flag = ARG_GER_trade_deal
+				has_country_flag = ARG_GER_DEAL
 			}
 			AND = {
 				ENT = {
 					has_war = yes
 				}
-				has_country_flag = ARG_CAN_trade_deal
+				has_country_flag = ARG_CAN_DEAL
 			}
 		}
 	}
@@ -1625,6 +1625,9 @@ shared_focus = {
 			is_faction_leader = yes
 		}
 	}
+	bypass = {
+		NOT = { can_declare_war_on = PAR }
+	}
 	prerequisite = {
 		focus = ARG_A_Catholic_Federation
 	}
@@ -1642,6 +1645,14 @@ shared_focus = {
 		modifier = {
 			factor = 2
 			date > 1938.01.01
+		}
+		modifier = {
+			factor = 0
+			OR = {
+				ROOT_is_threatened = yes
+				PAR = { dont_start_major_faction_wars = yes }
+				PAR = { default_attack_AI_trigger_FROM = yes }
+			}
 		}
 	}
 
@@ -1811,6 +1822,24 @@ shared_focus = {
 			is_faction_leader = yes
 		}
 		can_declare_war_on = URG
+		if = {
+			limit = {
+				BRA = {
+					is_in_faction = yes
+					is_faction_leader = no
+				}
+				URG = {
+					OR = {
+						is_guaranteed_by = BRA
+						is_in_faction_with = BRA
+					}
+				}
+			}
+			has_global_flag = second_weltkrieg_has_started
+		}
+	}
+	bypass = {
+		NOT = { can_declare_war_on = URG }
 	}
 	prerequisite = {
 		focus = ARG_A_Catholic_Federation
@@ -1829,6 +1858,14 @@ shared_focus = {
 		modifier = {
 			factor = 2
 			date > 1938.01.01
+		}
+		modifier = {
+			factor = 0
+			OR = {
+				ROOT_is_threatened = yes
+				URG = { dont_start_major_faction_wars = yes }
+				URG = { default_attack_AI_trigger_FROM = yes }
+			}
 		}
 	}
 	will_lead_to_war_with = URG
@@ -2185,25 +2222,15 @@ shared_focus = {
 	id = ARG_Yacuiba_Dispute
 	icon = GFX_goal_PAR_Invade_Bolivia
 	available = {
-		if = {
-			limit = { owns_state = 848 }
-			owns_state = 848
-		}
-		else = {
-			is_subject = no
-			OR = {
-				is_in_faction = no
-				is_faction_leader = yes
-			}
-			OR = {
-				AND = {
-					can_declare_war_on = BOL
-					BOL = { owns_state = 848 }
+		OR = {
+			owns_state = 1073
+			AND = {
+				OR = {
+					is_in_faction = no
+					is_faction_leader = yes
 				}
-				AND = {
-					can_declare_war_on = PRU
-					PRU = { owns_state = 848 }
-				}
+				can_declare_war_on = 1073.owner
+				is_subject = no
 			}
 		}
 	}
@@ -2213,20 +2240,13 @@ shared_focus = {
 	prerequisite = {
 		focus = ARG_A_Catholic_Federation
 	}
+	bypass = {
+		var:1073.owner = { is_in_faction_with = ROOT }
+	}
 	cost = 1
 	x = 2
 	y = 1
 	relative_position_id = ARG_A_Catholic_Federation
-
-	bypass = {
-		848 = {
-			NOT = {
-				is_owned_by = BOL
-				is_owned_by = PRU
-				is_owned_by = ARG
-			}
-		}
-	}
 
 	ai_will_do = {
 		factor = 10
@@ -2238,6 +2258,15 @@ shared_focus = {
 			factor = 2
 			date > 1940.01.01
 		}
+		modifier = {
+			factor = 0
+			can_declare_war_on = 1073.owner
+			OR = {
+				ROOT_is_threatened = yes
+				var:1073.owner = { dont_start_major_faction_wars = yes }
+				var:1073.owner = { default_attack_AI_trigger_FROM = yes }
+			}
+		}
 	}
 
 	available_if_capitulated = yes
@@ -2246,25 +2275,10 @@ shared_focus = {
 		log = "[GetDateText]: [Root.GetName]: Focus ARG_Yacuiba_Dispute"
 		add_state_core = 1073
 		if = {
-			limit = {
-				BOL = {
-					owns_state = 848
-				}
-			}
-			create_wargoal = {
+			limit = { can_declare_war_on = 1073.owner }
+			declare_war_on = {
+				target = var:1073.owner
 				type = annex_everything
-				target = BOL
-			}
-		}
-		if = {
-			limit = {
-				PRU = {
-					owns_state = 848
-				}
-			}
-			create_wargoal = {
-				type = annex_everything
-				target = PRU
 			}
 		}
 	}
@@ -2386,6 +2400,7 @@ shared_focus = {
 			is_in_faction_with = BRA
 		}
 		is_subject = no
+		can_declare_war_on = BRA
 	}
 	prerequisite = {
 		focus = ARG_A_Catholic_Federation
@@ -2397,21 +2412,57 @@ shared_focus = {
 
 	ai_will_do = {
 		factor = 60
+		modifier = {
+			factor = 0
+			OR = {
+				ROOT_is_threatened = yes
+				BRA = { default_attack_AI_trigger_FROM = yes }
+				BRA = { is_ally_with = GER }
+			}
+		}
+		modifier = {
+			factor = 0
+			BRA = { is_ally_with = ENT }
+			OR = {
+				CSA = { exists = no }
+				NFA = { exists = yes }
+			}
+		}
+		modifier = {
+			add = 100
+			is_in_faction_with = PRU
+			BOL = {
+				OR = {
+					exists = no
+					is_in_faction_with = ROOT
+				}
+			}
+			PAR = {
+				OR = {
+					exists = no
+					is_in_faction_with = ROOT
+				}
+			}
+		}
+		modifier = {
+			add = 100
+			strength_ratio = { tag = BRA ratio > 1 }
+		}
 	}
 
 	available_if_capitulated = yes
 
 	bypass = {
-		BRA = {
-			OR = {
-				is_subject_of = ARG
-				exists = no
-			}
-		}
+		NOT = { can_declare_war_on = BRA }
 	}
 
 	completion_reward = {
 		log = "[GetDateText]: [Root.GetName]: Focus ARG_Missiones_Orientales"
+		if = {
+			limit = { owns_state = 301 }
+			add_state_claim = 1041
+			add_state_claim = 1043
+		}
 		add_war_support = 0.10
 	}
 	search_filters = { FOCUS_FILTER_WAR_SUPPORT }
@@ -2910,6 +2961,7 @@ shared_focus = {
 			target = PRU
 			type = annex_everything
 		}
+		create_faction = argentinian_sphere_faction
 	}
 	search_filters = { FOCUS_FILTER_ANNEXATION }
 }
@@ -2918,18 +2970,8 @@ shared_focus = {
 	id = ARG_Tigthen_ties_with_Peru
 	icon = GFX_goal_PAR_Take_Out_Peru
 	available = {
-		PRU = {
-			exists = yes
-			is_subject = no
-			NOT = {
-				has_war_with = ARG
-			}
-		}
-		has_global_flag = PER_ARG
 		is_in_faction = no
-		PRU = {
-			is_in_faction = no
-		}
+		is_subject = no
 	}
 	prerequisite = {
 		focus = ARG_A_Catholic_Federation
@@ -2950,8 +2992,31 @@ shared_focus = {
 
 	completion_reward = {
 		log = "[GetDateText]: [Root.GetName]: Focus ARG_Tigthen_ties_with_Peru"
-		PRU = {
-			country_event = argfor.1
+		custom_effect_tooltip = ARG_ties_with_peru_effect_tt
+		hidden_effect = {
+			if = {
+				limit = {
+					has_global_flag = PER_ARG
+					country_exists = PRU
+					PRU = {
+						is_subject = no
+						is_in_faction = no
+						has_socialist_government = no
+					}
+					NOT = {
+						has_war_with = PRU
+						has_wargoal_against = PRU
+						is_justifying_wargoal_against = PRU
+					}
+				}
+				PRU = {
+					country_event = argfor.1
+				}
+			}
+			else = {
+				create_faction = argentinian_sphere_faction
+			}
+			activate_targeted_decision = { target = ROOT decision = ARG_dismantle_natpop_faction }
 		}
 	}
 }
