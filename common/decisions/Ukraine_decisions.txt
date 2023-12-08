@@ -5048,6 +5048,108 @@ UKR_eastern_threat = {
 	}	
 }
 UKR_foreign_policy = {
+	UKR_small_pact = {
+		icon = GFX_decision_shield
+		available = {
+			surrender_progress < 0.05
+			OR = {
+				POL = { has_idea = UKR_EE_cooperation }
+				WHR = { has_idea = UKR_EE_cooperation }
+			}
+			OR = {
+				is_in_faction = no
+				all_allied_country = {
+					OR = {
+						is_major = no
+						is_subject = yes
+						has_capitulated = yes
+					}
+				}
+			}
+		}
+		visible = {
+			has_idea = UKR_EE_cooperation
+			OR = {
+				NOT = { country_exists = GER }
+				GER = { has_capitulated = yes }
+				is_in_faction = no
+				is_faction_leader = yes
+			}
+			NOT = {
+				OR = {
+					has_government = social_democrat
+					has_socialist_government = yes
+				}
+			}
+			is_subject = no
+		}
+
+		fire_only_once = yes
+
+		ai_will_do = { factor = 100 }
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete UKR_small_pact"
+			add_political_power = 75
+			set_country_flag = UKR_small_pact_tree
+			swap_ideas = {
+				remove_idea = UKR_EE_cooperation
+				add_idea = UKR_EE_cooperation2
+			}
+			if = {
+				limit = { is_faction_leader = yes } #== took over the Reichspakt
+				custom_effect_tooltip = UKR_reichspakt_collapse_warning
+				effect_tooltip = { create_faction = small_pact }
+				hidden_effect = {
+					every_other_country = {
+						limit = {
+							is_in_faction_with = ROOT
+							is_subject = no
+							OR = {
+								has_idea = UKR_EE_cooperation
+								UKR_is_potential_small_pact_member = yes
+							}
+						}
+						add_to_temp_array = { small_pact_members_from_reichspakt = THIS }
+					}
+					leave_faction = yes
+					MIE_remove_from_intermarium = yes
+					create_faction = small_pact
+					for_each_loop = {
+						array = small_pact_members_from_reichspakt
+						set_global_flag = TEMPORARY_DISABLED_FACTION_POPUP
+						add_to_faction = var:v
+					}
+
+					### trigger German capitulation and flight to Africa ###
+					GER = { country_event = capt.11 }
+				}
+			}
+			else = {
+				create_faction = small_pact
+			}
+			every_other_country = {
+				limit = {
+					OR = {
+						has_idea = UKR_EE_cooperation
+						UKR_is_potential_small_pact_member = yes
+					}
+					has_war_with = INT
+					OR = {
+						is_in_faction = no
+						is_in_faction_with = ROOT
+					}
+					OR = {
+						is_in_faction = no
+						is_subject_of = GER
+						is_subject_of = ROOT
+					}
+				}
+				display_individual_scopes = yes
+				country_event = ukrfor.650
+			}
+		}
+	}
 	UKR_revolution_within_a_revolution = {
 		icon = GFX_decision_freedom
 
@@ -5113,6 +5215,96 @@ UKR_foreign_policy = {
 				limit = { country_exists = GER }
 				custom_effect_tooltip = UKR_revolution_within_revolution_tt
 			}
+		}
+	}
+	UKR_fund_bdsp = {
+		allowed = { always = no }
+		visible = {
+			WHR = {
+				is_in_faction_with = GER
+				NOT = {
+					has_socialist_government = yes
+					OR = {
+						has_war_with = RUS
+						has_war_with = FRA
+					}
+				}
+			}
+		}
+		icon = GFX_decision_eng_propaganda_campaigns
+		cost = 50
+		days_remove = 100
+		ai_will_do = {
+			base = 100
+			modifier = {
+				factor = 0
+				WHR = { is_ai = no }
+			}
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete UKR_fund_bdsp"
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_fund_bdsp"
+			add_to_variable = { UKR_BDSP_coup_var = 1 }
+			if = {
+				limit = {
+					check_variable = { UKR_BDSP_coup_var = 3 }
+				}
+				remove_targeted_decision = { target = WHR decision = UKR_fund_bdsp }
+				activate_targeted_decision = { target = WHR decision = UKR_launch_coup_belarus }
+			}
+			custom_effect_tooltip = UKR_fund_bdsp_tt
+		}
+	}
+	UKR_launch_coup_belarus = {
+		allowed = { always = no }
+		visible = {
+			WHR = {
+				is_in_faction_with = GER
+				NOT = { has_socialist_government = yes }
+			}
+		}
+		available = {
+			has_socialist_government = yes
+			has_war_with = WHR
+			is_neighbor_of = WHR
+			GER = { surrender_progress > 0.30 }
+		}
+		icon = GFX_decision_eng_propaganda_campaigns
+		ai_will_do = {
+			base = 100
+			modifier = {
+				factor = 0
+				WHR = { is_ai = no }
+			}
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete UKR_launch_coup_belarus"
+			WHR = {
+				remove_puppet_and_leave_faction = yes
+				MIE_remove_from_intermarium = yes
+				every_enemy_country = {
+					limit = {
+						NOT = { civilwar_target = PREV }
+						NOT = { is_ally_with = RUS }
+						NOT = { has_war_with = ROOT }
+					}
+					white_peace = PREV
+				}
+				every_owned_state = {
+					limit = {
+						OR = {
+							is_claimed_by = UKR
+							is_core_of = UKR
+							state = 95
+							state = 194
+						}
+					}
+					transfer_state_to = UKR
+				}
+			}
+			puppet = WHR			
 		}
 	}
 	UKR_resist_the_germans = {
