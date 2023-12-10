@@ -197,31 +197,6 @@ focus = {# The Royal Army
 		search_filters = { FOCUS_FILTER_RESEARCH }
 	}
 	
-	focus = {# Strike now
-		id = SIC_strike_now
-		icon = GFX_ITA_irridentism
-		cost = 6.00
-		available = {
-		is_subject = no
-			SIC = {	has_war = no }
-			SRI = {
-				NOT = { is_in_faction_with = SIC }
-			}
-		}
-		bypass = {
-			SIC = { has_war_with = SRI }
-		}
-		prerequisite = {
-			focus = SIC_armored_thrusts
-		}
-		x = 3
-		y = 4
-		ai_will_do = { factor = 30 }
-		completion_reward = {
-			declare_war_on = { target = SRI type = annex_everything }
-		}
-	}
-	
 	focus = {# Arditi dei Apenini
 		id = SIC_apenini
 		icon = GFX_goal_FIU_strike_irredentista
@@ -1884,51 +1859,115 @@ focus = {# The Royal Army
 		}
 	}
 ### Foreign Policy Foci ###
-	focus = {# Fate of Italy
-		id = SIC_matter_of_fate
-		icon = GFX_ITA_united
-		cost = 6.00
-		x = 32
-		y = 1
-		ai_will_do = { factor = 30 }
+	focus = {# Strike now
+		id = SIC_strike_now
+		icon = GFX_SIC_attack_csa
+		cost = 6
+
+		x = 39
+		y = 0
+
+		will_lead_to_war_with = SRI
 		available = {
+			threat > 0.40
+			can_declare_war_on = SRI
+			is_subject = no
+			if = {
+				limit = { has_global_flag = KR_italy_balance }
+				is_in_faction = no
+			}
 			OR = {
-				has_country_flag = SIC_confed
-				has_country_flag = SIC_empire
-				has_cosmetic_tag = SRI_mafia_italy
-				has_completed_focus = SIC_Holy_Italia
-				has_completed_focus = SIC_papal_crowning
-				has_completed_focus = SIC_unbreakable_bundle
+				has_completed_focus = SIC_he_atacc
+				SRI = {
+					OR = {
+						has_war_with = ITA
+						has_war_with = LOM
+						has_war_with = VNC
+					}
+				}
 			}
 		}
 		bypass = {
-			OR = {
-				has_country_flag = SIC_confed
-				has_country_flag = SIC_empire
-				has_cosmetic_tag = SRI_mafia_italy
-				has_completed_focus = SIC_Holy_Italia
-				has_completed_focus = SIC_papal_crowning
-				has_completed_focus = SIC_unbreakable_bundle
+			NOT = { can_declare_war_on = SRI }
+		}
+		ai_will_do = {
+			factor = 1000
+			modifier = {
+				factor = 0
+				has_global_flag = KR_italy_balance
+				SRI = { has_war = no }
+			}
+			modifier = {
+				factor = 0
+				OR = {
+					has_war = yes
+					AND = {
+						strength_ratio = { tag = FROM ratio < 0.50 }
+						FROM = { surrender_progress < 0.30 }
+					}
+					# neither of us is in a faction and FROM is stronger
+					AND = {
+						FROM = {
+							is_in_faction = no
+							is_subject = no
+							has_war = no
+						}
+						strength_ratio = { tag = FROM ratio < 1.0 }
+					}
+					# they're in a faction which is not at war
+					FROM = {
+						OR = {
+							is_in_faction = yes
+							is_subject = yes
+						}
+						has_war = no
+					}
+					# they're in a faction which is at war but not with a major and not losing
+					FROM = {
+						is_in_faction = yes
+						has_war = yes
+						has_war_with_major = no
+						NOT = {
+							surrender_progress > 0.10
+							faction_leader = { surrender_progress > 0.20 }
+						}
+					}
+				}
 			}
 		}
+
 		completion_reward = {
-			log = "[GetDateText]: [Root.GetName]: Focus SIC_matter_of_fate"
-			custom_effect_tooltip = SIC_fate_of_italy_tooltip
+			log = "[GetDateText]: [Root.GetName]: Focus SIC_strike_now"
+			add_war_support = 0.10
+			set_country_flag = attacked_SRI_first
+			if = {
+				limit = { has_global_flag = KR_italy_balance }
+				custom_effect_tooltip = SRI_balance_explanation
+			}
+			SRI = { every_core_state = { add_claim_by = ROOT } }
+			declare_war_on = {
+				target = SRI
+				type = annex_everything
+			}
+			italy_add_reunification_wars_threat = yes
 		}
 	}
+
 	focus = {# Restore the Old Order
 		id = SIC_old_order
 		icon = GFX_SIC_confederation
-		cost = 6.00
-		prerequisite = {
-			focus = SIC_matter_of_fate
-		}
-		relative_position_id = SIC_matter_of_fate
+		cost = 8
+
+		relative_position_id = SIC_strike_now
+		x = -6
+		y = 1
+
 		mutually_exclusive = {
 			focus = SIC_frattelli_ditalia
 		}
-		x = -1
-		y = 1
+		prerequisite = {
+			focus = SIC_strike_now
+		}
 		available = { 
 			has_country_flag = SIC_confed 
 			OR = {
@@ -1937,235 +1976,354 @@ focus = {# The Royal Army
 				has_completed_focus = SIC_mafia_takeover
 			}
 		}
-		ai_will_do = {	factor = 20	}
+		ai_will_do = { factor = 30 }
 		completion_reward = {
 			log = "[GetDateText]: [Root.GetName]: Focus SIC_old_order"
-			set_country_flag = SIC_confed
-			add_political_power = 200
-			TUS = {
-				add_political_power = 200
-				add_manpower = 20000
-			}
-			VNC = {
-				add_political_power = 200
-				add_manpower = 20000
-			}
-			LOM = {
-				add_political_power = 200
-				add_manpower = 20000
-			}
-			EMI = {
-				add_political_power = 200
-				add_manpower = 20000
-			}
-			SRD = {
-				add_political_power = 200
-				add_manpower = 20000
-			}
-			PAP = {
-				add_political_power = 200
-				add_manpower = 20000
-			}
-			if = {
-				limit = { has_idea = SIC_crime_problem_peace }
-				remove_ideas = SIC_crime_problem_peace
+			add_political_power = 100
+			add_research_slot_until_five = yes
+			add_ideas = SIC_italian_confederation_1
+			every_country = {
+				limit = {
+					is_italian_tag = yes
+					is_subject_of = SIC
+				}
+				add_ideas = SIC_italian_confederation_1
 			}
 		}
+		search_filters = { FOCUS_FILTER_POLITICAL FOCUS_FILTER_RESEARCH }
 	}
-	focus = {# Preserve Status Quo
-		id = SIC_preserve_status_quo
-		icon = GFX_goal_ATH_integrate_old_elite
-		cost = 6.00
+
+	focus = {#Organise a Joint Confederate Army
+		id = SIC_organise_conferate_army
+		icon = GFX_goal_mass_concentration_of_army
+		cost = 8
+
+		relative_position_id = SIC_old_order
+		x = -1
+		y = 1
+
 		prerequisite = {
 			focus = SIC_old_order
 		}
-		relative_position_id = SIC_matter_of_fate
-		x = -1
-		y = 2
-		ai_will_do = {
-			factor = 99
+		ai_will_do = { factor = 30 }
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus SIC_organise_conferate_army"
+			add_ideas = SIC_confederate_army_1
+			every_country = {
+				limit = {
+					is_italian_tag = yes
+					is_subject_of = SIC
+				}
+				add_ideas = SIC_confederate_army_1
+			}
 		}
+		search_filters = { FOCUS_FILTER_ARMY_BONUS }
+	}
+
+	focus = {# Constituent Training Schemes
+		id = SIC_constituent_training_schemes
+		icon = GFX_goal_generic_army_training
+		cost = 8
+
+		relative_position_id = SIC_old_order
+		x = -1
+		y = 3
+
+		prerequisite = {
+			focus = SIC_organise_conferate_army
+		}
+		ai_will_do = { factor = 30 }
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus SIC_constituent_training_schemes"
+			swap_ideas = {
+				remove_idea = SIC_confederate_army_1
+				add_idea = SIC_confederate_army_2
+			}
+		}
+		search_filters = { FOCUS_FILTER_ARMY_BONUS }
+	}
+
+	focus = {# Combinied Theory Development
+		id = SIC_combined_theory_development
+		icon = GFX_goal_generic_army_high_command
+		cost = 8
+
+		relative_position_id = SIC_old_order
+		x = -2
+		y = 2
+
+		prerequisite = {
+			focus = SIC_organise_conferate_army
+		}
+		ai_will_do = { factor = 30 }
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus SIC_combined_theory_development"
+			add_doctrine_cost_reduction = {
+				name = SIC_combined_theory_development
+				cost_reduction = 0.5
+				uses = 1
+				category = land_doctrine
+			}
+			add_doctrine_cost_reduction = {
+				name = SIC_combined_theory_development
+				cost_reduction = 0.5
+				uses = 1
+				category = naval_doctrine
+			}
+			add_doctrine_cost_reduction = {
+				name = SIC_combined_theory_development
+				cost_reduction = 0.5
+				uses = 1
+				category = air_doctrine
+			}
+			every_country = {
+				limit = {
+					is_italian_tag = yes
+					is_subject_of = SIC
+				}
+				add_doctrine_cost_reduction = {
+					name = SIC_combined_theory_development
+					cost_reduction = 0.5
+					uses = 1
+					category = land_doctrine
+				}
+				add_doctrine_cost_reduction = {
+					name = SIC_combined_theory_development
+					cost_reduction = 0.5
+					uses = 1
+					category = naval_doctrine
+				}
+				add_doctrine_cost_reduction = {
+					name = SIC_combined_theory_development
+					cost_reduction = 0.5
+					uses = 1
+					category = air_doctrine
+				}
+			}
+		}
+		search_filters = { FOCUS_FILTER_ARMY_BONUS FOCUS_FILTER_AIRFORCE_BONUS FOCUS_FILTER_NAVY_BONUS FOCUS_FILTER_RESEARCH }
+	}
+
+	focus = {# Preserve Status Quo
+		id = SIC_preserve_status_quo
+		icon = GFX_focus_generic_diplomatic_treaty
+		cost = 8
+
+		relative_position_id = SIC_old_order
+		x = 1
+		y = 1
+
+		prerequisite = {
+			focus = SIC_old_order
+		}
+		available = {
+			controls_all_owned_states = yes
+		}
+		ai_will_do = { factor = 30 }
 		completion_reward = {
 			log = "[GetDateText]: [Root.GetName]: Focus SIC_preserve_status_quo"
-			random_owned_state = {
+			random_owned_controlled_state = {
 				limit = {
+					is_core_of = SIC
+					free_building_slots = {
+						building = industrial_complex
+						size > 1
+						include_locked = yes
+					}
+				}
+				add_extra_state_shared_building_slots = 2
+				add_building_construction = {
+					type = industrial_complex
+					level = 2
+					instant_build = yes
+				}
+			}
+			every_country = {
+				limit = {
+					is_italian_tag = yes
+					is_subject_of = SIC
+				}
+				random_owned_controlled_state = {
+					limit = {
+						is_core_of = PREV
+						free_building_slots = {
+							building = industrial_complex
+							size > 1
+							include_locked = yes
+						}
+					}
+					add_extra_state_shared_building_slots = 2
+					add_building_construction = {
+						type = industrial_complex
+						level = 2
+						instant_build = yes
+					}
+				}
+			}
+		}
+		search_filters = { FOCUS_FILTER_INDUSTRY }
+	}
+
+	focus = {# Rebuilding the Northern Arms Industry
+		id = SIC_rebuild_northern_arms_industry
+		icon = GFX_focus_SWE_urbanization
+		cost = 8
+
+		relative_position_id = SIC_old_order
+		x = 0
+		y = 2
+
+		prerequisite = {
+			focus = SIC_preserve_status_quo
+		}
+		available = {
+			controls_all_owned_states = yes
+		}
+		ai_will_do = { factor = 30 }
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus SIC_rebuild_northern_arms_industry"
+			random_owned_controlled_state = {
+				limit = {
+					is_core_of = SIC
 					free_building_slots = {
 						building = arms_factory
 						size > 1
 						include_locked = yes
 					}
 				}
-				add_extra_state_shared_building_slots = 3
+				add_extra_state_shared_building_slots = 1
 				add_building_construction = {
 					type = arms_factory
-					level = 3
+					level = 1
 					instant_build = yes
 				}
 			}
-			TUS = {
-				random_owned_state = {
-					limit = {
-						free_building_slots = {
-							building = arms_factory
-							size > 1
-							include_locked = yes
-						}
-					}
-					add_extra_state_shared_building_slots = 3
-					add_building_construction = {
-						type = arms_factory
-						level = 3
-						instant_build = yes
-					}
+			every_country = {
+				limit = {
+					is_italian_tag = yes
+					is_subject_of = SIC
 				}
-			}
-			VNC = {
-				random_owned_state = {
+				random_owned_controlled_state = {
 					limit = {
+						is_core_of = PREV
 						free_building_slots = {
 							building = arms_factory
 							size > 1
 							include_locked = yes
 						}
 					}
-					add_extra_state_shared_building_slots = 3
+					add_extra_state_shared_building_slots = 1
 					add_building_construction = {
 						type = arms_factory
-						level = 3
-						instant_build = yes
-					}
-				}
-			}
-			LOM = {
-				random_owned_state = {
-					limit = {
-						free_building_slots = {
-							building = arms_factory
-							size > 1
-							include_locked = yes
-						}
-					}
-					add_extra_state_shared_building_slots = 3
-					add_building_construction = {
-						type = arms_factory
-						level = 3
-						instant_build = yes
-					}
-				}
-			}
-			EMI = {
-				random_owned_state = {
-					limit = {
-						free_building_slots = {
-							building = arms_factory
-							size > 1
-							include_locked = yes
-						}
-					}
-					add_extra_state_shared_building_slots = 3
-					add_building_construction = {
-						type = arms_factory
-						level = 3
-						instant_build = yes
-					}
-				}
-			}
-			SRD = {
-				random_owned_state = {
-					limit = {
-						free_building_slots = {
-							building = arms_factory
-							size > 1
-							include_locked = yes
-						}
-					}
-					add_extra_state_shared_building_slots = 3
-					add_building_construction = {
-						type = arms_factory
-						level = 3
-						instant_build = yes
-					}
-				}
-			}
-			PAP = {
-				random_owned_state = {
-					limit = {
-						free_building_slots = {
-							building = arms_factory
-							size > 1
-							include_locked = yes
-						}
-					}
-					add_extra_state_shared_building_slots = 3
-					add_building_construction = {
-						type = arms_factory
-						level = 3
+						level = 1
 						instant_build = yes
 					}
 				}
 			}
 		}
+		search_filters = { FOCUS_FILTER_INDUSTRY }
 	}
-	focus = {# Confederate Customs Union
-		id = SIC_customs_union
-		icon = GFX_GRU_CONS_TARIFF
-		cost = 6.00
+
+	focus = {# Coordinated Commercial Development
+		id = SIC_coordinated_commercial_development
+		icon = GFX_goal_generic_positive_trade_relations_gold
+		cost = 8
+
+		relative_position_id = SIC_old_order
+		x = 2
+		y = 2
+
 		prerequisite = {
 			focus = SIC_preserve_status_quo
 		}
-		relative_position_id = SIC_matter_of_fate
-		x = -1
-		y = 3
-		ai_will_do = {
-			factor = 99
+		ai_will_do = { factor = 30 }
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus SIC_coordinated_commercial_development"
+			add_tech_bonus = {
+				name = SIC_coordinated_commercial_development
+				bonus = 0.5
+				uses = 1
+				category = industry
+			}
+			random_owned_controlled_state = {
+				limit = {
+					is_core_of = PREV
+				}
+				increase_state_category_by_one_level = yes
+			}
+			every_country = {
+				limit = {
+					is_italian_tag = yes
+					is_subject_of = SIC
+				}
+				add_tech_bonus = {
+					name = SIC_coordinated_commercial_development
+					bonus = 0.5
+					uses = 1
+					category = industry
+				}
+				random_owned_controlled_state = {
+					limit = {
+						is_core_of = PREV
+					}
+					increase_state_category_by_one_level = yes
+				}
+			}
 		}
+		search_filters = { FOCUS_FILTER_RESEARCH FOCUS_FILTER_INDUSTRY }
+	}
+
+	focus = {# Confederate Customs Union
+		id = SIC_customs_union
+		icon = GFX_focus_ETH_adopt_the_lira
+		cost = 8
+
+		relative_position_id = SIC_old_order
+		x = 1
+		y = 3
+
+		prerequisite = {
+			focus = SIC_rebuild_northern_arms_industry
+		}
+		prerequisite = {
+			focus = SIC_coordinated_commercial_development
+		}
+		ai_will_do = { factor = 30 }
 		completion_reward = {
 			log = "[GetDateText]: [Root.GetName]: Focus SIC_customs_union"
-			add_ideas = SIC_italian_confederation
-			TUS = {
-				add_ideas = SIC_italian_confederation
+			swap_ideas = {
+				remove_idea = SIC_italian_confederation_1
+				add_idea = SIC_italian_confederation_2
 			}
-			VNC = {
-				add_ideas = SIC_italian_confederation
-			}
-			LOM = {
-				add_ideas = SIC_italian_confederation
-			}
-			EMI = {
-				add_ideas = SIC_italian_confederation
-			}
-			SRD = {
-				add_ideas = SIC_italian_confederation
-			}
-			PAP = {
-				add_ideas = SIC_italian_confederation
-			}
-			if = {
-			limit = {
-			SIC = {
-			has_country_leader = { ruling_only = yes name = "Ferdinando III" }	
+			every_country = {
+				limit = {
+					is_italian_tag = yes
+					is_subject_of = SIC
 				}
-			}
-			country_event = {
-			id = sic.160
-			days = 15
+				swap_ideas = {
+					remove_idea = SIC_italian_confederation_1
+					add_idea = SIC_italian_confederation_2
 				}
 			}
 		}
+		search_filters = { FOCUS_FILTER_POLITICAL FOCUS_FILTER_INDUSTRY }
 	}
+
 	focus = {# Fratelli di Italia
 		id = SIC_frattelli_ditalia
-		icon = GFX_ITA_unification
-		cost = 6.00
-		prerequisite = {
-			focus = SIC_matter_of_fate
-		}
+		icon = GFX_SIC_empire
+		cost = 8
+
+		relative_position_id = SIC_strike_now
+		x = 6
+		y = 1
+
 		mutually_exclusive = {
 			focus = SIC_old_order
 		}
-		relative_position_id = SIC_matter_of_fate
-		x = 1
-		y = 1
+		prerequisite = {
+			focus = SIC_strike_now
+		}
 		available = {
 			OR = {
 				has_country_flag = SIC_empire
@@ -2180,72 +2338,338 @@ focus = {# The Royal Army
 				has_completed_focus = SIC_mafia_takeover
 			}
 		}
-		ai_will_do = {	factor = 99	}
+		ai_will_do = { factor = 30 }
 		completion_reward = {
 			log = "[GetDateText]: [Root.GetName]: Focus SIC_frattelli_ditalia"
-			add_political_power = 400
-			add_stability = 0.1
-			add_war_support = 0.1
-			add_manpower = 5000
-			if = {
-				limit = { has_idea = SIC_crime_problem_peace }
-				remove_ideas = SIC_crime_problem_peace
-			}
+			add_political_power = 100
+			add_research_slot_until_five = yes
+			add_ideas = SIC_imperial_splendour_1
 		}
+		search_filters = { FOCUS_FILTER_POLITICAL FOCUS_FILTER_RESEARCH }
 	}
+
 	focus = {# First Italian Empire
 		id = SIC_imppero_italiano
-		icon = GFX_SIC_empire
-		cost = 6.00
+		icon = GFX_focus_ETH_the-italo_ethiopian_empire
+		cost = 8
+
+		relative_position_id = SIC_frattelli_ditalia
+		x = 2
+		y = 1
+
 		prerequisite = {
 			focus = SIC_frattelli_ditalia
 		}
-		relative_position_id = SIC_matter_of_fate
-		x = 1
-		y = 2
 		ai_will_do = { factor = 30 }
 		completion_reward = {
 			log = "[GetDateText]: [Root.GetName]: Focus SIC_imppero_italiano"
-			set_country_flag = SIC_empire
-			add_ideas = SIC_imperial_splendour
-			hidden_effect = {
-				add_state_core = 2
-				add_state_core = 1003
-				add_state_core = 158
-				add_state_core = 838
-				add_state_core = 1004
-				add_state_core = 161
-				add_state_core = 157
-				add_state_core = 1005
-				add_state_core = 162
-				add_state_core = 764
-				add_state_core = 159
-				add_state_core = 160
-				add_state_core = 759
-				add_state_core = 114
-				add_state_core = 1002
-				add_state_core = 1236
-				add_state_core = 1149
+			add_political_power = 100
+			add_command_power = 50
+			add_war_support = 0.10
+			if = {
+			limit = {
+			SIC = {
+			OR = {
+			has_country_leader = { ruling_only = yes name = "Ferdinando III" }
+			has_country_leader = { ruling_only = yes name = "Victor Emmanuel III" }	
+			has_country_leader = { ruling_only = yes name = "Umberto II" }	
+					}
+				}
+			}
+			add_country_leader_trait = SIC_italian_emperor
 			}
 		}
+		search_filters = { FOCUS_FILTER_POLITICAL }
 	}
-	focus = {# Italia Irredenta
-		id = SIC_ittalia_irredenta
-		icon = GFX_ITA_reunited
-		cost = 6.00
+
+	focus = {# Restore Royal Titles
+		id = SIC_restore_royal_titles
+		icon = GFX_ITA_federation
+		cost = 8
+
+		relative_position_id = SIC_frattelli_ditalia
+		x = 1
+		y = 2
+
 		prerequisite = {
 			focus = SIC_imppero_italiano
 		}
-		relative_position_id = SIC_matter_of_fate
-		x = 1
+		available = {
+		has_country_leader = { ruling_only = yes name = "Ferdinando III" }	
+		}
+		mutually_exclusive = {
+			focus = SIC_direct_centralised_rule
+		}
+		ai_will_do = { factor = 30 }
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus SIC_restore_royal_titles"
+			swap_ideas = {
+				remove_idea = SIC_imperial_splendour_1
+				add_idea = SIC_imperial_splendour_2_royals
+			}
+		}
+		search_filters = { FOCUS_FILTER_POLITICAL }
+	}
+
+	focus = {# Direct Centralised Rule
+		id = SIC_direct_centralised_rule
+		icon = GFX_focus_ITA_imperial_recognition
+		cost = 8
+
+		relative_position_id = SIC_frattelli_ditalia
+		x = 3
+		y = 2
+
+		prerequisite = {
+			focus = SIC_imppero_italiano
+		}
+		mutually_exclusive = {
+			focus = SIC_restore_royal_titles
+		}
+		ai_will_do = { factor = 30 }
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus SIC_direct_centralised_rule"
+			swap_ideas = {
+				remove_idea = SIC_imperial_splendour_1
+				add_idea = SIC_imperial_splendour_2_centralised
+			}
+		}
+		search_filters = { FOCUS_FILTER_POLITICAL }
+	}
+
+	focus = {# Rewarding the South
+		id = SIC_rewarding_the_south
+		icon = GFX_focus_ITA_southern_industry
+		cost = 8
+
+		relative_position_id = SIC_frattelli_ditalia
+		x = 4
 		y = 3
+
+		prerequisite = {
+			focus = SIC_direct_centralised_rule
+		}
+
+		available = {
+			156 = { is_controlled_by = ROOT }
+			837 = { is_controlled_by = ROOT }
+			742 = { is_controlled_by = ROOT }
+			115 = { is_controlled_by = ROOT }
+		}
+
+		ai_will_do = { factor = 30 }
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus SIC_rewarding_the_south"
+			156 = {
+				add_extra_state_shared_building_slots = 1
+				add_building_construction = {
+					type = industrial_complex
+					level = 1
+					instant_build = yes
+				}
+			}
+			837 = {
+				add_extra_state_shared_building_slots = 1
+				add_building_construction = {
+					type = industrial_complex
+					level = 1
+					instant_build = yes
+				}
+			}
+			742 = {
+				add_extra_state_shared_building_slots = 1
+				add_building_construction = {
+					type = infrastructure
+					level = 1
+					instant_build = yes
+				}
+			}
+			115 = {
+				add_extra_state_shared_building_slots = 1
+				add_building_construction = {
+					type = infrastructure
+					level = 1
+					instant_build = yes
+				}
+			}
+		}
+		search_filters = { FOCUS_FILTER_INDUSTRY }
+	}
+
+	focus = {# Rebuilding the North
+		id = SIC_rebuilding_the_north
+		icon = GFX_focus_ITA_northern_industry
+		cost = 8
+
+		relative_position_id = SIC_frattelli_ditalia
+		x = 0
+		y = 3
+
+		prerequisite = {
+			focus = SIC_restore_royal_titles
+		}
+
+		available = {
+			158 = { is_controlled_by = ROOT }
+			838 = { is_controlled_by = ROOT }
+			162 = { is_controlled_by = ROOT }
+		}
+
+		ai_will_do = { factor = 30 }
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus SIC_rebuilding_the_north"
+			158 = {
+				add_extra_state_shared_building_slots = 1
+				add_building_construction = {
+					type = arms_factory
+					level = 1
+					instant_build = yes
+				}
+			}
+			838 = {
+				add_extra_state_shared_building_slots = 1
+				add_building_construction = {
+					type = dockyard
+					level = 1
+					instant_build = yes
+				}
+			}
+			162 = {
+				add_extra_state_shared_building_slots = 1
+				add_building_construction = {
+					type = infrastructure
+					level = 1
+					instant_build = yes
+				}
+			}
+		}
+		search_filters = { FOCUS_FILTER_INDUSTRY }
+	}
+
+	focus = {# Roma Caput Mundi
+		id = SIC_roma_caput_mundi
+		icon = GFX_PAP_lazio_industry
+		cost = 8
+
+		relative_position_id = SIC_frattelli_ditalia
+		x = 2
+		y = 3
+
+		prerequisite = {
+			focus = SIC_restore_royal_titles
+			focus = SIC_direct_centralised_rule
+		}
+		ai_will_do = { factor = 30 }
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus SIC_roma_caput_mundi"
+			2 = {
+				add_extra_state_shared_building_slots = 2
+				add_building_construction = {
+					type = industrial_complex
+					level = 2
+					instant_build = yes
+				}
+				add_building_construction = {
+					type = infrastructure
+					level = 1
+					instant_build = yes
+				}
+			}
+		}
+		search_filters = { FOCUS_FILTER_INDUSTRY }
+	}
+
+	focus = {# Nuovo Regio Esercito
+		id = SIC_nuovo_regio_esercito
+		icon = GFX_focus_ITA_a_colonial_empire
+		cost = 8
+
+		relative_position_id = SIC_frattelli_ditalia
+		x = -2
+		y = 1
+
+		prerequisite = {
+			focus = SIC_frattelli_ditalia
+		}
+		ai_will_do = { factor = 30 }
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus SIC_nuovo_regio_esercito"
+			add_ideas = SIC_regio_esercito
+		}
+		search_filters = { FOCUS_FILTER_ARMY_BONUS }
+	}
+
+	focus = {# Defenders of the Alps
+		id = SIC_defenders_of_the_alps
+		icon = GFX_focus_ITA_alpine_division
+		cost = 8
+
+		relative_position_id = SIC_frattelli_ditalia
+		x = -3
+		y = 2
+
+		prerequisite = {
+			focus = SIC_nuovo_regio_esercito
+		}
+		ai_will_do = { factor = 30 }
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus SIC_defenders_of_the_alps"
+			custom_effect_tooltip = mountain_training_tech_effect
+			hidden_effect = {
+				set_technology = { mountain_training_tech = 1 popup = no }
+			}
+		}
+		search_filters = { FOCUS_FILTER_ARMY_BONUS }
+	}
+
+	focus = {# Rethinking the Rifle
+		id = SIC_rethinking_the_rifle
+		icon = GFX_focus_ETH_freedom_at_gunpoint
+		cost = 8
+
+		relative_position_id = SIC_frattelli_ditalia
+		x = -1
+		y = 2
+
+		prerequisite = {
+			focus = SIC_nuovo_regio_esercito
+		}
+		ai_will_do = { factor = 30 }
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus SIC_rethinking_the_rifle"
+			add_tech_bonus = {
+				name = SIC_rethinking_the_rifle
+				bonus = 0.5
+				uses = 2
+				category = infantry_weapons
+				category = artillery
+			}
+		}
+		search_filters = { FOCUS_FILTER_RESEARCH }
+	}
+
+	focus = {# Italia Irredenta!
+		id = SIC_ittalia_irredenta
+		icon = GFX_focus_ITA_italian_hegemony
+		cost = 8
+
+		relative_position_id = SIC_strike_now
+		x = 0
+		y = 2
+
+		prerequisite = {
+			focus = SIC_old_order
+			focus = SIC_frattelli_ditalia
+		}
 		ai_will_do = { factor = 30 }
 		completion_reward = {
 			log = "[GetDateText]: [Root.GetName]: Focus SIC_ittalia_irredenta"
-			country_event = italy_shared.30
 			custom_effect_tooltip = ITA_new_focuses_will_unlock
+			country_event = italy_shared.30
 			set_country_flag = italy_irredentist_decisions_unlocked
+			custom_effect_tooltip = ITA_irredentist_decisions
 			add_war_support = 0.10
+			hidden_effect = {
 			if = {
 			limit = {
 			SIC = {
@@ -2255,9 +2679,188 @@ focus = {# The Royal Army
 			country_event = {
 			id = sic.160
 			days = 15
+					}
 				}
 			}
 		}
+		search_filters = { FOCUS_FILTER_WAR_SUPPORT }
+	}
+
+	focus = {# Dalmatian Autonomous Province
+		id = SIC_dalmatian_autonomous_province
+		icon = GFX_focus_ETH_invite_italian_settlers
+		cost = 8
+
+		relative_position_id = SIC_ittalia_irredenta
+		x = -1
+		y = 1
+
+		prerequisite = {
+			focus = SIC_ittalia_irredenta
+		}
+
+		available = {
+			163 = { is_owned_and_controlled_by_ROOT_or_subject = yes }
+			103 = { is_owned_and_controlled_by_ROOT_or_subject = yes }
+		}
+
+		ai_will_do = { factor = 30 }
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus SIC_dalmatian_autonomous_province"
+			103 = {
+				add_compliance = 15
+				add_extra_state_shared_building_slots = 1
+				add_building_construction = {
+					type = industrial_complex
+					level = 1
+					instant_build = yes
+				}
+			}
+			163 = { add_compliance = 10 }
+		}
+		search_filters = { FOCUS_FILTER_INDUSTRY FOCUS_FILTER_POLITICAL }
+	}
+
+	focus = {# Restoration of Savoy
+		id = SIC_restoration_of_savoy
+		icon = GFX_goal_FRA_savoie
+		cost = 8
+
+		relative_position_id = SIC_ittalia_irredenta
+		x = 1
+		y = 1
+
+		prerequisite = {
+			focus = SIC_ittalia_irredenta
+		}
+
+		available = {
+			943 = { is_owned_and_controlled_by_ROOT_or_subject = yes }
+			735 = { is_owned_and_controlled_by_ROOT_or_subject = yes }
+			762 = { is_owned_and_controlled_by_ROOT_or_subject = yes }
+		}
+
+		ai_will_do = { factor = 30 }
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus SIC_restoration_of_savoy"
+			762 = {
+				add_compliance = 10
+				add_extra_state_shared_building_slots = 1
+				add_building_construction = {
+					type = arms_factory
+					level = 1
+					instant_build = yes
+				}
+			}
+			943 = { add_compliance = 5 }
+			735 = { add_compliance = 5 }
+		}
+		search_filters = { FOCUS_FILTER_INDUSTRY FOCUS_FILTER_POLITICAL }
+	}
+
+	focus = {# Venezia Tridentina
+		id = SIC_venezia_tridentina
+		icon = GFX_ITA_serene_republic
+		cost = 8
+
+		relative_position_id = SIC_ittalia_irredenta
+		x = 2
+		y = 2
+
+		prerequisite = {
+			focus = SIC_ittalia_irredenta
+		}
+
+		available = {
+			1100 = { is_owned_and_controlled_by_ROOT_or_subject = yes }
+			783 = { is_owned_and_controlled_by_ROOT_or_subject = yes }
+			736 = { is_owned_and_controlled_by_ROOT_or_subject = yes }
+			1144 = { is_owned_and_controlled_by_ROOT_or_subject = yes }
+		}
+
+		ai_will_do = { factor = 30 }
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus SIC_venezia_tridentina"
+			1100 = {
+				add_compliance = 15
+				add_extra_state_shared_building_slots = 1
+				add_building_construction = {
+					type = dockyard
+					level = 1
+					instant_build = yes
+				}
+			}
+			783 = { add_compliance = 15 }
+			736 = { add_compliance = 5 }
+			1144 = { add_compliance = 5 }
+		}
+		search_filters = { FOCUS_FILTER_INDUSTRY FOCUS_FILTER_POLITICAL }
+	}
+
+	focus = {# Paoli's Legacy
+		id = SIC_paolis_legacy
+		icon = GFX_ITA_irridentism
+		cost = 8
+
+		relative_position_id = SIC_ittalia_irredenta
+		x = -2
+		y = 2
+
+		prerequisite = {
+			focus = SIC_ittalia_irredenta
+		}
+
+		available = {
+			1 = { is_owned_and_controlled_by_ROOT_or_subject = yes }
+		}
+
+		ai_will_do = { factor = 30 }
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus SIC_paolis_legacy"
+			1 = {
+				add_compliance = 10
+				add_extra_state_shared_building_slots = 2
+				add_building_construction = {
+					type = industrial_complex
+					level = 1
+					instant_build = yes
+				}
+			}
+		}
+		search_filters = { FOCUS_FILTER_INDUSTRY FOCUS_FILTER_POLITICAL }
+	}
+
+	focus = {# Revitalise Maltese Culture
+		id = SIC_revitalise_maltese_culture
+		icon = GFX_focus_generic_italy_propaganda
+		cost = 8
+
+		relative_position_id = SIC_ittalia_irredenta
+		x = 0
+		y = 3
+
+		prerequisite = {
+			focus = SIC_ittalia_irredenta
+		}
+
+		available = {
+			116 = { is_owned_and_controlled_by_ROOT_or_subject = yes }
+		}
+
+		ai_will_do = { factor = 30 }
+		completion_reward = {
+			log = "[GetDateText]: [Root.GetName]: Focus SIC_revitalise_maltese_culture"
+			116 = {
+				add_compliance = 10
+				add_building_construction = {
+					type = coastal_bunker
+					level = 2
+					province = 12003
+					instant_build = yes
+				}
+			}
+		}
+		search_filters = { FOCUS_FILTER_POLITICAL }
 	}
 ### Constitutional Kingdom Foci ###
 	focus = {# The constitutional Kingdom
@@ -2266,7 +2869,7 @@ focus = {# The Royal Army
 		cost = 6.00
 		available = { has_country_flag = SIC_democracy_prevails }
 		bypass = { has_country_flag = SIC_democracy_prevails }
-		x = 38
+		x = 54
 		y = 0
 		ai_will_do = { factor = 100 }
 		completion_reward = {
@@ -2530,7 +3133,7 @@ focus = {# The Royal Army
 		cost = 6.00
 		available = { has_country_flag = SIC_the_organic_kingdom_established }
 		bypass = { has_country_flag = SIC_the_organic_kingdom_established }
-		x = 44
+		x = 60
 		y = 0
 		ai_will_do = { factor = 100 }
 		completion_reward = {
@@ -2832,8 +3435,8 @@ focus = {# The Royal Army
 			}
 		}
 		cost = 4
-		x = 54
-		y = 0
+		x = 57
+		y = 7
 		ai_will_do = { factor = 50 }
 		completion_reward = {
 			log = "[GetDateText]: [Root.GetName]: Focus SIC_ride_the_tiger"
