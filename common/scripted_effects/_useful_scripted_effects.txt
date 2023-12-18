@@ -1,21 +1,25 @@
 #	Various useful scripted effects
 #
-#	By Rylock
+#	By Rylock and Alpinia
 
 # removes the country in scope from all wars (separately - it won't end the wars)
 separate_peace_all_wars = {
 	if = {
 		limit = { has_war = yes }
-		custom_effect_tooltip = KR_separate_peace
+		effect_tooltip = {
+			every_enemy_country = {
+				limit = { NOT = { civilwar_target = PREV } }
+				white_peace = PREV
+			}
+		}
 		hidden_effect = {
-			save_event_target_as = peace_country
-
 			# first peace out with faction leaders
 			every_enemy_country = {
 				limit = {
 					is_faction_leader = yes
+					NOT = { civilwar_target = PREV }
 				}
-				event_target:peace_country = { white_peace = PREV }
+				white_peace = PREV
 			}
 
 			# then all non-puppets whose faction leaders aren't in the war
@@ -23,9 +27,10 @@ separate_peace_all_wars = {
 				limit = {
 					is_subject = no
 					is_in_faction = yes
-					faction_leader = { NOT = { has_war_with = ROOT } }
+					faction_leader = { NOT = { has_war_with = PREV.PREV } }
+					NOT = { civilwar_target = PREV }
 				}
-				event_target:peace_country = { white_peace = PREV }
+				white_peace = PREV
 			}
 
 			# then all non-puppets who aren't in factions
@@ -33,17 +38,19 @@ separate_peace_all_wars = {
 				limit = {
 					is_subject = no
 					is_in_faction = no
+					NOT = { civilwar_target = PREV }
 				}
-				event_target:peace_country = { white_peace = PREV }
+				white_peace = PREV
 			}
 
 			# then all puppets whose overlords aren't in the war
 			every_enemy_country = {
 				limit = {
 					is_subject = yes
-					overlord = { NOT = { has_war_with = ROOT } }
+					overlord = { NOT = { has_war_with = PREV.PREV } }
+					NOT = { civilwar_target = PREV }
 				}
-				event_target:peace_country = { white_peace = PREV }
+				white_peace = PREV
 			}
 		}
 	}
@@ -117,52 +124,158 @@ clear_all_relations = {
 			}
 		}
 	}
+	else_if = {
+		limit = { num_subjects > 0 }
+		every_subject_country = {
+			overlord = {
+				set_autonomy = {
+					target = PREV
+					autonomy_state = autonomy_free
+				}
+			}
+		}
+	}
 	if = {
+		limit = { is_faction_leader = yes }
+		dismantle_faction = yes
+	}
+	else_if = {
 		limit = { is_in_faction = yes }
 		leave_faction = yes
 	}
 	separate_peace_all_wars = yes
 	every_other_country = {
-		limit = { has_guaranteed = ROOT }
 		diplomatic_relation = {
-			country = ROOT
+			country = PREV
 			relation = guarantee
 			active = no
 		}
-	}
-	every_other_country = {
-		limit = { has_non_aggression_pact_with = ROOT }
 		diplomatic_relation = {
-			country = ROOT
+			country = PREV
 			relation = non_aggression_pact
 			active = no
 		}
+			diplomatic_relation = {
+				country = PREV
+				relation = military_access
+				active = no
+			}
+		diplomatic_relation = {
+			country = PREV
+			relation = market_access_rights
+			active = no
+		}
+		PREV = {
+			diplomatic_relation = {
+				country = PREV
+				relation = guarantee
+				active = no
+		}
+			diplomatic_relation = {
+					country = PREV
+				relation = military_access
+				active = no
+			}
+		}
+		clear_embargo_PREV = yes
+	}
+	CAN_remove_from_iedc = yes	
+	GER_remove_from_mitteleuropa = yes
+	MIE_remove_from_intermarium = yes
+	remove_from_all_tech_sharing_groups = yes
+}
+# clears all relations with a specific country and its allies, does not end wars
+# requires temp variable target = TAG
+clear_all_relations_with_TARGET = {
+	if = {
+		limit = { var:target = { is_ally_with = ENT } }
+		CAN_remove_from_iedc = yes
+		if = {
+			limit = { is_in_tech_sharing_group = entente_research }
+			remove_from_tech_sharing_group = entente_research
+		}
+	}
+	else_if = {
+		limit = { var:target = { is_ally_with = GER } }
+		GER_remove_from_mitteleuropa = yes
+		MIE_remove_from_intermarium = yes
+		if = {
+			limit = { is_in_tech_sharing_group = german_research }
+			remove_from_tech_sharing_group = german_research
+		}
+	}
+	else_if = {
+		limit = { var:target = { is_ally_with = INT } }
+		if = {
+			limit = { is_in_tech_sharing_group = phalanstere_research }
+			remove_from_tech_sharing_group = phalanstere_research
+		}
+	}
+	else_if = {
+		limit = { var:target = { is_ally_with = AUS } }
+		if = {
+			limit = { is_in_tech_sharing_group = austrian_research }
+			remove_from_tech_sharing_group = austrian_research
+		}
+	}
+	if = {
+		limit = { has_subject = var:target }
+		set_autonomy = {
+			target = var:target
+			autonomy_state = autonomy_free
+		}
+		var:target = { leave_faction = yes }
+	}
+	else_if = {
+		limit = { is_subject_of = var:target }
+		overlord = {
+			set_autonomy = {
+				target = PREV
+				autonomy_state = autonomy_free
+			}
+		}
+		leave_faction = yes
+	}
+	else_if = {
+		limit = { is_in_faction_with = var:target }
+		leave_faction = yes
 	}
 	every_other_country = {
-		limit = { has_military_access_to = ROOT }
-		ROOT = {
+		limit = { is_ally_with = var:target }
+		diplomatic_relation = {
+			country = PREV
+			relation = guarantee
+			active = no
+		}
+		diplomatic_relation = {
+			country = PREV
+			relation = non_aggression_pact
+			active = no
+		}
+		diplomatic_relation = {
+			country = PREV
+			relation = military_access
+			active = no
+		}
+		diplomatic_relation = {
+			country = PREV
+			relation = market_access_rights
+			active = no
+		}
+		PREV = {
+			diplomatic_relation = {
+				country = PREV
+				relation = guarantee
+				active = no
+			}
 			diplomatic_relation = {
 				country = PREV
 				relation = military_access
 				active = no
 			}
 		}
+		clear_embargo_PREV = yes
 	}
-	every_other_country = {
-		limit = { gives_military_access_to = ROOT }
-		diplomatic_relation = {
-			country = ROOT
-			relation = military_access
-			active = no
-		}
-	}
-	if = {
-		limit = { has_country_flag = CAN_joined_iedc }
-		CAN_remove_from_iedc = yes
-	}
-	GER_remove_from_mitteleuropa = yes
-	MIE_remove_from_intermarium = yes
-	remove_from_all_tech_sharing_groups = yes
 }
 # clears all relations with PREV (won't remove from faction if not a faction leader, nor stop wars if not a valid target)
 clear_relations_with_PREV = {
@@ -564,6 +677,11 @@ get_current_government_type = {
 	clear_variable = original_government_type
 	set_variable = { original_government_type = current_party_ideology_group }
 
+	if = {
+		limit = { has_elections = yes }
+		set_country_flag = original_government_type_had_elections
+	}
+
 	clear_array = original_popularities
 	add_to_array = { original_popularities = party_popularity_100@totalist }
 	add_to_array = { original_popularities = party_popularity_100@syndicalist }
@@ -595,7 +713,20 @@ restore_previous_government_type = {
 	hidden_effect = {
 		if = {
 			limit = { has_variable = original_government_type } #needed to avoid a CTD
-			set_politics = { ruling_party = var:original_government_type }
+			if = {
+				limit = { has_country_flag = original_government_type_had_elections }
+				clr_country_flag = original_government_type_had_elections
+				set_politics = {
+					ruling_party = var:original_government_type
+					elections_allowed = yes
+				}
+			}
+			else = {
+				set_politics = {
+					ruling_party = var:original_government_type
+					elections_allowed = no
+				}
+			}
 		}
 		clear_variable = original_government_type
 
@@ -752,7 +883,11 @@ clear_embargo_ROOT = {
 		clr_country_flag = embargoed_@ROOT
 		if = {
 			limit = { is_embargoing = ROOT }
-			break_embargo = ROOT
+			diplomatic_relation = {
+				country = ROOT
+				relation = embargo
+				active = no
+			}
 		}
 		remove_opinion_modifier = {
 			modifier = embargo
@@ -762,7 +897,11 @@ clear_embargo_ROOT = {
 			clr_country_flag = embargoed_@PREV
 			if = {
 				limit = { is_embargoing = PREV }
-				break_embargo = PREV
+				diplomatic_relation = {
+					country = PREV
+					relation = embargo
+					active = no
+				}
 			}
 			remove_opinion_modifier = {
 				modifier = embargo
@@ -781,11 +920,19 @@ embargo_PREV = {
 			limit = { has_dlc_bba = yes }
 			if = {
 				limit = { NOT = { is_embargoing = PREV } }
-				send_embargo = PREV
+				diplomatic_relation = {
+					country = PREV
+					relation = embargo
+				}
 			}
 			if = {
 				limit = { NOT = { is_embargoed_by = PREV } }
-				PREV = { send_embargo = PREV }
+				PREV = {
+					diplomatic_relation = {
+						country = PREV
+						relation = embargo
+					}
+				}
 			}
 		}
 		else = {
@@ -807,7 +954,11 @@ clear_embargo_PREV = {
 		clr_country_flag = embargoed_@PREV
 		if = {
 			limit = { is_embargoing = PREV }
-			break_embargo = PREV
+			diplomatic_relation = {
+				country = PREV
+				relation = embargo
+				active = no
+			}
 		}
 		remove_opinion_modifier = {
 			modifier = embargo
@@ -817,7 +968,11 @@ clear_embargo_PREV = {
 			clr_country_flag = embargoed_@PREV
 			if = {
 				limit = { is_embargoing = PREV }
-				break_embargo = PREV
+				diplomatic_relation = {
+					country = PREV
+					relation = embargo
+					active = no
+				}
 			}
 			remove_opinion_modifier = {
 				modifier = embargo
@@ -838,11 +993,19 @@ embargo_FROM = {
 			limit = { has_dlc_bba = yes }
 			if = {
 				limit = { NOT = { is_embargoing = FROM } }
-				send_embargo = FROM
+				diplomatic_relation = {
+					country = FROM
+					relation = embargo
+				}
 			}
 			if = {
 				limit = { NOT = { is_embargoed_by = FROM } }
-				FROM = { send_embargo = PREV }
+				FROM = {
+					diplomatic_relation = {
+						country = PREV
+						relation = embargo
+					}
+				}
 			}
 		}
 		else = {
@@ -864,7 +1027,11 @@ clear_embargo_FROM = {
 		clr_country_flag = embargoed_@FROM
 		if = {
 			limit = { is_embargoing = FROM }
-			break_embargo = FROM
+			diplomatic_relation = {
+				country = FROM
+				relation = embargo
+				active = no
+			}
 		}
 		remove_opinion_modifier = {
 			modifier = embargo
@@ -874,7 +1041,11 @@ clear_embargo_FROM = {
 			clr_country_flag = embargoed_@PREV
 			if = {
 				limit = { is_embargoing = PREV }
-				break_embargo = PREV
+				diplomatic_relation = {
+					country = PREV
+					relation = embargo
+					active = no
+				}
 			}
 			remove_opinion_modifier = {
 				modifier = embargo
