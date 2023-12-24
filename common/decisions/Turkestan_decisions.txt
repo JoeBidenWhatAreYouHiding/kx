@@ -23,6 +23,8 @@ TRK_Economy_decisions = {
 }
 		
 TRK_unite_central_asia = {
+	TRK_unite_with_country
+	
 	TRK_ally_country = {
 		allowed = { 
 			OR = {
@@ -119,6 +121,192 @@ TRK_unite_central_asia = {
 			}
 		}
 	}
+	turkestan_attack_decision = {
+		name = china_attack_decision
+		icon = generic_prepare_civil_war
+
+		allowed = { always = no } #activated by effect
+
+		available = {
+			NOT = { has_non_aggression_pact_with = FROM }
+			if = {
+				limit = { FROM = { is_subject = yes } }
+				NOT = { has_non_aggression_pact_with = FROM.overlord }
+			}
+			OR = {
+				is_neighbor_of = FROM
+				any_subject_country = { is_neighbor_of = FROM }
+				FROM = { any_subject_country = { is_neighbor_of = ROOT } }
+			}
+		}
+
+		visible = {
+			can_declare_war_on = FROM
+			if = {
+				limit = { turkestan_is_unaligned = no }
+				turkestan_same_alignment_as_FROM = no
+			}
+			is_subject = no
+		}
+
+		cancel_trigger = {
+			OR = {
+				NOT = { can_declare_war_on = FROM }
+				is_subject = yes
+			}
+		}
+
+		cost = 20
+		days_remove = 30
+		war_with_target_on_remove = yes
+		fire_only_once = yes
+
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				ROOT_is_threatened = yes
+			}
+			modifier = {
+				factor = 0
+				FROM = { default_attack_AI_trigger_FROM = yes }
+			}
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel turkestan_attack_decision target: [From.GetName]"
+			clear_decision_attack_AI = yes
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete turkestan_attack_decision target: [From.GetName]"
+			setup_decision_attack_AI = yes
+			if = {
+				limit = {
+					OR = {
+						FROM = { decryption_progress = { target = PREV value > 0.5 } }
+						FROM = { intel_level_over = { target = PREV army_intel > 0.5 } }
+						AND = {
+							NOT = { has_tech = basic_encryption }
+							FROM = { has_tech = basic_decryption }
+						}
+						AND = {
+							NOT = { has_tech = improved_encryption }
+							FROM = { has_tech = improved_decryption }
+						}
+						AND = {
+							NOT = { has_tech = advanced_encryption }
+							FROM = { has_tech = advanced_decryption }
+						}
+					}
+				}
+				FROM = { country_event = { id = kr.political.30 days = 7 } }    #warning event
+			}
+			else = {
+				FROM = { country_event = { id = kr.political.30 days = 13 } }   #warning event
+			}
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove turkestan_attack_decision target: [From.GetName]"
+			clear_decision_attack_AI = yes
+			declare_war_on = {
+				target = FROM
+				type = annex_everything
+			}
+		}
+	}
+
+	turkestan_demand_submission = {
+		name = china_demand_submission
+		icon = eng_trade_unions_demand
+
+		available = {
+			NOT = { has_non_aggression_pact_with = FROM }
+			if = {
+				limit = { FROM = { is_subject = yes } }
+				NOT = { has_non_aggression_pact_with = FROM.overlord }
+			}
+			OR = {
+				is_neighbor_of = FROM
+				any_subject_country = { is_neighbor_of = FROM }
+				FROM = { any_subject_country = { is_neighbor_of = ROOT } }
+			}
+			FROM = { has_civil_war = no }
+		}
+
+		visible = {
+			is_subject = no
+			can_declare_war_on = FROM
+			FROM = {
+				is_subject = no
+				OR = {
+					turkestan_compatible_alignment_to_PREV = no
+					turkestan_is_potential_government = yes
+				}
+			}
+		}
+
+		target_array = turkestan_possible_targets_array
+		target_trigger = {
+			FROM = {
+				is_subject = no
+				OR = {
+					turkestan_compatible_alignment_to_PREV = no
+					turkestan_is_potential_government = yes
+				}
+			}
+		}
+
+		cancel_trigger = {
+			OR = {
+				NOT = { can_declare_war_on = FROM }
+				FROM = { is_subject = yes }
+				is_subject = yes
+			}
+		}
+
+		cost = 20
+		days_remove = 30
+		war_with_target_on_remove = yes
+
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				OR = {
+					ROOT_is_threatened = yes
+					FROM = { is_stronger_than_ROOT_and_not_vulnerable = yes }
+					FROM = { overlord_is_stronger_than_ROOT_and_not_vulnerable = yes }
+					FROM = { faction_leader_is_stronger_than_ROOT_and_not_vulnerable = yes }
+					FROM = { guarantor_is_stronger_than_ROOT_and_not_vulnerable = yes }
+				}
+			}
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel turkestan_demand_submission target: [From.GetName]"
+			clear_decision_attack_AI = yes
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete turkestan_demand_submission target: [From.GetName]"
+			setup_decision_attack_AI = yes
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove turkestan_demand_submission target: [From.GetName]"
+			#clear_decision_attack_AI is triggered by the final events in the chain
+			FROM = { country_event = turkestan_events.1 }
+			custom_effect_tooltip = if_they_accept_tt
+			effect_tooltip = { turkestan_puppet_FROM_effect = yes }
+			hidden_effect = {
+				remove_from_array = { turkestan_possible_targets_array = FROM }
+				remove_targeted_decision = { decision = turkestan_demand_submission target = FROM }
+			}
+		}
+	}
+	
 	TRK_proclaim_unified_turkestan = {
 		allowed = {
 			OR = {

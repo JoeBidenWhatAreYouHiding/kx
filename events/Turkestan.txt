@@ -5,6 +5,7 @@
 ######################################
 
 add_namespace = turkestan
+add_namespace = turkestan_events
 add_namespace = trk_elections
 add_namespace = turkestan_railway_crisis
 add_namespace = turkestan_civil_war
@@ -7086,4 +7087,182 @@ country_event = { #Equip
 		set_country_flag = @ROOT_equipment_@FROM
 		set_variable = { can_buy_equipment = 0 }
 	}	
+}
+
+#########################
+### DEMAND SUBMISSION ###
+#########################
+
+country_event = { #FROM demands ROOT submit
+	id = turkestan_events.1
+	title = turkestan_events.1.t
+	desc = turkestan_events.1.d
+	picture = GFX_report_event_QIE_soldiers_planning
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event turkestan_events.1 option turkestan_events.1.a"
+		name = turkestan_events.1.a #Yes
+		trigger = {
+			turkestan_is_potential_government = no
+			turkestan_is_unaligned = yes
+			is_subject = no
+		}
+		ai_chance = {
+			base = 20			
+			modifier = {
+				factor = 0
+				turkestan_is_unaligned = no
+				turkestan_compatible_alignment_to_FROM = no
+			}
+			modifier = {
+				factor = 2
+				has_opinion = { target = FROM value > 99 }
+			}
+			modifier = {
+				factor = 1.2
+				strength_ratio = { tag = FROM ratio < 1 }
+			}
+			modifier = {
+				factor = 2
+				strength_ratio = { tag = FROM ratio < 0.75 }
+			}
+		}
+		FROM = {
+			effect_tooltip = { turkestan_puppet_ROOT_effect = yes }
+			country_event = { id = turkestan_events.2 hours = 8 }
+		}
+	}
+
+	option = {
+		log = "[GetLogInfo]: event turkestan_events.1 option turkestan_events.1.b"
+		name = turkestan_events.1.b #No
+		trigger = {
+			turkestan_is_potential_government = no
+			turkestan_is_unaligned = yes
+		}
+		ai_chance = {
+			base = 80
+			modifier = {
+				factor = 0.01 #so there will be a chance to pick this if path set
+				FROM = { enemies_strength_ratio < 1 }
+				strength_ratio = { tag = FROM ratio < 0.5 }
+			}
+			modifier = {
+				factor = 0
+				is_in_faction_with = FROM
+			}
+			modifier = {
+				factor = 1.2
+				strength_ratio = { tag = ROOT ratio > 1 }
+			}
+			modifier = {
+				factor = 2
+				strength_ratio = { tag = ROOT ratio > 1.5 }
+			}
+			modifier = {
+				factor = 10
+				strength_ratio = { tag = ROOT ratio > 2 }
+			}
+			modifier = {
+				factor = 0.5
+				has_opinion = { target = FROM value > 199 }
+			}
+			modifier = {
+				factor = 0.75
+				has_opinion = { target = FROM value > 149 }
+			}
+			modifier = {
+				factor = 0.75
+				has_opinion = { target = FROM value > 49 }
+			}
+		}
+		if = {
+			limit = { is_in_faction_with = FROM }
+			leave_faction = yes
+		}
+		custom_effect_tooltip = may_lead_to_war_with_FROM
+		FROM = {
+			country_event = { id = turkestan_events.3 hours = 8 }
+		}
+	}
+
+	option = {
+		log = "[GetLogInfo]: event turkestan_events.1 option turkestan_events.1.c"
+		name = turkestan_events.1.c #They are delusional, surely
+		trigger = {
+			OR = {
+				turkestan_is_potential_government = yes
+				turkestan_is_unaligned = no
+			}
+		}
+		if = {
+			limit = { is_in_faction_with = FROM }
+			leave_faction = yes
+		}
+		custom_effect_tooltip = may_lead_to_war_with_FROM
+		FROM = {
+			country_event = { id = turkestan_events.3 hours = 8 }
+		}
+	}
+}
+
+country_event = { #FROM submits to ROOT
+	id = turkestan_events.2
+	title = turkestan_events.2.t
+	desc = turkestan_events.2.d
+	picture = GFX_report_event_CHI_speech
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event turkestan_events.2 option turkestan_events.2.a"
+		name = turkestan_events.2.a
+		turkestan_puppet_FROM_effect = yes
+		clear_decision_attack_AI = yes
+	}
+}
+
+country_event = { #FROM refuses to submit to ROOT
+	id = turkestan_events.3
+	title = turkestan_events.3.t
+	desc = turkestan_events.3.d
+	picture = GFX_report_event_CHI_warlord_cavalry
+
+	is_triggered_only = yes
+
+	option = {
+		log = "[GetLogInfo]: event turkestan_events.3 option turkestan_events.3.a"
+		name = turkestan_events.3.a #Later
+		ai_chance = { factor = 0 }
+		add_ai_strategy = {
+			type = antagonize
+			id = FROM
+			value = 200
+		}
+		activate_targeted_decision = { decision = turkestan_attack_decision target = FROM }
+		clear_decision_attack_AI = yes
+	}
+
+	option = {
+		log = "[GetLogInfo]: event turkestan_events.3 option turkestan_events.3.b"
+		name = turkestan_events.3.b #Attack
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 0
+				ROOT_is_threatened = yes
+			}
+			modifier = {
+				factor = 0
+				FROM = { default_attack_AI_trigger_FROM = yes }
+			}
+		}
+		declare_war_on = {
+			target = FROM
+			type = annex_everything
+		}
+		clear_decision_attack_AI = yes
+	}
 }

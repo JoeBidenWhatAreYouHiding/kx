@@ -1,0 +1,147 @@
+turkestan_puppet_FROM_effect = {
+	hidden_effect = {
+		set_temp_variable = { new_overlord = THIS }
+		FROM = {
+			every_subject_country = {
+				get_current_government_type = yes
+				if = {
+					limit = { is_central_asian_tag = yes }
+					var:new_overlord = {
+						set_autonomy = {
+							target = PREV
+							autonomy_state = kr_governorate
+							end_wars = no
+						}
+					}
+				}
+				else = {
+					var:new_overlord = {
+						set_autonomy = {
+							target = PREV
+							autonomy_state = kr_default_puppet
+							end_wars = no
+						}
+					}
+				}
+				restore_previous_government_type = yes
+			}
+			get_current_government_type = yes
+		}
+	}
+	set_autonomy = {
+		target = FROM
+		autonomy_state = kr_governorate
+		end_wars = no
+	}
+	hidden_effect = {
+		FROM = {
+			restore_previous_government_type = yes
+			turkestan_clear_potential_national_government = yes
+			every_owned_state = {
+				limit = { is_central_asia = yes }
+				remove_claim_by = PREV.PREV
+			}
+		}
+	}
+}
+
+turkestan_puppet_TARGET_effect = {
+	hidden_effect = { var:target = { get_current_government_type = yes } }
+	set_autonomy = {
+		target = var:target
+		autonomy_state = kr_governorate
+		end_wars = no
+	}
+	hidden_effect = {
+		var:target = {
+			restore_previous_government_type = yes
+			turkestan_clear_potential_national_government = yes
+			every_owned_state = {
+				limit = { is_core_china = yes }
+				remove_claim_by = PREV.PREV
+			}
+		}
+	}
+}
+
+turkestan_integrate_ally_effect = {
+	transfer_all_unit_leaders_to_FROM = yes
+	every_subject_country = {
+		get_current_government_type = yes
+		FROM = {
+			set_autonomy = {
+				target = PREV
+				autonomy_state = kr_integrated_puppet
+				end_wars = no
+			}
+		}
+		restore_previous_government_type = yes
+	}
+	every_owned_state = {
+		limit = {
+			is_central_asia = yes
+			is_claim_or_core_of_FROM = no
+		}
+		add_claim_by = FROM
+	}
+	FROM = {
+		annex_country = {
+			target = ROOT
+			transfer_troops = yes
+		}
+	}
+	if = {
+		limit = { is_ai = no }
+		FROM = { change_tag_from = ROOT }
+	}
+}
+
+turkestan_integrate_TARGET_effect = {
+	set_temp_variable = { integrator = THIS }
+	event_target:target = {
+		every_unit_leader = {
+			hidden_effect = {
+				if = {
+					limit = { is_field_marshal = yes }
+					demote_leader = yes
+				}
+				remove_trait = { trait = recently_promoted }
+			}
+			set_nationality = var:integrator
+		}
+		every_subject_country = {
+			custom_effect_tooltip = tooltip_white_line
+			get_current_government_type = yes
+			var:integrator = { puppet = PREV }
+			restore_previous_government_type = yes
+		}
+		custom_effect_tooltip = tooltip_white_line
+		every_core_state = {
+			limit = {
+				is_central_asia = yes
+				NOT = { is_core_of = var:integrator }
+			}
+			add_claim_by = var:integrator
+		}
+	}
+	custom_effect_tooltip = tooltip_white_line
+	annex_country = {
+		target = event_target:target
+		transfer_troops = yes
+	}
+	if = {
+		limit = { event_target:target = { is_ai = no } }
+		change_tag_from = event_target:target
+	}
+}
+turkestan_clear_potential_national_government = {
+	hidden_effect = {
+		clr_country_flag = turkestan_is_potential_government
+		for_each_scope_loop = {
+			array = turkestan_government_ambitions
+			remove_claim_by = PREV
+			clear_variable = ambition_area_@PREV
+		}
+		clear_array = turkestan_government_ambitions
+	}
+}
