@@ -6337,7 +6337,6 @@ RUS_Foreign_Policy_decisions = {
 	}
 	SOV_Form_USSR = {
 		icon = generic_form_nation
-		priority = 105
 		
 		visible = {
 			is_subject = no
@@ -6709,16 +6708,165 @@ RUS_Foreign_Policy_decisions = {
 				limit = {
 					NOT = { has_idea = RUS_Yakov_Fishman_hog_tot }
 				}
-				set_party_name = {
-					ideology = totalist
-					name = SOV_union_totalist_party
-					long_name = SOV_union_totalist_party_long
+			set_party_name = {
+				ideology = totalist
+				name = SOV_union_totalist_party
+				long_name = SOV_union_totalist_party_long
+			}
+		}
+	}
+	}		
+}	
+RUS_Integration_decisions = {
+	
+		
+	SOV_demand_subject_integration = {
+		icon = eng_trade_unions_support
+		name = china_integrate_subjects
+		
+		ai_will_do = {
+			factor = 2000
+		}
+		
+		available = {
+			NOT = { has_war_together_with = FROM }
+			if = {
+				limit = { 
+					FROM = { 
+						has_autonomy_state = kr_autonomous_soviet_republic
+					} 
+				}
+				is_neighbor_of = FROM
+				received_expeditionary_forces = { sender = FROM value < 1 }
+			}
+		}
+		cancel_trigger = {
+			NOT = { has_subject = FROM }
+		}
+		
+		targets = { UKR WHR GEO AZE ARM EST LAT LIT ALO TRK UZB KYR MON CRM KAR DKB KLY KUB MTR TRM MOL BRY YAK ABK WSU }
+		target_root_trigger = { 
+			is_faction_leader = yes 
+			russian_civil_war = no
+		}
+		target_trigger = {
+			has_subject = FROM
+			FROM = { 
+				OR = { 
+					has_autonomy_state = kr_autonomous_soviet_republic
+					has_autonomy_state = kr_soviet_republic_not_equal
+					has_autonomy_state = kr_soviet_republic_equal
+				}
+			} 
+		}
+
+		cost = 70
+		days_remove = 50
+		
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				has_political_power < 200
+			}
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel SOV_demand_subject_integration target: [From.GetName]"
+			hidden_effect = { FROM = { remove_mission = SOV_subject_integration_timer } }
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete SOV_demand_subject_integration target: [From.GetName]"
+			FROM = {
+				country_event = russoc.500
+				hidden_effect = { activate_mission = SOV_subject_integration_timer }
+			}
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove SOV_demand_subject_integration target: [From.GetName]"
+			FROM = {
+				hidden_effect = { country_event = russoc.501 }
+				effect_tooltip = { save_global_event_target_as = target }
+			}
+			effect_tooltip = {
+				add_collaboration = { target = FROM value = 0.05 }
+				if = {
+					limit = { FROM = { has_autonomy_state = kr_autonomous_soviet_republic } }
+					SOV_integrate_TARGET_effect = yes
+				}
+				else_if = {
+					limit = { FROM = { has_autonomy_state = kr_soviet_republic_not_equal } }
+					set_autonomy = {
+						target = FROM
+						autonomy_state = kr_autonomous_soviet_republic
+						end_wars = no
+					}
+				}
+				else_if = {
+					limit = { FROM = { has_autonomy_state = kr_soviet_republic_equal } }
+					set_autonomy = {
+						target = FROM
+						autonomy_state = kr_soviet_republic_not_equal
+						end_wars = no
+					}
 				}
 			}
 		}
 	}	
-}	
-RUS_Integration_decisions = {
+		
+	SOV_subject_integration_timer = {
+		icon = eng_trade_unions_demand
+		name = china_integration_timer
+
+		allowed = { always = no }
+
+		available = {
+			has_capitulated = no
+			NOT = { has_war_together_with = overlord }
+		}
+
+		cancel_trigger = {
+			is_subject = no
+		}
+
+		cost = 0
+		is_good = yes
+		days_mission_timeout = 100
+		selectable_mission = yes
+
+		ai_will_do = { factor = 0 }
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel SOV_subject_integration_timer target: [From.GetName]"
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete SOV_subject_integration_timer target: [From.GetName]"
+			set_country_flag = @ROOT_revolted_against_@var:overlord
+			create_wargoal = {
+				target = overlord
+				type = topple_government
+			}
+			custom_effect_tooltip = tooltip_white_line
+			overlord = {
+				effect_tooltip = {
+					create_wargoal = {
+						target = ROOT
+						type = annex_everything
+					}
+				}
+				country_event = russoc.503
+			}
+			custom_effect_tooltip = tooltip_white_line
+			SOV_break_puppet_effect = yes
+		}
+
+		timeout_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision timeout SOV_subject_integration_timer target: [From.GetName]"
+		}
+	}
 	RUS_Use_MPO = {
 		icon = oppression
 

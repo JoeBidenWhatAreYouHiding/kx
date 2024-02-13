@@ -25,6 +25,7 @@ country_event = {
 			activate_mission = TRM_visit_from_japan
 			activate_mission = TRM_nra_sabotage
 			activate_targeted_decision = { target = ENT decision = TRM_Seek_For_Entente_Support }
+			activate_mission = TRM_lessons_of_kolchak_putsch
 			random_unit_leader = {
 				limit = { has_id = 505058 }
 				unit_leader_event = { id = tram.2 days = 646 random_days = 100 }
@@ -227,7 +228,8 @@ country_event = { #Transamur breaks away!
 		hidden_effect = {
 			TRM = {
 				TRM_remove_japanese_influence = yes
-				separate_peace_all_wars = yes
+				set_temp_variable = { target = JAP }
+				clear_all_relations_with_TARGET = yes
 			}
 		}
 		JAP = {
@@ -386,13 +388,33 @@ country_event = { #Kirill dies
 	title = {
 		text = rusd.95.t.tsar
 		trigger = {
-			has_completed_focus = TRM_Monarchy
+			has_country_leader = {
+				ruling_only = yes
+				name = "Kirill I"
+			}
+			TRM_Mlad_in_power = no
+			NOT = { has_government = national_populist }
+		}
+	}
+	title = {
+		text = trammlad.505.t
+		trigger = {
+			has_country_leader = { ruling_only = yes name = "Kirill I" }
+			OR = {
+				TRM_Mlad_in_power = yes
+				has_government = national_populist
+			}
 		}
 	}
 	title = {
 		text = rusd.95.t.other
 		trigger = {
-			NOT = { has_completed_focus = TRM_Monarchy }
+			NOT = {
+				has_country_leader = {
+					ruling_only = yes
+					name = "Kirill I"
+				}
+			}
 		}
 	}
 	desc = {
@@ -401,6 +423,18 @@ country_event = { #Kirill dies
 			has_country_leader = {
 				ruling_only = yes
 				name = "Kirill I"
+			}
+			TRM_Mlad_in_power = no
+			NOT = { has_government = national_populist }
+		}
+	}
+	desc = {
+		text = trammlad.505.d
+		trigger = {
+			has_country_leader = { ruling_only = yes name = "Kirill I" }
+			OR = {
+				TRM_Mlad_in_power = yes
+				has_government = national_populist
 			}
 		}
 	}
@@ -427,6 +461,8 @@ country_event = { #Kirill dies
 				ruling_only = yes
 				name = "Kirill I"
 			}
+			TRM_Mlad_in_power = no
+			NOT = { has_government = national_populist }
 		}
 		set_country_flag = Kirill_Romanov_dead
 		create_country_leader = {
@@ -438,6 +474,39 @@ country_event = { #Kirill dies
 		}
 	}
 	option = {
+		name = rusd.95.a
+		trigger = {
+			has_country_leader = {
+				ruling_only = yes
+				name = "Kirill I"
+			}
+			OR = {
+				TRM_Mlad_in_power = yes
+				has_government = national_populist 
+			}
+		}
+		set_country_flag = Kirill_Romanov_dead
+		create_country_leader = {
+			name = "Vladimir III"
+			desc = "POLITICS_VLADIMIR_ROMANOV_CON_DESC"
+			picture = "gfx/leaders/TRM/Portrait_TRM_Vladimir_III.png"
+			expire = "1.1.1"
+			ideology = mladorossi_subtype
+			traits = { peoples_tsar }
+		}
+		hidden_effect = {
+			create_country_leader = {
+				name = "Vladimir III"
+				desc = "POLITICS_VLADIMIR_ROMANOV_CON_DESC"
+				picture = "gfx/leaders/TRM/Portrait_TRM_Vladimir_III.png"
+				expire = "1.1.1"
+				ideology = national_restorationism_subtype
+			}
+		}
+		set_country_flag = TRM_TSAR_VLAD
+		set_country_flag = Kirill_Romanov_dead
+	}
+	option = {
 		name = rusd.95.c
 		trigger = {
 			NOT = { 
@@ -447,6 +516,7 @@ country_event = { #Kirill dies
 				} 
 			}
 		}	
+		set_country_flag = Kirill_Romanov_dead
 		add_political_power = -15
 	}
 }
@@ -931,23 +1001,10 @@ country_event = { #Replace HOS - TRM event
 		hidden_effect = {
 			TRM = {
 				TRM_remove_japanese_influence = yes
+				set_temp_variable = { target = JAP }
+				clear_all_relations_with_TARGET = yes
 			}				
 			JAP = {
-				diplomatic_relation = {
-					country = TRM
-					relation = guarantee
-					active = no
-				}
-				diplomatic_relation = {
-					country = TRM
-					relation = non_aggression_pact
-					active = no
-				}
-				diplomatic_relation = {
-					country = TRM
-					relation = military_access
-					active = no
-				}
 				diplomatic_relation = {
 					country = TRM
 					relation = docking_rights
@@ -994,7 +1051,6 @@ country_event = { #Replace HOS - JAP event
 			remove_country_leader_trait = TRM_shaky_rule
 			remove_ideas = TRM_dream
 			hidden_effect = {
-				setup_japanese_transamur_dissolution = yes
 				set_politics = {
 					ruling_party = authoritarian_democrat
 				}
@@ -1129,7 +1185,13 @@ country_event = { #Cooperatives
 	}
 	option = {
 		name = tram.53.b
-		ai_chance = { base = 35 }
+		ai_chance = { 
+			base = 35 
+			modifier = {
+				factor = 0
+				TRM_nra_game_rule = yes
+			}
+		}
 		add_popularity = {
 			ideology = radical_socialist
 			popularity = -0.05
@@ -1695,15 +1757,6 @@ country_event = { #
 	
 	option = {
 		name = tram.73.a
-		trigger = { 
-			OR = {
-				has_government = social_liberal
-				AND = {
-					has_government = social_democrat
-					has_cosmetic_tag = TRM_SIB
-				}
-			}
-		}
 		ai_chance = { base = 60 }
 		add_stability = 0.1
 		increase_ruling_party_popularity_by_10 = yes
@@ -1712,10 +1765,25 @@ country_event = { #
 			set_cosmetic_tag = TRM_SIB_usa
 		}
 	}	
+	option = {
+		name = tram.73.b		
+		ai_chance = { base = 40 }
+		add_stability = 0.05
+		add_political_power = 100
+	}	
 }
 
+country_event = { #
+	id = tram.74
+	immediate = { log = "[GetDateText]: [Root.GetName]: event tram.74" }
+	title = tram.74.t
+	desc = tram.74.d
+	is_triggered_only = yes
 
-
+	option = {
+		name = tram.74.a
+	}	
+}
 ####Political####
 ###Anti-Kolchak Coup###
 country_event = {
@@ -1860,12 +1928,24 @@ country_event = {
 		name = tram.80.c
 		country_event = tram.81
 		add_stability = -0.4		
+		if = {
+			limit = { has_country_flag = Mikhail_Diterikhs_dead }
+			create_country_leader = {
+				name = "Vladimir Kappel"
+				picture = "gfx/leaders/RUS/Portrait_RUS_Vladimir_Kappel.png"
+				expire = "1.1.1"
+				ideology = junta_subtype
+			}
+		}
+		else = {
 		create_country_leader = {
 			name = "Mikhail Diterikhs"
-			desc = "POLITICS_DITERIKHS_DESC"
+				desc = "POLITICS_MIKHAIL_DITERIKHS"
 			picture = "gfx/leaders/TRM/Portrait_TRM_Diterikhs.png"
 			expire = "1.1.1"
 			ideology = junta_subtype
+				traits = {}
+			}
 		}
 		remove_all_ministers = yes
 		set_party_name = {
@@ -1905,7 +1985,7 @@ country_event = {
 	option = { #New Dictator
 		trigger = {
 			OR = {
-				check_variable = { ROVSOrientation < 0.99 }
+				check_variable = { ROVSOrientation < 0 }
 				AND = {
 					is_ai = yes
 					has_game_rule = { rule = TRM_path option = RULE_OPTION_TRM_MONARCHY }
@@ -1944,7 +2024,7 @@ country_event = {
 		name = tram.81.b
 		trigger = {
 			OR = {
-				check_variable = { CossackOrientation < 0.99 }
+				check_variable = { CossackOrientation < 0 }
 				AND = {
 					is_ai = yes
 					OR = {
@@ -1972,7 +2052,6 @@ country_event = {
 			picture = "gfx/leaders/TRM/Portrait_TRM_Grigory_Semyonov.png"
 			expire = "1.1.1"
 			ideology = pataut_cossack_subtype
-			traits = {}
 		}
 		set_party_name = {
 			ideology = paternal_autocrat
@@ -2088,6 +2167,7 @@ country_event = {
 			
 		hidden_effect = {
 			remove_ideas = TRM_Aleksandr_Kolchak_cnav_pau
+			set_country_flag = Aleksandr_Kolchak_dead
 			hidden_effect = {
 				random_unit_leader = {
 					limit = { has_id = 50001 }			
@@ -2095,14 +2175,7 @@ country_event = {
 				}
 			}
 		}
-		
-		effect_tooltip = {
-			unlock_national_focus = TRM_tsar_soviets
-		}
-		
-		hidden_effect = {
-			complete_national_focus = TRM_tsar_soviets
-		}		
+		complete_national_focus = TRM_tsar_soviets
 	}
 	option = {
 		name = tram.81.f
@@ -2716,32 +2789,16 @@ country_event = { #Russian Republic(TRM) breaks away!
 		hidden_effect = {
 			TRM = {
 				TRM_remove_japanese_influence = yes
+				set_temp_variable = { target = JAP }
+				clear_all_relations_with_TARGET = yes
 			}				
 			JAP = {
-				diplomatic_relation = {
-					country = TRM
-					relation = guarantee
-					active = no
-				}
-				diplomatic_relation = {
-					country = TRM
-					relation = non_aggression_pact
-					active = no
-				}
-				diplomatic_relation = {
-					country = TRM
-					relation = military_access
-					active = no
-				}
 				diplomatic_relation = {
 					country = TRM
 					relation = docking_rights
 					active = no
 				}	
 			}
-		}
-		JAP = {
-			remove_from_faction = TRM
 		}
 		declare_war_on = {
 			target = TRM
@@ -2765,22 +2822,16 @@ country_event = { #Russian Republic(TRM) breaks away!
 		hidden_effect = {
 			TRM = {
 				TRM_remove_japanese_influence = yes
+				set_temp_variable = { target = JAP }
+				clear_all_relations_with_TARGET = yes
 			}				
 			JAP = {
 				diplomatic_relation = {
 					country = TRM
-					relation = guarantee
+					relation = docking_rights
 					active = no
 				}
-				diplomatic_relation = {
-					country = TRM
-					relation = non_aggression_pact
-					active = no
 				}
-				diplomatic_relation = {
-					country = TRM
-					relation = military_access
-					active = no
 				}
 				diplomatic_relation = {
 					country = TRM
@@ -3349,7 +3400,6 @@ country_event = {
 		}
 		JAP = { puppet = TRM }
 		hidden_effect = {
-			setup_japanese_transamur_dissolution = yes
 			set_politics = {
 				ruling_party = authoritarian_democrat
 			}
@@ -3445,7 +3495,7 @@ country_event = {
 	trigger = {
 		AND = {
 			tag = TRM
-			soviets_exist = yes
+			RUS = { has_country_flag = soviet_russia_restored }
 		}
 	}
 	
@@ -3664,6 +3714,14 @@ country_event = {
 			}
 			country_event = { id = tram.127 days = 1 }
 		}
+		effect_tooltip = {
+			every_unit_leader = {
+				limit = { has_unit_leader_flag = CAN_TRM_expedition_leader }
+				set_nationality = TRM
+				remove_unit_leader_trait = GBR_british_exile_trait
+				add_unit_leader_trait = TRM_british_expeditionary
+			}
+		}
 	}
 
 	option = { #Partial support
@@ -3737,12 +3795,18 @@ country_event = {
 			has_country_flag = TRM_entente_full_support
 		}
 		name = tram.127.a
-		add_popularity = {
-			ideology = paternal_autocrat
-			popularity = 0.05
-		}
+		every_owned_state = { TRM_Increase_Kolchak_Support = yes }
 		add_political_power = 40
-
+		custom_effect_tooltip = TRM_Vladivostok_Business_Circle_Will_Grow_Less_Dependant_On_Japanese
+		add_to_variable = { VladBusCirOrientation = 1 }
+		FROM = {
+			every_unit_leader = {
+				limit = { has_unit_leader_flag = CAN_TRM_expedition_leader }
+				set_nationality = TRM
+				remove_unit_leader_trait = GBR_british_exile_trait
+				add_unit_leader_trait = TRM_british_expeditionary
+			}
+		}
 	}
 
 	option = { #Partial support
@@ -3751,7 +3815,8 @@ country_event = {
 		}
 		name = tram.127.b
 		add_political_power = 20
-
+		custom_effect_tooltip = TRM_Vladivostok_Business_Circle_Will_Grow_Less_Dependant_On_Japanese
+		add_to_variable = { VladBusCirOrientation = 1 }
 	}
 
 	option = { #No support
@@ -3759,10 +3824,10 @@ country_event = {
 			has_country_flag = TRM_entente_no_support
 		}
 		name = tram.127.c
-		add_popularity = {
-			ideology = paternal_autocrat
-			popularity = -0.05
-		}
+		every_owned_state = { TRM_Decrease_Kolchak_Support = yes }
+		add_popularity = {ideology = authoritarian_democrat popularity = 0.03}
+		custom_effect_tooltip = TRM_Vladivostok_Business_Circle_Will_Grow_More_Dependant_On_Japanese
+		add_to_variable = { VladBusCirOrientation = -1 }
 	}
 }
 
@@ -4031,14 +4096,8 @@ country_event = { #We join the Entente Cordiale
 	option = {
 		name = tram.1001.a #This time we will win!
 		add_stability = 0.06
-		add_opinion_modifier = {
-			target = FRA
-			modifier = embargo
-		}
-		add_opinion_modifier = {
-			target = ENG
-			modifier = embargo
-		}
+		FRA = { embargo_PREV = yes }
+		ENG = { embargo_PREV = yes }
 	}
 }
 
@@ -4089,14 +4148,8 @@ country_event = { #We join the Entente Cordiale
 	option = {
 		name = tram.1003.a #This time we will win!
 		add_stability = 0.06
-		add_opinion_modifier = {
-			target = FRA
-			modifier = embargo
-		}
-		add_opinion_modifier = {
-			target = ENG
-			modifier = embargo
-		}
+		FRA = { embargo_PREV = yes }
+		ENG = { embargo_PREV = yes }
 	}
 }
 
@@ -4147,18 +4200,16 @@ country_event = { #Russian Republic annexed one of our client states
 			}
 		}
 
-		add_opinion_modifier = {
-			target = TRM
-			modifier = embargo
-		}
+		TRM = { embargo_PREV = yes }
 		every_other_country = {
 			limit = {
+				OR = {
 				is_in_faction_with = GER
+					is_subject_of = GER
+					original_tag = GER
 			}
-			add_opinion_modifier = {
-				target = TRM
-				modifier = embargo
 			}
+			TRM = { embargo_PREV = yes }
 		}
 	}
 
@@ -4207,23 +4258,10 @@ country_event = { #Stop TRM profits for JAP
 		hidden_effect = {
 			TRM = {
 				TRM_remove_japanese_influence = yes
+				set_temp_variable = { target = JAP }
+				clear_all_relations_with_TARGET = yes
 			}				
 			JAP = {
-				diplomatic_relation = {
-					country = TRM
-					relation = guarantee
-					active = no
-				}
-				diplomatic_relation = {
-					country = TRM
-					relation = non_aggression_pact
-					active = no
-				}
-				diplomatic_relation = {
-					country = TRM
-					relation = military_access
-					active = no
-				}
 				diplomatic_relation = {
 					country = TRM
 					relation = docking_rights
@@ -4338,7 +4376,7 @@ country_event = { #New cabmin?
 		name = tram.1481.e
 		trigger = {
 			has_country_leader_with_trait = TRM_shaky_rule
-			check_variable = { CossackOrientation > 0.99 }
+			check_variable = { CossackOrientation > 0  }
 		}
 		hidden_effect = {
 			remove_all_ministers = yes
@@ -4366,7 +4404,7 @@ country_event = { #New cabmin?
 		name = tram.1481.f
 		trigger = {
 			has_country_leader_with_trait = TRM_shaky_rule
-			check_variable = { ROVSOrientation > 0.99 }
+			check_variable = { ROVSOrientation > 0 }
 			NOT = { has_country_flag = Mikhail_Diterikhs_dead }
 		}
 		hidden_effect = {
@@ -4455,7 +4493,7 @@ country_event = { #cut ties with the japanese
 	id = tram.1491
 	title = tram.1491.t
 	desc = tram.1491.d
-	fire_only_once = no
+	
 	is_triggered_only = yes
 	
 	option = {
@@ -4467,7 +4505,7 @@ country_event = { #cut ties with the japanese
 		add_manpower = -1500
 		add_political_power = 50
 		set_global_flag = TRM_relations_JAP_broke
-		add_opinion_modifier = { target = JAP modifier = embargo }
+		JAP = { embargo_PREV = yes }
 		add_popularity = {
 			ideology = authoritarian_democrat
 			popularity = -0.2
@@ -4493,23 +4531,10 @@ country_event = { #cut ties with the japanese
 		hidden_effect = {
 			TRM = {
 				TRM_remove_japanese_influence = yes
+				set_temp_variable = { target = JAP }
+				clear_all_relations_with_TARGET = yes
 			}				
 			JAP = {
-				diplomatic_relation = {
-					country = TRM
-					relation = guarantee
-					active = no
-				}
-				diplomatic_relation = {
-					country = TRM
-					relation = non_aggression_pact
-					active = no
-				}
-				diplomatic_relation = {
-					country = TRM
-					relation = military_access
-					active = no
-				}
 				diplomatic_relation = {
 					country = TRM
 					relation = docking_rights
@@ -4562,7 +4587,7 @@ country_event = { #trm cut ties with us
 				has_war = yes
 			}
 		}
-		add_opinion_modifier = { target = TRM modifier = embargo }
+		TRM = { embargo_PREV = yes }
 		declare_war_on = {
 			target = TRM
 			type = annex_everything
@@ -4710,7 +4735,12 @@ country_event = { #unite with russian empire
 				target = TRM
 				transfer_troops = yes
 			}
-			change_tag_from = ROOT
+		}
+		if = {
+			limit = {
+				is_ai = no
+			}
+			TRM = { change_tag_from = ROOT }
 		}
 	}
 	
@@ -4804,7 +4834,7 @@ country_event = { #russian generals return
 	fire_only_once = yes
 	is_triggered_only = yes
 	trigger = {
-		NOT = { soviets_exist = yes }
+		NOT = { RUS = { has_country_flag = soviet_russia_restored } }
 	}
 	
 	option = {
@@ -5019,6 +5049,7 @@ country_event = { #russia want const monarchy
 				is_ai = yes
 			}
 		}
+		TRM_remove_japanese_influence = yes
 		every_unit_leader = {
 			limit = { has_unit_leader_flag = CAN_TRM_expedition_leader }
 			set_nationality = CAN
@@ -5070,6 +5101,7 @@ country_event = { #russia want abs monarchy
 				is_ai = yes
 			}
 		}		
+		TRM_remove_japanese_influence = yes
 		every_unit_leader = {
 			limit = { has_unit_leader_flag = CAN_TRM_expedition_leader }
 			set_nationality = CAN
@@ -5131,6 +5163,7 @@ country_event = { #diterikhs
 				is_ai = yes
 			}
 		}
+		TRM_remove_japanese_influence = yes
 		every_unit_leader = {
 			limit = { has_unit_leader_flag = CAN_TRM_expedition_leader }
 			set_nationality = CAN
@@ -5233,6 +5266,7 @@ country_event = { #Eurasia wants monarchy
 				is_ai = yes
 			}
 		}
+		TRM_remove_japanese_influence = yes
 		every_unit_leader = {
 			limit = { has_unit_leader_flag = CAN_TRM_expedition_leader }
 			set_nationality = CAN
@@ -5849,13 +5883,6 @@ country_event = { #Nra win
 					days = 1
 				}
 			}
-			end_coalition = yes
-			set_temp_variable = { coalition_partner_var = token:totalist }
-			add_to_coalition = yes
-			set_temp_variable = { coalition_partner_var = token:syndicalist }
-			add_to_coalition = yes
-			set_temp_variable = { coalition_partner_var = token:social_democrat }
-			add_to_coalition = yes		
 			add_ideas = TRM_legacy_of_53rd_division
 			add_ideas = TRM_nra_army_1
 		} 
@@ -5881,18 +5908,55 @@ country_event = { #Nra win
 				remove_unit_leader = yes
 			}
 		}
-		remove_all_ministers = yes
-		add_ideas = TRM_Nikolay_Kalashnikov_hog_rso 
-		add_ideas = TRM_Pyotr_Derber_for_rso 
-		add_ideas = TRM_Yevgeniy_Timofeev_eco_rso 
-		add_ideas = TRM_Arkady_Krakovetsky_sec_rso
-		remove_ideas = TRM_nra_resistance_idea 
-		add_ideas = RUS_siberian_monarchists_resistance
-		add_ideas = RUS_kolchak_loyalists_resistance
+		hidden_effect = {
+			set_country_flag = Aleksandr_Kolchak_dead
+			remove_all_ministers = yes
+			add_ideas = TRM_Nikolay_Kalashnikov_hog_rso 
+			add_ideas = TRM_Pyotr_Derber_for_rso 
+			add_ideas = TRM_Yevgeniy_Timofeev_eco_rso 
+			add_ideas = TRM_Arkady_Krakovetsky_sec_rso
+			add_ideas = RUS_siberian_monarchists_resistance
+			add_ideas = RUS_kolchak_loyalists_resistance
+			if = {
+				limit = { TRM_kolchak_in_power = yes }
+				remove_ideas = TRM_Aleksandr_Kolchak_cnav_pau
+				if = {
+					limit = { has_country_flag = Mikhail_Diterikhs_dead }
+					create_country_leader = {
+						name = "Vladimir Kappel"
+						picture = "gfx/leaders/RUS/Portrait_RUS_Vladimir_Kappel.png"
+						expire = "1.1.1"
+						ideology = junta_subtype
+					}
+				}
+				else = {
+					create_country_leader = {
+						name = "Mikhail Diterikhs"
+						desc = "POLITICS_MIKHAIL_DITERIKHS"
+						picture = "gfx/leaders/TRM/Portrait_TRM_Diterikhs.png"
+						expire = "1.1.1"
+						ideology = junta_subtype
+						traits = {}
+					}
+				}				
+				set_party_name = {
+					ideology = paternal_autocrat
+					long_name = TRM_rovs_party_long
+					name = TRM_rovs_party
+				}
+			}
+		}
+		add_popularity = {
+			ideology = paternal_autocrat
+			popularity = -0.15
+		}
 		set_politics = {
 			ruling_party = radical_socialist
 			elections_allowed = no
 		}
+		add_tot_to_coalition = yes
+		add_synd_to_coalition = yes
+		add_socdem_to_coalition = yes
 		set_party_name = {
 			ideology = totalist
 			long_name = TRM_NRA_party_long
@@ -5905,20 +5969,19 @@ country_event = { #Nra win
 			ideology = authcom_subtype
 		}
 		set_cosmetic_tag = TRM_NRA
-		hidden_effect = {
 			division_template = {
 				name = "Partizanskaya Diviziya"			# Militia Division
 				division_names_group = SOV_MIL_01
 				regiments = {
-					militia = { x = 0 y = 0 }
-					militia = { x = 0 y = 1 }
-					militia = { x = 0 y = 2 }
-					militia = { x = 1 y = 0 }
-					militia = { x = 1 y = 1 }
-					militia = { x = 1 y = 2 }
-					militia = { x = 2 y = 0 }
-					militia = { x = 2 y = 1 }
-					militia = { x = 2 y = 2 }
+					irregular_infantry = { x = 0 y = 0 }
+					irregular_infantry = { x = 0 y = 1 }
+					irregular_infantry = { x = 0 y = 2 }
+					irregular_infantry = { x = 1 y = 0 }
+					irregular_infantry = { x = 1 y = 1 }
+					irregular_infantry = { x = 1 y = 2 }
+					irregular_infantry = { x = 2 y = 0 }
+					irregular_infantry = { x = 2 y = 1 }
+					irregular_infantry = { x = 2 y = 2 }
 				}
 			}
 			random_owned_controlled_state = {
@@ -5940,7 +6003,6 @@ country_event = { #Nra win
 					count = 2
 				}
 			}
-			hidden_effect = {
 				every_unit_leader = {
 					limit = {
 						OR = {
@@ -5953,7 +6015,6 @@ country_event = { #Nra win
 					}
 					set_nationality = BRY
 				}
-			}
 			every_unit_leader = {
 				limit = {
 					NOT = { has_id = 505078 }
@@ -5962,34 +6023,11 @@ country_event = { #Nra win
 				set_nationality = NSW
 			}
 			remove_dynamic_modifier = { modifier = TRM_nra_resistance_modifier }
-			clear_variable = TRM_nra_stability
-			clear_variable = TRM_nra_industrial_capacity
-			clear_variable = TRM_nra_conscription
 			JAP = {
 				country_event = {
 					id = trmnra.41
 					days = 3
 				}
-			}
-			if = {
-				limit = { TRM_kolchak_in_power = yes }
-				remove_ideas = TRM_Aleksandr_Kolchak_cnav_pau
-				create_country_leader = {
-					name = "Mikhail Diterikhs"
-					picture = "gfx/leaders/TRM/Portrait_TRM_Diterikhs.png"
-					expire = "1.1.1"
-					ideology = junta_subtype
-					traits = {}
-				}
-				set_party_name = {
-					ideology = paternal_autocrat
-					long_name = TRM_rovs_party_long
-					name = TRM_rovs_party
-				}
-			}
-			add_popularity = {
-				ideology = paternal_autocrat
-				popularity = -0.15
 			}
 		}			
 		hidden_effect = {
@@ -6003,6 +6041,15 @@ country_event = { #Nra win
 						}
 					}
 					set_nationality = TRM
+				}
+			}
+			if = {
+				limit = { russian_civil_war = yes }
+				event_target:soviet_russia = {
+					country_event = {
+						id = trmnra.102
+						days = 2
+					}
 				}
 			}
 		}
@@ -6051,16 +6098,7 @@ country_event = { #Semyenov Splits
 					division = "division_template = \"Kazatskaya Diviziya\" start_experience_factor = 0.1"
 					owner = BRY
 					prioritize_location = 12641 
-				}
-				create_unit = {
-					division = "division_template = \"Kazatskaya Diviziya\" start_experience_factor = 0.1"
-					owner = BRY
-					prioritize_location = 12641 
-				}
-				create_unit = {
-					division = "division_template = \"Kazatskaya Diviziya\" start_experience_factor = 0.1"
-					owner = BRY
-					prioritize_location = 12641 
+					count = 3
 				}
 			}
 			random_owned_controlled_state = {
@@ -6069,16 +6107,7 @@ country_event = { #Semyenov Splits
 					division = "division_template = \"Kazatskaya Diviziya\" start_experience_factor = 0.1"
 					owner = BRY
 					prioritize_location = 7816 
-				}
-				create_unit = {
-					division = "division_template = \"Kazatskaya Diviziya\" start_experience_factor = 0.1"
-					owner = BRY
-					prioritize_location = 7816 
-				}
-				create_unit = {
-					division = "division_template = \"Kazatskaya Diviziya\" start_experience_factor = 0.1"
-					owner = BRY
-					prioritize_location = 7816 
+					count = 3
 				}
 			}
 			if = {
@@ -6133,16 +6162,7 @@ country_event = { #Semyenov Splits
 					division = "division_template = \"Kazatskaya Diviziya\" start_experience_factor = 0.1"
 					owner = BRY
 					prioritize_location = 12641 
-				}
-				create_unit = {
-					division = "division_template = \"Kazatskaya Diviziya\" start_experience_factor = 0.1"
-					owner = BRY
-					prioritize_location = 12641 
-				}
-				create_unit = {
-					division = "division_template = \"Kazatskaya Diviziya\" start_experience_factor = 0.1"
-					owner = BRY
-					prioritize_location = 12641 
+					count = 3
 				}
 			}
 			random_owned_controlled_state = {
@@ -6151,16 +6171,7 @@ country_event = { #Semyenov Splits
 					division = "division_template = \"Kazatskaya Diviziya\" start_experience_factor = 0.1"
 					owner = BRY
 					prioritize_location = 7816 
-				}
-				create_unit = {
-					division = "division_template = \"Kazatskaya Diviziya\" start_experience_factor = 0.1"
-					owner = BRY
-					prioritize_location = 7816 
-				}
-				create_unit = {
-					division = "division_template = \"Kazatskaya Diviziya\" start_experience_factor = 0.1"
-					owner = BRY
-					prioritize_location = 7816 
+					count = 3
 				}
 			}
 			if = {
@@ -6230,31 +6241,14 @@ country_event = { #Anti-japanese propaganda
 			ideology = authoritarian_democrat
 			popularity = -0.05
 		}
-		hidden_effect = {
+		set_temp_variable = { target = JAP }
+		clear_all_relations_with_TARGET = yes		
 			JAP = {
-				diplomatic_relation = {
-					country = TRM
-					relation = guarantee
-					active = no
-				}
-				diplomatic_relation = {
-					country = TRM
-					relation = non_aggression_pact
-					active = no
-				}
-				diplomatic_relation = {
-					country = TRM
-					relation = military_access
-					active = no
-				}
 				diplomatic_relation = {
 					country = TRM
 					relation = docking_rights
 					active = no
 				}				
-			}
-		}
-		JAP = {
 			country_event = {
 				id = trmnra.42
 				days = 2
@@ -6284,23 +6278,10 @@ country_event = { #Transamur cut ties with us
 		hidden_effect = {
 			TRM = {
 				TRM_remove_japanese_influence = yes
+				set_temp_variable = { target = JAP }
+				clear_all_relations_with_TARGET = yes
 			}				
 			JAP = {
-				diplomatic_relation = {
-					country = TRM
-					relation = guarantee
-					active = no
-				}
-				diplomatic_relation = {
-					country = TRM
-					relation = non_aggression_pact
-					active = no
-				}
-				diplomatic_relation = {
-					country = TRM
-					relation = military_access
-					active = no
-				}
 				diplomatic_relation = {
 					country = TRM
 					relation = docking_rights
@@ -6650,8 +6631,10 @@ country_event = { #TRM wants to join us
 	option = {
 		name = trmnra.14.a
 		add_stability = 0.025
+		TRM = {
+			every_unit_leader = { set_nationality = ROOT }
+		}
 		annex_country = { target = TRM transfer_troops = yes }
-		
 	}
 }
 
@@ -6723,22 +6706,15 @@ country_event = { #TRM wants to join us
 	option = {
 		name = trmnra.17.a
 		add_stability = 0.025
-		SOV = {
+		TRM = { get_current_government_type = yes }
 			set_autonomy = {
 				target = TRM
-				autonomous_state = kr_autonomous_puppet
+			autonomous_state = kr_autonomous_soviet_republic
 				freedom_level = 0.75
 			}
 			TRM = {
-				set_politics = {
-					ruling_party = totalist
-				}
-					set_party_name = {
-					ideology = totalist
-					long_name = TRM_NRA_party_long
-					name = TRM_NRA_party
-				}
-			}
+			restore_previous_government_type = yes
+			set_cosmetic_tag = TRM_SOV
 		}
 	}
 }
@@ -6755,8 +6731,8 @@ country_event = { #Cut ties
 		set_global_flag = TRM_relations_JAP_broke
 		TRM = {
 			TRM_remove_japanese_influence = yes
-			leave_faction = yes
-			separate_peace_all_wars = yes
+			set_temp_variable = { target = JAP }
+			clear_all_relations_with_TARGET = yes
 		}
 	}
 }
@@ -7581,7 +7557,589 @@ country_event = {
 		TRM_recalculate_kolchak_variables = yes
 	}
 }
+country_event = { #Soviet Transamur
+	id = trmnra.100
+	title = trmnra.100.t
+	desc = trmnra.100.d
+	fire_only_once = yes
+	is_triggered_only = yes
+	
+	option = {
+		name = trmnra.100.b
+		trigger = { has_unit_leader = 1955 }
+		ai_chance = {
+			factor = 50
+			modifier = {
+			factor = 1000
+				has_game_rule = {
+					rule = TRM_path 
+					option = RULE_OPTION_TRM_NRA_COUP_FRUNZE
+				}
+			}
+		}
+		create_country_leader = {
+			name = "Mikhail Frunze"
+			picture = "gfx/leaders/RUS/Portrait_RUS_Mikhail_Frunze.png"
+			expire = "1.1.1"
+			ideology = red_junta_subtype
+		}
+		set_party_name = {
+			ideology = totalist
+			long_name = SOV_frunze_party_long
+			name = SOV_frunze_party
+		}
+	}
+	option = {
+		name = trmnra.100.c
+		trigger = { has_unit_leader = 1954 }
+		ai_chance = {
+			factor = 50
+			modifier = {
+			factor = 1000
+				has_game_rule = {
+					rule = TRM_path 
+					option = RULE_OPTION_TRM_NRA_COUP_TUKHA
+				}
+			}
+		}
+		create_country_leader = {
+			name = "Mikhail Tukhachevsky"
+			picture = "gfx/leaders/RUS/Portrait_RUS_Mikhail_Tukhachevskiy.png"
+			expire = "1.1.1"
+			ideology = internationalism_subtype
+			traits = { red_napoleon }
+		}
+		set_party_name = {
+			ideology = totalist
+			long_name = SOV_tukh_party_long
+			name = SOV_tukh_party
+		}
+	}
+	option = {
+		name = trmnra.100.a
+		ai_chance = {
+			factor = 50
+			modifier = {
+			factor = 1000
+				has_game_rule = {
+					rule = TRM_path 
+					option = RULE_OPTION_TRM_NRA_COUP_BOLSHEVIKS
+				}
+			}
+		}
+		set_party_name = {
+			ideology = totalist
+			name = SOV_totalist_party
+			long_name = SOV_totalist_party_long
+		}
+		create_country_leader = {
+			name = "Grigory Zinoviev"
+			desc = "POLITICS_GRIGORY_ZINOVIEV_DESC"
+			picture = "gfx/leaders/RUS/Portrait_RUS_Grigoriy_Zinoviev.png"
+			expire = "1.1.1"
+			ideology = authcom_subtype
+			traits = {}
+		}
+	}
+}
+country_event = {
+	id = trmnra.102
+	immediate = { log = "[GetDateText]: [Root.GetName]: event trmnra.102" }
+	title = trmnra.102.t
+	desc = trmnra.102.d
+	
+	is_triggered_only = yes
+	hidden = yes
 
+	option = { #Declare war
+		TRM = {
+			country_event = {
+				id = trmnra.103
+				days = 2
+			}
+		}
+	}
+}
+country_event = {
+	id = trmnra.103
+	immediate = { log = "[GetDateText]: [Root.GetName]: event trmnra.103" }
+	title = trmnra.103.t
+	desc = trmnra.103.d
+	trigger = {
+		tag = TRM
+		TRM_nra_in_power = yes
+		has_idea = TRM_dream
+	}
+	is_triggered_only = yes
+
+	option = { #
+		name = trmnra.103.a
+		remove_ideas = TRM_dream
+		every_state = {
+			limit = { 
+				is_core_of = RUS
+				is_claim_or_core_of_ROOT = yes
+			}
+			remove_claim_by = ROOT
+		}
+		custom_effect_tooltip = RUS_decrease_chance_of_war
+		add_to_variable = { global.siberian_war_chance = -0.15 }
+		FROM = {
+			if = {
+				limit = { has_war_with = ROOT }
+				white_peace_with_ROOT = yes
+			}
+			country_event = trmnra.104
+			add_to_faction = ROOT
+			every_enemy_country = {
+				ROOT = {
+					declare_war_on = {
+						target = PREV
+						type = annex_everything
+					}
+				}
+			}
+		}
+		set_cosmetic_tag = TRM_SOV
+		random_unit_leader = {
+			limit = { has_id = 1955 }
+			set_nationality = ROOT
+			unit_leader_event = {
+				id = russia.1925
+				days = 1
+				random = 24
+			}
+		}
+		every_unit_leader = {
+			limit = { has_unit_leader_flag = SOV_british_clique }
+			set_nationality = ROOT
+		}
+		random_unit_leader = {
+			limit = { has_id = 1956 }
+			set_nationality = ROOT
+			unit_leader_event = {
+				id = russia.1926
+				days = 1
+				random = 24
+			}
+		}
+		every_unit_leader = {
+			limit = { has_unit_leader_flag = SOV_french_clique }
+			set_nationality = ROOT
+		}
+		random_unit_leader = {
+			limit = { has_id = 1954 }
+			set_nationality = ROOT
+			unit_leader_event = {
+				id = russia.1924
+				days = 1
+				random = 24
+			}
+		}
+		every_unit_leader = {
+			limit = { has_unit_leader_flag = SOV_italian_clique }
+			set_nationality = ROOT
+		}
+	}
+
+	option = { #
+		name = trmnra.103.b
+		ai_chance = { base = 0 }
+		FROM = {
+			country_event = trmnra.105
+		}		
+		if = {
+			limit = { 
+				NOT = { has_war_with = FROM }
+			}
+			declare_war_on = {
+				target = FROM
+				type = annex_everything
+			}
+		}
+		if = {
+			limit = {
+				check_variable = { RUS_Speech_About_Peaceful_Unification_amount_var = 1 }
+			}
+			add_stability = -0.05
+			add_political_power = -15
+		}
+		else_if = {
+			limit = {
+				check_variable = { RUS_Speech_About_Peaceful_Unification_amount_var = 2 }
+			}
+			add_stability = -0.1
+			add_political_power = -30
+		}
+		else_if = {
+			limit = {
+				check_variable = { RUS_Speech_About_Peaceful_Unification_amount_var = 3 }
+			}
+			add_stability = -0.15
+			add_political_power = -60
+		}
+		hidden_effect = {
+			random_other_country = {
+				limit = {
+					NOT = { tag = TRM }
+				}
+				news_event = {
+					id = russianews.7
+					days = 1
+				}
+			}
+		}
+	}
+}
+
+country_event = {
+	id = trmnra.104
+	immediate = { log = "[GetDateText]: [Root.GetName]: event trmnra.104" }
+	title = trmnra.104.t
+	desc = trmnra.104.d
+	
+	is_triggered_only = yes
+
+	option = { #
+		name = trmnra.104.a
+		increase_ruling_party_popularity_by_10 = yes
+		add_opinion_modifier = {
+			target = FROM
+			modifier = KR_close_allies
+		}
+	}
+}
+
+country_event = {
+	id = trmnra.105
+	immediate = { log = "[GetDateText]: [Root.GetName]: event trmnra.105" }
+	title = trmnra.105.t
+	desc = trmnra.105.d
+	
+	is_triggered_only = yes
+
+	option = { #
+		name = trmnra.104.a
+		decrease_ruling_party_popularity_by_10 = yes
+	}
+}
+
+country_event = {
+	id = trmnra.106
+	immediate = { log = "[GetDateText]: [Root.GetName]: event trmnra.106" }
+	title = trmnra.106.t
+	desc = {
+		text = trmnra.106.d
+		trigger = { is_in_faction_with = FROM }
+	}
+	desc = {
+		text = trmnra.106.d2
+		trigger = { 
+			NOT = { is_in_faction_with = FROM }
+		}
+	}
+	
+	trigger = {
+		tag = TRM
+		TRM_nra_in_power = yes
+	}
+	
+	is_triggered_only = yes
+
+	option = { #
+		name = trmnra.106.a
+		ai_chance = { base = 0 }
+		every_state = {
+			limit = {
+				OR = {
+					is_siberia = yes
+					is_central_asia = yes
+				}
+				NOT = { is_owned_by = ROOT }
+				is_owned_by = FROM
+			}
+			transfer_state_to = ROOT
+			if = {
+				limit = { is_siberia = yes }
+				remove_core_of = FROM
+				add_claim_by = FROM
+				add_core_of = ROOT
+			}
+		}
+		if = {
+			limit = { is_in_faction_with = FROM }
+			hidden_effect = {
+				every_state = {
+					limit = {
+						NOT = {
+							is_owned_by = ROOT
+							is_controlled_by = ROOT
+						}
+						ROOT = { divisions_in_state = { state = PREV size > 0 } }
+					}
+					teleport_armies = {
+						limit = { tag = ROOT }
+						to_state_array = owned_controlled_states
+					}
+				}
+				every_owned_state = {
+					teleport_armies = {
+						limit = {
+							NOT = {
+								tag = ROOT
+								has_war_with = ROOT
+							}
+						}
+						to_state_array = owned_controlled_states
+					}
+				}
+			}
+			remove_puppet_and_leave_faction = yes
+		}		
+		add_ideas = TRM_dream
+		FROM = {
+			country_event = trmnra.105
+		}		
+		declare_war_on = {
+			target = FROM
+			type = annex_everything
+		}
+		if = {
+			limit = { has_cosmetic_tag = TRM_SOV }
+			set_cosmetic_tag = TRM_NRA
+		}
+		if = {
+			limit = {
+				check_variable = { RUS_Speech_About_Peaceful_Unification_amount_var = 1 }
+			}
+			add_stability = -0.05
+			add_political_power = -15
+		}
+		else_if = {
+			limit = {
+				check_variable = { RUS_Speech_About_Peaceful_Unification_amount_var = 2 }
+			}
+			add_stability = -0.1
+			add_political_power = -30
+		}
+		else_if = {
+			limit = {
+				check_variable = { RUS_Speech_About_Peaceful_Unification_amount_var = 3 }
+			}
+			add_stability = -0.15
+			add_political_power = -60
+		}
+		hidden_effect = {
+			random_other_country = {
+				limit = {
+					NOT = { tag = TRM }
+				}
+				news_event = {
+					id = russianews.7
+					days = 1
+				}
+			}
+		}
+	}
+
+	option = { #
+		name = trmnra.106.b
+		trigger = {
+			NOT = { is_in_faction_with = FROM }
+		}
+		remove_ideas = TRM_dream
+		every_state = {
+			limit = { 
+				is_core_of = RUS
+				is_claim_or_core_of_ROOT = yes
+			}
+			remove_claim_by = ROOT
+		}
+		custom_effect_tooltip = RUS_decrease_chance_of_war
+		add_to_variable = { global.siberian_war_chance = -0.15 }
+		FROM = {
+			if = {
+				limit = { has_war_with = ROOT }
+				white_peace_with_ROOT = yes
+			}
+			country_event = trmnra.104
+			add_to_faction = ROOT
+			every_enemy_country = {
+				ROOT = {
+					declare_war_on = {
+						target = PREV
+						type = annex_everything
+					}
+				}
+			}		
+		}
+		set_cosmetic_tag = TRM_SOV
+		random_unit_leader = {
+			limit = { has_id = 1955 }
+			set_nationality = ROOT
+			unit_leader_event = {
+				id = russia.1925
+				days = 1
+				random = 24
+			}
+		}
+		every_unit_leader = {
+			limit = { has_unit_leader_flag = SOV_british_clique }
+			set_nationality = ROOT
+		}
+		random_unit_leader = {
+			limit = { has_id = 1956 }
+			set_nationality = ROOT
+			unit_leader_event = {
+				id = russia.1926
+				days = 1
+				random = 24
+			}
+		}
+		every_unit_leader = {
+			limit = { has_unit_leader_flag = SOV_french_clique }
+			set_nationality = ROOT
+		}
+		random_unit_leader = {
+			limit = { has_id = 1954 }
+			set_nationality = ROOT
+			unit_leader_event = {
+				id = russia.1924
+				days = 1
+				random = 24
+			}
+		}
+		every_unit_leader = {
+			limit = { has_unit_leader_flag = SOV_italian_clique }
+			set_nationality = ROOT
+		}
+	}
+	option = { #
+		name = trmnra.106.c
+		trigger = {
+			is_in_faction_with = FROM
+		}
+		add_stability = 0.05
+		add_war_support = 0.05
+	}
+}
+country_event = {
+	id = trmnra.107
+	immediate = { log = "[GetDateText]: [Root.GetName]: event trmnra.107" }
+	title = trmnra.107.t
+	desc = trmnra.107.d
+	
+	trigger = {
+		tag = TRM
+		TRM_nra_in_power = yes
+	}
+	
+	is_triggered_only = yes
+
+	option = { #
+		name = trmnra.107.a
+		ai_chance = { base = 0 }
+		every_state = {
+			limit = {
+				OR = {
+					is_siberia = yes
+					is_central_asia = yes
+				}
+				NOT = { is_owned_by = ROOT }
+				is_owned_by = FROM
+			}
+			transfer_state_to = ROOT
+			if = {
+				limit = { is_siberia = yes }
+				remove_core_of = FROM
+				add_claim_by = FROM
+				add_core_of = ROOT
+			}
+		}
+		if = {
+			limit = { is_in_faction_with = FROM }
+			hidden_effect = {
+				every_state = {
+					limit = {
+						NOT = {
+							is_owned_by = ROOT
+							is_controlled_by = ROOT
+						}
+						ROOT = { divisions_in_state = { state = PREV size > 0 } }
+					}
+					teleport_armies = {
+						limit = { tag = ROOT }
+						to_state_array = owned_controlled_states
+					}
+				}
+				every_owned_state = {
+					teleport_armies = {
+						limit = {
+							NOT = {
+								tag = ROOT
+								has_war_with = ROOT
+							}
+						}
+						to_state_array = owned_controlled_states
+					}
+				}
+			}
+			remove_puppet_and_leave_faction = yes
+		}		
+		add_ideas = TRM_dream
+		FROM = {
+			country_event = trmnra.105
+		}		
+		declare_war_on = {
+			target = FROM
+			type = annex_everything
+		}
+		if = {
+			limit = { has_cosmetic_tag = TRM_SOV }
+			set_cosmetic_tag = TRM_NRA
+		}
+		if = {
+			limit = {
+				check_variable = { RUS_Speech_About_Peaceful_Unification_amount_var = 1 }
+			}
+			add_stability = -0.05
+			add_political_power = -15
+		}
+		else_if = {
+			limit = {
+				check_variable = { RUS_Speech_About_Peaceful_Unification_amount_var = 2 }
+			}
+			add_stability = -0.1
+			add_political_power = -30
+		}
+		else_if = {
+			limit = {
+				check_variable = { RUS_Speech_About_Peaceful_Unification_amount_var = 3 }
+			}
+			add_stability = -0.15
+			add_political_power = -60
+		}
+		hidden_effect = {
+			random_other_country = {
+				limit = {
+					NOT = { tag = TRM }
+				}
+				news_event = {
+					id = russianews.7
+					days = 1
+				}
+			}
+		}
+	}
+	option = { #
+		name = trmnra.106.c
+		trigger = {
+			is_in_faction_with = FROM
+		}
+		add_stability = 0.05
+		add_war_support = 0.05
+	}
+}
 ###Legion
 country_event = { #Legion
 	id = tramczech.1
@@ -8240,6 +8798,82 @@ country_event = { #Eastern Okraina
 	}
 }
 
+country_event = {
+	id = tramjap.3
+	immediate = { log = "[GetDateText]: [Root.GetName]: event tramjap.3" }
+	title = tramjap.3.t
+	desc = tramjap.3.d
+	fire_only_once = yes
+	is_triggered_only = yes
+	
+	option = { #
+		name = tramjap.3.a
+		ai_chance = {
+			base = 30
+			modifier = {
+				factor = 0
+				OR = {
+					has_game_rule = { rule = TRM_path option = RULE_OPTION_TRM_YUI }
+					has_game_rule = { rule = TRM_path option = RULE_OPTION_TRM_MERKULOV }
+				}
+			}
+		}
+		set_cosmetic_tag = TRM_JAP		
+		create_country_leader = {
+			name = "Grigory Semyonov"
+			picture = "gfx/leaders/TRM/Portrait_TRM_Grigory_Semyonov.png"
+			expire = "1.1.1"
+			ideology = authdem_cossack_subtype
+		}
+		remove_ideas_with_trait = head_of_government
+		add_ideas = TRM_Grigoriy_M_Semyenov_hog_pau
+	}
+	option = { #
+		name = tramjap.3.b
+		ai_chance = {
+			base = 35
+			modifier = {
+				factor = 0
+				OR = {
+					has_game_rule = { rule = TRM_path option = RULE_OPTION_TRM_SEMYONOV }
+					has_game_rule = { rule = TRM_path option = RULE_OPTION_TRM_MERKULOV }
+				}
+			}
+		}
+		set_cosmetic_tag = TRM_JAP	
+		add_stability = -0.05
+	}
+	option = { #
+		name = tramjap.3.c
+		ai_chance = {
+			base = 35
+			modifier = {
+				factor = 0
+				OR = {
+					has_game_rule = { rule = TRM_path option = RULE_OPTION_TRM_SEMYONOV }
+					has_game_rule = { rule = TRM_path option = RULE_OPTION_TRM_YUI }
+				}
+			}
+		}
+		set_cosmetic_tag = TRM_JAP
+		if = {
+			limit = { 
+				NOT = { is_subject_of = JAP }
+			}
+			get_current_government_type = yes
+			JAP = { puppet = ROOT }
+			restore_previous_government_type = yes
+		}		
+		create_country_leader = {
+			name = "Spiridon Merkulov"
+			desc = "POLITICS_MERKULOV_DESC"
+			picture = "gfx/leaders/TRM/Portrait_TRM_Spiridon_Merkulov.png"
+			expire = "1.1.1"
+			ideology = oligarchy_subtype
+		}
+		add_soccon_to_coalition = yes
+	}
+}
 country_event = {
 	id = tramjap.4
 	title = tramjap.4.t
@@ -9154,74 +9788,6 @@ country_event = {
 	}
 }
 country_event = {
-	id = trammlad.151
-	immediate = {log = "[GetDateText]: [Root.GetName]: event trammlad.151"}
-	title = trammlad.151.t
-	desc = trammlad.151.d
-	picture = GFX_news_event_TRM_tsar_kir
-
-	trigger = {
-		TRM_Mlad_in_power = yes
-		has_country_leader = {
-			ruling_only = yes
-			name = "Mladorossi Regency Council"
-		}
-		RUS = {
-			NOT = {
-				has_country_leader = {
-					ruling_only = yes
-					name = "Kirill I"
-				}
-				has_country_leader = {
-					ruling_only = yes
-					name = "Vladimir III"
-				}
-				has_country_flag = Kirill_Romanov_dead
-			}
-		}
-	}
-	
-	immediate = {
-		RUS = {
-			set_country_flag = Kirill_Romanov_dead
-		}
-	}
-	
-	fire_only_once = yes
-
-	option = { 
-		name = trammlad.151.a
-		create_country_leader = {
-			name = "Kirill I"
-			desc = "POLITICS_KYRIL_ROMANOV_MLAD_DESC"
-			picture = "gfx/leaders/TRM/Portrait_TRM_Tsar_Kyril.png"
-			expire = "1.1.1"
-			ideology = mladorossi_subtype
-			traits = {peoples_tsar}
-		}
-		hidden_effect = {
-			create_country_leader = {
-				name = "Kirill I"
-				desc = "POLITICS_KYRIL_ROMANOV_MLAD_DESC"
-				picture = "gfx/leaders/TRM/Portrait_TRM_Tsar_Kyril.png"
-				expire = "1.1.1"
-				ideology = national_restorationism_subtype
-			}
-		}
-		set_country_flag = TRM_Monarchy
-		set_country_flag = TRM_KYRIL_TSAR
-		custom_effect_tooltip = TRM_legitimacy_will_increase
-		hidden_effect = {
-			TRM_increase_legitmacy = yes
-			country_event = {
-				id = rusd.204
-				days = 60
-				random_days = 344
-			}
-		}
-	}
-}
-country_event = {
 	id = trammlad.150
 	immediate = {log = "[GetDateText]: [Root.GetName]: event trammlad.150"}
 	title = trammlad.150.t
@@ -9244,15 +9810,89 @@ country_event = {
 					ruling_only = yes
 					name = "Vladimir III"
 				}
+				has_country_leader = {
+					ruling_only = yes
+					name = "Andrei I"
 			}
-			has_country_flag = Kirill_Romanov_dead
 		}
+	}
 	}
 	
 	fire_only_once = yes
 
 	option = { 
 		name = trammlad.150.a
+		trigger = {
+			NOT = {
+				has_country_flag = Kirill_Romanov_dead
+			}
+			RUS = { 
+				NOT = { 
+					OR = {
+						has_country_flag = Kirill_Romanov_dead 
+						has_country_leader = {
+							ruling_only = yes
+							name = "Kirill I"
+						}
+						has_country_leader = {
+							ruling_only = yes
+							name = "Vladimir III"
+						}
+					}
+				}
+			}
+		}
+		create_country_leader = {
+			name = "Kirill I"
+			desc = "POLITICS_KYRIL_ROMANOV_MLAD_DESC"
+			picture = "gfx/leaders/TRM/Portrait_TRM_Tsar_Kyril.png"
+			expire = "1.1.1"
+			ideology = mladorossi_subtype
+			traits = {peoples_tsar}
+		}
+		hidden_effect = {
+			create_country_leader = {
+				name = "Kirill I"
+				desc = "POLITICS_KYRIL_ROMANOV_MLAD_DESC"
+				picture = "gfx/leaders/TRM/Portrait_TRM_Tsar_Kyril.png"
+				expire = "1.1.1"
+				ideology = national_restorationism_subtype
+			}
+		}
+		set_country_flag = TRM_Monarchy
+		set_country_flag = TRM_KYRIL_TSAR
+			TRM_increase_legitmacy = yes
+		hidden_effect = {
+			country_event = {
+				id = rusd.204
+				days = 60
+				random_days = 344
+			}
+		}
+	}
+	option = { 
+		name = trammlad.150.b
+	trigger = {
+			OR = {
+				has_country_flag = Kirill_Romanov_dead
+				RUS = { has_country_flag = Kirill_Romanov_dead }
+		}
+		RUS = {
+			NOT = {
+					OR = {
+						has_country_flag = Kirill_Romanov_dead 
+				has_country_leader = {
+					ruling_only = yes
+					name = "Kirill I"
+				}
+				has_country_leader = {
+					ruling_only = yes
+					name = "Vladimir III"
+				}
+			}
+		}
+	}
+		}
 		create_country_leader = {
 			name = "Vladimir III"
 			desc = "POLITICS_VLADIMIR_ROMANOV_CON_DESC"
@@ -9272,9 +9912,47 @@ country_event = {
 		}
 		set_country_flag = TRM_Monarchy
 		set_country_flag = TRM_TSAR_VLAD
-		custom_effect_tooltip = TRM_legitimacy_will_increase
+		TRM_increase_legitmacy = yes
 		hidden_effect = {
+			country_event = {
+				id = rusd.204
+				days = 60
+				random_days = 344
+			}
+		}
+	}
+	option = { 
+		name = trammlad.150.c
+		trigger = {
+			RUS = { 
+				NOT = { 
+					has_country_leader = {
+						ruling_only = yes
+						name = "Andrei I"
+					}
+				}
+			}		
+		}
+		create_country_leader = {
+			name = "Andrei I"
+			desc = "POLITICS_ANDREI_ROMANOV_DESC"
+			picture = "gfx/leaders/TRM/Portrait_TRM_Andrei_Romanov.png"
+			expire = "1.1.1"
+			ideology = mladorossi_subtype
+			traits = { peoples_tsar }
+		}		
+		hidden_effect = {
+			create_country_leader = {
+				name = "Andrei I"
+				desc = "POLITICS_ANDREI_ROMANOV_DESC"
+				picture = "gfx/leaders/TRM/Portrait_TRM_Andrei_Romanov.png"
+				expire = "1.1.1"
+				ideology = national_restorationism_subtype
+			}
+		}
+		set_country_flag = TRM_Monarchy
 			TRM_increase_legitmacy = yes
+		hidden_effect = {
 			country_event = {
 				id = rusd.204
 				days = 60
@@ -9474,31 +10152,8 @@ country_event = {
 	id = trammlad.504
 	immediate = {log = "[GetDateText]: [Root.GetName]: event trammlad.504"}
 	
-	title = {
-		text = trammlad.504.t
-		trigger = {
-			date > 1938.10.12
-		}
-	}
-	title = {
-		text =  trammlad.504.t.alexi
-		trigger = {
-			date > 1938.10.12
-		}
-	}
-	
-	desc = {
-		text = trammlad.504.d
-		trigger = {
-			date > 1938.10.12
-		}
-	}
-	desc = {
-		text =  trammlad.504.d.alexi
-		trigger = {
-			date > 1938.10.12
-		}
-	}
+	title = trammlad.504.t
+	desc = trammlad.504.d
 	picture = GFX_news_event_TRM_tsar_alexander
 
 	is_triggered_only = yes
@@ -9506,130 +10161,10 @@ country_event = {
 	fire_only_once = yes
 
 	option = { 
-		trigger = { date < 1938.10.12 }
-		name = trammlad.504.a
-		create_country_leader = {
-			name = "Alexander IV"
-			desc = "POLITICS_ALEXANDER_ROMANOV_DESC"
-			picture = "gfx/leaders/TRM/Portrait_TRM_Alexander_Romanov.png"
-			expire = "1.1.1"
-			ideology = mladorossi_subtype
-			traits = {peoples_tsar}
-		}
-		hidden_effect = {
-			create_country_leader = {
-				name = "Alexander IV"
-				desc = "POLITICS_ALEXANDER_ROMANOV_DESC"
-				picture = "gfx/leaders/TRM/Portrait_TRM_Alexander_Romanov.png"
-				expire = "1.1.1"
-				ideology = national_restorationism_subtype
-			}
-		}
-		set_country_flag = TRM_TSAR_ALEX
-		set_country_flag = TRM_Monarchy
-		custom_effect_tooltip = TRM_legitimacy_will_increase
-		hidden_effect = {
-			TRM_increase_legitmacy = yes
-		}
-	}
-	option = { 
-		trigger = { date > 1938.10.12 }
 		name = trammlad.504.b
-		create_country_leader = {
-			name = "Andrei I"
-			desc = "POLITICS_ANDREI_ROMANOV_DESC"
-			picture = "gfx/leaders/TRM/Portrait_TRM_Andrei_Romanov.png"
-			expire = "1.1.1"
-			ideology = mladorossi_subtype
-			traits = {peoples_tsar}
-		}
-		set_country_flag = TRM_Monarchy
-		custom_effect_tooltip = TRM_legitimacy_will_increase
-		hidden_effect = {
-			TRM_increase_legitmacy = yes
-		}
-	}
-}
-
-country_event = {
-	id = trammlad.505
-	immediate = {log = "[GetDateText]: [Root.GetName]: event trammlad.505"}
-	title = trammlad.505.t
-	desc = trammlad.505.d
-	picture = GFX_news_event_TRM_tsar_vlad
-
-	trigger = {
-		has_country_flag = TRM_KYRIL_TSAR
-		date > 1938.10.12
-		RUS = {
-			NOT = {
-				has_country_leader = {
-					name = "Vladimir III"
-					ruling_only = yes
-				}
 			}
 		}
-	}
 	
-	fire_only_once = yes
-
-	option = { 
-		name = trammlad.505.a
-		create_country_leader = {
-			name = "Vladimir III"
-			desc = "POLITICS_VLADIMIR_ROMANOV_CON_DESC"
-			picture = "gfx/leaders/TRM/Portrait_TRM_Vladimir_III.png"
-			expire = "1.1.1"
-			ideology = mladorossi_subtype
-			traits = {peoples_tsar}
-		}
-		hidden_effect = {
-			create_country_leader = {
-				name = "Vladimir III"
-				desc = "POLITICS_VLADIMIR_ROMANOV_CON_DESC"
-				picture = "gfx/leaders/TRM/Portrait_TRM_Vladimir_III.png"
-				expire = "1.1.1"
-				ideology = national_restorationism_subtype
-			}
-		}
-		set_country_flag = TRM_TSAR_VLAD
-	}
-}
-country_event = {
-	id = trammlad.506
-	immediate = {log = "[GetDateText]: [Root.GetName]: event trammlad.506"}
-	title = trammlad.506.t
-	desc = trammlad.506.d
-	picture = GFX_news_event_TRM_tsar_andrei
-
-	trigger = {
-		has_country_flag = TRM_TSAR_ALEX
-		date > 1938.10.12
-	}
-	
-	fire_only_once = yes
-
-	option = { 
-		name = trammlad.506.a
-		create_country_leader = {
-			name = "Andrei I"
-			desc = "POLITICS_ANDRE_ROMANOV_DESC"
-			picture = "gfx/leaders/TRM/Portrait_TRM_Andrei_Romanov.png"
-			expire = "1.1.1"
-			ideology = mladorossi_subtype
-			traits = {peoples_tsar}
-		}
-		hidden_effect = {
-			create_country_leader = {
-				name = "Andrei I"
-				desc = "POLITICS_ANDRE_ROMANOV_DESC"
-				picture = "gfx/leaders/TRM/Portrait_TRM_Andrei_Romanov.png"
-				expire = "1.1.1"
-				ideology = national_restorationism_subtype
-			}
-		}
-	}
-}
 country_event = {
 	id = trammlad.507
 	immediate = {log = "[GetDateText]: [Root.GetName]: event trammlad.507"}
@@ -9957,12 +10492,9 @@ country_event = {
 		}
 		add_war_support = 0.15
 		set_country_flag = TRM_DOROVS_joined_Nats
-		custom_effect_tooltip = TRM_legitimacy_will_increase
-		hidden_effect = {
 			TRM_increase_legitmacy = yes
 		}
 	}
-}
 country_event = {
 	id = trammlad.520
 	immediate = {log = "[GetDateText]: [Root.GetName]: event trammlad.520"}
@@ -9995,71 +10527,7 @@ country_event = {
 
 	option = { 
 		name = trammlad.521.a
-		add_stability = -0.1
-		add_war_support = -0.05
-		add_popularity = {
-			ideology = paternal_autocrat
-			popularity = -0.15
-		}
-		add_timed_idea = {
-			idea = TRM_purge
-			days = 270
-		}
-		if = {
-			limit = {
-				has_unit_leader = 505058
-			}
-			random_unit_leader = {
-				limit = { has_id = 505058 }			
-				remove_unit_leader = yes
-			}
-		}
-		set_country_flag = Mikhail_Diterikhs_dead
-		if = {
-			limit = {
-				has_unit_leader = 50003
-			}
-			random_unit_leader = {
-				limit = { has_id = 50003 }			
-				remove_unit_leader = yes
-			}
-		}
-		if = {
-			limit = {
-				has_unit_leader = 505056
-			}
-			random_unit_leader = {
-				limit = { has_id = 505056 }			
-				remove_unit_leader = yes
-			}
-		}
-		if = {
-			limit = {
-				has_unit_leader = 243911
-			}
-			random_unit_leader = {
-				limit = { has_id = 243911 }			
-				remove_unit_leader = yes
-			}
-		}
-		if = {
-			limit = {
-				has_unit_leader = 243912
-			}
-			random_unit_leader = {
-				limit = { has_id = 243912 }			
-				remove_unit_leader = yes
-			}
-		}
-		if = {
-			limit = {
-				has_unit_leader = 505053
-			}
-			random_unit_leader = {
-				limit = { has_id = 505053 }			
-				remove_unit_leader = yes
-			}
-		}
+		TRM_do_after_coup_purge = yes
 	}
 }
 country_event = {
@@ -10156,12 +10624,9 @@ country_event = {
 				}
 			}
 		}
-		custom_effect_tooltip = TRM_legitimacy_will_increase
-		hidden_effect = {
 			TRM_increase_legitmacy = yes
 		}
 	}
-}
 country_event = {
 	id = trammlad.525
 	immediate = {log = "[GetDateText]: [Root.GetName]: event trammlad.525"}
@@ -10214,6 +10679,10 @@ country_event = {
 				NOT = {
 					has_country_leader = {
 						name = "Kirill I"
+						ruling_only = yes
+					}
+					has_country_leader = {
+						name = "Vladimir III"
 						ruling_only = yes
 					}
 					has_country_flag = Kirill_Romanov_dead
@@ -10328,7 +10797,7 @@ country_event = {
 		add_manpower = -1500
 		add_political_power = 50
 		set_global_flag = TRM_relations_JAP_broke
-		add_opinion_modifier = { target = JAP modifier = embargo }
+		JAP = { embargo_PREV = yes }
 		if = {
 			limit = {
 				TRM = { is_subject_of = JAP }
@@ -10350,23 +10819,10 @@ country_event = {
 		hidden_effect = {
 			TRM = {
 				TRM_remove_japanese_influence = yes
+				set_temp_variable = { target = JAP }
+				clear_all_relations_with_TARGET = yes			
 			}				
 			JAP = {
-				diplomatic_relation = {
-					country = TRM
-					relation = guarantee
-					active = no
-				}
-				diplomatic_relation = {
-					country = TRM
-					relation = non_aggression_pact
-					active = no
-				}
-				diplomatic_relation = {
-					country = TRM
-					relation = military_access
-					active = no
-				}
 				diplomatic_relation = {
 					country = TRM
 					relation = docking_rights
@@ -10508,18 +10964,16 @@ country_event = {
 		ai_chance = {
 			factor = 15
 			modifier = {
-				factor = 5
-				has_idea = TRM_Grigoriy_M_Semyenov_hog_pau
+				factor = 0
+				OR = {
+					TRM_nra_game_rule = yes
+					has_game_rule = { rule = TRM_path option = RULE_OPTION_TRM_SEMYONOV }
+					has_game_rule = { rule = TRM_path option = RULE_OPTION_TRM_MLADOROSSI }
+					has_game_rule = { rule = TRM_path option = RULE_OPTION_TRM_NATSI }
+					has_game_rule = { rule = TRM_path option = RULE_OPTION_TRM_OBLASTNIKI }
+					has_game_rule = { rule = TRM_path option = RULE_OPTION_TRM_MERKULOV }
 			}
-			modifier = {
-				factor = 0.5
-				has_completed_focus = TRM_Limit_Cossack_Autonomy
 			}
-			modifier = {
-				factor = 3
-				has_completed_focus = TRM_Placate_The_Cossacks
-			}
-			
 		}
 		TRM_increase_cossack_loyalty = yes
 		TRM_decrease_rovs_loyalty = yes
@@ -10554,6 +11008,19 @@ country_event = {
 				factor = 4
 				has_completed_focus = TRM_Stake_On_Military
 			}
+			modifier = {
+				factor = 0
+				TRM_nra_game_rule = yes
+			}
+			modifier = {
+				factor = 0
+				OR = {
+					TRM_nra_game_rule = yes
+					has_game_rule = { rule = TRM_path option = RULE_OPTION_TRM_MONARCHY }
+					has_game_rule = { rule = TRM_path option = RULE_OPTION_TRM_NEW_MILITARY_CABINET }
+					has_game_rule = { rule = TRM_path option = RULE_OPTION_TRM_MORYAKI_IN_POWER }
+				}
+			}	
 		}
 		every_owned_state = {
 			limit = {
@@ -10581,24 +11048,26 @@ country_event = {
 		ai_chance = {
 			factor = 70
 			modifier = {
-				factor = 0.2
-				has_idea = TRM_Grigoriy_M_Semyenov_hog_pau
-			}
-			modifier = {
-				factor = 1.2
-				has_completed_focus = TRM_Limit_Cossack_Autonomy
-			}
-			modifier = {
-				factor = 0.9
-				has_completed_focus = TRM_Placate_The_Cossacks
-			}
-			modifier = {
 				factor = 0.6
 				has_completed_focus = TRM_Martial_Law_In_Minority_Areas
 			}
 			modifier = {
 				factor = 0.4
 				has_completed_focus = TRM_Stake_On_Military
+			}
+			modifier = {
+				factor = 0
+				OR = {
+					has_game_rule = { rule = TRM_path option = RULE_OPTION_TRM_SEMYONOV }
+					has_game_rule = { rule = TRM_path option = RULE_OPTION_TRM_MONARCHY }
+					has_game_rule = { rule = TRM_path option = RULE_OPTION_TRM_NEW_MILITARY_CABINET }
+					has_game_rule = { rule = TRM_path option = RULE_OPTION_TRM_MORYAKI_IN_POWER }
+					has_game_rule = { rule = TRM_path option = RULE_OPTION_TRM_MLADOROSSI }
+					has_game_rule = { rule = TRM_path option = RULE_OPTION_TRM_NATSI }
+					has_game_rule = { rule = TRM_path option = RULE_OPTION_TRM_OBLASTNIKI }
+					has_game_rule = { rule = TRM_path option = RULE_OPTION_TRM_MERKULOV }
+				
+				}
 			}
 		}
 	}
@@ -10714,6 +11183,16 @@ country_event = {
 		add_stability = 0.1
 		add_political_power = 25
 		remove_ideas = TRM_dream 
+		add_ideas = TRM_Sib_Fed
+		every_state = {
+			limit = { 
+				is_core_of = RUS
+				is_claim_or_core_of_ROOT = yes
+			}
+			remove_claim_by = ROOT
+		}
+		custom_effect_tooltip = RUS_decrease_chance_of_war
+		add_to_variable = { global.siberian_war_chance = -0.15 }
 		custom_effect_tooltip = TRM_MERK_tooltip
 	}
 	option = {
@@ -10761,8 +11240,8 @@ country_event = {
 			if = {
 				limit = {
 					OR = {
-						check_variable = { CossackOrientation < 0.99 }
-						check_variable = { ROVSOrientation < 0.99 }
+						check_variable = { CossackOrientation < 0 }
+						check_variable = { ROVSOrientation < 0 }
 						AND = {
 							is_ai = yes
 							OR = {
@@ -10800,7 +11279,7 @@ country_event = {
 	desc = tram.215.d
 
 	is_triggered_only = yes
-	fire_only_once = no
+	
 	option = {
 		name = tram.215.a
 		ai_chance = {
@@ -10841,19 +11320,64 @@ country_event = {
 		FROM = {
 			country_event = {
 				id = tram.217
-				days = 7
+				days = 5
 			}
 		}
-		195 = {
-			owner = {
-				add_opinion_modifier = {
-					target = ROOT
-					modifier = KR_outraged 
-				}
+		var:219.owner = {
+			country_event = { 
+				id = tram.2151
+				days = 7
 			}
 		}
 	}
 }
+country_event = {
+	id = tram.2151
+	immediate = { log = "[GetDateText]: [Root.GetName]: event tram.2151" }
+	title = tram.2151.t
+	desc = tram.2151.d
+
+	is_triggered_only = yes
+	
+	option = {
+		name = tram.2151.a
+		add_political_power = -25
+		embargo_FROM = yes
+	}
+	option = {
+		name = tram.2151.b
+		add_political_power = -30
+		increase_ruling_party_popularity_by_3 = yes
+		embargo_FROM = yes
+				add_opinion_modifier = {
+			target = FROM
+					modifier = KR_outraged 
+				}
+		set_temp_variable = { target = FROM }
+		clear_all_relations_with_TARGET = yes
+		FROM = { country_event = tram.2152 }
+	}
+			}
+
+country_event = {
+	id = tram.2152
+	immediate = { log = "[GetDateText]: [Root.GetName]: event tram.2152" }
+	title = tram.2152.t
+	desc = tram.2152.d
+
+	is_triggered_only = yes
+	
+	option = {
+		name = tram.2152.a
+		add_political_power = -15
+		add_opinion_modifier = {
+			target = FROM
+			modifier = KR_disapproves_of_govt
+		}
+		embargo_FROM = yes
+	}
+}
+
 country_event = {
 	id = tram.216
 	immediate = { log = "[GetDateText]: [Root.GetName]: event tram.216" }
@@ -10861,15 +11385,12 @@ country_event = {
 	desc = tram.216.d
 
 	is_triggered_only = yes
-	fire_only_once = no
+	
 	option = {
 		name = tram.216.a
 		add_stability = -0.05
 		add_political_power = -25
-		add_popularity = {
-			ideology = paternal_autocrat
-			popularity = -0.05
-		}
+		decrease_ruling_party_popularity_by_5 = yes
 		add_opinion_modifier = {
 			target = FROM
 			modifier = KR_outraged  
@@ -10883,15 +11404,12 @@ country_event = {
 	desc = tram.217.d
 
 	is_triggered_only = yes
-	fire_only_once = no
+	
 	option = {
 		name = tram.217.a
 		add_stability = 0.05
 		add_political_power = 50
-		add_popularity = {
-			ideology = paternal_autocrat
-			popularity = 0.05
-		}
+		increase_ruling_party_popularity_by_5 = yes
 		add_opinion_modifier = {
 			target = FROM
 			modifier = KR_approves_of_govt 
@@ -11259,6 +11777,7 @@ country_event = {
 		}
 	}
 }
+
 country_event = {
 	id = tram.300
 	immediate = { log = "[GetDateText]: [Root.GetName]: event tram.300" }
@@ -11270,17 +11789,12 @@ country_event = {
 	option = {
 		name = tram.300.a
 		every_owned_state = {
-			limit = {
-				state = 574
-			}
-			YAK = {
-				add_state_core = PREV
-				transfer_state = PREV
-			}
-		}
-		574 = {
+			limit = { state = 574 }
+			remove_core_of = TRM
 			add_claim_by = TRM
-			set_state_category = two
+			add_core_of = YAK
+			transfer_state_to = YAK
+			add_extra_state_shared_building_slots = 2
 		}
 		hidden_effect = {
 			YAK = {
@@ -11328,17 +11842,12 @@ country_event = {
 		name = tram.300.b
 		trigger = { is_ai = no }
 		every_owned_state = {
-			limit = {
-				state = 574
-			}
-			YAK = {
-				add_state_core = PREV
-				transfer_state = PREV
-			}
-		}
-		574 = {
+			limit = { state = 574 }
+			remove_core_of = TRM
 			add_claim_by = TRM
-			set_state_category = two
+			add_core_of = YAK
+			transfer_state_to = YAK
+			add_extra_state_shared_building_slots = 2
 		}
 		hidden_effect = {
 			YAK = {
@@ -11401,7 +11910,7 @@ country_event = {
 			type = annex_everything
 		}
 		set_global_flag = TRM_relations_JAP_broke
-		add_opinion_modifier = { target = JAP modifier = embargo }
+		JAP = { embargo_PREV = yes }
 		add_popularity = {
 			ideology = authoritarian_democrat
 			popularity = -0.2
@@ -11420,23 +11929,10 @@ country_event = {
 		hidden_effect = {
 			TRM = {
 				TRM_remove_japanese_influence = yes
+				set_temp_variable = { target = JAP }
+				clear_all_relations_with_TARGET = yes			
 			}				
 			JAP = {
-				diplomatic_relation = {
-					country = TRM
-					relation = guarantee
-					active = no
-				}
-				diplomatic_relation = {
-					country = TRM
-					relation = non_aggression_pact
-					active = no
-				}
-				diplomatic_relation = {
-					country = TRM
-					relation = military_access
-					active = no
-				}
 				diplomatic_relation = {
 					country = TRM
 					relation = docking_rights
@@ -11631,6 +12127,7 @@ country_event = {
 }
 country_event = {
 	id = tram.310
+	immediate = { log = "[GetDateText]: [Root.GetName]: event tram.310" }
 	immediate = {
 		hidden_effect = { TRM_setup_the_civil_war_buryat = yes }
 	}
@@ -11639,92 +12136,7 @@ country_event = {
 	is_triggered_only = yes
 	fire_only_once = yes
 	option = {
-		name = tram.310.a
-		if = {
-			limit = {
-				country_exists = YAK
-			}
-			declare_war_on = {
-				target = YAK
-				type = annex_everything
-			}
-		}
-		if = {
-			limit = {
-				country_exists = BRY
-			}
-			declare_war_on = {
-				target = BRY
-				type = annex_everything
-			}
-			hidden_effect = {
-				country_event = {
-					id = transbaikalia.30
-					days = 65
-				}
-			}
-		}
-		if = {
-			limit = {
-				country_exists = SIB
-			}
-			declare_war_on = {
-				target = SIB
-				type = annex_everything
-			}
-			hidden_effect = {
-				SIB = {
-					diplomatic_relation = {
-						country = YAK
-						relation = non_aggression_pact
-						active = yes
-					}
-					diplomatic_relation = {
-						country = BRY
-						relation = non_aggression_pact
-						active = yes
-					}
-				}
-			}
-		}
-		if = {
-			limit = {
-				any_state = {
-					OR = {
-						state = 1246
-						state = 408
-						state = 409
-						state = 637
-						state = 562
-					}
-					is_owned_by = JAP
-				}
-			}
-							
-			country_event = {
-				id = tram.301
-				days = 5
-			}
-		}
-	}
-	option = {
 		name = tram.310.b
-		trigger = {
-			is_ai = no
-		}
-		if = {
-			limit = {
-				country_exists = YAK
-			}
-			declare_war_on = {
-				target = YAK
-				type = annex_everything
-			}
-		}
-		if = {
-			limit = {
-				country_exists = BRY
-			}
 			declare_war_on = {
 				target = BRY
 				type = annex_everything
@@ -11736,70 +12148,8 @@ country_event = {
 				}
 			}
 		}
-		if = {
-			limit = {
-				country_exists = SIB
-			}
-			declare_war_on = {
-				target = SIB
-				type = annex_everything
-			}
-			hidden_effect = {
-				SIB = {
-					diplomatic_relation = {
-						country = YAK
-						relation = non_aggression_pact
-						active = yes
-					}
-					diplomatic_relation = {
-						country = BRY
-						relation = non_aggression_pact
-						active = yes
-					}
-				}
-			}
-		}
-		if = {
-			limit = {
-				any_state = {
-					OR = {
-						state = 1246
-						state = 408
-						state = 409
-						state = 637
-						state = 562
-					}
-					is_owned_by = JAP
-				}
-			}
-							
-			country_event = {
-				id = tram.301
-				days = 5
-			}
-		}
-		YAK = { change_tag_from = ROOT }
-		
-	}
 	option = {
-		name = tram.310.c
-		trigger = {
-			country_exists = BRY
-			is_ai = no
-		}
-		if = {
-			limit = {
-				country_exists = YAK
-			}
-			declare_war_on = {
-				target = YAK
-				type = annex_everything
-			}
-		}
-		if = {
-			limit = {
-				country_exists = BRY
-			}
+		name = tram.310.a
 			declare_war_on = {
 				target = BRY
 				type = annex_everything
@@ -11810,138 +12160,11 @@ country_event = {
 					days = 65
 				}
 			}
-		}
-		if = {
-			limit = {
-				country_exists = SIB
-			}
-			declare_war_on = {
-				target = SIB
-				type = annex_everything
-			}
-			hidden_effect = {
-				SIB = {
-					diplomatic_relation = {
-						country = YAK
-						relation = non_aggression_pact
-						active = yes
-					}
-					diplomatic_relation = {
-						country = BRY
-						relation = non_aggression_pact
-						active = yes
-					}
-				}
-			}
-		}
-		if = {
-			limit = {
-				any_state = {
-					OR = {
-						state = 1246
-						state = 408
-						state = 409
-						state = 637
-						state = 562
-					}
-					is_owned_by = JAP
-				}
-			}
-							
-			country_event = {
-				id = tram.301
-				days = 5
-			}
-		}
 		BRY = { change_tag_from = ROOT }
-	}
-	option = {
-		name = tram.310.e
-		trigger = {
-			country_exists = SIB
-			is_ai = no
-		}
-		if = {
-			limit = {
-				country_exists = YAK
-			}
-			declare_war_on = {
-				target = YAK
-				type = annex_everything
-			}
-		}
-		if = {
-			limit = {
-				country_exists = BRY
-			}
-			declare_war_on = {
-				target = BRY
-				type = annex_everything
-			}
-			hidden_effect = {
-				country_event = {
-					id = transbaikalia.30
-					days = 65
-				}
-			}
-		}
-		if = {
-			limit = {
-				country_exists = SIB
-			}
-			declare_war_on = {
-				target = SIB
-				type = annex_everything
-			}
-			hidden_effect = {
-				SIB = {
-					diplomatic_relation = {
-						country = YAK
-						relation = non_aggression_pact
-						active = yes
-					}
-					diplomatic_relation = {
-						country = BRY
-						relation = non_aggression_pact
-						active = yes
-					}
-				}
-			}
-		}
-		if = {
-			limit = {
-				any_state = {
-					OR = {
-						state = 1246
-						state = 408
-						state = 409
-						state = 637
-						state = 562
-					}
-					is_owned_by = JAP
-				}
-			}
-							
-			country_event = {
-				id = tram.301
-				days = 5
-			}
-		}
-		SIB = { change_tag_from = ROOT }
 	}
 }
 country_event = {
 	id = tram.400
-	immediate = {
-		every_owned_state = {
-			limit = {
-				is_core_of = TRM
-				is_claim_or_core_of_ROOT = yes
-				NOT = { state = 566 }
-			}
-			remove_claim_by = ROOT
-		}
-	}
 	title = tram.400.t
 	desc = tram.400.d
 	fire_only_once = yes
@@ -12020,6 +12243,7 @@ country_event = {
 					has_government = social_liberal
 				}
 			}
+			NOT = { has_country_flag = RUS_cannot_release_TRM }
 		}
 		ai_chance = {
 			factor = 0
@@ -12077,6 +12301,13 @@ country_event = {
 													remove_ideas = TRM_dream
 				set_cosmetic_tag = TRM_SOV
 			}
+			if = {
+				limit = {
+					ROOT = { has_country_flag = soviet_russia_restored }
+				}
+				set_temp_variable = { target = TRM }
+				SOV_puppet_TARGET_effect = yes
+			}
 		}
 		else_if = {
 			limit = {
@@ -12118,6 +12349,7 @@ country_event = {
 			factor = 70
 		}
 		TRM = {			
+			TRM_remove_japanese_influence = yes
 			every_unit_leader = {
 				limit = { has_unit_leader_flag = CAN_TRM_expedition_leader }
 				set_nationality = CAN
@@ -12126,9 +12358,7 @@ country_event = {
 			}
 			every_unit_leader = {
 				limit = {
-					NOT = {
-						has_id = 50001
-					}
+					NOT = { has_id = 50001 }
 				}
 				set_nationality = ROOT
 			}
@@ -12157,6 +12387,7 @@ country_event = {
 			factor = 30
 		}
 		TRM = {
+			TRM_remove_japanese_influence = yes
 			every_unit_leader = {
 				limit = { has_unit_leader_flag = CAN_TRM_expedition_leader }
 				set_nationality = CAN
@@ -13087,7 +13318,7 @@ country_event = {
 		add_manpower = -1500
 		add_political_power = 50
 		set_global_flag = TRM_relations_JAP_broke
-		add_opinion_modifier = { target = JAP modifier = embargo }
+		JAP = { embargo_PREV = yes }
 		add_popularity = {
 			ideology = authoritarian_democrat
 			popularity = -0.2
@@ -13107,23 +13338,10 @@ country_event = {
 		hidden_effect = {
 			TRM = {
 				TRM_remove_japanese_influence = yes
+				set_temp_variable = { target = JAP }
+				clear_all_relations_with_TARGET = yes
 			}				
 			JAP = {
-				diplomatic_relation = {
-					country = TRM
-					relation = guarantee
-					active = no
-				}
-				diplomatic_relation = {
-					country = TRM
-					relation = non_aggression_pact
-					active = no
-				}
-				diplomatic_relation = {
-					country = TRM
-					relation = military_access
-					active = no
-				}
 				diplomatic_relation = {
 					country = TRM
 					relation = docking_rights
@@ -13375,11 +13593,12 @@ country_event = { #Kolchak Portrait
 }
 country_event = { #hidden yakut revolt trigger 
 	id = tram.10001
+	immediate = { log = "[GetDateText]: [Root.GetName]: event tram.10001" }
 	title = tram.10001.t 
 	desc = tram.10001.d 
+	
 	fire_only_once = yes
 	is_triggered_only = yes
-	hidden = yes
 	
 	option = {
 		name = tram.10001.a #take off hat 
@@ -13388,6 +13607,8 @@ country_event = { #hidden yakut revolt trigger
 		activate_targeted_decision = { target = 574 decision = TRM_send_division_to_yakutia }
 		activate_mission = TRM_yakut_revolt
 		574 = {
+			remove_core_of = TRM
+			add_claim_by = TRM
 			add_core_of = YAK
 			start_resistance = yes
 			set_resistance = 20
@@ -13396,18 +13617,22 @@ country_event = { #hidden yakut revolt trigger
 }
 country_event = { #buryat revolt trigger 
 	id = tram.10003
-	title = tram.10000.t 
-	desc = tram.10000.d 
+	immediate = { log = "[GetDateText]: [Root.GetName]: event tram.10003" }
+	title = tram.10003.t 
+	desc = tram.10003.d 
+	
 	fire_only_once = yes
 	is_triggered_only = yes
-	hidden = yes
 	
 	option = {
-		name = tram.10001.a #take off hat 
+		name = tram.10003.a #take off hat 
 		activate_targeted_decision = { target = 564 decision = TRM_revoke_buryat_martial_law }
 		activate_targeted_decision = { target = 564 decision = TRM_send_division_to_buryatia }
+		activate_targeted_decision = { target = 564 decision = TRM_buryat_kurultai }
 		activate_mission = TRM_buryat_revolt
 		564 = {
+			remove_core_of = TRM
+			add_claim_by = TRM
 			add_core_of = BRY
 			start_resistance = yes
 			set_resistance = 20
