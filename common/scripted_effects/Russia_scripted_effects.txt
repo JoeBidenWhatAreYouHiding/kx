@@ -5,6 +5,11 @@ setup_backward_industry = {
 	set_variable = { RUS_industry_cic_construction_boost_factor = -0.07 }
 	set_variable = { RUS_industry_industrial_capacity_factory = -0.14 }
 	set_variable = { RUS_industry_research_speed_factor = -0.09 }	
+	set_variable = { RUS_industry_production_lack_of_resource_penalty_factor = 0.12 }
+	
+	set_variable = { RUS_industry_industrial_output = 0 }
+	set_variable = { RUS_industry_infrastructure_quality = 0 }
+	set_variable = { RUS_industry_military_industrial_complex = 0 }
 }
 setup_unfinished_land_reform = {
 	add_dynamic_modifier = { modifier = RUS_unfinished_land_reform_modifier	} 
@@ -13,8 +18,86 @@ setup_unfinished_land_reform = {
 	set_variable = { RUS_lr_political_power_factor = -0.35 }
 	set_variable = { RUS_lr_monthly_population = -0.15 }
 	set_variable = { RUS_lr_local_resources_factor = -0.15 }
-	set_variable = { RUS_lr_production_lack_of_resource_penalty_factor = 0.12 }
-	set_variable = { RUS_lr_consumer_goods_expected_value = 0.25 }
+	set_variable = { RUS_lr_consumer_goods_factor = 0.25 }
+	
+	set_variable = { RUS_lr_agricultural_productivity = 0 }
+	set_variable = { RUS_lr_regional_development_disparities = 0 }
+	set_variable = { RUS_lr_land_redistribution_index = 0 }
+}
+RUS_debug_calculate_number_of_infrastructure = {
+	set_variable = { RUS_owned_infra = 0 }
+	every_owned_state = {
+		add_to_variable = { PREV.RUS_owned_infra = infrastructure_level }
+		set_variable = { RUS_state_and_terrain_strategic_value = state_and_terrain_strategic_value }
+		set_variable = { RUS_state_strategic_value = state_strategic_value }
+		log = "[THIS.GetName] - [?RUS_state_and_terrain_strategic_value] - [?RUS_state_strategic_value]"
+	}
+}
+RUS_recalculate_land_industry_reform = {
+	# Calculate military industrial complex index
+	if = {
+		limit = { 
+			check_variable = { RUS.total_constructed_civilian_factory > 0 }
+		}
+		set_temp_variable = { military_industrial_complex_temp = RUS.total_constructed_military_factory }
+		divide_temp_variable = { military_industrial_complex_temp = RUS.total_constructed_civilian_factory }
+		multiply_temp_variable = { military_industrial_complex_temp = 100 }
+	}
+	else = {
+		set_temp_variable = { military_industrial_complex_temp = 0 }		
+	}
+	set_variable = { RUS_industry_military_industrial_complex = military_industrial_complex_temp }
+	clamp_variable = { var = RUS_industry_military_industrial_complex min = 0 max = 100 }
+	log = "[ROOT.GetName] Military-Industrial Index - [?RUS_industry_military_industrial_complex]"
+	
+	# Calculate infrastructure quality index
+	set_temp_variable = { industry_infrastructure_quality_temp = RUS.total_constructed_infrastructure }
+	set_temp_variable = { industry_infrastructure_quality_temp_2 = RUS.num_owned_states }
+	multiply_temp_variable = { industry_infrastructure_quality_temp_2 = 5 }
+	add_to_temp_variable = { industry_infrastructure_quality_temp_2 = -203 }
+	divide_temp_variable = { industry_infrastructure_quality_temp = industry_infrastructure_quality_temp_2 }
+	multiply_temp_variable = { industry_infrastructure_quality_temp = 100 }
+	
+	set_variable = { RUS_industry_infrastructure_quality = industry_infrastructure_quality_temp }
+	clamp_variable = { var = RUS_industry_infrastructure_quality min = 0 max = 100 }
+	log = "[ROOT.GetName] Infrastructure Quality Index - [?RUS_industry_infrastructure_quality]"
+	
+	# Count Land Score #
+	set_temp_variable = { RUS_lr_agricultural_productivity_temp = RUS_lr_agricultural_productivity }
+	multiply_temp_variable = { RUS_lr_agricultural_productivity_temp = 0.30 }
+	
+	set_temp_variable = { RUS_lr_regional_development_disparities_temp = RUS_lr_regional_development_disparities }
+	multiply_temp_variable = { RUS_lr_regional_development_disparities = 0.25 }
+	
+	set_temp_variable = { RUS_lr_political_stability_temp = RUS.stability }
+	multiply_temp_variable = { RUS_lr_political_stability_temp = 0.20 }
+	
+	set_temp_variable = { RUS_lr_public_support_temp = RUS.party_popularity_100@ruling_party }
+	multiply_temp_variable = { RUS_lr_public_support_temp = 0.25 }
+	
+	set_variable = { RUS_land_reform_score = RUS_lr_agricultural_productivity_temp }
+	add_to_temp_variable = { RUS_land_reform_score = RUS_lr_regional_development_disparities_temp }
+	add_to_temp_variable = { RUS_land_reform_score = RUS_lr_political_stability_temp }
+	add_to_temp_variable = { RUS_land_reform_score = RUS_lr_public_support_temp }
+	
+	# Count Industrial Score #
+	set_temp_variable = { RUS_industry_industrial_output_temp = RUS_industry_industrial_output }
+	multiply_temp_variable = { RUS_industry_industrial_output_temp = 0.30 }
+	
+	set_temp_variable = { RUS_industry_infrastructure_quality_temp = RUS_industry_infrastructure_quality }
+	multiply_temp_variable = { RUS_industry_infrastructure_quality_temp = 0.20 }
+	
+	set_temp_variable = { RUS_industry_political_stability_temp = RUS.stability }
+	multiply_temp_variable = { RUS_industry_political_stability_temp = 0.25 }
+	
+	set_temp_variable = { RUS_industry_military_industrial_complex_temp = RUS_industry_military_industrial_complex }
+	multiply_temp_variable = { RUS_industry_military_industrial_complex_temp = 0.25 }
+	
+	set_variable = { RUS_industrial_score = RUS_industry_industrial_output_temp }
+	add_to_temp_variable = { RUS_industrial_score = RUS_industry_infrastructure_quality_temp }
+	add_to_temp_variable = { RUS_industrial_score = RUS_industry_political_stability_temp }
+	add_to_temp_variable = { RUS_industrial_score = RUS_industry_military_industrial_complex_temp }	
+	
 }
 destroy_unfinished_land_reform = {
 	set_global_flag = RUS_land_reform_finished
