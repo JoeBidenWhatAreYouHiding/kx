@@ -23,15 +23,39 @@ setup_unfinished_land_reform = {
 	set_variable = { RUS_lr_agricultural_productivity = 0 }
 	set_variable = { RUS_lr_regional_development_disparities = 0 }
 	set_variable = { RUS_lr_land_redistribution_index = 0 }
+	
+	RUS_debug_calculate_number_of_infrastructure = yes
+	RUS_recalculate_land_industry_reform = yes
 }
 RUS_debug_calculate_number_of_infrastructure = {
-	set_variable = { RUS_owned_infra = 0 }
+	set_variable = { RUS_state_strategic_value = 0 }
 	every_owned_state = {
-		add_to_variable = { PREV.RUS_owned_infra = infrastructure_level }
-		set_variable = { RUS_state_and_terrain_strategic_value = state_and_terrain_strategic_value }
-		set_variable = { RUS_state_strategic_value = state_strategic_value }
-		log = "[THIS.GetName] - [?RUS_state_and_terrain_strategic_value] - [?RUS_state_strategic_value]"
+		add_to_variable = { PREV.RUS_state_strategic_value = state_strategic_value }
+		log = "[THIS.GetName] - [?RUS_state_strategic_value]"
 	}
+	# Mean
+	divide_variable = { RUS_state_strategic_value = num_owned_states }
+	log = "[THIS.GetName] - MEAN: [?RUS_state_strategic_value]"
+	# MAD
+	set_variable = { RUS_state_strategic_value_sum = 0 }
+	every_owned_state = {
+		set_variable = { RUS_state_strategic_value_state = state_strategic_value }
+		subtract_from_variable = { RUS_state_strategic_value_state = PREV.RUS_state_strategic_value }
+		#ABS this 
+		if = {
+			limit = { check_variable = { RUS_state_strategic_value_state < 0 } }
+			multiply_variable = { RUS_state_strategic_value_state = -1 }
+		}
+		add_to_variable = { PREV.RUS_state_strategic_value_sum = RUS_state_strategic_value_state }
+	}
+	divide_variable = { RUS_state_strategic_value_sum = num_owned_states }
+	log = "[THIS.GetName] - MAD: [?RUS_state_strategic_value_sum]"
+	# Overall CV
+	divide_variable = { RUS_state_strategic_value_sum = RUS_state_strategic_value }
+	multiply_variable = { RUS_state_strategic_value_sum = 100 }
+	log = "[THIS.GetName] - REGIONAL DISPARITY: [?RUS_state_strategic_value_sum]"
+	set_variable = { RUS_lr_regional_development_disparities = 100 }
+	subtract_from_variable = { RUS_lr_regional_development_disparities = RUS_state_strategic_value_sum }
 }
 RUS_recalculate_land_industry_reform = {
 	# Calculate military industrial complex index
@@ -40,7 +64,9 @@ RUS_recalculate_land_industry_reform = {
 			check_variable = { RUS.total_constructed_civilian_factory > 0 }
 		}
 		set_temp_variable = { military_industrial_complex_temp = RUS.total_constructed_military_factory }
-		divide_temp_variable = { military_industrial_complex_temp = RUS.total_constructed_civilian_factory }
+		set_temp_variable = { all_factories_temp = RUS.total_constructed_military_factory }
+		add_to_temp_variable = { all_factories_temp = RUS.total_constructed_civilian_factory }
+		divide_temp_variable = { military_industrial_complex_temp = all_factories_temp }
 		multiply_temp_variable = { military_industrial_complex_temp = 100 }
 	}
 	else = {
@@ -76,9 +102,9 @@ RUS_recalculate_land_industry_reform = {
 	multiply_temp_variable = { RUS_lr_public_support_temp = 0.25 }
 	
 	set_variable = { RUS_land_reform_score = RUS_lr_agricultural_productivity_temp }
-	add_to_temp_variable = { RUS_land_reform_score = RUS_lr_regional_development_disparities_temp }
-	add_to_temp_variable = { RUS_land_reform_score = RUS_lr_political_stability_temp }
-	add_to_temp_variable = { RUS_land_reform_score = RUS_lr_public_support_temp }
+	add_to_variable = { RUS_land_reform_score = RUS_lr_regional_development_disparities_temp }
+	add_to_variable = { RUS_land_reform_score = RUS_lr_political_stability_temp }
+	add_to_variable = { RUS_land_reform_score = RUS_lr_public_support_temp }
 	
 	# Count Industrial Score #
 	set_temp_variable = { RUS_industry_industrial_output_temp = RUS_industry_industrial_output }
@@ -94,9 +120,9 @@ RUS_recalculate_land_industry_reform = {
 	multiply_temp_variable = { RUS_industry_military_industrial_complex_temp = 0.25 }
 	
 	set_variable = { RUS_industrial_score = RUS_industry_industrial_output_temp }
-	add_to_temp_variable = { RUS_industrial_score = RUS_industry_infrastructure_quality_temp }
-	add_to_temp_variable = { RUS_industrial_score = RUS_industry_political_stability_temp }
-	add_to_temp_variable = { RUS_industrial_score = RUS_industry_military_industrial_complex_temp }	
+	add_to_variable = { RUS_industrial_score = RUS_industry_infrastructure_quality_temp }
+	add_to_variable = { RUS_industrial_score = RUS_industry_political_stability_temp }
+	add_to_variable = { RUS_industrial_score = RUS_industry_military_industrial_complex_temp }	
 	
 }
 destroy_unfinished_land_reform = {
