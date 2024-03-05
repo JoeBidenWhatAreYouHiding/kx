@@ -145,12 +145,6 @@ country_event = {
 
 	option = {
 		name = kr.hungary.1.a
-		if = {
-			limit = {
-				is_ai = no
-			}
-			set_country_flag = PORTRAIT_PICKER_ACTIVE
-		}
 	}
 }
 
@@ -195,7 +189,7 @@ country_event = {
 			name = "István Bethlen"
 			desc = "POLITICS_ISTVAN_BETHLEN_DESC"
 			picture = "gfx/leaders/HUN/Portrait_HUN_Istvan_Bethlen.png"
-			expire = "1965.1.1"
+			expire = "1.1.1"
 			ideology = social_conservative_subtype
 			traits = {}
 		}
@@ -251,7 +245,7 @@ country_event = {
 			name = "Mihály Károlyi"
 			desc = "POLITICS_MIHALY_KAROLYI_DESC"
 			picture = "gfx/leaders/HUN/Portrait_HUN_Mihaly_Karolyi.png"
-			expire = "1965.1.1"
+			expire = "1.1.1"
 			ideology = national_liberalism_subtype
 			traits = {}
 		}
@@ -316,8 +310,8 @@ country_event = {
 		create_country_leader = {
 			name = "Árpád Szakasits"
 			desc = "POLITICS_ARPAD_SZAKASITS_DESC"
-			picture = "gfx/leaders/HUN/Portrait_HUN_Arpad_Szakasits.png"
-			expire = "1965.1.1"
+			picture = "gfx/leaders/HUN/Portrait_HUN_Arpad_Szakasits_KX.png"
+			expire = "1.1.1"
 			ideology = socdem_democratic_socialism_subtype
 			traits = {}
 		}
@@ -623,6 +617,19 @@ country_event = {
 		name = kr.hungary.15.a #Armistice For Now
 		ai_chance = {
 			factor = 50
+			modifier = {
+				factor = 0
+				OR = {
+					has_game_rule = {
+						rule = AUS_ausgleich
+						option = AUS_AUSGLEICH_FEDERATE_CIVIL_WAR
+					}
+					has_game_rule = {
+						rule = AUS_ausgleich
+						option = AUS_AUSGLEICH_MILITARY_OCCUPATION
+					}
+				}
+			}
 		}
 		hidden_effect = {
 			AUS = {
@@ -635,6 +642,15 @@ country_event = {
 		name = kr.hungary.15.b #We deal with this now.
 		ai_chance = {
 			factor = 50
+			modifier = {
+				factor = 0
+				OR = {
+					has_game_rule = {
+						rule = AUS_ausgleich
+						option = AUS_AUSGLEICH_FEDERATE_SUCCESS
+					}
+				}
+			}
 		}
 		AUS = {
 			country_event = {
@@ -793,24 +809,38 @@ country_event = {
 	desc = kr.hungary.300.d
 	picture = GFX_report_event_czech_soldiers_02
 	
-	fire_only_once = yes
-
+	is_triggered_only = yes
 	trigger = {
-		tag = AUS
-		has_war_with = HUN
-		has_country_flag = AUS_HUN_civil_war
-		OR = {
-			surrender_progress > 0.75
-			has_global_flag = white_peace_illyria
+		HUN = { 
+			has_war_with = AUS 
+			is_subject = no
 		}
-	}
-
-	mean_time_to_happen = {
-		days = 3
 	}
 
 	option = {
 		name = kr.hungary.300.a # Sue for peace.
+		trigger = {
+			OR = {
+				surrender_progress > 0.75
+				has_global_flag = white_peace_illyria
+			}
+		}
+		add_political_power = -50
+		HUN = { country_event = kr.hungary.301 } # Send the peace offer to Hungary
+	}
+	option = {
+		name = kr.hungary.300.c # Sue for peace, but keep Illyria
+		trigger = {
+			OR = {
+				surrender_progress < 0.75
+				NOT = {
+					CRO = { 
+					is_in_faction_with = AUS
+				    }
+				}	
+			}
+			NOT = { has_global_flag = white_peace_illyria }
+		}
 		add_political_power = -50
 		HUN = { country_event = kr.hungary.301 } # Send the peace offer to Hungary
 	}
@@ -827,7 +857,33 @@ country_event = {
 	id = kr.hungary.301
 	immediate = {log = "[GetDateText]: [Root.GetName]: event kr.hungary.301"}
 	title = kr.hungary.301.t
-	desc = kr.hungary.301.d
+	desc = {
+		text = kr.hungary.301.d
+		trigger = {
+			AUS = {
+				OR = {
+					surrender_progress < 0.75
+					has_global_flag = white_peace_illyria
+				}
+			}
+		}
+	}
+	desc = {
+		text = kr.hungary.301.d.noillyria
+		trigger = {
+			OR = {
+				AUS = {
+					surrender_progress > 0.75
+					NOT = { has_global_flag = white_peace_illyria }
+				}
+				NOT = {
+					CRO = { 
+						is_in_faction_with = AUS
+					}
+				}
+			}
+		}
+	}
 	picture = GFX_report_event_generic_diplomacy2
 
 	is_triggered_only = yes
@@ -838,8 +894,19 @@ country_event = {
 			factor = 100
 		}
 		add_political_power = 200
-		if = {	
-			limit = { CRO = { is_in_faction_with = AUS } }
+		
+		#Annex Illyria if they were losing outright
+		
+		if = {
+			limit = {
+				AND = {
+					CRO = { is_in_faction_with = AUS }
+					OR = {
+						AUS = { surrender_progress > 0.75 }
+						has_global_flag = white_peace_illyria
+					}
+				}
+			}
 			annex_country = {
 				target = CRO
 				transfer_troops = no
@@ -849,12 +916,13 @@ country_event = {
 		AUS = { white_peace_with_ROOT = yes }
 		
 
-		# separate peace for Poland if it joined the war
+		# separate peace for Poland if it joined the war and held out
 		if = {
 			limit = {
 				POL = {
 					has_country_flag = POL_joined_HUN_war
 					has_war_with = AUS
+					surrender_progress < 0.4
 				}
 			}
 			AUS = { white_peace = POL }
@@ -868,6 +936,14 @@ country_event = {
 				annex_country = {
 					target = GAL
 					transfer_troops = no
+				}
+			}
+			if = {
+				limit = {
+					country_exists = WSU
+				}
+				HUN = {
+					transfer_state = 73
 				}
 			}
 		}
@@ -903,12 +979,12 @@ country_event = {
 
 	option = {
 		name = kr.hungary.302.a # So be it
-		hidden_effect = {
-			news_event = {
-				id = worldnews.247
-				days = 1
-			}
-		}
+		#hidden_effect = {
+		#	news_event = {
+		#		id = worldnews.247
+		#		days = 1
+		#	}
+		#}
 		ai_chance = {
 			factor = 100
 		}
@@ -1235,12 +1311,6 @@ country_event = {
 		name = kr.hungary.310.a
 		create_faction = "Visegrad Bloc"
 		add_to_faction = POL
-		hidden_effect = {
-			news_event = {
-				id = worldnews.246
-				days = 1
-			}
-		}
 		ai_chance = {
 			factor = 100
 		}
@@ -1324,7 +1394,7 @@ country_event = {
 			name = "Béla Kun"
 			desc = "POLITICS_BELA_KUN_DESC"
 			picture = "gfx/leaders/HUN/Portrait_HUN_Bela_Kun.png"
-			expire = "1965.1.1"
+			expire = "1.1.1"
 			ideology = authcom_subtype
 			traits = {}
 		}
@@ -1667,7 +1737,7 @@ country_event = {
 			name = "Mátyás Rákosi"
 			desc = "POLITICS_MATYAS_RAKOSI_DESC"
 			picture = "gfx/leaders/HUN/Portrait_HUN_Matyas_Rakosi.png"
-			expire = "1965.1.1"
+			expire = "1.1.1"
 			ideology = authcom_subtype
 			traits = {}
 		}
@@ -2283,7 +2353,7 @@ country_event = {
 			name = "Hungarian National Defense League"
 			desc = "POLITICS_HUN_MOVE_DESC"
 			picture = "gfx/leaders/HUN/Portrait_HUN_MOVE.png"
-			expire = "1965.1.1"
+			expire = "1.1.1"
 			ideology = junta_subtype
 			traits = {}
 		}
@@ -2441,7 +2511,7 @@ country_event = {
 			desc = "POLITICS_PAL_PRONAY_DESC"
 			picture = "gfx/leaders/HUN/Portrait_HUN_Pal_Pronay2.png"
 			expire = "1950.1.1"
-			ideology = national_populist_subtype
+			ideology = militarism_subtype
 			traits = {}
 		}
 		create_field_marshal = { #Auto-Generated
@@ -2724,6 +2794,7 @@ country_event = {
 	
 	option = {
 		name = kr.hungary.231.a #Will Anyone Care?
+		set_cosmetic_tag = HUN_MAGYARIA
 	}
 }
 country_event = {
@@ -2834,7 +2905,7 @@ country_event = {
 			name = "IV. Károly"
 			desc = "POLITICS_KARL_DESC"
 			picture = "gfx/leaders/AUS/Portrait_AUS_Karl_I3.png"
-			expire = "1965.1.1"
+			expire = "1.1.1"
 			ideology = absolute_monarchy_subtype
 			traits = {}
 		}
@@ -2989,8 +3060,8 @@ country_event = {
 				name = "Pál Teleki"
 				desc = "POLITICS_"
 				picture = "gfx/leaders/HUN/Portrait_HUN_Pal_Teleki.png"
-				expire = "1965.1.1"
-				ideology = national_populist_subtype
+				expire = "1.1.1"
+				ideology = legionarism_subtype
 				traits = {}
 			}
 		}
@@ -3208,7 +3279,7 @@ country_event = {
 				defensive_doctrine
 				old_guard
 			}
-			id = 5031
+			id = 50311
 			skill = 2
 			attack_skill = 2
 			defense_skill = 2
@@ -3223,7 +3294,7 @@ country_event = {
 				cavalry_officer
 				cavalry_leader
 			}
-			id = 5004
+			id = 50041
 			skill = 2
 			attack_skill = 2
 			defense_skill = 2
@@ -3239,7 +3310,7 @@ country_event = {
 				ambusher
 				skilled_staffer
 			}
-			id = 5006
+			id = 50061
 			skill = 3
 			attack_skill = 3
 			defense_skill = 3
@@ -3250,7 +3321,7 @@ country_event = {
 			name = "Dezső László"
 			portrait_path = "gfx/leaders/HUN/Portrait_HUN_Dezso_Laszlo.png"
 			traits = {}
-			id = 5007
+			id = 50071
 			skill = 2
 			attack_skill = 1
 			defense_skill = 2
@@ -3265,7 +3336,7 @@ country_event = {
 				trait_engineer
 				skilled_staffer
 			}
-			id = 5008
+			id = 50081
 			skill = 3
 			attack_skill = 2
 			defense_skill = 3
@@ -3278,7 +3349,7 @@ country_event = {
 			traits = {
 				armor_officer
 			}
-			id = 5009
+			id = 50091
 			skill = 2
 			attack_skill = 2
 			defense_skill = 1
@@ -3293,7 +3364,7 @@ country_event = {
 				cavalry_officer
 				cavalry_leader
 			}
-			id = 5011
+			id = 50111
 			skill = 2
 			attack_skill = 2
 			defense_skill = 1
@@ -3308,7 +3379,7 @@ country_event = {
 				commando
 				trait_mountaineer
 			}
-			id = 5012
+			id = 50121
 			skill = 2
 			attack_skill = 2
 			defense_skill = 1
@@ -3323,7 +3394,7 @@ country_event = {
 				skilled_staffer
 				organizer
 			}
-			id = 5013
+			id = 50131
 			skill = 3
 			attack_skill = 3
 			defense_skill = 2
@@ -3337,7 +3408,7 @@ country_event = {
 				old_guard
 				cavalry_officer
 			}
-			id = 5015
+			id = 50151
 			skill = 2
 			attack_skill = 1
 			defense_skill = 1
@@ -3353,7 +3424,7 @@ country_event = {
 				ranger
 				commando
 			}
-			id = 5016
+			id = 50161
 			skill = 2
 			attack_skill = 1
 			defense_skill = 2
@@ -3367,7 +3438,7 @@ country_event = {
 			traits = {
 				old_guard
 			}
-			id = 5017
+			id = 50171
 			skill = 2
 			attack_skill = 1
 			defense_skill = 1
@@ -3380,7 +3451,7 @@ country_event = {
 			traits = {
 				old_guard_navy
 			}
-			id = 5018
+			id = 50181
 			skill = 2
 			attack_skill = 1
 			defense_skill = 2
@@ -3396,7 +3467,7 @@ country_event = {
 				hill_fighter
 				trait_mountaineer
 			}
-			id = 5028
+			id = 50281
 			skill = 2
 			attack_skill = 2
 			defense_skill = 2
@@ -3410,7 +3481,7 @@ country_event = {
 				bearer_of_artillery
 				infantry_officer
 			}
-			id = 5032
+			id = 50321
 			skill = 2
 			attack_skill = 3
 			defense_skill = 1
@@ -3591,15 +3662,11 @@ country_event = {
 		HUN = {
 			owns_state = 341
 			owns_state = 347
-			owns_state = 773
+			owns_state = 1225
 		}
 		GRE = {
 			is_in_faction_with = HUN
 		}
-	}
-	
-	mean_time_to_happen = {
-		days = 1
 	}
 	
 	fire_only_once = yes
@@ -3609,7 +3676,7 @@ country_event = {
 		GRE = {
 			transfer_state = 341
 			transfer_state = 347
-			transfer_state = 773
+			transfer_state = 1225
 		}
 		IF = {
 			limit = {
@@ -3633,7 +3700,7 @@ country_event = {
 			GRE = {
 				add_state_core = 341
 				add_state_core = 347
-				add_state_core = 773
+				add_state_core = 1225
 			}
 			add_opinion_modifier = {
 				target = GRE
@@ -3678,8 +3745,8 @@ country_event = {
 			name = "Pál Teleki"
 			desc = "Pal_Teleki_DESC"
 			picture = "gfx/leaders/HUN/Portrait_HUN_Pal_Teleki.png"
-			expire = "1965.1.1"
-			ideology = national_populist_subtype
+			expire = "1.1.1"
+			ideology = legionarism_subtype
 			traits = {}
 		}
 		hidden_effect = {
@@ -3711,8 +3778,8 @@ country_event = {
 			name = "Pál Teleki"
 			desc = "POLITICS_PAL_TELEKI_NP_DESC"
 			picture = "gfx/leaders/HUN/Portrait_HUN_Pal_Teleki.png"
-			expire = "1965.1.1"
-			ideology = national_populist_subtype
+			expire = "1.1.1"
+			ideology = legionarism_subtype
 			traits = {}
 		}
 	}
@@ -3821,7 +3888,7 @@ country_event = {
 			name = "Gyula Károlyi"
 			desc = "POLITICS_GYULA_KAROLYI_DESC"
 			picture = "gfx/leaders/HUN/Portrait_HUN_Gyula_Karolyi.png"
-			expire = "1965.1.1"
+			expire = "1.1.1"
 			ideology = social_conservative_subtype
 			traits = {}
 		}
@@ -3849,7 +3916,7 @@ country_event = {
 			name = "Pál Teleki"
 			desc = "POLITICS_PAL_TELEKI_DESC"
 			picture = "gfx/leaders/HUN/Portrait_HUN_Pal_Teleki.png"
-			expire = "1965.1.1"
+			expire = "1.1.1"
 			ideology = autdem_christian_democracy_subtype
 			traits = {}
 		}
@@ -3877,7 +3944,7 @@ country_event = {
 			name = "Miklós Kállay"
 			desc = "POLITICS_MIKLOS_KALLAY_DESC"
 			picture = "gfx/leaders/HUN/Portrait_HUN_Miklos_Kallay.png"
-			expire = "1965.1.1"
+			expire = "1.1.1"
 			ideology = pataut_christian_democracy_subtype
 			traits = {}
 		}
@@ -3932,7 +3999,7 @@ country_event = {
 			name = "István Friedrich"
 			desc = "POLITICS_ISTVAN_FRIEDRICH_DESC"
 			picture = "gfx/leaders/HUN/Portrait_HUN_Istvan_Friedrich.png"
-			expire = "1965.1.1"
+			expire = "1.1.1"
 			ideology = market_liberal_subtype
 			traits = {}
 		}
@@ -3960,7 +4027,7 @@ country_event = {
 			name = "Gyula Károlyi"
 			desc = "POLITICS_GYULA_KAROLYI_DESC"
 			picture = "gfx/leaders/HUN/Portrait_HUN_Gyula_Karolyi.png"
-			expire = "1965.1.1"
+			expire = "1.1.1"
 			ideology = social_conservative_subtype
 			traits = {}
 		}
@@ -4003,7 +4070,7 @@ country_event = {
 					name = "Anton Bibescu"
 					desc = "POLITICS_ANTON_BIBESCU_DESC"
 					picture = "gfx/leaders/RRM/Portrait_RRM_Anton_Bibescu.png"
-					expire = "1965.1.1"
+					expire = "1.1.1"
 					ideology = social_democrat_subtype
 					traits = { }
 				}
@@ -4012,7 +4079,7 @@ country_event = {
 					name = "Anton Bibescu"
 					desc = "POLITICS_ANTON_BIBESCU_DESC"
 					picture = "gfx/leaders/RRM/Portrait_RRM_Anton_Bibescu.png"
-					expire = "1965.1.1"
+					expire = "1.1.1"
 					ideology = social_liberal_subtype
 					traits = { }
 				}
@@ -4021,7 +4088,7 @@ country_event = {
 					name = "Anton Bibescu"
 					desc = "POLITICS_ANTON_BIBESCU_DESC"
 					picture = "gfx/leaders/RRM/Portrait_RRM_Anton_Bibescu.png"
-					expire = "1965.1.1"
+					expire = "1.1.1"
 					ideology = market_liberal_subtype
 					traits = { }
 				}
@@ -4030,7 +4097,7 @@ country_event = {
 					name = "Anton Bibescu"
 					desc = "POLITICS_ANTON_BIBESCU_DESC"
 					picture = "gfx/leaders/RRM/Portrait_RRM_Anton_Bibescu.png"
-					expire = "1965.1.1"
+					expire = "1.1.1"
 					ideology = social_conservative_subtype
 					traits = { }
 				}
@@ -4039,7 +4106,7 @@ country_event = {
 					name = "Anton Bibescu"
 					desc = "POLITICS_ANTON_BIBESCU_DESC"
 					picture = "gfx/leaders/RRM/Portrait_RRM_Anton_Bibescu.png"
-					expire = "1965.1.1"
+					expire = "1.1.1"
 					ideology = authoritarian_democrat_subtype
 					traits = { }
 				}
@@ -4048,7 +4115,7 @@ country_event = {
 					name = "Anton Bibescu"
 					desc = "POLITICS_ANTON_BIBESCU_DESC"
 					picture = "gfx/leaders/RRM/Portrait_RRM_Anton_Bibescu.png"
-					expire = "1965.1.1"
+					expire = "1.1.1"
 					ideology = paternal_autocrat_subtype
 					traits = { }
 				}
@@ -4076,7 +4143,7 @@ country_event = {
 					name = "Nicolae I"
 					desc = "POLITICS_NICOLAE_I_DESC"
 					picture = "gfx/leaders/ROM/Portrait_Romania_Nicolae_I.png"
-					expire = "1965.1.1"
+					expire = "1.1.1"
 					ideology = social_democrat_subtype
 					traits = { }
 				}
@@ -4085,7 +4152,7 @@ country_event = {
 					name = "Nicolae I"
 					desc = "POLITICS_NICOLAE_I_DESC"
 					picture = "gfx/leaders/ROM/Portrait_Romania_Nicolae_I.png"
-					expire = "1965.1.1"
+					expire = "1.1.1"
 					ideology = social_liberal_subtype
 					traits = { }
 				}
@@ -4094,7 +4161,7 @@ country_event = {
 					name = "Nicolae I"
 					desc = "POLITICS_NICOLAE_I_DESC"
 					picture = "gfx/leaders/ROM/Portrait_Romania_Nicolae_I.png"
-					expire = "1965.1.1"
+					expire = "1.1.1"
 					ideology = market_liberal_subtype
 					traits = { }
 				}
@@ -4103,7 +4170,7 @@ country_event = {
 					name = "Nicolae I"
 					desc = "POLITICS_NICOLAE_I_DESC"
 					picture = "gfx/leaders/ROM/Portrait_Romania_Nicolae_I.png"
-					expire = "1965.1.1"
+					expire = "1.1.1"
 					ideology = social_conservative_subtype
 					traits = { }
 				}
@@ -4112,7 +4179,7 @@ country_event = {
 					name = "Nicolae I"
 					desc = "POLITICS_NICOLAE_I_DESC"
 					picture = "gfx/leaders/ROM/Portrait_Romania_Nicolae_I.png"
-					expire = "1965.1.1"
+					expire = "1.1.1"
 					ideology = prussian_constitutionalism_subtype
 					traits = { }
 				}
@@ -4121,7 +4188,7 @@ country_event = {
 					name = "Nicolae I"
 					desc = "POLITICS_NICOLAE_I_DESC"
 					picture = "gfx/leaders/ROM/Portrait_Romania_Nicolae_I.png"
-					expire = "1965.1.1"
+					expire = "1.1.1"
 					ideology = absolute_monarchy_subtype
 					traits = { }
 				}
@@ -4190,74 +4257,6 @@ country_event = {
 			random_unit_leader = {
 				limit = { has_id = 5017 }			
 				remove_unit_leader = yes
-			}
-		}
-	}
-}
-
-country_event = { #Karl Portrait
-	id = hun.10000
-	title = hun.10000.t 
-	desc = hun.10000.d 
-	picture = GFX_Karl_Portrait_Event
-
-	is_triggered_only = yes
-	
-	option = {
-		name = hun.10000.a
-		ai_chance = {
-			factor = 0
-		}
-		if = {	
-			limit = { has_country_leader = { name = "IV. Károly" ruling_only = yes } }
-			set_country_leader_portrait = {
-				portrait = "gfx/leaders/AUS/Portrait_AUS_Karl_I.png"
-			}
-		}
-	}
-	option = {
-		name = hun.10000.b
-		ai_chance = {
-			factor = 20
-		}
-		if = {	
-			limit = { has_country_leader = { name = "IV. Károly" ruling_only = yes } }
-			set_country_leader_portrait = {
-				portrait = "gfx/leaders/AUS/Portrait_AUS_Karl_I2.png"
-			}
-		}
-	}
-	option = {
-		name = hun.10000.c
-		ai_chance = {
-			factor = 20
-		}
-		if = {	
-			limit = { has_country_leader = { name = "IV. Károly" ruling_only = yes } }
-			set_country_leader_portrait = {
-				portrait = "gfx/leaders/AUS/Portrait_AUS_Karl_I3.png"
-			}
-		}
-	}
-	option = {
-		name = hun.10000.e
-		ai_chance = {
-			factor = 20
-		}
-		if = {	
-			limit = { has_country_leader = { name = "IV. Károly" ruling_only = yes } }
-			set_country_leader_portrait = {
-				portrait = "gfx/leaders/AUS/Portrait_AUS_Karl_I4.png"
-			}
-		}
-	}
-	
-	option = {
-		name = hun.10000.f
-		if = {	
-			limit = { has_country_leader = { name = "IV. Károly" ruling_only = yes } }
-			set_country_leader_portrait = {
-				portrait = "gfx/leaders/AUS/Portrait_AUS_Karl_I5.png"
 			}
 		}
 	}

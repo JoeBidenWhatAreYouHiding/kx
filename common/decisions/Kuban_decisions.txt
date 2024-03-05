@@ -272,7 +272,9 @@ KUB_Economy = {
 		icon = GFX_decision_generic_factory
 		allowed = { always = no }
 		available = {
-			soviets_exist = no
+			RUS = {
+				NOT = { has_country_flag = soviet_russia_restored }
+			}
 		}
 		days_remove = 35
 		cost = 35
@@ -359,7 +361,7 @@ KUB_Kuban_Ukrainian_category = {
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove KUB_Customs_With_Ukraine target: [From.GetName]"
 			KUB_increase_chernomortsy = yes
-			UKR = { country_event = kub.1022 }
+			var:202.owner = { country_event = kub.1022 }
 		}
 	}
 	KUB_Ukrainian_Fest = {
@@ -436,7 +438,7 @@ KUB_Kuban_Ukrainian_category = {
 				limit = { NOT = { has_unit_leader_flag = KUB_line_cossack } }
 				gain_xp = 200 
 			}
-			UKR = { country_event = kub.1053 }
+			var:202.owner = { country_event = kub.1053 }
 		}
 	}
 	
@@ -1275,15 +1277,15 @@ KUB_foreign_policy_decisions = {
 
 		available = {
 			at_peace_or_same_enemies_as_FROM = yes
-			OR = {
-				russian_civil_war = no
-				AND = {
-					russian_civil_war = yes
-					OR = {
-						has_war_with = DKB
-						is_owner_neighbor_of = ROOT
-					}
+			if = {
+				limit = { russian_civil_war = yes }
+				OR = {
+					has_war_with = DKB
+					is_owner_neighbor_of = FROM
 				}
+			}
+			else = {
+				russian_civil_war = no
 			}
 		}
 
@@ -1291,7 +1293,7 @@ KUB_foreign_policy_decisions = {
 			is_subject = no
 			is_in_faction = no
 			KUB_has_bolsheviks = yes
-			soviets_exist = yes
+			RUS = { has_country_flag = soviet_russia_restored }
 			FROM = { 
 				NOT = { has_war_with = ROOT }
 			}
@@ -1307,6 +1309,13 @@ KUB_foreign_policy_decisions = {
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision KUB_join_internationale target: [From.GetName]"
 			FROM = { country_event = kub.204 }
+			if = {
+				limit = {
+					FROM = { tag = RUS }
+				}
+				custom_effect_tooltip = if_FROM_agrees
+				effect_tooltip = { FROM = { SOV_puppet_ROOT_effect = yes } }
+			}
 		}
 	}
 	KUB_all_russian_ambitions = {
@@ -1404,7 +1413,7 @@ KUB_foreign_policy_decisions = {
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision KUB_SOV_Create_Soviet_Union"
 			add_stability = 0.1
-			set_country_flag = RUS_can_integrate
+			RUS_enable_integration = yes
 			ROOT = { save_global_event_target_as = soviet_russia }
 			set_country_flag = soviet_russia_restored
 			set_cosmetic_tag = SOV
@@ -1422,7 +1431,10 @@ KUB_foreign_policy_decisions = {
 					}
 					add_core_of = RUS
 					remove_core_of = RRF
-					cancel_resistance = yes
+					if = {
+						limit = { has_resistance = yes }
+						cancel_resistance = yes
+					}
 					force_disable_resistance = { clear = yes }
 				}
 			}
@@ -1473,31 +1485,20 @@ KUB_foreign_policy_decisions = {
 					long_name = RUS_syndicalist_party_long
 					name = RUS_syndicalist_party
 				}
-				every_country = {
-					limit = {
-						OR = {
-							tag = AST
-							tag = CAF
-							tag = CAN
-							tag = CAR
-							tag = COR
-							tag = FIN
-							tag = GER
-							tag = NFA
-							tag = SAF
-							tag = SPR
-							tag = TEX
-						}
-					}
-					add_opinion_modifier = {
-						modifier = embargo
-						target = SOV
-					}
-					reverse_add_opinion_modifier = {
-						modifier = embargo
-						target = SOV
-					}
+				for_each_scope_loop = {
+					array = CAN.faction_members
+					embargo_ROOT = yes
 				}
+				for_each_scope_loop = {
+					array = GER.faction_members
+					embargo_ROOT = yes
+				}
+				for_each_scope_loop = {
+					array = AUS.faction_members
+					embargo_ROOT = yes
+				}
+				FRP = { embargo_ROOT = yes }
+				GBR = { embargo_ROOT = yes }
 			}
 		}
 	}

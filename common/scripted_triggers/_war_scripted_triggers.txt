@@ -1,3 +1,9 @@
+second_weltkrieg_can_start = {
+	OR = {
+		threat > 0.75
+		date > 1940.8.1
+	}
+}
 # Civil Wars
 russian_civil_war = {
 	custom_trigger_tooltip = {
@@ -5,20 +11,17 @@ russian_civil_war = {
 		OR = {
 			country_exists = RVA
 			country_exists = RRF
+			country_exists = WRA
 			OR = {
-				RUS = {
-					has_war_with = RVA
-				}
-				RRF = {
-					has_war_with = RVA
-				}
-				RUS = {
-					has_war_with = RRF
-				}
+				RUS = { has_war_with = RVA }
+				RRF = { has_war_with = RVA }
+				RUS = { has_war_with = RRF }
+				RUS = { has_war_with = WRA }
 				TRM = {
 					OR = {
 						has_war_with = RVA
 						has_war_with = RRF
+						has_war_with = WRA
 					}
 				}
 			}
@@ -81,6 +84,25 @@ has_war_with_china = {
 		has_war_with = LEC
 		has_war_with = PRC
 	}
+}
+
+#TODO: revert to all_enemy_country if the latter is fixed
+all_enemy_country_workaround_trigger = {
+	custom_trigger_tooltip = {
+		tooltip = all_enemy_country_workaround_trigger
+		NOT = { any_enemy_country = { NOT = { has_war_with = var:target } } }
+	}
+}
+
+at_peace_or_same_enemies_as_TARGET = {
+	OR = {
+		AND = {
+			has_war = no
+			NOT = { any_claim = yes }
+		}
+		all_enemy_country_workaround_trigger = yes
+	}
+	hidden_trigger = { NOT = { has_country_flag = imminent_war } }
 }
 
 at_peace_or_same_enemies_as_FROM = {
@@ -177,3 +199,96 @@ has_guarantor = {
 	check_variable = { guarantor_array^num > 0 }
 }
 
+at_war_with_or_justifying_wargoal_against_ROOT = {
+	OR = {
+		has_war_with = ROOT
+		has_wargoal_against = ROOT
+		is_justifying_wargoal_against = ROOT
+		ROOT = { has_wargoal_against = PREV }
+		ROOT = { is_justifying_wargoal_against = PREV }
+		any_allied_country = { has_war_with = ROOT }
+		ROOT = { any_allied_country = { has_war_with = PREV.PREV } }
+	}
+}
+
+at_war_with_or_justifying_wargoal_against_FROM = {
+	OR = {
+		has_war_with = FROM
+		has_wargoal_against = FROM
+		is_justifying_wargoal_against = FROM
+		FROM = { has_wargoal_against = PREV }
+		FROM = { is_justifying_wargoal_against = PREV }
+		any_allied_country = { has_war_with = FROM }
+		FROM = { any_allied_country = { has_war_with = PREV.PREV } }
+	}
+}
+
+at_war_with_or_justifying_wargoal_against_PREV = {
+	OR = {
+		has_war_with = PREV
+		has_wargoal_against = PREV
+		is_justifying_wargoal_against = PREV
+		PREV = { has_wargoal_against = PREV }
+		PREV = { is_justifying_wargoal_against = PREV }
+		any_allied_country = { has_war_with = PREV.PREV }
+		PREV = { any_allied_country = { has_war_with = PREV.PREV } }
+	}
+}
+
+minor_faction_member_cannot_start_inter_faction_war_before_wk = {
+	if = {
+		limit = {
+			is_in_faction = yes
+			is_faction_leader = no
+			faction_leader = { is_actual_major = yes }
+			FROM = {
+				OR = {
+					AND = {
+						is_in_faction = yes
+						faction_leader = { is_actual_major = yes }
+					}
+					AND = {
+						has_guarantor = yes
+						any_of_scopes = {
+							array = guarantor_array
+							has_guaranteed = PREV
+							is_actual_major = yes
+							NOT = { has_war_with = ROOT }
+							NOT = { has_war_with = ROOT.faction_leader }
+						}
+					}
+				}
+			}
+		}
+		second_weltkrieg_can_start = yes
+	}
+}
+
+minor_faction_member_cannot_start_inter_faction_war_before_wk_focus = {
+	if = {
+		limit = {
+			is_in_faction = yes
+			is_faction_leader = no
+			faction_leader = { is_actual_major = yes }
+			var:target = {
+				OR = {
+					AND = {
+						is_in_faction = yes
+						faction_leader = { is_actual_major = yes }
+					}
+					AND = {
+						has_guarantor = yes
+						any_of_scopes = {
+							array = guarantor_array
+							has_guaranteed = PREV
+							is_actual_major = yes
+							NOT = { has_war_with = ROOT }
+							NOT = { has_war_with = ROOT.faction_leader }
+						}
+					}
+				}
+			}
+		}
+		second_weltkrieg_can_start = yes
+	}
+}

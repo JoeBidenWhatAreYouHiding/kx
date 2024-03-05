@@ -206,9 +206,9 @@ GEO_foreign_policy_decisions = {
 				limit = {
 					FROM = { tag = RUS }
 				}
-				soviets_exist = yes
 				russian_civil_war = no
 				FROM = { 
+					has_country_flag = soviet_russia_restored
 					NOT = { is_in_faction_with = INT }
 					NOT = { has_war_with = ROOT }
 				}
@@ -232,6 +232,13 @@ GEO_foreign_policy_decisions = {
 			log = "[GetDateText]: [Root.GetName]: Decision GEO_join_internationale target: [From.GetName]"
 			set_country_flag = { flag = GEO_joining_faction days = 15 value = 1 }
 			FROM = { country_event = kx_geo.170  }
+			if = {
+				limit = {
+					FROM = { tag = RUS }
+				}
+				custom_effect_tooltip = if_FROM_agrees
+				effect_tooltip = { FROM = { SOV_puppet_ROOT_effect = yes } }
+			}
 		}
 	}
 	GEO_isolation = {
@@ -393,32 +400,10 @@ GEO_foreign_policy_decisions = {
 			factor = 1
 			modifier = {
 				factor = 0
-				enemies_strength_ratio > 0.8
-			}
-			modifier = {
-				factor = 0
-				surrender_progress > 0
-			}
-			modifier = {
-				factor = 0
-				strength_ratio = { tag = FROM ratio < 1.0 }
-			}
-			modifier = {
-				factor = 0
-				FROM = {
-					is_subject = yes
-					overlord = {
-						strength_ratio = { tag = ROOT ratio > 0.8 }
-					}
-				}
-			}
-			modifier = {
-				factor = 0
-				FROM = {
-					is_in_faction = yes
-					faction_leader = {
-						strength_ratio = { tag = ROOT ratio > 0.8 }
-					}
+				OR = {
+					ROOT_is_threatened_cautious = yes
+					FROM = { dont_start_major_faction_wars = yes }
+					FROM = { default_attack_AI_trigger_FROM = yes }
 				}
 			}
 			modifier = {
@@ -581,23 +566,12 @@ GEO_foreign_policy_decisions = {
 			factor = 15
 			modifier = {
 				factor = 0
-				ROOT_is_threatened_cautious = yes
-			}
-			modifier = {
-				factor = 0
-				FROM = { is_stronger_than_ROOT_and_not_vulnerable = yes }
-			}
-			modifier = {
-				factor = 0
-				FROM = { overlord_is_stronger_than_ROOT_and_not_vulnerable = yes }
-			}
-			modifier = {
-				factor = 0
-				FROM = { faction_leader_is_stronger_than_ROOT_and_not_vulnerable = yes }
-			}
-			modifier = {
-				factor = 0
-				FROM = { guarantor_is_stronger_than_ROOT_and_not_vulnerable = yes }
+				OR = {
+					ROOT_is_threatened_cautious = yes
+					FROM = { dont_start_major_faction_wars = yes }
+					FROM = { default_attack_AI_trigger_FROM = yes }
+					has_country_flag = GEO_keep_treaty
+				}
 			}
 		}
 
@@ -656,23 +630,11 @@ GEO_foreign_policy_decisions = {
 			factor = 15
 			modifier = {
 				factor = 0
-				ROOT_is_threatened_cautious = yes
-			}
-			modifier = {
-				factor = 0
-				FROM = { is_stronger_than_ROOT_and_not_vulnerable = yes }
-			}
-			modifier = {
-				factor = 0
-				FROM = { overlord_is_stronger_than_ROOT_and_not_vulnerable = yes }
-			}
-			modifier = {
-				factor = 0
-				FROM = { faction_leader_is_stronger_than_ROOT_and_not_vulnerable = yes }
-			}
-			modifier = {
-				factor = 0
-				FROM = { guarantor_is_stronger_than_ROOT_and_not_vulnerable = yes }
+				OR = {
+					ROOT_is_threatened_cautious = yes
+					FROM = { dont_start_major_faction_wars = yes }
+					FROM = { default_attack_AI_trigger_FROM = yes }
+				}
 			}
 		}
 
@@ -714,7 +676,7 @@ GEO_foreign_policy_decisions = {
 					ruling_only = yes
 				}
 				has_country_leader = {
-					name = "Giorgi IX"
+					name = "Giorgi XIII"
 					ruling_only = yes
 				}
 			}
@@ -803,7 +765,7 @@ GEO_foreign_policy_decisions = {
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision GEO_SOV_Create_Soviet_Union"
 			add_stability = 0.1
-			set_country_flag = RUS_can_integrate
+			RUS_enable_integration = yes
 			ROOT = { save_global_event_target_as = soviet_russia }
 			set_country_flag = soviet_russia_restored
 			set_cosmetic_tag = SOV
@@ -824,7 +786,10 @@ GEO_foreign_policy_decisions = {
 					}
 					add_core_of = RUS
 					remove_core_of = RRF
-					cancel_resistance = yes
+					if = {
+						limit = { has_resistance = yes }
+						cancel_resistance = yes
+					}
 					force_disable_resistance = { clear = yes }
 				}
 			}
@@ -880,31 +845,20 @@ GEO_foreign_policy_decisions = {
 					long_name = RUS_totalist_party_long
 					name = RUS_totalist_party
 				}
-				every_country = {
-					limit = {
-						OR = {
-							tag = AST
-							tag = CAF
-							tag = CAN
-							tag = CAR
-							tag = COR
-							tag = FIN
-							tag = GER
-							tag = NFA
-							tag = SAF
-							tag = SPR
-							tag = TEX
-						}
-					}
-					add_opinion_modifier = {
-						modifier = embargo
-						target = SOV
-					}
-					reverse_add_opinion_modifier = {
-						modifier = embargo
-						target = SOV
-					}
+				for_each_scope_loop = {
+					array = CAN.faction_members
+					embargo_ROOT = yes
 				}
+				for_each_scope_loop = {
+					array = GER.faction_members
+					embargo_ROOT = yes
+				}
+				for_each_scope_loop = {
+					array = AUS.faction_members
+					embargo_ROOT = yes
+				}
+				FRP = { embargo_ROOT = yes }
+				GBR = { embargo_ROOT = yes }
 			}
 		}
 	}	
@@ -1470,6 +1424,8 @@ ABK_foreign_relations = {
 					}
 				}
 				RUS = { country_event = abk.46 }
+				custom_effect_tooltip = if_FROM_agrees
+				effect_tooltip = { FROM = { SOV_puppet_ROOT_effect = yes } }
 			}
 			else = {
 				INT = { country_event = abk.46 }
@@ -1560,7 +1516,7 @@ ABK_foreign_relations = {
 					name = "Arzakan Emukhvari"
 					desc = "POLITICS_EMUKHVARI_DESC"
 					picture = "gfx/leaders/ABK/Portrait_ABK_Arzakan_Emukhvari.png"
-					expire = "1965.1.1"
+					expire = "1.1.1"
 					ideology = socdem_democratic_socialism_subtype 
 				}
 				annex_country = {
