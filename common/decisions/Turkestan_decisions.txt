@@ -1072,53 +1072,56 @@ TRK_foreign_policy = {
 	TRK_join_russia = {
 		icon = generic_agreement
 
-		allowed = { 
-			OR = {
-				is_kokand_splinter_tag = yes
-				tag = KHI
-				tag = UZB
+		available = {
+			is_faction_leader = no
+			is_in_faction = no
+			at_peace_or_same_enemies_as_FROM = yes
+			hidden_trigger = {
+				NOT = { has_country_flag = TRK_dont_join_other_alliance }
 			}
 		}
-
-		available = {
-			at_peace_or_same_enemies_as_FROM = yes
-			FROM = { both_socialist_or_both_not_socialist = yes }
-		}
-
-		visible = {
+		targets = { RUS TRM UKR DKB MON }
+		target_root_trigger = {
 			is_subject = no
-			is_in_faction = no
+			OR = {
+				has_completed_focus = TRK_Revolution_In_The_East
+				has_completed_focus = TRK_Zaitsev_Autocratic_Consolidation
+				has_completed_focus = KHI_Young_Khiva_Faction
+			}
+		}
+		target_trigger = {
+			FROM = { 
+				is_faction_leader = yes 
+				owns_state = 219
+				NOT = { has_country_flag = soviet_russia_restored }
+			}
+			if = {
+				limit = { has_completed_focus = KHI_Young_Khiva_Faction }
+				FROM = { has_elected_government = yes }
+			}
 		}
 
 		fire_only_once = yes
 		cost = 0
 
-		targets = { RUS }
-		target_root_trigger = {
-			OR = {
-				has_completed_focus = KHI_Communist_Faction
-				has_completed_focus = KHI_Young_Khiva_Faction
-				has_completed_focus = KHI_Status_Quo
-			}
-		}
-		target_trigger = {
-			FROM = {
-				OR = {
-					is_faction_leader = yes
-					is_in_faction_with = INT
-				}
-				NOT = { has_war_with = ROOT }
-				NOT = { has_completed_focus = RUS_Expansionism }
-			}
-		}
-
 		ai_will_do = {
 			factor = 25
+			modifier = {
+				factor = 0
+				OR = {
+					FROM = { surrender_progress > 0.3 }
+					FROM = {
+						dont_start_major_faction_wars = yes
+					}
+				}
+			}
 		}
 
 		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision TRK_join_russia target: [From.GetName]"
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_join_reichspakt target: [From.GetName]"
+			set_country_flag = { flag = TRK_dont_join_other_alliance value = 1 days = 10 }
 			FROM = { country_event = turkestan.20 }
+			set_country_flag = @ROOT_equipment_@FROM
 		}
 	}
 	TRK_join_mongolia = {
@@ -3825,6 +3828,20 @@ operations = {
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision complete TRK_deal_with_russian_settler_unrest"
 			remove_ideas = TRK_russian_settler_unrest
+			set_country_flag = TRK_konstantin_monstrov_arrested
+			if = {
+				limit = {
+					NOT = { has_country_flag = TRK_expel_settlers }
+				}
+				set_country_flag = TRK_expel_settlers
+				add_stability = -0.1
+				1279 = { add_extra_state_shared_building_slots = 2 }
+				add_timed_idea = {
+					idea = TRK_russian_settler_repatriation
+					days = 200
+				}		
+				RUS = { country_event = turkestan_jadidist.27 }
+			}
 		}
 		timeout_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision timeout TRK_deal_with_russian_settler_unrest"
