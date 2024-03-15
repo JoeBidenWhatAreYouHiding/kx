@@ -130,14 +130,15 @@ TRK_unite_central_asia = {
 				turkestan_stronger_than_existing_governments = yes
 			}
 			if = {
-				limit = { original_tag = TRK }
-				TRK_civil_war_over = yes
-				TRK_can_deal_with_east_pamir = no
+				limit = { original_tag = KHI }
+				khiva_is_leader = yes
 			}
-			else = {
-				num_of_controlled_factories > 10
-				has_army_manpower = { size > 50000 }
+			else_if = {
+				limit = { original_tag = UZB }
+				bukhara_is_leader = yes
 			}
+			num_of_controlled_factories > 10
+			has_army_manpower = { size > 50000 }
 		}
 
 		visible = {
@@ -437,8 +438,10 @@ TRK_unite_central_asia = {
 		}
 	}
 	
-	TRK_proclaim_unified_turkestan = {
+	turkestan_proclaim_unified_turkestan = {
+		icon = GFX_decision_generic_form_nation
 		available = {
+			is_subject = no
 			405 = {
 				is_owned_by_ROOT_or_ally  = yes
 			}
@@ -447,18 +450,34 @@ TRK_unite_central_asia = {
 			}
 			861 = {
 				is_owned_by_ROOT_or_ally  = yes
+			}			
+			NOT = {
+				any_home_area_neighbor_country = {
+					OR = {
+						AND = {
+							has_war_with = ROOT
+							has_capitulated = no
+						}
+						AND = {
+							has_wargoal_against = ROOT
+							can_declare_war_on = ROOT
+						}
+					}
+				}
 			}
+		}
+
+		visible = {
+			turkestan_is_potential_government = yes
 		}
 		cost = 0
 		fire_only_once = yes
-		ai_will_do = {
-			factor = 100
-			modifier = {
-				factor = 0
-				TRK_other_tags_are_ai = no
-			}
-		}
-		remove_effect = {
+
+		ai_will_do = { factor = 1000 }
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision turkestan_proclaim_unified_turkestan target: [From.GetName]"
+			save_global_event_target_as = turkestan_unifier
 			if = {
 				limit = {
 					tag = KHI
@@ -482,40 +501,45 @@ TRK_unite_central_asia = {
 				KHI = { save_global_event_target_as = turkestan_unifier }
 			}
 			else_if = {
-				limit = {
-					OR = {
-						tag = TRK
-						tag = TAJ
+				limit = { tag = TRK }
+				if = {
+					limit = { country_exists = KHI }
+					set_temp_variable = { target = KHI }
+					turkestan_integrate_TARGET_effect = yes
+					custom_effect_tooltip = tooltip_white_line
+					annex_country = {
+						target = KHI
+						transfer_troops = yes
+					}
+					if = {
+						limit = { KHI = { is_ai = no } }
+						change_tag_from = KHI
+					}
+					KHI = { 
+						custom_effect_tooltip = state_integration_at_fifty_compliance
+						enable_coring_at_fifty_compliance = yes 
 					}
 				}
-				annex_country = {
-					target = KHI
-					transfer_troops = yes
-				}
-				annex_country = {
-					target = TAJ
-					transfer_troops = yes
-				}
-				annex_country = {
-					target = UZB
-					transfer_troops = yes
-				}
-				dismantle_faction = yes
-				if = { 
-					limit = { NOT = { has_cosmetic_tag = ALO_CAF } }
-					set_cosmetic_tag = TRK_united
+				if = {
+					limit = { country_exists = UZB }
+					set_temp_variable = { target = UZB }
+					turkestan_integrate_TARGET_effect = yes					
+					custom_effect_tooltip = tooltip_white_line
+					annex_country = {
+						target = UZB
+						transfer_troops = yes
+					}
+					if = {
+						limit = { UZB = { is_ai = no } }
+						change_tag_from = UZB
+					}
+					UZB = {	
+						custom_effect_tooltip = state_integration_at_fifty_compliance
+						enable_coring_at_fifty_compliance = yes 
+					}
 				}
 				set_country_flag = TRK_turkestan_united
 				set_global_flag = global_turkestan_united
-				if = {
-					limit = {
-						tag = TAJ
-					}
-					TAJ = { save_global_event_target_as = turkestan_unifier }
-				}
-				else = {
-					TRK = { save_global_event_target_as = turkestan_unifier }
-				}
 			}
 			else_if = {
 				limit = {
@@ -567,6 +591,26 @@ TRK_unite_central_asia = {
 			TRK_setup_united_turkestan = yes
 		}
 	}
+	turkestan_move_capital = {
+		icon = generic_political_rally
+
+		allowed = { always = no }
+
+		available = {
+			408 = { is_owned_and_controlled_by = ROOT } #Guangzhou
+		}
+
+		cost = 0
+		fire_only_once = yes
+
+		ai_will_do = { factor = 1000 }
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete turkestan_move_capital"
+			country_event = turkestan_events.50
+		}
+	}
+
 	TRK_ally_alash = {
 		allowed = { 
 			OR = {
@@ -768,7 +812,15 @@ TRK_revolution_in_the_east_cat = {	### Revolution in the East ####
 			has_completed_focus = TRK_Anti_Imperialist_Internationale
 		}
 		target_trigger = {
-			FROM = { has_socialist_government = no }
+			if = {
+				limit = { 
+					FROM = { has_socialist_government = yes }
+				}
+				has_country_flag = @FROM_refused_alliance
+			}
+			else = {
+				FROM = { has_socialist_government = no }
+			}			
 			can_declare_war_on = FROM
 		}
 		
@@ -1214,6 +1266,123 @@ TRK_foreign_policy = {
 			create_faction = "Turkestan Democratic Alliance"
 		}
 	}
+	TRK_liberate_panislamist = {
+		icon = generic_prepare_civil_war
+		name = RUS_Attack_Region
+		
+		available = {
+			OR = {
+                is_owner_neighbor_of = FROM
+                any_allied_country = {
+                    is_owner_neighbor_of = FROM
+                }
+            }
+		}
+		target_array = TRK_liberate_panislamist_array
+		target_root_trigger = {
+			is_subject = no
+			has_completed_focus = TRK_Question_Of_Calif
+		}
+		target_trigger = {
+			can_declare_war_on = FROM
+			if = {
+				limit = { 
+					FROM = { has_dictatorship_government = yes }
+				}
+				has_country_flag = @FROM_refused_alliance
+			}
+			else = {
+				FROM = { has_dictatorship_government = no }
+			}
+		}
+		
+		cost = 0
+		days_remove = 25
+		fire_only_once = yes
+		war_with_target_on_remove = yes
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				OR = {
+					FROM = { dont_start_major_faction_wars = yes }
+					ROOT_is_threatened_cautious = yes
+					FROM = { default_attack_AI_trigger_FROM = yes }
+				}
+			}
+		}
+		cost = 25
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_liberate_panturkist target: [From.GetName]"
+			FROM = { incoming_war_notification_effect = yes }
+			setup_decision_attack_AI = yes			
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_liberate_panturkist target: [From.GetName]"
+			clear_decision_attack_AI = yes
+			declare_war_on = {
+				target = FROM
+				type = annex_everything
+			}
+		}
+	}
+	TRK_ally_panislamist = {
+		name = RUS_Invite_Country
+		icon = generic_agreement
+		priority = 100
+		
+		available = {
+			at_peace_or_same_enemies_as_FROM = yes
+			OR = {
+                is_owner_neighbor_of = FROM
+                any_allied_country = {
+                    is_owner_neighbor_of = FROM
+                }
+            }
+			NOT = { has_country_flag = RUS_invited_country }
+		}
+		
+		target_array = TRK_liberate_panislamist_array
+		target_root_trigger = {
+			is_subject = no
+			has_completed_focus = TRK_Question_Of_Calif
+			is_faction_leader = yes
+		}
+		target_trigger = {
+			FROM = { 
+				is_subject = no
+				has_socialist_government = yes
+				is_in_faction = no
+			}
+		}
+
+		cost = 25
+		days_remove = 15
+		fire_only_once = yes
+
+		ai_will_do = {
+			factor = 1000
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel TRK_ally_panturkist target: [From.GetName]"
+			clr_country_flag = RUS_invited_country
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_ally_panturkist target: [From.GetName]"
+			set_country_flag = { flag = RUS_invited_country days = 10 value = 1 }
+			FROM = {
+			#
+			}
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_ally_panturkist target: [From.GetName]"
+			clr_country_flag = RUS_invited_country
+		}
+	}
 	TRK_liberate_panturkist_liberal = {
 		icon = generic_prepare_civil_war
 		name = RUS_Attack_Region
@@ -1232,7 +1401,15 @@ TRK_foreign_policy = {
 			has_completed_focus = TRK_Pan-Turkist_Liberalism
 		}
 		target_trigger = {
-			FROM = { has_liberal_government = no }
+			if = {
+				limit = { 
+					FROM = { has_liberal_government = yes }
+				}
+				has_country_flag = @FROM_refused_alliance
+			}
+			else = {
+				FROM = { has_liberal_government = no }
+			}
 			can_declare_war_on = FROM
 		}
 		
@@ -1847,7 +2024,7 @@ TRK_government_decisions = {
 		days_re_enable = 100
 		
 		cost = 50
-		modifier = { political_power_cost = 0.05 }
+		modifier = { stability_weekly = 0.005 }
 		
 		ai_will_do = {
 			factor = 10
@@ -1882,13 +2059,11 @@ TRK_government_decisions = {
 			if = {
 				limit = {
 					OR = {
-						is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_shokai_side }
-						is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_shokai_right_side }
 						is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_ulema_side }
 						is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_ulema_left_side }
 					}
 				}
-				TRK_shokai_medium_effect = yes
+				TRK_ulema_medium_effect = yes
 			}
 			else = {
 				TRK_shokai_medium_effect = yes
@@ -1934,17 +2109,13 @@ TRK_government_decisions = {
 		ai_will_do = { base = 10 }
 		fire_only_once = no
 		days_re_enable = 180
-		custom_cost_trigger = {
-			has_war_support > 0.10
-		}
-		custom_cost_text = CHI_decision_cost_ws_10
+		
+		cost = 40
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision complete TRK_national_unity_parade"
 			TRK_shokai_medium_effect = yes
 			TRK_increase_coalition_strength = yes
-			hidden_effect = {
-				add_war_support = -0.10
-			}
+			add_war_support = 0.10
 		}
 	}
 	
@@ -1953,24 +2124,31 @@ TRK_government_decisions = {
 		visible = {
 			OR = {
 				is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_madamin_side }
-				is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_madamin_left_side }
+				TRK_katta_ergash_in_power = yes
 			}
 			check_variable = { TRK_mirshab_division_cap < 11 }
+			NOT = { has_completed_focus = TRK_Integrate_Mirshabs }
 		}
 		fire_only_once = no
 		days_re_enable = 180
 		days_remove = 20
 		modifier = { weekly_manpower = -100 }
+		custom_cost_text = CP_20
 		custom_cost_trigger = {
-			has_stability > 0.10
+			command_power > 19.99
 		}
-		custom_cost_text = CHI_decision_cost_stb_10
 		
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision TRK_expand_militias"
-			TRK_ferghana_small_effect = yes
+			if = {
+				limit = { TRK_katta_ergash_in_power = yes }
+				TRK_ulema_small_effect = yes
+			}
+			else = {
+				TRK_ferghana_small_effect = yes
+			}
 			hidden_effect = {
-				add_stability = -0.10
+				add_command_power = -20
 			}
 		}
 		remove_effect = {
@@ -1982,7 +2160,12 @@ TRK_government_decisions = {
 				set_division_template_cap = {  division_template = "Mirshab Bo'limi" division_cap = TRK_mirshab_division_cap }
 			}
 			if = {
-				limit = { TRK_madamin_bek_in_power = yes }
+				limit = { 
+					OR = {
+						TRK_madamin_bek_in_power = yes 
+						TRK_katta_ergash_in_power = yes
+					}
+				}
 				custom_effect_tooltip = TRK_expand_militias_now_tt
 				hidden_effect = {
 					if = {
@@ -2019,6 +2202,7 @@ TRK_government_decisions = {
 			}
 			else = {
 				custom_effect_tooltip = TRK_expand_militias_tt
+				add_to_variable = { TRK_madamin_bek_divisions_to_spawn = 1 }
 			}
 		}
 	}
@@ -2027,7 +2211,8 @@ TRK_government_decisions = {
 		visible = {
 			OR = {
 				is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_madamin_side }
-				is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_madamin_left_side }
+				is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_ulema_side }
+				is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_ulema_left_side }
 			}
 		}
 		fire_only_once = no
@@ -2039,16 +2224,44 @@ TRK_government_decisions = {
 		
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_religious_endorsement"
-			TRK_ferghana_medium_effect = yes
+			if = {
+				limit = { 
+					OR = {
+						is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_ulema_side }
+						is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_ulema_left_side }
+					}
+				}
+				TRK_ulema_medium_effect = yes
+			}
+			else = {
+				TRK_ferghana_medium_effect = yes
+			}
+		}
+	}
+	TRK_expand_madrasas = {
+		icon = GFX_decision_eng_trade_unions_demand
+		visible = {
+			OR = {
+				is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_ulema_side }
+				is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_ulema_left_side }
+			}
+		}
+		fire_only_once = no
+		days_re_enable = 90
+		days_remove = 30
+		modifier = { stability_weekly = 0.005 }
+		
+		cost = 30
+		
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_expand_madrasas"
+			TRK_ulema_medium_effect = yes
 		}
 	}
 	TRK_build_qadhimist_alliance = {
 		icon = GFX_decision_hol_exchange_intelligence_data
 		visible = {
-			OR = {
-				is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_madamin_side }
-				is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_madamin_left_side }
-			}
+			is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_madamin_side }
 		}
 		fire_only_once = no
 		days_re_enable = 120
@@ -2122,30 +2335,36 @@ TRK_government_decisions = {
 			}
 		}
 	}
-	TRK_clandestine_operations = {
-		icon = GFX_decision_SWI_expand_covert_operations
+	TRK_promote_sharia_law = {
+		icon = GFX_decision_eng_trade_unions_support
 		visible = {
-			is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_kurshirmat_side }
+			OR = {
+				is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_kurshirmat_side }
+				is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_ulema_left_side }
+				is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_ulema_side }
+			}
 		}
 		fire_only_once = no
 		days_re_enable = 120
 		days_remove = 30
-		modifier = { command_power_gain_mult = -0.65 }
+		modifier = { political_power_cost = 0.1 }
 		
-		custom_cost_trigger = {
-			has_war_support > 0.10
-		}
-		custom_cost_text = CHI_decision_cost_ws_10
+		cost = 20
 		
-		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision TRK_clandestine_operations"
-			hidden_effect = {
-				add_war_support = -0.1
-			}
-		}
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_clandestine_operations"
-			TRK_mujahideen_small_effect = yes
+			if = {
+				limit = {
+					OR = {
+						is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_ulema_side }
+						is_power_balance_side_active = { id = TRK_dual_power_bop side = TRK_ulema_left_side }
+					}
+				}
+				TRK_ulema_medium_effect = yes
+			}
+			else = {
+				TRK_mujahideen_medium_effect = yes
+			}
 		}
 	}
 	TRK_sabotage_republican_efforts = {
