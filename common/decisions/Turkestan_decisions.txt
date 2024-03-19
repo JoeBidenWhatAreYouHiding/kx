@@ -597,7 +597,7 @@ TRK_unite_central_asia = {
 		allowed = { always = no }
 
 		available = {
-			408 = { is_owned_and_controlled_by = ROOT } #Guangzhou
+			407 = { is_owned_and_controlled_by = ROOT } #Guangzhou
 		}
 
 		cost = 0
@@ -989,7 +989,10 @@ TRK_foreign_policy = {
 				NOT = { has_country_flag = TRK_dont_join_other_alliance }
 			}
 			if = {
-				limit = { FROM = { tag = RUS } }
+				limit = { 
+					FROM = { tag = RUS } 
+					ROOT = { has_completed_focus = TRK_Revolution_In_The_East }
+				}
 				has_completed_focus = TRK_Narodnik_Outreach
 			}
 		}
@@ -998,6 +1001,7 @@ TRK_foreign_policy = {
 			is_subject = no
 			OR = {
 				has_completed_focus = TRK_Revolution_In_The_East
+				has_completed_focus = TRK_Osipov_Socialist_Reconstruction
 				has_completed_focus = KHI_Communist_Faction
 			}
 		}
@@ -1005,6 +1009,18 @@ TRK_foreign_policy = {
 			FROM = { 
 				is_faction_leader = yes 
 				has_socialist_government = yes
+				if = {
+					limit = { 
+						ROOT = { TRK_osipov_in_power = yes }
+					}
+					OR = {
+						lpsr_in_power = yes
+						plsr_in_power = yes
+					}
+					ROOT = { 
+						NOT = { has_country_flag = TRK_russia_refused_alliance }
+					}
+				}
 			}
 		}
 		
@@ -1138,6 +1154,7 @@ TRK_foreign_policy = {
 			OR = {
 				has_completed_focus = TRK_Revolution_In_The_East
 				has_completed_focus = TRK_Zaitsev_Autocratic_Consolidation
+				has_completed_focus = TRK_Restore_The_General_Governorate
 				has_completed_focus = KHI_Young_Khiva_Faction
 			}
 		}
@@ -1503,6 +1520,337 @@ TRK_foreign_policy = {
 			clr_country_flag = RUS_invited_country
 		}
 	}
+	TRK_all_russian_ambitions = {
+		icon = generic_civil_support
+		allowed = { always = no }
+		visible = {
+			OR = {
+				TRK_monstrov_in_power = yes
+				TRK_tvo_in_power = yes
+			}
+		}
+		
+		cost = 0
+		days_remove = 30
+		fire_only_once = yes
+		war_with_target_on_remove = yes
+		
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 3
+				FROM = {
+					is_in_faction = no 
+					has_war = yes
+				}				
+			}
+			modifier = {
+				factor = 0
+				OR = {
+					enemies_strength_ratio > 0.8
+					surrender_progress > 0
+					strength_ratio = { tag = FROM ratio < 1.0 }
+					FROM = {
+						is_subject = yes
+						overlord = {
+							strength_ratio = { tag = ROOT ratio > 0.8 }
+						}
+					}
+					FROM = {
+						is_in_faction = yes
+						faction_leader = {
+							strength_ratio = { tag = ROOT ratio > 0.8 }
+						}
+					}
+					has_country_flag = imminent_war
+				}	
+			}
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_all_russian_ambitions"
+			set_country_flag = { flag = imminent_war days = 35 value = 1 }
+			if = {
+				limit = { is_ai = yes } #XD fanservice give a nice attack
+				setup_decision_attack_AI = yes
+				FROM = { incoming_war_notification_effect = yes }
+			}
+			for_each_scope_loop = {
+				array = RUS.RUS_starting_states_array
+				add_claim_by = ROOT
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UKR_all_russian_ambitions"
+			clear_decision_attack_AI = yes
+			hidden_effect = {
+				every_state = {
+					limit = {
+						NOT = {
+							is_owned_by = ROOT
+							is_controlled_by = ROOT
+						}
+						ROOT = { divisions_in_state = { state = PREV size > 0 } }
+					}
+					teleport_armies = {
+						limit = { tag = ROOT }
+						to_state_array = owned_controlled_states
+					}
+				}
+				every_owned_state = {
+					teleport_armies = {
+						limit = {
+							NOT = {
+								tag = ROOT
+								has_war_with = ROOT
+							}
+						}
+						to_state_array = owned_controlled_states
+					}
+				}
+			}
+			remove_puppet_and_leave_faction = yes
+			peace_out_non_neighbours_after_leaving_faction = yes
+			remove_from_all_tech_sharing_groups = yes
+			declare_war_on = {
+				target = FROM
+				type = annex_everything
+			}
+		}
+	}
+	TRK_restore_russia = {
+		icon = generic_prepare_civil_war
+		allowed = { always = no }
+
+		available = {
+			219 = { is_owned_and_controlled_by = ROOT }
+			is_subject = no
+			has_war = no
+		}
+
+		visible = {
+			OR = {
+				TRK_monstrov_in_power = yes
+				TRK_tvo_in_power = yes
+			}
+			NOT = { country_exists = RUS }
+		}
+
+		cost = 25
+		fire_only_once = yes
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_restore_russia"
+			add_stability = 0.1
+			set_country_flag = TRK_is_russia
+			RUS_enable_integration = yes
+			ROOT = { save_global_event_target_as = russia }
+			if = {
+				limit = { TRK_monstrov_in_power = yes }
+				set_cosmetic_tag = RUS_vozhdct_2
+			}
+			else_if = {
+				limit = { 
+					TRK_osipov_in_power = yes 
+					has_socialist_government = yes
+				}
+				set_cosmetic_tag = SOV
+				hidden_effect = {
+					set_party_name = {
+						ideology = totalist
+						name = RUS_syndicalist_party
+						long_name = RUS_syndicalist_party_long
+					}
+				}
+			}
+			else = {
+				set_cosmetic_tag = RUS_empire
+			}
+			increase_ruling_party_popularity_by_15 = yes
+			custom_effect_tooltip = LAT_SOV_Attack_Europe_tt
+			custom_effect_tooltip = LAT_SOV_Attack_Asia_tt
+			hidden_effect = {
+				for_each_scope_loop = {
+					array = RUS.RUS_starting_states_array
+					add_core_of = RUS
+					remove_claim_by = ROOT
+					add_core_of = ROOT
+				}
+				every_state = {
+					limit = {
+						is_core_rrf_state = yes
+					}
+					add_core_of = RUS
+					remove_core_of = RRF
+					if = {
+						limit = { has_resistance = yes }
+						cancel_resistance = yes
+					}
+					force_disable_resistance = { clear = yes }
+				}
+				every_state = {
+					clr_state_flag = renamed_petrodvorets
+					clr_state_flag = renamed_state_apraksin
+					clr_state_flag = renamed_state_dmitri
+					clr_state_flag = renamed_state_imperial
+					clr_state_flag = renamed_state_leningrad
+					clr_state_flag = renamed_state_molotov
+					clr_state_flag = renamed_state_rykov
+					clr_state_flag = renamed_state_tsentrograd
+					clr_state_flag = renamed_state_zhdanovgrad
+					clr_state_flag = renamed_state_elizavetburg
+					clr_state_flag = renamed_state_frunzensk
+					clr_state_flag = renamed_state_kornilovsk
+					clr_state_flag = renamed_state_novooktyabrsk
+					clr_state_flag = renamed_state_rykov
+					clr_state_flag = renamed_state_saltykov
+					clr_state_flag = renamed_state_savinkovsk
+					clr_state_flag = renamed_state_tukhachevsk
+					clr_state_flag = renamed_state_vladimir
+					clr_state_flag = renamed_state_wrangelburg
+					clr_state_flag = renamed_state_zhukov
+					clr_state_flag = zhdanov_renamed
+				}
+			}
+			set_capital = { state = 219 }			
+		}
+	}
+	TRK_Attack_Europe = {
+		name = LAT_SOV_Attack_Europe
+		icon = hol_draw_up_staff_plans
+
+		allowed = { original_tag = UKR }
+
+		available = {
+			OR = {
+				is_neighbor_of = FROM
+				any_allied_country = { is_neighbor_of = FROM }
+				any_subject_country = { is_neighbor_of = FROM }
+			}
+		}
+
+		visible = {
+			is_subject = no
+			can_declare_war_on = FROM
+		}
+
+		target_array = global.european_tags_array
+		target_root_trigger = {
+			has_country_flag = TRK_is_russia
+		}
+		target_trigger = {
+			can_declare_war_on = FROM
+		}
+
+		cost = 10
+		days_remove = 20
+		fire_only_once = yes
+		cancel_if_not_visible = yes
+		war_with_target_on_remove = yes
+
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				ROOT_is_threatened_cautious = yes
+			}
+			modifier = {
+				factor = 0
+				FROM = { default_attack_AI_trigger_FROM = yes }
+			}
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancelled TRK_Attack_Europe target: [From.GetName]"
+			clear_decision_attack_AI = yes
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_Attack_Europe target: [From.GetName]"
+			FROM = { country_event = kr.political.30 } #warning event
+			setup_decision_attack_AI = yes
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_Attack_Europe target: [From.GetName]"
+			clear_decision_attack_AI = yes
+			declare_war_on = {
+				target = FROM
+				type = annex_everything
+			}
+		}
+	}
+	TRK_Attack_Asia = {
+		name = LAT_SOV_Attack_Asia
+		icon = hol_draw_up_staff_plans
+
+		allowed = {
+			original_tag = UKR
+		}
+
+		available = {
+			OR = {
+				is_neighbor_of = FROM
+				any_allied_country = { is_neighbor_of = FROM }
+				any_subject_country = { is_neighbor_of = FROM }
+			}
+		}
+
+		visible = {
+			is_subject = no
+			can_declare_war_on = FROM
+		}
+
+		target_array = global.asian_tags_array
+		target_root_trigger = {
+			has_country_flag = TRK_is_russia
+		}
+		target_trigger = {
+			can_declare_war_on = FROM
+		}
+
+		cost = 10
+		days_remove = 20
+		fire_only_once = yes
+		cancel_if_not_visible = yes
+		war_with_target_on_remove = yes
+
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				ROOT_is_threatened_cautious = yes
+			}
+			modifier = {
+				factor = 0
+				FROM = { default_attack_AI_trigger_FROM = yes }
+			}
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancelled TRK_Attack_Asia target: [From.GetName]"
+			clear_decision_attack_AI = yes
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_Attack_Asia target: [From.GetName]"
+			FROM = { country_event = kr.political.30 } #warning event
+			setup_decision_attack_AI = yes
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_Attack_Asia target: [From.GetName]"
+			clear_decision_attack_AI = yes
+			declare_war_on = {
+				target = FROM
+				type = annex_everything
+			}
+		}
+	}
+	
 	TRK_peace_with_russia = {
 		icon = oppression
 		allowed = {
@@ -3546,6 +3894,16 @@ TRK_east_pamir_revolt_category = {
 		selectable_mission = no
 		is_good = no
 		days_mission_timeout = 250
+		ai_will_do = {
+			base = 100
+			modifier = {
+				factor = 0
+				OR = {
+					has_game_rule = { rule = TRK_path option = TRK_PATH_TVO }
+					has_game_rule = { rule = TRK_path option = TRK_PATH_OSIPOV }
+				}
+			}
+		}
 		
 		cancel_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision timeout TRK_deal_with_basmachi"
@@ -3628,6 +3986,13 @@ TRK_east_pamir_revolt_category = {
 					}
 				}
 			}
+			modifier = {
+				factor = 0
+				OR = {
+					has_game_rule = { rule = TRK_path option = TRK_PATH_TVO }
+					has_game_rule = { rule = TRK_path option = TRK_PATH_OSIPOV }
+				}
+			}
 		}
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision TRK_retake_samarqand"
@@ -3662,7 +4027,16 @@ TRK_east_pamir_revolt_category = {
 		fire_only_once = no
 		days_remove = 60
 		
-		ai_will_do = { base = 100 }
+		ai_will_do = { 
+			base = 100 
+			modifier = {
+				factor = 0
+				OR = {
+					has_game_rule = { rule = TRK_path option = TRK_PATH_TVO }
+					has_game_rule = { rule = TRK_path option = TRK_PATH_OSIPOV }
+				}
+			}
+		}
 		
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision TRK_direct_military_offensive"
@@ -3715,7 +4089,16 @@ TRK_east_pamir_revolt_category = {
 		fire_only_once = no
 		days_remove = 35
 		
-		ai_will_do = { base = 100 }
+		ai_will_do = { 
+			base = 100 
+			modifier = {
+				factor = 0
+				OR = {
+					has_game_rule = { rule = TRK_path option = TRK_PATH_TVO }
+					has_game_rule = { rule = TRK_path option = TRK_PATH_OSIPOV }
+				}
+			}
+		}
 		
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision TRK_counter_insurgency_tactics"
@@ -3766,7 +4149,16 @@ TRK_east_pamir_revolt_category = {
 		target_non_existing = yes
 		fire_only_once = yes
 		
-		ai_will_do = { base = 100 }
+		ai_will_do = { 
+			base = 100 
+			modifier = {
+				factor = 0
+				OR = {
+					has_game_rule = { rule = TRK_path option = TRK_PATH_TVO }
+					has_game_rule = { rule = TRK_path option = TRK_PATH_OSIPOV }
+				}
+			}
+		}
 		
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision TRK_aerial_bombardment"
@@ -3795,7 +4187,16 @@ TRK_east_pamir_revolt_category = {
 		target_non_existing = yes
 		fire_only_once = yes
 		
-		ai_will_do = { base = 100 }
+		ai_will_do = { 
+			base = 100 
+			modifier = {
+				factor = 0
+				OR = {
+					has_game_rule = { rule = TRK_path option = TRK_PATH_TVO }
+					has_game_rule = { rule = TRK_path option = TRK_PATH_OSIPOV }
+				}
+			}
+		}
 		
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision TRK_psychological_warfare"
@@ -3850,7 +4251,16 @@ TRK_east_pamir_revolt_category = {
 		days_remove = 45
 		state_target = yes
 		
-		ai_will_do = { base = 10 }
+		ai_will_do = { 
+			base = 100 
+			modifier = {
+				factor = 0
+				OR = {
+					has_game_rule = { rule = TRK_path option = TRK_PATH_TVO }
+					has_game_rule = { rule = TRK_path option = TRK_PATH_OSIPOV }
+				}
+			}
+		}
 		
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision TRK_fortify_fergana"
@@ -4101,6 +4511,48 @@ operations = {
 		timeout_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision timeout TRK_deal_with_mirshab_revolt"
 			country_event = turkestan.73
+		}
+	}
+	TRK_deal_with_tvo_mutiny = {
+		icon = GFX_decision_revolt
+		allowed = { always = no } # manually activated
+		activation = {
+			always = no
+		}
+		cancel_trigger = {
+			if = {
+				limit = { TRK_osipov_in_power = yes }
+				has_completed_focus	= TRK_Zaitsevs_Folly
+			}
+			else = {
+				has_completed_focus = TRK_Suppress_Osipov
+			}
+		}
+		available = { hidden_trigger = { always = no } }
+		
+		ai_will_do = { 
+			base = 100
+		}
+		
+		fire_only_once = yes
+		is_good = no
+		days_mission_timeout = 50
+		
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel TRK_deal_with_tvo_mutiny"
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete TRK_deal_with_tvo_mutiny"
+		}
+		timeout_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision timeout TRK_deal_with_tvo_mutiny"
+			if = {
+				limit = { TRK_osipov_in_power = yes }
+				country_event = turkestan.256
+			}
+			else = {
+				country_event = turkestan.259
+			}
 		}
 	}
 }
