@@ -557,6 +557,10 @@ TRK_unite_central_asia = {
 						change_tag_from = TRK
 					}
 				}
+				if = {
+					limit = { CA_is_ruled_by_british = yes }
+					country_event = bukhara.74
+				}
 			}
 			else_if = {
 				limit = { tag = KYR }
@@ -1172,6 +1176,48 @@ TRK_foreign_policy = {
 			FROM = { country_event = turkestan.20 }
 		}
 	}
+	TRK_join_entente = { # join the Entente
+		icon = generic_agreement
+		allowed = { always = no }
+		available = {
+			is_faction_leader = no
+			is_in_faction = no
+			at_peace_or_same_enemies_as_FROM = yes
+			has_country_flag = UZB_british_military_mission
+			hidden_trigger = {
+				NOT = { has_country_flag = TRK_dont_join_other_alliance }
+			}
+			FROM = {
+				is_faction_leader = yes
+			}
+		}
+		
+		fire_only_once = yes
+		cost = 30
+		days_remove = 15
+		
+		ai_will_do = { 
+			base = 100
+			modifier = {
+				factor = 0
+				OR = {
+					FROM = { surrender_progress > 0.3 }
+					FROM = {
+						dont_start_major_faction_wars = yes
+					}
+				}
+			}
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete TRK_join_entente target: [From.GetName]"			
+			set_country_flag = { flag = TRK_dont_join_other_alliance value = 1 days = 20 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_join_entente target: [From.GetName]"			
+			FROM = { country_event = turkestan.20 }
+		}
+	}
 	TRK_join_co_prosperity = { # join the Co-Prosperity
 		icon = generic_agreement
 		allowed = { always = no }
@@ -1242,6 +1288,14 @@ TRK_foreign_policy = {
 					}
 				}
 				AND = {
+					has_completed_focus = KHI_Status_Quo
+					FROM = {
+						has_socialist_government = no
+						has_liberal_government = no
+						RUS_russian_monarch = yes
+					}
+				}
+				AND = {
 					has_completed_focus = UZB_Free_And_Equal_Bukhara
 					OR = { 
 						NOT = { country_exists = TRK }
@@ -1250,7 +1304,12 @@ TRK_foreign_policy = {
 				}
 				AND = {
 					has_completed_focus = UZB_Bogchai_Olam
-					UZB = { UZB_has_russian_hegemony = yes }
+					UZB = { UZB_has_russian_hegemony = yes }					
+					FROM = {
+						has_socialist_government = no
+						has_liberal_government = no
+						RUS_russian_monarch = yes
+					}
 				}
 			}
 		}
@@ -1297,7 +1356,17 @@ TRK_foreign_policy = {
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision TRK_join_russia target: [From.GetName]"
 			set_country_flag = { flag = TRK_dont_join_other_alliance value = 1 days = 10 }
-			FROM = { country_event = turkestan.20 }
+			if = {
+				limit = { has_completed_focus = KHI_Status_Quo }
+				FROM = { country_event = khiva.82 }
+			}
+			else_if = {
+				limit = { has_completed_focus = UZB_Bogchai_Olam }
+				FROM = { country_event = bukhara.82 }
+			}
+			else = {
+				FROM = { country_event = turkestan.20 }
+			}
 			set_country_flag = @ROOT_equipment_@FROM
 		}
 	}
@@ -2595,7 +2664,50 @@ TRK_executive_empowerment_act_category = {
 	}
 	
 }
-TRK_government_decisions = {
+TRK_government_decisions = {	
+	TRK_deal_with_divided_governance = {
+		icon = GFX_decision_revolt
+		allowed = { always = no } # manually activated
+		available = {
+			hidden_trigger = { always = no }
+		}
+		cancel_trigger = {
+			has_any_power_balance = no
+		}
+		
+		
+		fire_only_once = yes
+		selectable_mission = no
+		is_good = no
+		days_mission_timeout = 300
+		
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel TRK_deal_with_divided_governance"
+		}
+		timeout_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision timeout TRK_deal_with_russian_settler_unrest"
+			if = {
+				limit = { TRK_madamin_bek_in_power = yes }
+				country_event = turkestan.69
+			}
+			else_if = {
+				limit = { TRK_has_jadidist_government = yes }
+				country_event = turkestan.68
+			}
+			else_if = {
+				limit = { TRK_erk_in_power = yes }
+				country_event = turkestan.70
+			}
+			else_if = {
+				limit = { TRK_kurshirmat_in_power = yes }
+				country_event = turkestan.71
+			}
+			else = {
+				remove_power_balance = { id = TRK_dual_power_bop }
+				remove_ideas = TRK_lasting_political_crisis
+			}
+		}
+	}
 	TRK_strengthen_civil_institutions = {
 		icon = GFX_decision_SOV_place_hq
 		visible = {
