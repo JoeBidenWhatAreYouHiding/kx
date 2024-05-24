@@ -138,18 +138,16 @@ disband_units_finalise = {
 	var:disband_state = { transfer_state_to = var:disband_state_owner }
 }
 
-
-disband_ten_percent_units = {
+disband_one_to_three_divisions = {
 	custom_effect_tooltip = disband_ten_percent_units
 	hidden_effect = {
 		disband_units_setup = yes
 		transfer_units_fraction = {
 			target = var:debug_tag_instance
+			target_organization = 1
+			source_organization = 1
 			size = 0
-			army_ratio = 0.1
-			keep_unit_leaders_trigger = {
-				always = yes
-			}
+			keep_unit_leaders_trigger = { always = yes }
 		}
 		var:debug_tag_instance = {
 			disband_units_transfer_manpower = yes
@@ -159,6 +157,25 @@ disband_ten_percent_units = {
 	}
 }
 
+disband_ten_percent_units = {
+	custom_effect_tooltip = disband_ten_percent_units
+	hidden_effect = {
+		disband_units_setup = yes
+		transfer_units_fraction = {
+			target = var:debug_tag_instance
+			target_organization = 1
+			source_organization = 1
+			size = 0
+			army_ratio = 0.1
+			keep_unit_leaders_trigger = { always = yes }
+		}
+		var:debug_tag_instance = {
+			disband_units_transfer_manpower = yes
+			send_equipment_fraction = { target = var:disband_country value = 1 }
+		}
+		disband_units_finalise = yes
+	}
+}
 
 disband_twenty_percent_units = {
 	custom_effect_tooltip = disband_twenty_percent_units
@@ -166,11 +183,11 @@ disband_twenty_percent_units = {
 		disband_units_setup = yes
 		transfer_units_fraction = {
 			target = var:debug_tag_instance
+			target_organization = 1
+			source_organization = 1
 			size = 0
 			army_ratio = 0.2
-			keep_unit_leaders_trigger = {
-				always = yes
-			}
+			keep_unit_leaders_trigger = { always = yes }
 		}
 		var:debug_tag_instance = {
 			disband_units_transfer_manpower = yes
@@ -186,11 +203,11 @@ disband_twenty_percent_units_delete_equipment = { #used for disarming countries 
 		disband_units_setup = yes
 		transfer_units_fraction = {
 			target = var:debug_tag_instance
+			target_organization = 1
+			source_organization = 1
 			size = 0
 			army_ratio = 0.2
-			keep_unit_leaders_trigger = {
-				always = yes
-			}
+			keep_unit_leaders_trigger = { always = yes }
 		}
 		var:debug_tag_instance = {
 			disband_units_transfer_manpower = yes
@@ -206,11 +223,11 @@ disband_fifty_percent_units = {
 		disband_units_setup = yes
 		transfer_units_fraction = {
 			target = var:debug_tag_instance
+			target_organization = 1
+			source_organization = 1
 			size = 0
 			army_ratio = 0.5
-			keep_unit_leaders_trigger = {
-				always = yes
-			}
+			keep_unit_leaders_trigger = { always = yes }
 		}
 		var:debug_tag_instance = {
 			disband_units_transfer_manpower = yes
@@ -220,84 +237,185 @@ disband_fifty_percent_units = {
 	}
 }
 
+calculate_manpower_based_on_compliance = {
+	set_temp_variable = { state_manpower = 0.02 }
+	add_to_temp_variable = { state_manpower = modifier@local_non_core_manpower }
+	multiply_temp_variable = { state_manpower = state_population_k }
+}
+
+calculate_available_factories_based_on_compliance = {
+	set_temp_variable = { state_factories_non_core = building_level@industrial_complex }
+	add_to_temp_variable = { state_factories_non_core = building_level@arms_factory }
+	add_to_temp_variable = { state_factories_non_core = building_level@dockyard }
+
+	set_temp_variable = { compliance_multiplier = 0.75 }
+	add_to_temp_variable = { compliance_multiplier = modifier@local_factories } #negative
+	add_to_temp_variable = { compliance_multiplier = 0.25 }
+	clamp_temp_variable = { var = compliance_multiplier max = 1 }
+
+	multiply_temp_variable = { state_factories_non_core = compliance_multiplier }
+	round_temp_variable = state_factories_non_core
+	add_to_temp_variable = { factory_points = state_factories_non_core }
+}
 
 calculate_maximum_divisions = {
-	# base upper division limit = number of factories
-	set_variable = { net_factory_count = num_of_factories } #NOTE: doing this separately for the player-facing tooltip
-	set_variable = { max_divisions = net_factory_count }
+	### calculate base values - population and total factory count
+	clear_variable = non_core_base
+	clear_variable = base_units
+	set_temp_variable = { factory_points = 0 }
+
+	set_variable = { base_states = 0 }
+	### normal behaviour - check all owned states of PREV
+	add_to_variable = { base_states = num_owned_states }
+	every_owned_state = {
+		if = {
+			limit = { is_core_of = PREV }
+			add_to_variable = { PREV.base_units = state_population_k }
+
+			add_to_temp_variable = { factory_points = building_level@industrial_complex }
+			add_to_temp_variable = { factory_points = building_level@arms_factory }
+			add_to_temp_variable = { factory_points = building_level@dockyard }
+		}
+		else = {
+			calculate_manpower_based_on_compliance = yes
+			add_to_variable = { PREV.non_core_base = state_manpower }
 	
-	# base lower division limit is either max manpower/35 (for countries with very high manpower but low factories)
-	# or the number of owned states or 5, whichever of the three numbers is higher
-	set_variable = { lower_limit_from_manpower = max_available_manpower_k }
-	divide_variable = { lower_limit_from_manpower = 35 }
-	round_variable = lower_limit_from_manpower
-	set_variable = { lower_limit_from_states = num_owned_states }
-	
-	set_variable = { lower_limit = lower_limit_from_manpower }
-	clamp_variable = {
-		var = lower_limit
-		min = lower_limit_from_states
-		max = 1000
+			calculate_available_factories_based_on_compliance = yes
 	}
-	clamp_variable = {
-		var = lower_limit
-		min = 5
-		max = 1000
 	}
 	
-	# +15% for majors
+	### if in a civil war, count the other sides' states as well
 	if = {
-		limit = { is_major = yes }
-		multiply_variable = { max_divisions = 1.15 }
+		limit = { has_civil_war = yes }
+		every_enemy_country = {
+			limit = { civilwar_target = PREV }
+			every_owned_state = {
+	if = {
+					limit = { is_core_of = PREV.PREV }
+					add_to_variable = { PREV.PREV.base_states = 1 }
+					add_to_variable = { PREV.PREV.base_units = state_population_k }
+
+					add_to_temp_variable = { factory_points = building_level@industrial_complex }
+					add_to_temp_variable = { factory_points = building_level@arms_factory }
+					add_to_temp_variable = { factory_points = building_level@dockyard }
+				}
+				else = {
+					calculate_manpower_based_on_compliance = yes
+					add_to_variable = { PREV.PREV.non_core_base = state_manpower }
+
+					calculate_available_factories_based_on_compliance = yes
+				}
 	}
-	# +15% for ACW factions
-	if = {
-		limit = { ACW_in_progress = yes }
-		multiply_variable = { max_divisions = 1.20 }
 	}
-	# +5% if WT is 70% or higher
-	if = {
-		limit = { threat > 0.69 }
-		multiply_variable = { max_divisions = 1.05 }
-	}
-	if = {
-		limit = { is_faction_leader = yes }
-		multiply_variable = { max_divisions = 1.15 }
 	}
 
-	# the upper and lower limit is then adjusted according to the economy law, overriding the base
-	set_variable = { upper_limit_from_factory_mult = modifier@unit_limit_factory_bonus }
-	multiply_variable = { upper_limit_from_factory_mult = 100 }
-
-	# +10% per economy law level above civilian economy
-	set_temp_variable = { economy_mult = 1 }
-	add_to_temp_variable = { economy_mult = modifier@unit_limit_factory_bonus }
-	multiply_variable = { max_divisions = economy_mult }
-
-	set_variable = { net_max_divisions = max_divisions }
-	round_variable = net_max_divisions
-	set_variable = { upper_limit = modifier@unit_limit_max }
+	### if an overlord, check if any puppets should transfer part of their bases
+	clear_variable = subject_states
+	clear_variable = subject_base_units
+	clear_variable = subject_non_core_base
 	if = {
-		limit = { check_variable = { lower_limit > upper_limit } }
-		set_variable = { max_divisions = upper_limit }
+		limit = { num_subjects > 0 }
+		every_subject_country = {
+			limit = { check_variable = { modifier@unit_limit_subject_bonus > 0 } }
+
+			set_temp_variable = { states_temp = num_owned_states }
+			multiply_temp_variable = { states_temp = modifier@unit_limit_subject_bonus }
+			add_to_variable = { PREV.subject_states = states_temp }
+
+			set_temp_variable = { factories_temp = num_of_owned_factories }
+			multiply_temp_variable = { factories_temp = modifier@unit_limit_subject_bonus }
+			add_to_temp_variable = { factory_points = factories_temp }
+
+			set_temp_variable = { base_units_temp = 0 }
+			set_temp_variable = { non_core_base_temp = 0 }
+			every_owned_state = {
+	if = {
+					limit = { is_core_of = PREV }
+					add_to_temp_variable = { base_units_temp = state_population_k }
+
+					add_to_temp_variable = { factory_points = building_level@industrial_complex }
+					add_to_temp_variable = { factory_points = building_level@arms_factory }
+					add_to_temp_variable = { factory_points = building_level@dockyard }
 	}
 	else = {
-		clamp_variable = {
-			var = max_divisions
-			min = lower_limit
-			max = upper_limit
+					calculate_manpower_based_on_compliance = yes
+					add_to_temp_variable = { non_core_base_temp = state_manpower }
+
+					calculate_available_factories_based_on_compliance = yes
+				}
 		}
+			multiply_temp_variable = { base_units_temp = modifier@unit_limit_subject_bonus }
+			add_to_variable = { PREV.subject_base_units = base_units_temp }
+
+			multiply_temp_variable = { non_core_base_temp = modifier@unit_limit_subject_bonus }
+			add_to_variable = { PREV.subject_non_core_base = non_core_base_temp }
+		}
+		add_to_variable = { base_states = subject_states }
+		add_to_variable = { base_units = subject_base_units }
+		divide_variable = { subject_base_units = 1000 } #for the tooltip
+
+		# non-cores
+		add_to_variable = { base_units = subject_non_core_base }
+		divide_variable = { subject_non_core_base = 1000 } #for the tooltip
 	}
 
-	# add any specific bonuses to the limit
-	set_variable = { upper_limit_unit_bonus = modifier@unit_limit_bonus }
-	add_to_variable = { max_divisions = upper_limit_unit_bonus }
+	# non-cores
+	add_to_variable = { base_units = non_core_base }
+	divide_variable = { non_core_base = 1000 } #for the tooltip
 
+	# base unit count = population / 1000
+	divide_variable = { base_units = 1000 }
+
+	# calculate core population for the tooltip
+	set_variable = { core_base = base_units }
+	subtract_from_variable = { core_base = non_core_base }
+	subtract_from_variable = { core_base = subject_base_units }
+	subtract_from_variable = { core_base = subject_non_core_base }
+
+	# add number of states to the base
+	add_to_variable = { base_units = base_states }
+
+	# calculate the modifier -- 1 + [ ( industry - population ) / ( industry + population ) ]
+	set_variable = { divisor = factory_points }
+	add_to_variable = { divisor = base_units }
+
+	set_variable = { industry_factor = factory_points }
+	subtract_from_variable = { industry_factor = base_units }
+	divide_variable = { industry_factor = divisor }
+	add_to_variable = { industry_factor = 1 }
+
+	# minimum modifier -- x0.5
+	set_variable = { industry_factor_uncapped = industry_factor }
+	clamp_variable = { var = industry_factor min = 0.5 }
+
+	set_variable = { max_divisions = base_units }
+	multiply_variable = { max_divisions = industry_factor }
+
+	# apply multipliers
+	if = {
+		limit = { is_faction_leader = yes }
+		add_to_temp_variable = { limit_multiplier = 0.15 } # +15% for faction leaders
+	}
+
+	# all countries get five free divisions
+	add_to_variable = { max_divisions = global.base_unit_limit_bonus }
+
+	# add the law bonus to the limit
+	add_to_variable = { max_divisions = modifier@unit_limit_law_bonus } # +4 per economy law level above civilian economy
+
+	# add any specific bonuses to the limit
+	add_to_variable = { max_divisions = modifier@unit_limit_bonus }
+
+	# min (300, max_divisions)
+	set_variable = { uncapped_max_divisions = max_divisions }
+	clamp_variable = { var = max_divisions max = 300 }
+
+	round_variable = uncapped_max_divisions
 	round_variable = max_divisions
 }
 
 calculate_mobilisation_penalty = {
-	set_variable = { mobilisation_penalty_var = num_divisions }
+	set_variable = { mobilisation_penalty_var = num_actual_divisions }
 	divide_variable = { mobilisation_penalty_var = max_divisions }
 	subtract_from_variable = { mobilisation_penalty_var = 1 }
 
@@ -314,3 +432,163 @@ calculate_mobilisation_penalty = {
 	multiply_variable = { mobilisation_penalty_var = -1 }
 }
 
+unit_limit_calculation_effect = {
+	calculate_maximum_divisions = yes
+
+	set_variable = { unit_limit_progressbar_frame = 1 }
+	set_variable = { unit_limit_progressbar_value = 0 }
+	if = {
+		limit = {
+			NOT = { has_game_rule = { rule = unit_limit_options option = NONE } }
+			OR = {
+				has_game_rule = { rule = unit_limit_options option = STANDARD }
+				is_ai = yes
+			}
+		}
+		# step one, calculate num of actual divisions
+		set_variable = { num_actual_divisions = num_divisions }
+
+		# ignore fake intel divisions
+		subtract_from_variable = { num_actual_divisions = num_fake_intel_divisions }
+
+		# expeditionaries should count towards the sender's limit, not the receiver's
+		clear_variable = num_expeditionary_divisions_sent
+		clear_variable = num_expeditionary_divisions_received
+		if = {
+			limit = { is_in_faction = yes }
+			for_each_scope_loop = {
+				array = faction_members
+				unit_limit_exclude_expeditionaries = yes
+			}
+		}
+		else = {
+			for_each_scope_loop = {
+				array = subjects
+				unit_limit_exclude_expeditionaries = yes
+			}
+		}
+		subtract_from_variable = { num_actual_divisions = num_expeditionary_divisions_received }
+		add_to_variable = { num_actual_divisions = num_expeditionary_divisions_sent }
+
+		# if already suffering penalties, check if they still apply
+		if = {
+			limit = { has_dynamic_modifier = { modifier = mobilisation_penalty_modifier } }
+			if = {
+				limit = {
+					OR = {
+						is_ai = yes
+						has_exceeded_maximum_divisions = no
+					}
+				}
+				clear_variable = mobilisation_penalty_var
+				clear_variable = mobilisation_penalty_var_positive
+				remove_dynamic_modifier = { modifier = mobilisation_penalty_modifier }
+			}
+			else = {
+				calculate_mobilisation_penalty = yes
+			}
+		}
+		# if not suffering penalties, check if they should apply
+		else_if = {
+			limit = {
+				is_ai = no
+				has_exceeded_maximum_divisions = yes
+			}
+			calculate_mobilisation_penalty = yes
+			add_dynamic_modifier = { modifier = mobilisation_penalty_modifier }
+
+			#alert
+			add_to_array = { unit_limit_alerts = THIS }
+			scoped_sound_effect = alert_hostile_troops_sound
+			set_variable_to_random = global.kaiserreich_alerts_dirty
+		}
+
+		# calculate GUI values
+		if = {
+			limit = { has_variable = num_actual_divisions }
+			if = {
+				limit = { check_variable = { num_actual_divisions > max_divisions } }
+				set_variable = { unit_limit_progressbar_frame = 3 }
+			}
+			else_if = {
+				limit = { check_variable = { num_actual_divisions = max_divisions } }
+				set_variable = { unit_limit_progressbar_frame = 2 }
+			}
+			else = {
+				set_variable = { unit_limit_progressbar_frame = 1 }
+			}
+			set_variable = { unit_limit_progressbar_value = num_actual_divisions }
+		}
+		else = {
+			if = {
+				limit = { check_variable = { num_divisions > max_divisions } }
+				set_variable = { unit_limit_progressbar_frame = 3 }
+			}
+			else_if = {
+				limit = { check_variable = { num_divisions = max_divisions } }
+				set_variable = { unit_limit_progressbar_frame = 2 }
+			}
+			else = {
+				set_variable = { unit_limit_progressbar_frame = 1 }
+			}
+			set_variable = { unit_limit_progressbar_value = num_divisions }
+		}
+		divide_variable = { unit_limit_progressbar_value = max_divisions }
+		multiply_variable = { unit_limit_progressbar_value = 158 }
+		subtract_from_variable = { unit_limit_progressbar_value = 158 }
+		round_variable = unit_limit_progressbar_value
+		clamp_variable = { var = unit_limit_progressbar_value min = -158 max = 0 }
+	}
+
+	# check if demobilisation missions should apply
+	if = {
+		limit = {
+			is_ai = no
+			has_war = no
+			has_game_rule = { rule = demobilization_options option = STANDARD }
+		}
+		if = {
+			limit = {
+				has_unsupported_economic_law = yes
+				NOT = { has_active_mission = demobilization_economic }
+			}
+			activate_mission = demobilization_economic
+		}
+		if = {
+			limit = {
+				has_unsupported_manpower_law = yes
+				NOT = { has_active_mission = demobilization_manpower }
+			}
+			activate_mission = demobilization_manpower
+		}
+	}
+}
+
+unit_limit_exclude_expeditionaries = {
+	if = {
+		limit = {
+			received_expeditionary_forces = { sender = PREV value > 0 }
+		}
+		set_temp_variable = { expeditionary_division_sent_temp = 0 }
+		while_loop_effect = {
+			limit = {
+				received_expeditionary_forces = { sender = PREV value > expeditionary_division_sent_temp }
+			}
+			add_to_temp_variable = { expeditionary_division_sent_temp = 1 }
+		}
+		add_to_variable = { PREV.num_expeditionary_divisions_sent = expeditionary_division_sent_temp }
+	}
+	if = {
+		limit = {
+			PREV = { received_expeditionary_forces = { sender = PREV value > 0 } }
+		}
+		set_temp_variable = { expeditionary_division_received_temp = 0 }
+		while_loop_effect = {
+			limit = {
+				PREV = { received_expeditionary_forces = { sender = PREV value > expeditionary_division_received_temp } }
+			}
+			add_to_temp_variable = { expeditionary_division_received_temp = 1 }
+		}
+		add_to_variable = { PREV.num_expeditionary_divisions_received = expeditionary_division_received_temp }
+	}
+}
