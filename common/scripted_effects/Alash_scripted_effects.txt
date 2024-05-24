@@ -44,7 +44,12 @@ ALO_setup_initial_popularities = {
 		
 		set_variable = { ALO_state_zhas_azamat_pop = ALO.party_popularity@social_democrat }
 		
-		set_variable = { ALO_state_azat_pop = ALO.party_popularity@social_liberal }
+		set_variable = { ALO_state_azat_pop = ALO.party_popularity@social_democrat }
+		divide_variable = { ALO_state_azat_pop = 4 }
+		set_temp_variable = { ALO_state_azat_pop_soclib = ALO.party_popularity@social_liberal }
+		divide_temp_variable = { ALO_state_azat_pop_soclib = 3 }
+		add_to_variable = { ALO_state_azat_pop = ALO_state_azat_pop_soclib }
+		
 		set_variable = { ALO_state_zhanar_pop = ALO.party_popularity@social_liberal }
 		
 		set_variable = { ALO_state_alash_pop = ALO.party_popularity@market_liberal }
@@ -71,8 +76,8 @@ ALO_setup_initial_popularities = {
 		
 		if = {
 			limit = { state = 1208 }
-			add_to_variable = { ALO_state_cossack_pop = 0.681 }
-			add_to_variable = { ALO_state_russian_pop = 0.281 }
+			add_to_variable = { ALO_state_cossack_pop = 0.381 }
+			add_to_variable = { ALO_state_russian_pop = 0.481 }
 		}
 		if = {
 			limit = { state = 406 }
@@ -81,8 +86,32 @@ ALO_setup_initial_popularities = {
 			add_to_variable = { ALO_state_azat_pop = 0.351 }
 		}
 		if = {
+			limit = { state = 587 }
+			add_to_variable = { ALO_state_azat_pop = 0.251 }
+		}
+		if = {
 			limit = { state = 402 }
-			add_to_variable = { ALO_state_alash_pop = 0.351 }
+			add_to_variable = { ALO_state_zhanar_pop = 0.451 }
+		}
+		if = {
+			limit = { state = 590 }
+			add_to_variable = { ALO_state_ush_zhus_pop = 0.301 }
+		}
+		if = {
+			limit = { state = 589 }
+			add_to_variable = { ALO_state_national_pop = 0.251 }
+			add_to_variable = { ALO_state_cossack_pop = 0.151 }
+			add_to_variable = { ALO_state_russian_pop = 0.151 }
+		}
+		if = {
+			limit = { 
+				OR = {
+					state = 583 
+					state = 588 
+				}
+			}
+			add_to_variable = { ALO_state_russian_pop = 0.551 }
+			add_to_variable = { ALO_state_ush_zhus_pop = 0.251 }
 		}
 		if = {
 			limit = { 
@@ -91,9 +120,8 @@ ALO_setup_initial_popularities = {
 					state = 810
 				}
 			}
-			add_to_variable = { ALO_state_zhanar_pop = 0.251 }
+			add_to_variable = { ALO_state_alash_pop = 0.351 }
 			add_to_variable = { ALO_state_zhas_azamat_pop = 0.251 }
-			add_to_variable = { ALO_state_ush_zhus_pop = 0.251 }
 			add_to_variable = { ALO_state_russian_pop = 0.05 }
 		}
 		if = {
@@ -379,7 +407,12 @@ ALO_run_election = {
 		divide_variable = { ALO_russian_state_votes = 50 }
 		
 		if = {
-			limit = { check_variable = { ALO_ush_zhus_state_votes < 0 } }
+			limit = { 
+				OR = {
+					check_variable = { ALO_ush_zhus_state_votes < 0 } 
+					ROOT = { has_country_flag = ush_zhus_banned }
+				}
+			}
 			set_variable = { ALO_ush_zhus_state_votes = 0 }
 		}
 		if = {
@@ -418,11 +451,22 @@ ALO_run_election = {
 			set_variable = { ALO_alash_state_votes = 0 }
 		}
 		if = {
-			limit = { check_variable = { ALO_cossack_state_votes < 0 } }
+			limit = { 
+				OR = {
+					check_variable = { ALO_cossack_state_votes < 0 } 
+					ROOT = { has_country_flag = cossacks_banned }
+				}
+			}
 			set_variable = { ALO_cossack_state_votes = 0 }
 		}
 		if = {
 			limit = { check_variable = { ALO_russian_state_votes < 0 } }
+			limit = { 
+				OR = {
+					check_variable = { ALO_russian_state_votes < 0 } 
+					ROOT = { has_country_flag = russians_banned }
+				}
+			}
 			set_variable = { ALO_russian_state_votes = 0 }
 		}
 
@@ -892,13 +936,8 @@ ALO_heal_the_wounds = {
 			}
 			custom_effect_tooltip = ALO_increase_alash_support
 			hidden_effect = {
-				if = {
-					limit = {
-						NOT = { has_country_flag = ALO_1936_Dosmukhamedov_Socdem }
-					}
-					set_temp_variable = { party_support = 1 }
-					ALO_change_azat_support = yes	
-				}
+				set_temp_variable = { party_support = 1 }
+				ALO_change_azat_support = yes	
 				set_temp_variable = { party_support = 1 }
 				ALO_change_zhanar_support = yes
 				set_temp_variable = { party_support = 1 }
@@ -954,13 +993,8 @@ ALO_open_wounds = {
 			}
 			custom_effect_tooltip = ALO_decrease_alash_support
 			hidden_effect = {
-				if = {
-					limit = {
-						NOT = { has_country_flag = ALO_1936_Dosmukhamedov_Socdem }
-					}
-					set_temp_variable = { party_support = -1 }
-					ALO_change_azat_support = yes	
-				}
+				set_temp_variable = { party_support = -1 }
+				ALO_change_azat_support = yes	
 				set_temp_variable = { party_support = -1 }
 				ALO_change_zhanar_support = yes
 				set_temp_variable = { party_support = -1 }
@@ -978,11 +1012,19 @@ ALO_calculate_alash_party_unity = {
 	}
 	add_to_variable = { ALO_alash_party_unity = ALO_zhanar_loyalty }
 	add_to_variable = { ALO_alash_party_unity = ALO_alash_loyalty }
-	add_to_variable = { ALO_alash_party_unity = ALO_national_loyalty }
+	if = {
+		limit = { ALO_alash_right_independent = no }
+		add_to_variable = { ALO_alash_party_unity = ALO_national_loyalty }
+	}
 	
 	set_temp_variable = { divider = 40 }
 	if = {
-		limit = { ALO_alash_left_independent = yes }
+		limit = { 
+			OR = {
+				ALO_alash_left_independent = yes 
+				has_country_flag = azat_faction_banned
+			}
+		}
 		add_to_temp_variable = { divide = -10 }
 	}
 	if = {
@@ -994,7 +1036,12 @@ ALO_calculate_alash_party_unity = {
 		add_to_temp_variable = { divide = -10 }
 	}
 	if = {
-		limit = { has_country_flag = national_faction_banned }
+		limit = { 
+			OR = {
+				ALO_alash_right_independent = yes
+				has_country_flag = national_faction_banned 
+			}
+		}
 		add_to_temp_variable = { divide = -10 }
 	}
 	divide_variable = { ALO_alash_party_unity = divider }
@@ -1004,6 +1051,7 @@ ALO_change_azat_loyalty = {
 		limit = { 
 			ALO_alash_wounds_are_opened = yes 
 			ALO_alash_left_independent = no
+			NOT = { has_country_flag = azat_faction_banned }
 		}
 		# tooltip
 		effect_tooltip = {
@@ -1012,7 +1060,15 @@ ALO_change_azat_loyalty = {
 				tooltip = ALO_azat_loyalty_tooltip
 			}
 		}
-
+		set_temp_variable = { ALO_azat_loyalty_temp = ALO_azat_loyalty }
+		set_temp_variable = { ALO_azat_loyalty_change_temp =  ALO_loyalty_change }
+		add_to_temp_variable = { ALO_azat_loyalty_temp = ALO_azat_loyalty_change_temp }
+		effect_tooltip = {
+			if = {
+				limit = { ALO_azat_loyalty_temp < 1 }
+				activate_mission = ALO_azat_splits_mission
+			}
+		}
 		# lower limit = legitimacy * -1
 		set_temp_variable = { ALO_lower_limit = ALO_azat_loyalty }
 		multiply_temp_variable = { ALO_lower_limit = -1 }
@@ -1027,23 +1083,46 @@ ALO_change_azat_loyalty = {
 			min = ALO_lower_limit
 			max = ALO_upper_limit
 		}
-
+		
 		# add the variable
-		add_to_variable = { ALO_azat_loyalty = ALO_loyalty_change }
+		add_to_variable = { ALO_azat_loyalty = ALO_loyalty_change }	
+		hidden_effect = {
+			if = {
+				limit = { check_variable = { ALO_azat_loyalty < 1 } }
+				activate_mission = ALO_azat_splits_mission
+			}
+		}
 	}
 	ALO_calculate_alash_party_unity = yes
 }
 ALO_change_zhanar_loyalty = {
 	if = {
-		limit = { ALO_alash_wounds_are_opened = yes }
+		limit = { 
+			ALO_alash_wounds_are_opened = yes 
+			NOT = { has_country_flag = zhanar_faction_banned }
+		}
 		# tooltip
 		effect_tooltip = {
 			add_to_variable = {
-				ALO_azat_loyalty = ALO_loyalty_change
+				ALO_zhanar_loyalty = ALO_loyalty_change
 				tooltip = ALO_zhanar_loyalty_tooltip
 			}
 		}
 
+		set_temp_variable = { ALO_zhanar_loyalty_temp = ALO_zhanar_loyalty }
+		set_temp_variable = { ALO_zhanar_loyalty_change_temp =  ALO_loyalty_change }
+		add_to_temp_variable = { ALO_zhanar_loyalty_temp = ALO_zhanar_loyalty_change_temp }
+		effect_tooltip = {
+			if = {
+				limit = { check_variable = { ALO_zhanar_loyalty_temp < 1 } }
+				if = {
+					limit = {
+						NOT = { has_active_mission = ALO_party_splits_mission_alash }
+					}
+				}
+				activate_mission = ALO_party_splits_mission_zhanar
+			}
+		}
 		# lower limit = legitimacy * -1
 		set_temp_variable = { ALO_lower_limit = ALO_zhanar_loyalty }
 		multiply_temp_variable = { ALO_lower_limit = -1 }
@@ -1061,20 +1140,48 @@ ALO_change_zhanar_loyalty = {
 
 		# add the variable
 		add_to_variable = { ALO_zhanar_loyalty = ALO_loyalty_change }
+		hidden_effect = {
+			if = {
+				limit = { check_variable = { ALO_zhanar_loyalty < 1 } }
+				if = {
+					limit = {
+						NOT = { has_active_mission = ALO_party_splits_mission_alash }
+					}
+				}
+				activate_mission = ALO_party_splits_mission_zhanar
+			}
+		}
 	}
 	ALO_calculate_alash_party_unity = yes
 }
 ALO_change_alash_loyalty = {
 	if = {
-		limit = { ALO_alash_wounds_are_opened = yes }
+		limit = { 
+			ALO_alash_wounds_are_opened = yes 
+			NOT = { has_country_flag = alash_faction_banned }
+		}
 		# tooltip
 		effect_tooltip = {
 			add_to_variable = {
-				ALO_azat_loyalty = ALO_loyalty_change
+				ALO_alash_loyalty = ALO_loyalty_change
 				tooltip = ALO_alash_loyalty_tooltip
 			}
 		}
 
+		set_temp_variable = { ALO_alash_loyalty_temp = ALO_alash_loyalty }
+		set_temp_variable = { ALO_alash_loyalty_change_temp =  ALO_loyalty_change }
+		add_to_temp_variable = { ALO_alash_loyalty_temp = ALO_alash_loyalty_change_temp }
+		effect_tooltip = {
+			if = {
+				limit = { check_variable = { ALO_alash_loyalty_temp < 1 } }
+				if = {
+					limit = {
+						NOT = { has_active_mission = ALO_party_splits_mission_zhanar }
+					}
+				}
+				activate_mission = ALO_party_splits_mission_alash
+			}
+		}
 		# lower limit = legitimacy * -1
 		set_temp_variable = { ALO_lower_limit = ALO_alash_loyalty }
 		multiply_temp_variable = { ALO_lower_limit = -1 }
@@ -1092,20 +1199,44 @@ ALO_change_alash_loyalty = {
 
 		# add the variable
 		add_to_variable = { ALO_alash_loyalty = ALO_loyalty_change }
+		hidden_effect = {
+			if = {
+				limit = { check_variable = { ALO_alash_loyalty < 1 } }
+				if = {
+					limit = {
+						NOT = { has_active_mission = ALO_party_splits_mission_zhanar }
+					}
+				}
+				activate_mission = ALO_party_splits_mission_alash
+			}
+		}
 	}
 	ALO_calculate_alash_party_unity = yes
 }
 ALO_change_national_loyalty = {
 	if = {
-		limit = { ALO_alash_wounds_are_opened = yes }
+		limit = { 
+			ALO_alash_wounds_are_opened = yes 
+			ALO_alash_right_independent = no
+			NOT = { has_country_flag = national_faction_banned }
+		}
 		# tooltip
 		effect_tooltip = {
 			add_to_variable = {
-				ALO_azat_loyalty = ALO_loyalty_change
+				ALO_national_loyalty = ALO_loyalty_change
 				tooltip = ALO_national_loyalty_tooltip
 			}
 		}
 
+		set_temp_variable = { ALO_national_loyalty_temp = ALO_national_loyalty }
+		set_temp_variable = { ALO_national_loyalty_change_temp =  ALO_loyalty_change }
+		add_to_temp_variable = { ALO_national_loyalty_temp = ALO_national_loyalty_change_temp }
+		effect_tooltip = {
+			if = {
+				limit = { ALO_national_loyalty_temp < 1 }
+			}
+			activate_mission = ALO_halyq_splits_mission
+		}
 		# lower limit = legitimacy * -1
 		set_temp_variable = { ALO_lower_limit = ALO_national_loyalty }
 		multiply_temp_variable = { ALO_lower_limit = -1 }
@@ -1123,6 +1254,12 @@ ALO_change_national_loyalty = {
 
 		# add the variable
 		add_to_variable = { ALO_national_loyalty = ALO_loyalty_change }
+		hidden_effect = {
+			if = {
+				limit = { ALO_national_loyalty < 1 }
+			}
+			activate_mission = ALO_halyq_splits_mission
+		}
 	}
 	ALO_calculate_alash_party_unity = yes
 }
@@ -1131,7 +1268,7 @@ ALO_bop_dulatuly_medium = {
 		limit = { has_any_power_balance = yes }
 		add_power_balance_value = {
 			id = ALO_power_balance
-			value = -0.05
+			value = -0.1
 			tooltip_side = ALO_dulatuly_winning_side
 		}
 	}
@@ -1142,13 +1279,15 @@ ALO_bop_dulatuly_medium = {
 		custom_effect_tooltip = ALO_dulatuly_winning_side_no_bop
 		add_to_variable = { ALO_bop = -1 }
 	}
+	set_temp_variable = { ALO_loyalty_change = -1 }
+	ALO_change_alash_loyalty = yes
 }
 ALO_bop_yermekov_medium = {
 	if = {
 		limit = { has_any_power_balance = yes }
 		add_power_balance_value = {
 			id = ALO_power_balance
-			value = 0.05
+			value = 0.1
 			tooltip_side = ALO_yermekov_winning_side
 		}
 	}
@@ -1156,6 +1295,8 @@ ALO_bop_yermekov_medium = {
 		custom_effect_tooltip = ALO_yermekov_winning_side_no_bop
 		add_to_variable = { ALO_bop = 1 }
 	}
+	set_temp_variable = { ALO_loyalty_change = -1 }
+	ALO_change_zhanar_loyalty = yes
 }
 
 ALO_bop_dulatuly_large = {
@@ -1163,7 +1304,7 @@ ALO_bop_dulatuly_large = {
 		limit = { has_any_power_balance = yes }
 		add_power_balance_value = {
 			id = ALO_power_balance
-			value = -0.10
+			value = -0.2
 			tooltip_side = ALO_dulatuly_winning_side
 		}
 	}
@@ -1171,20 +1312,27 @@ ALO_bop_dulatuly_large = {
 		custom_effect_tooltip = ALO_dulatuly_winning_side_no_bop
 		add_to_variable = { ALO_bop = -2 }
 	}
+	set_temp_variable = { ALO_loyalty_change = -1 }
+	ALO_change_alash_loyalty = yes
 }
 ALO_bop_yermekov_large = {
 	if = {
 		limit = { has_any_power_balance = yes }
 		add_power_balance_value = {
 			id = ALO_power_balance
-			value = 0.10
+			value = 0.2
 			tooltip_side = ALO_yermekov_winning_side
 		}
 	}
-	else = {
+	else_if = {
+		limit = { 
+			NOT = { has_country_flag = ALO_bop_ended }
+		}
 		custom_effect_tooltip = ALO_yermekov_winning_side_no_bop
 		add_to_variable = { ALO_bop = 2 }
 	}
+	set_temp_variable = { ALO_loyalty_change = -1 }
+	ALO_change_zhanar_loyalty = yes
 }
 ALO_setup_power_balance = {
 	if = {
@@ -1700,6 +1848,8 @@ ALO_setup_autonomy_RVA_by_event = {
 	}
 }
 ALO_remove_russian_influence = {
+	set_country_flag = ALO_declared_independence
+	set_country_flag = central_asia_restored_control_of_railways
 	if = {
 		limit = { has_idea = ALO_russian_pressure_5 }
 		remove_ideas = ALO_russian_pressure_5
@@ -1716,11 +1866,45 @@ ALO_remove_russian_influence = {
 		limit = { has_idea = ALO_russian_pressure_2 }
 		remove_ideas = ALO_russian_pressure_1
 	}
-	set_temp_variable = { target = RUS }
-	clear_all_relations_with_TARGET = yes
+	if = {
+		limit = { has_idea = ALO_russian_pressure_5_RVA }
+		remove_ideas = ALO_russian_pressure_5_RVA
+	}
+	else_if = {
+		limit = { has_idea = ALO_russian_pressure_4_RVA }
+		remove_ideas = ALO_russian_pressure_4_RVA
+	}
+	else_if = {
+		limit = { has_idea = ALO_russian_pressure_3_RVA }
+		remove_ideas = ALO_russian_pressure_3_RVA
+	}
+	else_if = {
+		limit = { has_idea = ALO_russian_pressure_2_RVA }
+		remove_ideas = ALO_russian_pressure_1_RVA
+	}
+	if = {
+		limit = { gives_military_access_to = RVA }
+		set_temp_variable = { target = RVA }
+		clear_all_relations_with_TARGET = yes
+		RVA = { country_event = alash.401 }
+	}
+	else = {
+		set_temp_variable = { target = RUS }
+		clear_all_relations_with_TARGET = yes
+		RUS = { country_event = alash.401 }
+	}
 	if = {
 		limit = { has_cosmetic_tag = ALO_autonomy }
 		drop_cosmetic_tag = yes
+	}
+	if = {
+		limit = { 
+			NOT = { has_country_flag = ALO_kazakhization }
+		}
+		set_country_flag = ALO_kazakhization
+		hidden_effect = {
+			every_controlled_state = { rename_state_effect = yes }
+		}
 	}
 }
 ALO_change_cossack_strength = {
