@@ -1269,13 +1269,12 @@ ALO_relations_with_russia = {
 		allowed = { always = no }
 		icon = GFX_decision_generic_civil_support
 		available = { 
-			ALO_has_little_russian_influence = yes
 			NOT = { has_country_flag = ALO_political_crisis }
 			ROOT_is_threatened_cautious = no
-			FROM = { has_completed_focus = RUS_Rearmament_Programme }
 		}
 		visible = {
-			ALO_bukeikhanov_in_power = no			
+			ALO_bukeikhanov_in_power = no
+			has_country_flag = ALO_1936_elections_completed
 		}
 		priority = 100
 		cost = 0
@@ -1290,6 +1289,7 @@ ALO_relations_with_russia = {
 			modifier = {
 				factor = 0
 				OR = {
+					ALO_has_strong_russian_influence = yes
 					has_game_rule = { rule = ALO_status option = ALO_STATUS_PUPPET }
 					has_game_rule = { rule = ALO_status option = ALO_STATUS_ALLY }
 				}
@@ -1308,18 +1308,27 @@ ALO_relations_with_russia = {
 			log = "[GetDateText]: [Root.GetName]: Decision ALO_declare_independence target: [From.GetName]"
 			set_country_flag = { flag = imminent_war days = 20 value = 1 }
 			setup_decision_attack_AI = yes
-			if = {
-				limit = { 
-					NOT = { has_country_flag = ALO_kazakhization }
-				}
-				set_country_flag = ALO_kazakhization
-			}
 		}
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove ALO_declare_independence target: [From.GetName]"
-			clear_decision_attack_AI = yes
-			country_event = alash.400
-			FROM = { country_event = alash.401 }
+			custom_effect_tooltip = ALO_declare_independence_tt
+			if = {
+				limit = { ALO_has_strong_russian_influence = yes }
+				clear_decision_attack_AI = yes
+				country_event = alash.776
+			}
+			else = {
+				if = {
+					limit = { ALO_has_little_russian_influence = no }
+					custom_effect_tooltip = ALO_declare_independence_economic_tt
+				}
+				if = {
+					limit = { has_idea = ALO_cossack_garrison }
+					custom_effect_tooltip = ALO_anger_cossacks_tt
+				}
+				country_event = alash.400
+				FROM = { country_event = alash.401 }
+			}
 		}
 	}
 	ALO_initiate_uralsk_conference = {
@@ -1344,6 +1353,7 @@ ALO_relations_with_russia = {
 				}
 				NOT = { has_completed_focus = RUS_Expansionism }
 			}
+			has_country_flag = ALO_1936_elections_completed
 		}
 		priority = 100
 		cost = 0
@@ -1382,6 +1392,10 @@ ALO_relations_with_russia = {
 		available = {
 			has_completed_focus = ALO_Protect_Our_Culture
 		}
+		visible = {
+			NOT = { has_country_flag = ALO_kazakhization }
+			has_country_flag = ALO_1936_elections_completed
+		}
 		
 		cost = 20
 		ai_will_do = {
@@ -1390,8 +1404,11 @@ ALO_relations_with_russia = {
 		fire_only_once = yes
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision ALO_remove_russian_renames target: [From.GetName]"
-			set_country_flag = ALO_kazakhization
-			every_controlled_state = { rename_state_effect = yes }
+			set_country_flag = ALO_kazakhization			
+			custom_effect_tooltip = ALO_remove_russian_renames_tt
+			hidden_effect = {
+				every_controlled_state = { rename_state_effect = yes }
+			}
 		}
 	}
 }
@@ -1873,9 +1890,9 @@ ALO_steppe_modernization_decisions = {
 		
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision complete ALO_modernization_illiteracy"
-			ALO_bop_dulatuly_large = yes
-			set_temp_variable = { ruling_party_pop = 7 }
-			ALO_ruling_party_pop = yes
+			add_political_power = 50
+			set_temp_variable = { ALO_change_modernization = 0.20 }
+			ALO_change_modernization = yes
 		}
 		timeout_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision timeout ALO_modernization_illiteracy"
@@ -1902,9 +1919,9 @@ ALO_steppe_modernization_decisions = {
 		
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision complete ALO_modernization_russian_settler"
-			ALO_bop_dulatuly_large = yes
-			set_temp_variable = { ruling_party_pop = 10 }
-			ALO_ruling_party_pop = yes
+			add_political_power = 75
+			set_temp_variable = { ALO_change_modernization = 0.25 }
+			ALO_change_modernization = yes
 		}
 		timeout_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision timeout ALO_modernization_russian_settler"
@@ -1932,9 +1949,9 @@ ALO_steppe_modernization_decisions = {
 		
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision complete ALO_modernization_sedentary"
-			ALO_bop_dulatuly_large = yes
-			set_temp_variable = { ruling_party_pop = 7 }
-			ALO_ruling_party_pop = yes
+			add_political_power = 100
+			set_temp_variable = { ALO_change_modernization = 0.35 }
+			ALO_change_modernization = yes
 		}
 		timeout_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision timeout ALO_modernization_sedentary"
@@ -1970,13 +1987,7 @@ ALO_power_balance_decisions = {
 		}
 		timeout_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision timeout ALO_bop_yermekov_rally"
-			ALO_bop_yermekov_large = yes			
-			set_temp_variable = { ALO_loyalty_change = -1 }
-			ALO_change_azat_loyalty = yes
-			set_temp_variable = { ALO_loyalty_change = -1 }
-			ALO_change_zhanar_loyalty = yes
-			set_temp_variable = { ALO_loyalty_change = 1 }
-			ALO_change_national_loyalty = yes
+			ALO_bop_yermekov_large = yes
 			custom_effect_tooltip = ALO_bop_yermekov_rally_tt
 			hidden_effect = {
 				country_event = {
@@ -2012,12 +2023,6 @@ ALO_power_balance_decisions = {
 		timeout_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision timeout ALO_bop_dulatuly_rally"
 			ALO_bop_dulatuly_large = yes
-			set_temp_variable = { ALO_loyalty_change = 1 }
-			ALO_change_azat_loyalty = yes
-			set_temp_variable = { ALO_loyalty_change = -1 }
-			ALO_change_alash_loyalty = yes
-			set_temp_variable = { ALO_loyalty_change = -1 }
-			ALO_change_national_loyalty = yes
 			custom_effect_tooltip = ALO_bop_dulatuly_rally_tt
 			hidden_effect = {
 				country_event = {
@@ -2059,14 +2064,10 @@ ALO_power_balance_decisions = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove ALO_rally_supporters"
 			if = {
 				limit = { ALO_dulatov_in_power = yes }
-				ALO_bop_dulatuly_medium = yes
-				set_temp_variable = { ALO_loyalty_change = 1 }
-				ALO_change_azat_loyalty = yes
+				ALO_bop_dulatuly_large = yes
 			}
 			else = {
 				ALO_bop_yermekov_large = yes
-				set_temp_variable = { ALO_loyalty_change = 1 }
-				ALO_change_national_loyalty = yes
 			}
 		}
 	}
@@ -2250,6 +2251,8 @@ ALO_shadow_of_atamans_decisions = {
 			has_country_flag = ALO_can_arrest_ataman_ionov
 			NOT = { 
 				has_active_mission = ALO_deal_with_orenburg_uralsk_unrest
+				has_active_mission = ALO_deal_with_orenburg_unrest
+				has_active_mission = ALO_deal_with_uralsk_unrest
 			}
 		}
 
@@ -2285,11 +2288,16 @@ ALO_shadow_of_atamans_decisions = {
 			has_completed_focus = ALO_Cossack_Community_In_Alash
 			NOT = { 
 				has_active_mission = ALO_deal_with_orenburg_uralsk_unrest
+				has_active_mission = ALO_deal_with_orenburg_unrest
+				has_active_mission = ALO_deal_with_uralsk_unrest
+				has_active_mission = ALO_coup_in_uralsk
+				has_country_flag = ALO_supported_tolstov
 			}
 		}
 
 		visible = {
 			1208 = { ALO_is_orenburg_cossack_host = yes }
+			NOT = { has_country_flag = ALO_dutov_arrested }
 		}
 		
 		target_non_existing = yes
@@ -2318,6 +2326,8 @@ ALO_shadow_of_atamans_decisions = {
 			NOT = { 
 				has_country_flag = ALO_negotiations_with_dutov 
 				has_active_mission = ALO_deal_with_orenburg_uralsk_unrest
+				has_active_mission = ALO_deal_with_orenburg_unrest
+				has_active_mission = ALO_deal_with_uralsk_unrest
 			}
 		}
 
@@ -2391,6 +2401,8 @@ ALO_shadow_of_atamans_decisions = {
 			NOT = { 
 				has_country_flag = ALO_negotiations_with_dutov 
 				has_active_mission = ALO_deal_with_orenburg_uralsk_unrest
+				has_active_mission = ALO_deal_with_orenburg_unrest
+				has_active_mission = ALO_deal_with_uralsk_unrest
 			}
 		}
 
@@ -2503,25 +2515,29 @@ ALO_shadow_of_atamans_decisions = {
 			NOT = { 
 				has_country_flag = ALO_negotiations_with_dutov 
 				has_active_mission = ALO_deal_with_orenburg_uralsk_unrest
+				has_active_mission = ALO_deal_with_orenburg_unrest
+				has_active_mission = ALO_deal_with_uralsk_unrest
 			}
 			has_completed_focus = ALO_Cossack_Community_In_Alash
 		}
 
 		visible = {
-			OR = {
-				AND = {
-					FROM = { tag = ORE }
-					1208 = { ALO_is_cossack_host = yes }
+			hidden_trigger = {
+				OR = {
+					AND = {
+						FROM = { tag = ORE }
+						1208 = { ALO_is_cossack_host = yes }
+					}
+					AND = {
+						FROM = { tag = URL }
+						406 = { ALO_is_cossack_host = yes }
+					}
+					AND = {
+						FROM = { tag = SMR }
+						589 = { ALO_is_cossack_host = yes }
+					}
+					has_country_flag = ALO_dutov_arrested
 				}
-				AND = {
-					FROM = { tag = URL }
-					406 = { ALO_is_cossack_host = yes }
-				}
-				AND = {
-					FROM = { tag = SMR }
-					589 = { ALO_is_cossack_host = yes }
-				}
-				has_country_flag = ALO_dutov_arrested
 			}
 		}
 		target_non_existing = yes
@@ -2632,17 +2648,128 @@ ALO_shadow_of_atamans_decisions = {
 		}
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision complete ALO_deal_with_orenburg_uralsk_unrest"
+			hidden_effect = { add_command_power = -50 }
 			set_country_flag = ALO_dutov_arrested
 			if = {
 				limit = { has_idea = ALO_cossack_garrison }
 				remove_ideas = ALO_cossack_garrison
 			}
-			1208 = { set_demilitarized_zone = yes }
-			406 = { set_demilitarized_zone = yes }
+			1208 = { 
+				set_temp_variable = { cossack_change = ALO_cossack_strength }
+				multiply_temp_variable = { cossack_change = -1 }
+				ALO_change_cossack_strength = yes
+				set_demilitarized_zone = no 
+			}
+			406 = { 
+				set_temp_variable = { cossack_change = ALO_cossack_strength }
+				multiply_temp_variable = { cossack_change = -1 }
+				ALO_change_cossack_strength = yes
+				set_demilitarized_zone = no 
+			}
 		}
 		timeout_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision timeout ALO_deal_with_orenburg_uralsk_unrest"
 			country_event = alash.592
+		}
+	}
+	ALO_deal_with_orenburg_unrest = {
+		icon = GFX_decision_revolt
+		allowed = { always = no } # manually activated
+		
+		available = {
+			has_stability > 0
+		}
+		
+		cancel_trigger = {
+			hidden_trigger = { country_exists = ORE }
+		}
+		
+		custom_cost_text = CP_30
+		custom_cost_trigger = { command_power > 29.99 }
+		
+		ai_will_do = { 
+			base = 100
+		}
+		
+		fire_only_once = yes
+		selectable_mission = yes
+		is_good = no
+		days_mission_timeout = 29
+		
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel ALO_deal_with_orenburg_unrest"			
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete ALO_deal_with_orenburg_unrest"
+			hidden_effect = { add_command_power = -30 }
+			set_country_flag = ALO_dutov_arrested
+			if = {
+				limit = { 
+					has_idea = ALO_cossack_garrison 
+					has_country_flag = ALO_supported_tolstov
+				}
+				swap_ideas = {
+					remove_idea = ALO_cossack_garrison
+					add_idea = ALO_cossack_autonomy
+				}				
+			}
+			1208 = { 
+				set_temp_variable = { cossack_change = ALO_cossack_strength }
+				multiply_temp_variable = { cossack_change = -1 }
+				ALO_change_cossack_strength = yes
+				set_demilitarized_zone = no 
+			}
+		}
+		timeout_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision timeout ALO_deal_with_orenburg_unrest"
+			country_event = alash.584
+		}
+	}
+	ALO_deal_with_uralsk_unrest = {
+		icon = GFX_decision_revolt
+		allowed = { always = no } # manually activated
+		
+		available = {
+			has_stability > 0
+		}
+		
+		cancel_trigger = {
+			hidden_trigger = { country_exists = ORE }
+		}
+		
+		custom_cost_text = CP_20
+		custom_cost_trigger = { command_power > 19.99 }
+		
+		ai_will_do = { 
+			base = 100
+		}
+		
+		fire_only_once = yes
+		selectable_mission = yes
+		is_good = no
+		days_mission_timeout = 29
+		
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel ALO_deal_with_uralsk_unrest"			
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete ALO_deal_with_uralsk_unrest"
+			hidden_effect = { add_command_power = -20 }
+			set_country_flag = ALO_tolstov_arrested
+			if = {
+				limit = { has_idea = ALO_cossack_garrison }
+				remove_ideas = ALO_cossack_garrison
+			}
+			406 = { 
+				set_temp_variable = { cossack_change = ALO_cossack_strength }
+				multiply_temp_variable = { cossack_change = -1 }
+				ALO_change_cossack_strength = yes
+				set_demilitarized_zone = no 
+			}
+		}
+		timeout_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision timeout ALO_deal_with_uralsk_unrest"
+			country_event = alash.583
 		}
 	}
 	ALO_dealing_with_land_troubles = {
