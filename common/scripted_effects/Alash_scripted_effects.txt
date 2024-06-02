@@ -18,10 +18,10 @@ ALO_setup_initial_variables = {
 	set_variable = { ALO_russian_deputies_support = 4 }
 	ALO_calculate_support = yes
 	
-	set_variable = { ALO_azat_loyalty = 5 }
+	set_variable = { ALO_azat_loyalty = 10 }
 	set_variable = { ALO_zhanar_loyalty = 10 }
 	set_variable = { ALO_alash_loyalty = 10 }
-	set_variable = { ALO_national_loyalty = 7 }
+	set_variable = { ALO_national_loyalty = 10 }
 	ALO_calculate_alash_party_unity = yes 
 	
 	set_variable = { ALO_modernization_political_power_cost = 0.05 }
@@ -772,7 +772,6 @@ ALO_change_ush_zhus_support = {
 	if = {
 		limit = {
 			check_variable = { ALO_ush_zhus_deputies > 0 }
-			check_variable = { ALO_ush_zhus_deputies_support < ALO_ush_zhus_deputies }
 		}
 		if = {
 			limit = { has_elections = yes }
@@ -807,7 +806,6 @@ ALO_change_zhas_azamat_support = {
 	if = {
 		limit = {
 			check_variable = { ALO_zhas_azamat_deputies > 0 }
-			check_variable = { ALO_zhas_azamat_deputies_support < ALO_zhas_azamat_deputies }
 		}
 		if = {
 			limit = { has_elections = yes }
@@ -842,7 +840,6 @@ ALO_change_azat_support = {
 	if = {
 		limit = {
 			check_variable = { ALO_azat_deputies > 0 }
-			check_variable = { ALO_azat_deputies_support < ALO_azat_deputies }
 		}
 		if = {
 			limit = { has_elections = yes }
@@ -877,7 +874,6 @@ ALO_change_zhanar_support = {
 	if = {
 		limit = {
 			check_variable = { ALO_zhanar_deputies > 0 }
-			check_variable = { ALO_zhanar_deputies_support < ALO_zhanar_deputies }
 		}
 		if = {
 			limit = { has_elections = yes }
@@ -912,7 +908,6 @@ ALO_change_alash_support = {
 	if = {
 		limit = {
 			check_variable = { ALO_alash_deputies > 0 }
-			check_variable = { ALO_alash_deputies_support < ALO_alash_deputies }
 		}
 		if = {
 			limit = { has_elections = yes }
@@ -947,7 +942,6 @@ ALO_change_national_support = {
 	if = {
 		limit = {
 			check_variable = { ALO_national_deputies > 0 }
-			check_variable = { ALO_national_deputies_support < ALO_national_deputies }
 		}
 		if = {
 			limit = { has_elections = yes }
@@ -1627,15 +1621,6 @@ ALO_change_national_loyalty = {
 			}
 		}
 
-		set_temp_variable = { ALO_national_loyalty_temp = ALO_national_loyalty }
-		set_temp_variable = { ALO_national_loyalty_change_temp =  ALO_loyalty_change }
-		add_to_temp_variable = { ALO_national_loyalty_temp = ALO_national_loyalty_change_temp }
-		effect_tooltip = {
-			if = {
-				limit = { check_variable = { ALO_national_loyalty_temp < 1 } }
-			}
-			activate_mission = ALO_halyq_splits_mission
-		}
 		# lower limit = legitimacy * -1
 		set_temp_variable = { ALO_lower_limit = ALO_national_loyalty }
 		multiply_temp_variable = { ALO_lower_limit = -1 }
@@ -2751,12 +2736,36 @@ ALO_remove_russian_influence = {
 		set_country_flag = ALO_kazakhization
 		hidden_effect = {
 			every_controlled_state = { rename_state_effect = yes }
+			if = {
+				limit = { 
+					country_exists = UKR 
+					UKR = { 
+						is_subject = no 
+						OR = {
+							UKR_usdrp_in_power = yes
+							UKR_upsr_in_power = yes
+							UKR_ukp_in_power = yes
+							UKR_upsf_in_power = yes
+							UKR_petliura_in_power = yes
+						}
+					}
+				}
+				ALO = { 
+					country_event = {
+						id = alash.489
+						days = 30
+					}
+				}
+			}
 		}
 	}
 }
 ALO_change_cossack_strength = {
 	if = {
-		limit = { ALO_is_cossack_host = yes }
+		limit = { 
+			ALO_is_cossack_host = yes 
+			is_owned_by = ROOT
+		}
 		if = {
 			limit = { ALO_is_semirechye_cossack_host = yes }
 			# tooltip
@@ -3831,8 +3840,329 @@ ALO_setup_presidential_race = {
 		set_variable = { ALO_national_percentage_presidential_vote = 0 }
 	}
 	else_if = {
-		limit = { has_any_power_balance = no }
+		limit = { 
+			has_any_power_balance = no 
+			NOT = { has_country_flag = ALO_alash_party_ended }
+		}
 		add_to_variable = { ALO_zhanar_percentage_presidential_vote = ALO_alash_percentage_presidential_vote }
 		set_variable = { ALO_alash_percentage_presidential_vote = 0 }
+	}
+}
+ALO_presidential_race_effect = {
+	custom_effect_tooltip = ALO_presidential_race_effect_tt
+	hidden_effect = {
+		if = {
+			limit = { has_country_flag = ALO_president_ush_jus }
+			random_list = {
+				40 = {
+					set_temp_variable_to_random = { 
+						var = vote_change_temp
+						min = 0
+						max = 0.1
+					}
+					add_to_variable = { ALO_zhas_azamat_percentage_presidential_vote = vote_change_temp }
+					divide_temp_variable = { vote_change_temp = -1 }
+					add_to_variable = { ALO_ush_zhus_percentage_presidential_vote = vote_change_temp }
+					clamp_variable = { var = ALO_zhas_azamat_percentage_presidential_vote min = 0 max = 1 }
+					clamp_variable = { var = ALO_ush_zhus_percentage_presidential_vote min = 0 max = 1 }
+				}
+				30 = {
+					set_temp_variable_to_random = { 
+						var = vote_change_temp
+						min = 0
+						max = 0.1
+					}
+					add_to_variable = { ALO_zhanar_percentage_presidential_vote = vote_change_temp }
+					divide_temp_variable = { vote_change_temp = -1 }
+					add_to_variable = { ALO_ush_zhus_percentage_presidential_vote = vote_change_temp }
+					clamp_variable = { var = ALO_zhanar_percentage_presidential_vote min = 0 max = 1 }
+					clamp_variable = { var = ALO_ush_zhus_percentage_presidential_vote min = 0 max = 1 }
+				}
+				15 = {
+					modifier = {
+						factor = 0
+						has_country_flag = alash_faction_banned
+					}
+					set_temp_variable_to_random = { 
+						var = vote_change_temp
+						min = 0
+						max = 0.1
+					}
+					add_to_variable = { ALO_alash_percentage_presidential_vote = vote_change_temp }
+					divide_temp_variable = { vote_change_temp = -1 }
+					add_to_variable = { ALO_ush_zhus_percentage_presidential_vote = vote_change_temp }
+					clamp_variable = { var = ALO_alash_percentage_presidential_vote min = 0 max = 1 }
+					clamp_variable = { var = ALO_ush_zhus_percentage_presidential_vote min = 0 max = 1 }
+				}
+				15 = {
+					modifier = {
+						factor = 0
+						has_country_flag = national_faction_banned
+					}
+					set_temp_variable_to_random = { 
+						var = vote_change_temp
+						min = 0
+						max = 0.1
+					}
+					add_to_variable = { ALO_national_percentage_presidential_vote = vote_change_temp }
+					divide_temp_variable = { vote_change_temp = -1 }
+					add_to_variable = { ALO_ush_zhus_percentage_presidential_vote = vote_change_temp }
+					clamp_variable = { var = ALO_national_percentage_presidential_vote min = 0 max = 1 }
+					clamp_variable = { var = ALO_ush_zhus_percentage_presidential_vote min = 0 max = 1 }
+				}
+			}		
+		}
+		else_if = {
+			limit = { has_country_flag = ALO_president_jas_azamat }
+			random_list = {
+				30 = {
+					modifier = {
+						factor = 0
+						has_country_flag = ush_zhus_banned
+					}
+					set_temp_variable_to_random = { 
+						var = vote_change_temp
+						min = 0
+						max = 0.1
+					}
+					add_to_variable = { ALO_ush_zhus_percentage_presidential_vote = vote_change_temp }
+					divide_temp_variable = { vote_change_temp = -1 }
+					add_to_variable = { ALO_zhas_azamat_percentage_presidential_vote = vote_change_temp }
+					clamp_variable = { var = ALO_ush_zhus_percentage_presidential_vote min = 0 max = 1 }
+					clamp_variable = { var = ALO_zhas_azamat_percentage_presidential_vote min = 0 max = 1 }
+				}
+				35 = {
+					set_temp_variable_to_random = { 
+						var = vote_change_temp
+						min = 0
+						max = 0.1
+					}
+					add_to_variable = { ALO_zhanar_percentage_presidential_vote = vote_change_temp }
+					divide_temp_variable = { vote_change_temp = -1 }
+					add_to_variable = { ALO_zhas_azamat_percentage_presidential_vote = vote_change_temp }
+					clamp_variable = { var = ALO_zhanar_percentage_presidential_vote min = 0 max = 1 }
+					clamp_variable = { var = ALO_zhas_azamat_percentage_presidential_vote min = 0 max = 1 }
+				}
+				20 = {
+					modifier = {
+						factor = 0
+						has_country_flag = alash_faction_banned
+					}
+					set_temp_variable_to_random = { 
+						var = vote_change_temp
+						min = 0
+						max = 0.1
+					}
+					add_to_variable = { ALO_alash_percentage_presidential_vote = vote_change_temp }
+					divide_temp_variable = { vote_change_temp = -1 }
+					add_to_variable = { ALO_zhas_azamat_percentage_presidential_vote = vote_change_temp }
+					clamp_variable = { var = ALO_alash_percentage_presidential_vote min = 0 max = 1 }
+					clamp_variable = { var = ALO_zhas_azamat_percentage_presidential_vote min = 0 max = 1 }
+				}
+				15 = {
+					modifier = {
+						factor = 0
+						has_country_flag = national_faction_banned
+					}
+					set_temp_variable_to_random = { 
+						var = vote_change_temp
+						min = 0
+						max = 0.1
+					}
+					add_to_variable = { ALO_national_percentage_presidential_vote = vote_change_temp }
+					divide_temp_variable = { vote_change_temp = -1 }
+					add_to_variable = { ALO_zhas_azamat_percentage_presidential_vote = vote_change_temp }
+					clamp_variable = { var = ALO_national_percentage_presidential_vote min = 0 max = 1 }
+					clamp_variable = { var = ALO_zhas_azamat_percentage_presidential_vote min = 0 max = 1 }
+				}
+			}		
+		}
+		else_if = {
+			limit = { has_country_flag = ALO_president_janar }
+			random_list = {
+				20 = {
+					modifier = {
+						factor = 0
+						has_country_flag = ush_zhus_banned
+					}
+					set_temp_variable_to_random = { 
+						var = vote_change_temp
+						min = 0
+						max = 0.1
+					}
+					add_to_variable = { ALO_ush_zhus_percentage_presidential_vote = vote_change_temp }
+					divide_temp_variable = { vote_change_temp = -1 }
+					add_to_variable = { ALO_zhas_azamat_percentage_presidential_vote = vote_change_temp }
+					clamp_variable = { var = ALO_ush_zhus_percentage_presidential_vote min = 0 max = 1 }
+					clamp_variable = { var = ALO_zhas_azamat_percentage_presidential_vote min = 0 max = 1 }
+				}
+				40 = {
+					set_temp_variable_to_random = { 
+						var = vote_change_temp
+						min = 0
+						max = 0.1
+					}
+					add_to_variable = { ALO_zhas_azamat_percentage_presidential_vote = vote_change_temp }
+					divide_temp_variable = { vote_change_temp = -1 }
+					add_to_variable = { ALO_zhanar_percentage_presidential_vote = vote_change_temp }
+					clamp_variable = { var = ALO_zhas_azamat_percentage_presidential_vote min = 0 max = 1 }
+					clamp_variable = { var = ALO_zhanar_percentage_presidential_vote min = 0 max = 1 }
+				}
+				25 = {
+					modifier = {
+						factor = 0
+						has_country_flag = alash_faction_banned
+					}
+					set_temp_variable_to_random = { 
+						var = vote_change_temp
+						min = 0
+						max = 0.1
+					}
+					add_to_variable = { ALO_alash_percentage_presidential_vote = vote_change_temp }
+					divide_temp_variable = { vote_change_temp = -1 }
+					add_to_variable = { ALO_zhanar_percentage_presidential_vote = vote_change_temp }
+					clamp_variable = { var = ALO_alash_percentage_presidential_vote min = 0 max = 1 }
+					clamp_variable = { var = ALO_zhanar_percentage_presidential_vote min = 0 max = 1 }
+				}
+				15 = {
+					modifier = {
+						factor = 0
+						has_country_flag = national_faction_banned
+					}
+					set_temp_variable_to_random = { 
+						var = vote_change_temp
+						min = 0
+						max = 0.1
+					}
+					add_to_variable = { ALO_national_percentage_presidential_vote = vote_change_temp }
+					divide_temp_variable = { vote_change_temp = -1 }
+					add_to_variable = { ALO_zhanar_percentage_presidential_vote = vote_change_temp }
+					clamp_variable = { var = ALO_national_percentage_presidential_vote min = 0 max = 1 }
+					clamp_variable = { var = ALO_zhanar_percentage_presidential_vote min = 0 max = 1 }
+				}
+			}		
+		}
+		else_if = {
+			limit = { has_country_flag = ALO_president_alash }
+			random_list = {
+				20 = {
+					modifier = {
+						factor = 0
+						has_country_flag = ush_zhus_banned
+					}
+					set_temp_variable_to_random = { 
+						var = vote_change_temp
+						min = 0
+						max = 0.1
+					}
+					add_to_variable = { ALO_ush_zhus_percentage_presidential_vote = vote_change_temp }
+					divide_temp_variable = { vote_change_temp = -1 }
+					add_to_variable = { ALO_zhas_azamat_percentage_presidential_vote = vote_change_temp }
+					clamp_variable = { var = ALO_ush_zhus_percentage_presidential_vote min = 0 max = 1 }
+					clamp_variable = { var = ALO_zhas_azamat_percentage_presidential_vote min = 0 max = 1 }
+				}
+				25 = {
+					set_temp_variable_to_random = { 
+						var = vote_change_temp
+						min = 0
+						max = 0.1
+					}
+					add_to_variable = { ALO_zhas_azamat_percentage_presidential_vote = vote_change_temp }
+					divide_temp_variable = { vote_change_temp = -1 }
+					add_to_variable = { ALO_zhanar_percentage_presidential_vote = vote_change_temp }
+					clamp_variable = { var = ALO_zhas_azamat_percentage_presidential_vote min = 0 max = 1 }
+					clamp_variable = { var = ALO_zhanar_percentage_presidential_vote min = 0 max = 1 }
+				}
+				40 = {
+					set_temp_variable_to_random = { 
+						var = vote_change_temp
+						min = 0
+						max = 0.1
+					}
+					add_to_variable = { ALO_zhanar_percentage_presidential_vote = vote_change_temp }
+					divide_temp_variable = { vote_change_temp = -1 }
+					add_to_variable = { ALO_alash_percentage_presidential_vote min = vote_change_temp }
+					clamp_variable = { var = ALO_zhanar_percentage_presidential_vote = 0 max = 1 }
+					clamp_variable = { var = ALO_alash_percentage_presidential_vote min min = 0 max = 1 }
+				}
+				15 = {
+					modifier = {
+						factor = 0
+						has_country_flag = national_faction_banned
+					}
+					set_temp_variable_to_random = { 
+						var = vote_change_temp
+						min = 0
+						max = 0.1
+					}
+					add_to_variable = { ALO_national_percentage_presidential_vote = vote_change_temp }
+					divide_temp_variable = { vote_change_temp = -1 }
+					add_to_variable = { ALO_alash_percentage_presidential_vote min = vote_change_temp }
+					clamp_variable = { var = ALO_national_percentage_presidential_vote min = 0 max = 1 }
+					clamp_variable = { var = ALO_alash_percentage_presidential_vote min min = 0 max = 1 }
+				}
+			}		
+		}
+		else_if = {
+			limit = { has_country_flag = ALO_president_halyq }
+			random_list = {
+				15 = {
+					modifier = {
+						factor = 0
+						has_country_flag = ush_zhus_banned
+					}
+					set_temp_variable_to_random = { 
+						var = vote_change_temp
+						min = 0
+						max = 0.1
+					}
+					add_to_variable = { ALO_ush_zhus_percentage_presidential_vote = vote_change_temp }
+					divide_temp_variable = { vote_change_temp = -1 }
+					add_to_variable = { ALO_zhas_azamat_percentage_presidential_vote = vote_change_temp }
+					clamp_variable = { var = ALO_ush_zhus_percentage_presidential_vote min = 0 max = 1 }
+					clamp_variable = { var = ALO_zhas_azamat_percentage_presidential_vote min = 0 max = 1 }
+				}
+				25 = {
+					set_temp_variable_to_random = { 
+						var = vote_change_temp
+						min = 0
+						max = 0.1
+					}
+					add_to_variable = { ALO_zhas_azamat_percentage_presidential_vote = vote_change_temp }
+					divide_temp_variable = { vote_change_temp = -1 }
+					add_to_variable = { ALO_zhanar_percentage_presidential_vote = vote_change_temp }
+					clamp_variable = { var = ALO_zhas_azamat_percentage_presidential_vote min = 0 max = 1 }
+					clamp_variable = { var = ALO_zhanar_percentage_presidential_vote min = 0 max = 1 }
+				}
+				40 = {
+					set_temp_variable_to_random = { 
+						var = vote_change_temp
+						min = 0
+						max = 0.1
+					}
+					add_to_variable = { ALO_zhanar_percentage_presidential_vote = vote_change_temp }
+					divide_temp_variable = { vote_change_temp = -1 }
+					add_to_variable = { ALO_alash_percentage_presidential_vote min = vote_change_temp }
+					clamp_variable = { var = ALO_zhanar_percentage_presidential_vote = 0 max = 1 }
+					clamp_variable = { var = ALO_alash_percentage_presidential_vote min min = 0 max = 1 }
+				}
+				20 = {
+					modifier = {
+						factor = 0
+						has_country_flag = alash_faction_banned
+					}
+					set_temp_variable_to_random = { 
+						var = vote_change_temp
+						min = 0
+						max = 0.1
+					}
+					add_to_variable = { ALO_alash_percentage_presidential_vote = vote_change_temp }
+					divide_temp_variable = { vote_change_temp = -1 }
+					add_to_variable = { ALO_national_percentage_presidential_vote min = vote_change_temp }
+					clamp_variable = { var = ALO_alash_percentage_presidential_vote min = 0 max = 1 }
+					clamp_variable = { var = ALO_national_percentage_presidential_vote min min = 0 max = 1 }
+				}
+			}		
+		}
 	}
 }
