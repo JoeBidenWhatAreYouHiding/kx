@@ -34,6 +34,9 @@ ALO_setup_initial_variables = {
 	406 = { set_variable = { ALO_cossack_strength = 0.45 } }
 	1208 = { set_variable = { ALO_cossack_strength = 0.75 } }
 	589 = { set_variable = { ALO_cossack_strength = 0.25 } }
+	set_variable = { ALO_cossack_strength_display_URL = 0.45 }
+	set_variable = { ALO_cossack_strength_display_ORE = 0.75 }
+	set_variable = { ALO_cossack_strength_display_SMR = 0.25 }
 	
 	set_variable = { alo_var_autonomy_oyi = 8 }
 	set_variable = { alo_var_autonomy_tor = 6 }
@@ -45,6 +48,8 @@ ALO_setup_initial_variables = {
 	set_variable = { alo_var_autonomy_url = 5 }
 	set_variable = { alo_var_autonomy_smr = 3 }
 	ALO_calculate_federalism = yes	
+	
+	set_variable = { ALO_ban_socialist_parties_cost = 35 }
 }
 
 ALO_setup_initial_popularities = {
@@ -532,7 +537,12 @@ ALO_run_election = {
 			set_variable = { ALO_ush_zhus_state_votes = 0 }
 		}
 		if = {
-			limit = { check_variable = { ALO_zhas_azamat_state_votes < 0 } }
+			limit = { 
+				OR = {
+					check_variable = { ALO_zhas_azamat_state_votes < 0 } 
+					ROOT = { has_country_flag = zhas_azamat_banned }
+				}
+			}
 			set_variable = { ALO_zhas_azamat_state_votes = 0 }
 		}
 		if = {
@@ -2133,17 +2143,133 @@ ALO_secure_alash = {
 		}
 		else_if = {
 			limit = { ALO_amonzholov_in_power = yes }
-			set_country_flag = zhanar_faction_banned
 			set_country_flag = alash_faction_banned
-			every_owned_state = {
-				ALO_get_final_popularities = yes
-				ALO_set_new_popularities_after_election = yes
-				add_to_variable = { ALO_state_national_pop = ALO_state_zhanar_pop }
-				add_to_variable = { ALO_state_national_pop = ALO_state_alash_pop }
-				set_variable = { ALO_state_zhanar_pop = 0 }
-				set_variable = { ALO_state_alash_pop = 0 }
-				set_variable = { ALO_state_zhanar_temp_pop = 0 }
-				set_variable = { ALO_state_alash_temp_pop = 0 }
+			set_country_flag = azat_faction_banned
+			set_country_flag = zhanar_faction_banned
+			hidden_effect = {
+				every_owned_state = {
+					ALO_get_final_popularities = yes
+					add_to_variable = { ALO_state_national_pop = ALO_state_alash_pop }
+					set_variable = { ALO_state_alash_pop = 0 }
+					set_variable = { ALO_state_alash_temp_pop = 0 }
+					
+					add_to_variable = { ALO_state_national_pop = ALO_state_zhanar_pop }
+					set_variable = { ALO_state_zhanar_pop = 0 }
+					set_variable = { ALO_state_zhanar_temp_pop = 0 }
+					
+					if = {
+						limit = { 
+							ROOT = { ALO_alash_left_independent = no }
+						}
+						add_to_variable = { ALO_state_national_pop = ALO_state_azat_pop }
+						set_variable = { ALO_state_azat_pop = 0 }
+						set_variable = { ALO_state_azat_temp_pop = 0 }
+					}
+					ALO_set_new_popularities_after_election = yes
+				}
+				# Parliament #
+				add_to_variable = { ALO_national_deputies = ALO_alash_deputies }
+				add_to_variable = { ALO_national_deputies_support = ALO_alash_deputies }
+				set_variable = { ALO_alash_deputies = 0 }
+				set_variable = { ALO_alash_deputies_support = 0 }
+				
+				add_to_variable = { ALO_national_deputies = ALO_zhanar_deputies }
+				add_to_variable = { ALO_national_deputies_support = ALO_zhanar_deputies }
+				set_variable = { ALO_zhanar_deputies = 0 }
+				set_variable = { ALO_zhanar_deputies_support = 0 }
+				
+				if = {
+					limit = { 
+						ROOT = { ALO_alash_left_independent = no }
+					}
+					add_to_variable = { ALO_national_deputies = ALO_azat_deputies }
+					add_to_variable = { ALO_national_deputies_support = ALO_azat_deputies }
+					set_variable = { ALO_azat_deputies = 0 }
+					set_variable = { ALO_azat_deputies_support = 0 }
+				}
+				# Popularities #
+				if = {
+					limit = { has_government = authoritarian_democrat }					
+					set_temp_variable = { ALO_new_authdem = party_popularity_100@social_liberal }
+					add_to_temp_variable = { ALO_new_authdem = party_popularity_100@market_liberal  }
+					add_to_temp_variable = { ALO_new_authdem = party_popularity_100@social_conservative  }
+					add_to_temp_variable = { ALO_new_authdem = party_popularity_100@authoritarian_democrat  }
+
+					set_temp_variable = { sum = 100 }
+					subtract_from_temp_variable = { sum = party_popularity_100@totalist }
+					subtract_from_temp_variable = { sum = party_popularity_100@syndicalist }
+					subtract_from_temp_variable = { sum = party_popularity_100@radical_socialist }
+					subtract_from_temp_variable = { sum = party_popularity_100@social_democrat }
+					subtract_from_temp_variable = { sum = ALO_new_authdem }
+					subtract_from_temp_variable = { sum = party_popularity_100@paternal_autocrat }
+					subtract_from_temp_variable = { sum = party_popularity_100@national_populist }
+
+					add_to_temp_variable = { ALO_new_authdem = sum } #avoid rounding errors
+
+					set_popularities = {
+						totalist = party_popularity_100@totalist
+						syndicalist = party_popularity_100@syndicalist
+						radical_socialist = party_popularity_100@radical_socialist
+						social_democrat = party_popularity_100@social_democrat
+						social_liberal = 0
+						market_liberal = 0
+						social_conservative = 0
+						authoritarian_democrat = ALO_new_authdem
+						paternal_autocrat = party_popularity_100@paternal_autocrat
+						national_populist = party_popularity_100@national_populist
+					}
+				}
+				else = {
+					
+					set_temp_variable = { ALO_new_soccon = party_popularity_100@social_liberal }
+					add_to_temp_variable = { ALO_new_soccon = party_popularity_100@market_liberal  }
+					add_to_temp_variable = { ALO_new_authdem = party_popularity_100@social_conservative  }
+					add_to_temp_variable = { ALO_new_authdem = party_popularity_100@authoritarian_democrat  }
+
+					set_temp_variable = { sum = 100 }
+					subtract_from_temp_variable = { sum = party_popularity_100@totalist }
+					subtract_from_temp_variable = { sum = party_popularity_100@syndicalist }
+					subtract_from_temp_variable = { sum = party_popularity_100@radical_socialist }
+					subtract_from_temp_variable = { sum = party_popularity_100@social_democrat }
+					subtract_from_temp_variable = { sum = ALO_new_soccon }
+					subtract_from_temp_variable = { sum = party_popularity_100@paternal_autocrat }
+					subtract_from_temp_variable = { sum = party_popularity_100@national_populist }
+
+					add_to_temp_variable = { ALO_new_soccon = sum } #avoid rounding errors
+
+					set_popularities = {
+						totalist = party_popularity_100@totalist
+						syndicalist = party_popularity_100@syndicalist
+						radical_socialist = party_popularity_100@radical_socialist
+						social_democrat = party_popularity_100@social_democrat
+						social_liberal = 0
+						market_liberal = 0
+						social_conservative = ALO_new_soccon
+						authoritarian_democrat = 0
+						paternal_autocrat = party_popularity_100@paternal_autocrat
+						national_populist = party_popularity_100@national_populist
+					}
+				}
+				set_party_name = {
+					ideology = social_conservative
+					name = ALO_market_liberal_party
+					long_name = ALO_alash_party_long
+				}
+				set_party_name = {
+					ideology = authoritarian_democrat
+					name = ALO_market_liberal_party
+					long_name = ALO_alash_party_long
+				}
+				set_party_name = {
+					ideology = market_liberal
+					name = ALO_market_liberal_party
+					long_name = ALO_alash_party_long
+				}
+				set_party_name = {
+					ideology = social_liberal
+					name = ALO_market_liberal_party
+					long_name = ALO_alash_party_long
+				}
 			}
 		}
 		else = {
@@ -2924,6 +3050,7 @@ ALO_change_cossack_strength = {
 		
 		if = {
 			limit = { ALO_is_ural_cossack_host = yes }
+			set_variable = { ROOT.ALO_cossack_strength_display_URL = ALO_cossack_strength }
 			hidden_effect = {
 				if = {
 					limit = { check_variable = { ALO_cossack_strength > 0.64 } }
@@ -3028,6 +3155,7 @@ ALO_change_cossack_strength = {
 		}
 		else_if = {
 			limit = { ALO_is_orenburg_cossack_host = yes }
+			set_variable = { ROOT.ALO_cossack_strength_display_ORE = ALO_cossack_strength }
 			hidden_effect = {
 				if = {
 					limit = { check_variable = { ALO_cossack_strength > 0.64 } }
@@ -3132,6 +3260,7 @@ ALO_change_cossack_strength = {
 		}
 		else_if = {
 			limit = { ALO_is_semirechye_cossack_host = yes }
+			set_variable = { ROOT.ALO_cossack_strength_display_SMR = ALO_cossack_strength }
 			hidden_effect = {
 				if = {
 					limit = { check_variable = { ALO_cossack_strength > 0.64 } }
@@ -4079,7 +4208,12 @@ ALO_setup_presidential_race = {
 			set_variable = { ALO_ush_zhus_state_presidential_votes = 0 }
 		}
 		if = {
-			limit = { check_variable = { ALO_zhas_azamat_state_presidential_votes < 0 } }
+			limit = { 
+				OR = {
+					check_variable = { ALO_zhas_azamat_state_presidential_votes < 0 } 
+					ROOT = { has_country_flag = zhas_azamat_banned }
+				}
+			}
 			set_variable = { ALO_zhas_azamat_state_presidential_votes = 0 }
 		}
 		if = {
@@ -4397,6 +4531,10 @@ ALO_presidential_race_effect = {
 					clamp_variable = { var = ALO_zhas_azamat_percentage_presidential_vote min = 0 max = 1 }
 				}
 				25 = {
+					modifier = {
+						factor = 0
+						has_country_flag = zhas_azamat_banned
+					}
 					set_temp_variable_to_random = { 
 						var = vote_change_temp
 						min = 0
@@ -4458,6 +4596,10 @@ ALO_presidential_race_effect = {
 					clamp_variable = { var = ALO_zhas_azamat_percentage_presidential_vote min = 0 max = 1 }
 				}
 				25 = {
+					modifier = {
+						factor = 0
+						has_country_flag = zhas_azamat_banned
+					}
 					set_temp_variable_to_random = { 
 						var = vote_change_temp
 						min = 0
@@ -4686,6 +4828,52 @@ ALO_execute_combat_tribalism_decisions = {
 			ALO_national_pop = yes
 			set_temp_variable = { zhas_azamat_pop = 10 }
 			ALO_zhas_azamat_pop = yes
+		}
+	}
+}
+ALO_setup_monarch_for_natpop_slot = {
+	if = {
+		limit = { 
+			has_country_leader = { name = "Mehmed Abdülkerim" ruling_only = yes } 
+		}
+		create_country_leader = {
+			name = "Mehmed Abdülkerim"
+			picture = "gfx/leaders/AFG/Portrait_AFG_Sehzade_Mehmed_Abdulkerim.png"
+			expire = "1.1.1"
+			ideology = militarism_subtype
+		}
+	}
+	else_if = {
+		limit = { 
+			has_country_leader = { name = "Mehmed Orhan" ruling_only = yes } 
+		}
+		create_country_leader = {
+			name = "Mehmed Orhan"
+			picture = "gfx/leaders/OTT/Portrait_OTT_Mehmed_Orhan.png"
+			expire = "1.1.1"
+			ideology = militarism_subtype
+		}
+	}
+	else_if = {
+		limit = { 
+			has_country_leader = { name = "Mahmud Namik" ruling_only = yes }
+		}
+		create_country_leader = {
+			name = "Mahmud Namik"
+			picture = "gfx/leaders/OTT/Portrait_OTT_Mahmud_Namik.png"
+			expire = "1.1.1"
+			ideology = militarism_subtype
+		}
+	}
+	else_if = {
+		limit = { 
+			has_country_leader = { name = "Äzimhan" ruling_only = yes }
+		}
+		create_country_leader = {
+			name = "Äzimhan"
+			picture = "gfx/leaders/ALO/Portrait_ALO_Azimkhan_Kenesarin.png"
+			expire = "1.1.1"
+			ideology = militarism_subtype
 		}
 	}
 }
