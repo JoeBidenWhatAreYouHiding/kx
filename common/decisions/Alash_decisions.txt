@@ -2991,6 +2991,7 @@ ALO_shadow_of_atamans_decisions = {
 		visible = {
 			1208 = { ALO_is_orenburg_cossack_host = yes }
 			NOT = { has_country_flag = ALO_dutov_arrested }
+			ALO_amonzholov_in_power = no
 		}
 		
 		target_non_existing = yes
@@ -3234,6 +3235,10 @@ ALO_shadow_of_atamans_decisions = {
 				has_completed_focus = ALO_Cossack_Community_In_Alash
 			}
 			else_if = {
+				limit = { ALO_amonzholov_in_power = yes }
+				has_completed_focus = ALO_Deal_With_The_Cossacks
+			}
+			else_if = {
 				limit = { ALO_jas_azamat_in_power = yes }
 				has_country_flag = ALO_jas_azamat_disband_hosts
 			}
@@ -3241,20 +3246,17 @@ ALO_shadow_of_atamans_decisions = {
 
 		visible = {
 			hidden_trigger = {
-				OR = {
-					AND = {
-						FROM = { tag = ORE }
-						1208 = { ALO_is_cossack_host = yes }
-					}
-					AND = {
-						FROM = { tag = URL }
-						406 = { ALO_is_cossack_host = yes }
-					}
-					AND = {
-						FROM = { tag = SMR }
-						589 = { ALO_is_cossack_host = yes }
-					}
-					has_country_flag = ALO_dutov_arrested
+				if = {
+					limit = { FROM = { tag = ORE } }
+					1208 = { ALO_is_cossack_host = yes }
+				}
+				else_if = {
+					limit = { FROM = { tag = URL } }
+					406 = { ALO_is_cossack_host = yes }
+				}
+				else_if = {
+					limit = { FROM = { tag = SMR } }
+					589 = { ALO_is_cossack_host = yes }
 				}
 			}
 		}
@@ -3765,6 +3767,7 @@ ALO_Halyq_Keneshi = {
 
 		visible = {
 			ALO_dulatov_in_power = yes
+			NOT = { has_country_flag = ALO_empowered_president }
 		}
 		cancel_if_not_visible = yes
 		
@@ -3802,6 +3805,7 @@ ALO_Halyq_Keneshi = {
 
 		visible = {
 			ALO_dulatov_in_power = yes
+			NOT = { has_country_flag = ALO_empowered_president }
 		}
 		cancel_if_not_visible = yes
 		
@@ -3812,7 +3816,6 @@ ALO_Halyq_Keneshi = {
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision complete ALO_empower_minister_president_cons"			
 			set_country_flag = ALO_empowered_president
-			set_country_flag = ALO_empower_president_amanjolov_completed
 			country_event = alash.984
 		}
 	}
@@ -4409,7 +4412,10 @@ ALO_amanjolov_decisions = {
 			
 		}
 		cancel_trigger = {
-			ALO_amonzholov_in_power = no
+			OR = {
+				ALO_amonzholov_in_power = no
+				has_completed_focus = ALO_Restore_Stability
+			}
 		}
 		
 		is_good = no
@@ -4435,6 +4441,7 @@ ALO_amanjolov_decisions = {
 	}
 	ALO_empower_president_amanjolov = {
 		icon = GFX_decision_SWI_elect_confederation_president
+		name = ALO_empower_minister_president
 		
 		fire_only_once = yes
 		cost = 40
@@ -4460,6 +4467,8 @@ ALO_amanjolov_decisions = {
 
 		visible = {
 			ALO_amonzholov_in_power = yes
+			NOT = { has_country_flag = ALO_empowered_president }
+			NOT = { has_completed_focus = ALO_Restore_Stability }
 		}
 		cancel_if_not_visible = yes
 		
@@ -4470,15 +4479,30 @@ ALO_amanjolov_decisions = {
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision complete ALO_empower_president_amanjolov"			
 			set_country_flag = ALO_empowered_president
-			set_country_flag = ALO_empower_president_amanjolov_completed
-			
+			if = {
+				limit = { has_government = social_conservative }
+				ALO_change_national_pop_into_authdem = yes
+				set_politics = {
+					ruling_party = authoritarian_democrat
+					elections_allowed = yes
+				}
+				if = {
+					limit = { 
+						NOT = { has_country_flag = ALO_alash_party_ended }
+					}
+					add_soclib_to_coalition = yes
+					add_marlib_to_coalition = yes
+				}
+				add_soccon_to_coalition = yes
+			}
 		}
 	}
 	ALO_ban_socialist_parties = {
 		icon = GFX_decision_eng_trade_unions_support
+		allowed = { always = no }
 		
 		fire_only_once = yes
-		custom_cost_text = ALO_decision_cost_stb_5
+		custom_cost_text = ALO_decision_cost_stb_5_pp_35
 		custom_cost_trigger = { 
 			has_stability > 0.049 
 			has_political_power > var:ALO_ban_socialist_parties_cost?35
@@ -4493,6 +4517,7 @@ ALO_amanjolov_decisions = {
 
 		visible = {
 			ALO_amonzholov_in_power = yes
+			NOT = { has_completed_focus = ALO_Restore_Stability }
 		}
 		cancel_if_not_visible = yes
 		
@@ -4537,14 +4562,26 @@ ALO_amanjolov_decisions = {
 	}
 	ALO_retire_mametov = {
 		icon = GFX_decision_onmap_recruit_operative
+		allowed = { always = no }
+		
+		available = {
+			custom_trigger_tooltip = {
+				tooltip = military_staff_is_field_marshal
+				any_unit_leader = {
+					has_id = 68679
+					is_field_marshal = no
+				}
+			}
+		}
 
 		fire_only_once = yes
 		cost = 40
 
 		visible = {
 			has_unit_leader = 68679
+			NOT = { has_completed_focus = ALO_Restore_Stability }
 		}
-
+		
 		ai_will_do = {
 			factor = 150
 		}
@@ -4566,6 +4603,9 @@ ALO_amanjolov_decisions = {
 	ALO_promote_militarism = {
 		icon = GFX_decision_eng_blackshirt_march
 		
+		visible = {
+			NOT = { has_completed_focus = ALO_Restore_Stability }
+		}
 		cost = 25
 		days_remove = 40
 		days_re_enable = 120
@@ -4590,6 +4630,9 @@ ALO_amanjolov_decisions = {
 	ALO_patriotic_rallies = {
 		icon = GFX_decision_generic_form_nation
 		
+		visible = {
+			NOT = { has_completed_focus = ALO_Restore_Stability }
+		}
 		cost = 25
 		days_remove = 40
 		days_re_enable = 120
@@ -4602,14 +4645,46 @@ ALO_amanjolov_decisions = {
 		}
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove ALO_patriotic_rallies target: [From.GetName]"
-			every_owned_state = {
-				set_temp_variable = { national_pop = 2 }
-				ALO_national_pop = yes
-			}
-			hidden_effect = {
-				increase_ruling_party_popularity_by_2 = yes
-			}
+			custom_effect_tooltip = ALO_tribal_disunity_will_decrease
+			add_to_variable = { alo_var_autonomy_oyi = -1 }
+			add_to_variable = { alo_var_autonomy_tor = -1 }
+			add_to_variable = { alo_var_autonomy_aqm = -1 }
+			add_to_variable = { alo_var_autonomy_sem = -1 }
+			add_to_variable = { alo_var_autonomy_jet = -1 }
+			add_to_variable = { alo_var_autonomy_syr = -1 }
+			ALO_calculate_federalism = yes
 		}
 	}
-	
+	ALO_deal_with_tribal_feuds = {
+		icon = GFX_decision_generic_civil_support
+		cancel_if_not_visible = yes
+		visible = {
+			NOT = { has_completed_focus = ALO_Restore_Stability }
+		}
+		
+		cost = 50
+		days_remove = 60
+		days_re_enable = 160
+		fire_only_once = no
+				
+		ai_will_do = {
+			factor = 100
+		}
+		modifier = {
+			stability_weekly = 0.002
+			political_power_cost = 0.02
+		}
+		
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove ALO_deal_with_tribal_feuds"
+			custom_effect_tooltip = ALO_tribal_disunity_will_decrease
+			add_to_variable = { alo_var_autonomy_oyi = -1 }
+			add_to_variable = { alo_var_autonomy_tor = -1 }
+			add_to_variable = { alo_var_autonomy_aqm = -1 }
+			add_to_variable = { alo_var_autonomy_sem = -1 }
+			add_to_variable = { alo_var_autonomy_jet = -1 }
+			add_to_variable = { alo_var_autonomy_syr = -1 }
+			ALO_calculate_federalism = yes
+		}
+	}
 }

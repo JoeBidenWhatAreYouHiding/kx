@@ -791,11 +791,15 @@ focus_tree = {
 			NOT = {
 				has_country_flag = ALO_political_crisis 
 				has_active_mission = ALO_land_inventory
+				has_active_mission = ALO_dealing_with_land_troubles
 			}
 			has_idea = ALO_land_troubles
 		}
 		bypass = {
-			NOT = { has_idea = ALO_land_troubles }
+			OR = {
+				has_active_mission = ALO_dealing_with_land_troubles
+				NOT = { has_idea = ALO_land_troubles }
+			}
 		}
 		prerequisite = { focus = ALO_Land_Cadastre }
 		ai_will_do = {
@@ -871,7 +875,7 @@ focus_tree = {
 			OR = {
 				406 = { ALO_is_ural_cossack_host = yes }
 				1208 = { ALO_is_orenburg_cossack_host = yes }
-				589 = { ALO_is_orenburg_cossack_host = yes }
+				589 = { ALO_is_semirechye_cossack_host = yes }
 			}
 			has_idea = ALO_cossack_garrison
 		}	
@@ -1636,13 +1640,17 @@ focus_tree = {
 		available = { 
 			ALO_alash_party_in_power = yes
 			has_idea = ALO_land_troubles
+			NOT = { has_active_mission = ALO_dealing_with_land_troubles }
 		}
 		prerequisite = { 
 			focus = ALO_Centralisation_Of_Steppe 
 			focus = ALO_Empower_Zemstva
 		}
 		bypass = {
-			NOT = { has_idea = ALO_land_troubles }
+			OR = {
+				has_active_mission = ALO_dealing_with_land_troubles
+				NOT = { has_idea = ALO_land_troubles }
+			}
 		}
 		ai_will_do = {
 			factor = 80
@@ -1761,7 +1769,7 @@ focus_tree = {
 			OR = {
 				406 = { ALO_is_ural_cossack_host = yes }
 				1208 = { ALO_is_orenburg_cossack_host = yes }
-				589 = { ALO_is_orenburg_cossack_host = yes }
+				589 = { ALO_is_semirechye_cossack_host = yes }
 			}
 			has_idea = ALO_cossack_garrison
 		}		
@@ -2281,10 +2289,11 @@ focus_tree = {
 		}
 		completion_reward = {
 			log = "[GetDateText]: [Root.GetName]: Focus ALO_Steppe_Democracy"
+			country_event = alash.755
 			set_temp_variable = { national_pop = 10 }
 			every_owned_state = { ALO_national_pop = yes }
 			hidden_effect = {
-				add_popularity = { ideology = authoritarian_democrat popularity = 0.10 }
+				increase_ruling_party_popularity_by_10 = yes
 			}
 			if = {
 				limit = { has_government = paternal_autocrat }
@@ -2293,6 +2302,15 @@ focus_tree = {
 					ruling_party = authoritarian_democrat
 					elections_allowed = yes
 				}
+				if = {
+					limit = { 
+						NOT = { has_country_flag = ALO_alash_party_ended }
+					}
+					add_soclib_to_coalition = yes
+					add_marlib_to_coalition = yes
+				}
+				add_soccon_to_coalition = yes
+				add_pataut_to_coalition = yes
 			}
 		}
 	}
@@ -2314,6 +2332,7 @@ focus_tree = {
 		}
 		completion_reward = {
 			log = "[GetDateText]: [Root.GetName]: Focus ALO_Secure_Military_Rule"
+			country_event = alash.755
 			set_temp_variable = { national_pop = 10 }
 			every_owned_state = { ALO_national_pop = yes }
 			hidden_effect = {
@@ -2331,6 +2350,8 @@ focus_tree = {
 		y = 2
 		available = { 
 			ALO_amonzholov_in_power = yes
+			ALO_has_russian_influence = no
+			is_subject = no
 		}
 		select_effect = {
 			country_event = {
@@ -2362,6 +2383,7 @@ focus_tree = {
 		y = 2
 		available = { 
 			ALO_amonzholov_in_power = yes
+			NOT = { has_country_flag = ALO_sedentarization_over }
 		}
 		prerequisite = { focus = ALO_Steppe_Democracy }
 		ai_will_do = {
@@ -2379,7 +2401,7 @@ focus_tree = {
 			every_owned_state = { ALO_national_pop = yes }
 			hidden_effect = {
 				add_popularity = { ideology = social_liberal popularity = -0.05 }
-				add_popularity = { ideology = social_conservative popularity = 0.05 }
+				increase_ruling_party_popularity_by_5 = yes
 			}
 		}
 	}
@@ -2424,6 +2446,11 @@ focus_tree = {
 				add_popularity = { ideology = social_liberal popularity = -0.03 }
 				# event about jas azamat joining janar to survive
 			}
+			custom_effect_tooltip = ALO_tribal_disunity_will_increase
+			add_to_variable = { alo_var_autonomy_oyi = 2 }
+			add_to_variable = { alo_var_autonomy_tor = 2 }
+			add_to_variable = { alo_var_autonomy_aqm = 2 }
+			ALO_calculate_federalism = yes
 		}
 	}
 	focus = {
@@ -2442,7 +2469,13 @@ focus_tree = {
 		}
 		completion_reward = {
 			log = "[GetDateText]: [Root.GetName]: Focus ALO_Defend_The_Steppe"
+			add_manpower = 20000
 			add_war_support = 0.1
+			custom_effect_tooltip = tooltip_white_line
+			swap_ideas = {
+				remove_idea = ALO_legacy_of_central_asian_revolt
+				add_idea = ALO_legacy_of_central_asian_revolt_1
+			}
 		}
 	}
 	focus = {
@@ -2466,17 +2499,15 @@ focus_tree = {
 		completion_reward = {
 			log = "[GetDateText]: [Root.GetName]: Focus ALO_Truth_in_Qadimism"
 			custom_effect_tooltip = ALO_Truth_in_Qadimism_tt
-			if = {
-				limit = { has_government = social_conservative }
+			hidden_effect = {
+				get_current_government_type = yes
+				set_politics = { ruling_party = social_conservative }
 				set_country_leader_ideology = qadhimism_subtype
-			}
-			else_if = {
-				limit = { has_government = authoritarian_democrat }
+				set_politics = { ruling_party = authoritarian_democrat }
 				set_country_leader_ideology = authdem_qadhimism_subtype
-			}
-			else_if = {
-				limit = { has_government = paternal_autocrat }
+				set_politics = { ruling_party = paternal_autocrat }
 				set_country_leader_ideology = pataut_qadhimism_subtype
+				restore_previous_government_type = yes
 			}
 		}
 	}
@@ -2489,6 +2520,9 @@ focus_tree = {
 		y = 3
 		available = { 
 			ALO_amonzholov_in_power = yes
+			NOT = {
+				has_idea = TRK_Seraly_Lapin_sec_sco
+			}
 		}
 		prerequisite = { 
 			focus = ALO_Steppe_Democracy 
@@ -2503,13 +2537,13 @@ focus_tree = {
 			if = {
 				limit = { has_completed_focus = ALO_Steppe_Democracy }
 				custom_effect_tooltip = ALO_Alash_Nationalists_Elected_tt
-				if = {
-					limit = { has_government = social_conservative }
+				hidden_effect = {
+					get_current_government_type = yes
+					set_politics = { ruling_party = social_conservative }
 					set_country_leader_ideology = soccon_generic_national_democracy_subtype
-				}
-				else_if = {
-					limit = { has_government = authoritarian_democrat }
-					set_country_leader_ideology = generic_national_democracy_subtype 
+					set_politics = { ruling_party = authoritarian_democrat }
+					set_country_leader_ideology = generic_national_democracy_subtype
+					restore_previous_government_type = yes
 				}
 			}
 		}
@@ -2562,6 +2596,7 @@ focus_tree = {
 		completion_reward = {
 			log = "[GetDateText]: [Root.GetName]: Focus ALO_Support_Traditional_Crafts"
 			add_one_random_civilian_factory = yes
+			add_ideas = ALO_traditional_economy
 		}
 	}
 	focus = {
@@ -2573,6 +2608,14 @@ focus_tree = {
 		y = 6
 		available = { 
 			ALO_amonzholov_in_power = yes
+			has_idea = ALO_land_troubles
+			NOT = { has_active_mission = ALO_dealing_with_land_troubles }
+		}
+		bypass = {
+			OR = {
+				has_active_mission = ALO_dealing_with_land_troubles
+				NOT = { has_idea = ALO_land_troubles }
+			}
 		}
 		prerequisite = { focus = ALO_Balance_The_Budget }
 		ai_will_do = {
@@ -2580,6 +2623,29 @@ focus_tree = {
 		}
 		completion_reward = {
 			log = "[GetDateText]: [Root.GetName]: Focus ALO_End_Russian_Colonialism"
+			activate_mission = ALO_dealing_with_land_troubles
+			if = {
+				limit = { ALO_has_russian_influence = yes }
+				ALO_remove_russian_influence = yes
+			}
+			set_temp_variable = { ruling_party_pop = 10 }
+			every_owned_state = { ALO_ruling_party_pop = yes }
+			hidden_effect = {
+				increase_ruling_party_popularity_by_10 = yes
+				country_event = {
+					id = alash.765
+					days = 4
+				}
+				if = {
+					limit = { has_country_flag = ALO_ukrainian_dipmission }
+					UKR = { 
+						country_event = {
+							id = alash.488
+							days = 15
+						}
+					}
+				}
+			}
 		}
 	}
 	focus = {
@@ -2591,6 +2657,15 @@ focus_tree = {
 		y = 4
 		available = { 
 			ALO_amonzholov_in_power = yes
+			ALO_has_russian_influence = no
+			country_exists = TRK
+			NOT = { has_idea = TRK_Seraly_Lapin_sec_sco }
+		}
+		bypass = {
+			OR = {
+				NOT = { country_exists = TRK }
+				has_idea = TRK_Seraly_Lapin_sec_sco
+			}
 		}
 		prerequisite = { focus = ALO_Steppe_Democracy }
 		prerequisite = { focus = ALO_Truth_in_Qadimism }
@@ -2599,6 +2674,19 @@ focus_tree = {
 		}
 		completion_reward = {
 			log = "[GetDateText]: [Root.GetName]: Focus ALO_Ally_Turkestan_Qadimists"
+			if = {
+				limit = {
+					TRK = { TRK_ulema_in_power = yes }
+				}
+				TRK = {
+					country_event = alash.746
+				}
+				custom_effect_tooltip = "If they agree:"
+				event_option_tooltip = alash.746.a
+			}
+			else = {
+				country_event = alash.743
+			}
 		}
 	}
 	focus = {
@@ -2642,7 +2730,7 @@ focus_tree = {
 				}
 				check_variable = { ALO_nat_pop > 0.6 }
 			}
-			has_country_flag = ALO_empower_president_amanjolov_completed
+			has_country_flag = ALO_empowered_president
 			NOT = { has_active_mission = ALO_fight_leftist_conspiracy }
 		}
 		prerequisite = { focus = ALO_Alash_Nationalists_Elected }
@@ -2678,6 +2766,18 @@ focus_tree = {
 		}
 		completion_reward = {
 			log = "[GetDateText]: [Root.GetName]: Focus ALO_Prioritize_The_Kazaks"
+			add_stability = -0.05
+			set_temp_variable = { party_support = ALO_russian_deputies }
+			multiply_temp_variable = { party_support = -1 }
+			ALO_change_russian_support = yes
+			ALO_decrease_russian_dependence = yes
+			reverse_add_opinion_modifier = { target = RUS modifier = KR_hostile }
+			reverse_add_opinion_modifier = { target = TRM modifier = KR_hostile }
+			reverse_add_opinion_modifier = { target = DKB modifier = KR_hostile }
+			reverse_add_opinion_modifier = { target = ORE modifier = KR_hostile }
+			reverse_add_opinion_modifier = { target = URL modifier = KR_hostile }
+			reverse_add_opinion_modifier = { target = SMR modifier = KR_hostile }
+			
 		}
 	}
 	focus = {
@@ -2703,7 +2803,7 @@ focus_tree = {
 			set_temp_variable = { national_pop = 2 }
 			every_owned_state = { ALO_national_pop = yes }
 			hidden_effect = {
-				add_popularity = { ideology = social_conservative popularity = 0.02 }
+				increase_ruling_party_popularity_by_2 = yes
 			}
 		}
 	}
@@ -2723,6 +2823,12 @@ focus_tree = {
 		}
 		completion_reward = {
 			log = "[GetDateText]: [Root.GetName]: Focus ALO_Sharia_Law"
+			add_ideas = TRK_sharia_law
+			set_temp_variable = { national_pop = -2 }
+			every_owned_state = { ALO_national_pop = yes }
+			hidden_effect = {
+				decrease_ruling_party_popularity_by_2 = yes
+			}
 		}
 	}
 	focus = {
@@ -2737,7 +2843,7 @@ focus_tree = {
 			OR = {
 				406 = { ALO_is_ural_cossack_host = yes }
 				1208 = { ALO_is_orenburg_cossack_host = yes }
-				589 = { ALO_is_orenburg_cossack_host = yes }
+				589 = { ALO_is_semirechye_cossack_host = yes }
 			}
 		}		
 		bypass = {			
@@ -2758,6 +2864,22 @@ focus_tree = {
 		}
 		completion_reward = {
 			log = "[GetDateText]: [Root.GetName]: Focus ALO_Deal_With_The_Cossacks"
+			add_stability = -0.05
+			set_temp_variable = { cossack_change = -0.15 }
+			random_owned_controlled_state = {
+				limit = { state = 1208 }
+				ALO_change_cossack_strength = yes 
+			}
+			set_temp_variable = { cossack_change = -0.15 }
+			random_owned_controlled_state = {
+				limit = { state = 406 }
+				ALO_change_cossack_strength = yes 
+			}
+			set_temp_variable = { cossack_change = -0.15 }
+			random_owned_controlled_state = {
+				limit = { state = 589 }
+				ALO_change_cossack_strength = yes 
+			}
 		}
 	}
 	focus = {
@@ -2769,6 +2891,7 @@ focus_tree = {
 		y = 3
 		available = { 
 			ALO_amonzholov_in_power = yes
+			NOT = { has_country_flag = ALO_sedentarization_over }
 		}
 		prerequisite = { focus = ALO_Develop_Nomad_Society_Institutions }
 		ai_will_do = {
@@ -2788,6 +2911,7 @@ focus_tree = {
 		y = 5
 		available = { 
 			ALO_amonzholov_in_power = yes
+			NOT = { has_country_flag = ALO_sedentarization_over }
 		}
 		prerequisite = { focus = ALO_Restore_Aymaqs }
 		ai_will_do = {
@@ -2795,6 +2919,14 @@ focus_tree = {
 		}
 		completion_reward = {
 			log = "[GetDateText]: [Root.GetName]: Focus ALO_Uphold_Nomadic_Values"
+			custom_effect_tooltip = ALO_tribal_disunity_will_decrease
+			add_to_variable = { alo_var_autonomy_oyi = -1 }
+			add_to_variable = { alo_var_autonomy_tor = -1 }
+			add_to_variable = { alo_var_autonomy_aqm = -1 }
+			add_to_variable = { alo_var_autonomy_sem = -1 }
+			add_to_variable = { alo_var_autonomy_jet = -1 }
+			add_to_variable = { alo_var_autonomy_syr = -1 }
+			ALO_calculate_federalism = yes
 		}
 	}
 	
@@ -2817,6 +2949,11 @@ focus_tree = {
 			1208 = { ALO_is_orenburg_cossack_host = no }
 			589 = { ALO_is_orenburg_cossack_host = no }
 			NOT = { has_active_mission = ALO_fight_leftist_conspiracy }
+			has_stability > 0.5
+			custom_trigger_tooltip = {
+				tooltip = ALO_tribal_disunity_less_10
+				check_variable = { ALO_tribal_disunity < 0.1 }
+			}
 		}
 		prerequisite = { focus = ALO_End_Russian_Colonialism }
 		prerequisite = { focus = ALO_Deal_With_The_Cossacks }
@@ -2905,7 +3042,8 @@ focus_tree = {
 		}
 		available = {
 			ALO_amonzholov_in_power = yes
-			is_subject = no			
+			is_subject = no
+			turkestan_is_potential_government = yes	
 		}	
 		prerequisite = { focus = ALO_Restore_Stability }
 		mutually_exclusive = { 
@@ -3930,9 +4068,6 @@ focus_tree = {
 				factor = 2
 				has_war = yes
 			}
-		}
-		available = {
-			ALO_amonzholov_in_power = no
 		}
 		prerequisite = {
 			focus = ALO_Deal_With_Economic_Crisis
