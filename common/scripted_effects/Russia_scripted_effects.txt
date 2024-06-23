@@ -1,150 +1,80 @@
 setup_backward_industry = {
+	set_variable = { RUS_prev_month_num_of_factories = ROOT.num_of_factories }
 	add_dynamic_modifier = { modifier = RUS_backward_industry_modifier }
-	
-	set_variable = { RUS_industry_production_factory_efficiency_gain_factor = -0.07 }
-	set_variable = { RUS_industry_cic_construction_boost_factor = -0.07 }
-	set_variable = { RUS_industry_industrial_capacity_factory = -0.14 }
-	set_variable = { RUS_industry_research_speed_factor = -0.09 }	
-	set_variable = { RUS_industry_production_lack_of_resource_penalty_factor = 0.12 }
-	
-	set_variable = { RUS_industry_industrial_output = 0 }
-	set_variable = { RUS_industry_infrastructure_quality = 0 }
-	set_variable = { RUS_industry_military_industrial_complex = 0 }
+	recalculate_backward_industry_debuff = yes
+}
+remove_backward_industry = {
+		remove_dynamic_modifier = { modifier = RUS_backward_industry_modifier }
+		add_dynamic_modifier = { modifier = RUS_industrialized_nation_modifier }		
 }
 setup_unfinished_land_reform = {
-	add_dynamic_modifier = { modifier = RUS_unfinished_land_reform_modifier	} 
-	
-	set_variable = { RUS_lr_stability_factor = -0.2 }
-	set_variable = { RUS_lr_political_power_factor = -0.35 }
-	set_variable = { RUS_lr_monthly_population = -0.15 }
-	set_variable = { RUS_lr_local_resources_factor = -0.15 }
-	set_variable = { RUS_lr_consumer_goods_factor = 0.25 }
-	
-	set_variable = { RUS_lr_agricultural_productivity = 0 }
-	set_variable = { RUS_lr_regional_development_disparities = 0 }
-	set_variable = { RUS_lr_land_redistribution_index = 0 }
-	
-	RUS_debug_calculate_number_of_infrastructure = yes
-	RUS_recalculate_land_industry_reform = yes
-	
-	set_variable = { RUS_landreform_cost = 40 }
-	set_variable = { RUS_landreform_days_remove = 90 }
+	every_state = {
+		limit = {
+			OR = {
+				state = 217
+				state = 250
+				state = 251
+				state = 249
+				state = 252
+				state = 219
+				state = 195
+				state = 652
+				state = 651
+				state = 572
+				state = 572
+				state = 653
+				state = 571
+				state = 570
+				state = 40
+				state = 568
+				state = 566
+				state = 399
+				state = 399
 }
-RUS_debug_calculate_number_of_infrastructure = {
-	set_variable = { RUS_state_strategic_value = 0 }
-	every_owned_state = {
-		add_to_variable = { PREV.RUS_state_strategic_value = state_strategic_value }
-		log = "[THIS.GetName] - [?RUS_state_strategic_value]"
 	}
-	# Mean
-	divide_variable = { RUS_state_strategic_value = num_owned_states }
-	log = "[THIS.GetName] - MEAN: [?RUS_state_strategic_value]"
-	# MAD
-	set_variable = { RUS_state_strategic_value_sum = 0 }
-	every_owned_state = {
-		set_variable = { RUS_state_strategic_value_state = state_strategic_value }
-		subtract_from_variable = { RUS_state_strategic_value_state = PREV.RUS_state_strategic_value }
-		#ABS this 
-		if = {
-			limit = { check_variable = { RUS_state_strategic_value_state < 0 } }
-			multiply_variable = { RUS_state_strategic_value_state = -1 }
-		}
-		add_to_variable = { PREV.RUS_state_strategic_value_sum = RUS_state_strategic_value_state }
+		add_dynamic_modifier = { modifier = RUS_unfinished_land_reform_modifier	} 
 	}
-	divide_variable = { RUS_state_strategic_value_sum = num_owned_states }
-	log = "[THIS.GetName] - MAD: [?RUS_state_strategic_value_sum]"
-	# Overall CV
-	divide_variable = { RUS_state_strategic_value_sum = RUS_state_strategic_value }
-	multiply_variable = { RUS_state_strategic_value_sum = 100 }
-	log = "[THIS.GetName] - REGIONAL DISPARITY: [?RUS_state_strategic_value_sum]"
-	set_variable = { RUS_lr_regional_development_disparities = 100 }
-	subtract_from_variable = { RUS_lr_regional_development_disparities = RUS_state_strategic_value_sum }
-}
-RUS_recalculate_land_industry_reform = {
-	# Calculate military industrial complex index
-	if = {
-		limit = { 
-			check_variable = { RUS.total_constructed_civilian_factory > 0 }
-		}
-		set_temp_variable = { military_industrial_complex_temp = RUS.total_constructed_military_factory }
-		set_temp_variable = { all_factories_temp = RUS.total_constructed_military_factory }
-		add_to_temp_variable = { all_factories_temp = RUS.total_constructed_civilian_factory }
-		divide_temp_variable = { military_industrial_complex_temp = all_factories_temp }
-		multiply_temp_variable = { military_industrial_complex_temp = 100 }
+	add_ideas = rus_unfinished_land_reform
 	}
-	else = {
-		set_temp_variable = { military_industrial_complex_temp = 0 }		
-	}
-	set_variable = { RUS_industry_military_industrial_complex = military_industrial_complex_temp }
-	clamp_variable = { var = RUS_industry_military_industrial_complex min = 0 max = 100 }
-	log = "[ROOT.GetName] Military-Industrial Index - [?RUS_industry_military_industrial_complex]"
-	
-	# Calculate infrastructure quality index
-	set_temp_variable = { industry_infrastructure_quality_temp = RUS.total_constructed_infrastructure }
-	set_temp_variable = { industry_infrastructure_quality_temp_2 = RUS.num_owned_states }
-	multiply_temp_variable = { industry_infrastructure_quality_temp_2 = 5 }
-	add_to_temp_variable = { industry_infrastructure_quality_temp_2 = -203 }
-	divide_temp_variable = { industry_infrastructure_quality_temp = industry_infrastructure_quality_temp_2 }
-	multiply_temp_variable = { industry_infrastructure_quality_temp = 100 }
-	
-	set_variable = { RUS_industry_infrastructure_quality = industry_infrastructure_quality_temp }
-	clamp_variable = { var = RUS_industry_infrastructure_quality min = 0 max = 100 }
-	log = "[ROOT.GetName] Infrastructure Quality Index - [?RUS_industry_infrastructure_quality]"
-	
-	# Count Land Score #
-	set_temp_variable = { RUS_lr_agricultural_productivity_temp = RUS_lr_agricultural_productivity }
-	multiply_temp_variable = { RUS_lr_agricultural_productivity_temp = 0.30 }
-	
-	set_temp_variable = { RUS_lr_regional_development_disparities_temp = RUS_lr_regional_development_disparities }
-	multiply_temp_variable = { RUS_lr_regional_development_disparities = 0.25 }
-	
-	set_temp_variable = { RUS_lr_political_stability_temp = RUS.stability }
-	multiply_temp_variable = { RUS_lr_political_stability_temp = 0.20 }
-	
-	set_temp_variable = { RUS_lr_public_support_temp = RUS.party_popularity_100@ruling_party }
-	multiply_temp_variable = { RUS_lr_public_support_temp = 0.25 }
-	
-	set_variable = { RUS_land_reform_score = RUS_lr_agricultural_productivity_temp }
-	add_to_variable = { RUS_land_reform_score = RUS_lr_regional_development_disparities_temp }
-	add_to_variable = { RUS_land_reform_score = RUS_lr_political_stability_temp }
-	add_to_variable = { RUS_land_reform_score = RUS_lr_public_support_temp }
-	
-	# Count Industrial Score #
-	set_temp_variable = { RUS_industry_industrial_output_temp = RUS_industry_industrial_output }
-	multiply_temp_variable = { RUS_industry_industrial_output_temp = 0.30 }
-	
-	set_temp_variable = { RUS_industry_infrastructure_quality_temp = RUS_industry_infrastructure_quality }
-	multiply_temp_variable = { RUS_industry_infrastructure_quality_temp = 0.20 }
-	
-	set_temp_variable = { RUS_industry_political_stability_temp = RUS.stability }
-	multiply_temp_variable = { RUS_industry_political_stability_temp = 0.25 }
-	
-	set_temp_variable = { RUS_industry_military_industrial_complex_temp = RUS_industry_military_industrial_complex }
-	multiply_temp_variable = { RUS_industry_military_industrial_complex_temp = 0.25 }
-	
-	set_variable = { RUS_industrial_score = RUS_industry_industrial_output_temp }
-	add_to_variable = { RUS_industrial_score = RUS_industry_infrastructure_quality_temp }
-	add_to_variable = { RUS_industrial_score = RUS_industry_political_stability_temp }
-	add_to_variable = { RUS_industrial_score = RUS_industry_military_industrial_complex_temp }	
-	
-}
-RUS_reform_land_score = {
-	if = {
-		limit = { has_country_flag = LandReformBegunRUS }
-		custom_effect_tooltip = RUS_add_land_reform_tt
-	}
-	add_to_variable = { RUS_lr_agricultural_productivity = RUS_lr_influence_change }
-}
-RUS_reform_industrial_score = {
-	if = {
-		limit = { has_country_flag = LandReformBegunRUS }
-		custom_effect_tooltip = RUS_add_industrial_reform_tt
-	}
-	add_to_variable = { RUS_industry_industrial_output = RUS_industrial_influence_change }
-}
 destroy_unfinished_land_reform = {
+	remove_ideas = rus_unfinished_land_reform
 	set_global_flag = RUS_land_reform_finished
-	remove_dynamic_modifier = { modifier = RUS_unfinished_land_reform_modifier	} 
+	hidden_effect = {
+		every_state = {
+			limit = {
+				has_dynamic_modifier = { modifier = RUS_unfinished_land_reform_modifier }
+}
+			remove_dynamic_modifier = { modifier = RUS_unfinished_land_reform_modifier	} 
+	}
+}
+	}
+recalculate_monthly_industrialisation_rate = {
+	
+	set_variable = { RUS_backward_industry_industrialisation_rate = ROOT.num_of_factories }
+	subtract_from_variable = { RUS_backward_industry_industrialisation_rate = RUS_prev_month_num_of_factories }
+	divide_variable = { RUS_backward_industry_industrialisation_rate = ROOT.num_of_factories }
+	divide_variable = { RUS_backward_industry_industrialisation_rate = 100 }
+	set_variable = { RUS_prev_month_num_of_factories = ROOT.num_of_factories }
+	
+	if = {
+		limit = {
+			NOT = { has_dynamic_modifier = { modifier = RUS_backward_industry_modifier } }
+		}
+		set_variable = { ROOT.RUS_backward_industry_efficiency_gain = 0.05 }
+		set_variable = { ROOT.RUS_backward_industry_max_efficiency = 0.05 }
+		set_variable = { ROOT.RUS_backward_industry_industrial_capacity = 0.1 }
+		set_variable = { ROOT.RUS_backward_industry_production_speed_buildings = 0.05 }
+		set_variable = { ROOT.RUS_backward_industry_research_speed = 0.03 }
+		set_variable = { ROOT.RUS_backward_industry_political_power_gain = 0.05 }
+		
+		add_to_variable = { ROOT.RUS_backward_industry_efficiency_gain = RUS_backward_industry_industrialisation_rate }
+		add_to_variable = { ROOT.RUS_backward_industry_max_efficiency = RUS_backward_industry_industrialisation_rate }
+		add_to_variable = { ROOT.RUS_backward_industry_industrial_capacity = RUS_backward_industry_industrialisation_rate }
+		add_to_variable = { ROOT.RUS_backward_industry_production_speed_buildings = RUS_backward_industry_industrialisation_rate }
+		add_to_variable = { ROOT.RUS_backward_industry_research_speed = RUS_backward_industry_industrialisation_rate }
+		add_to_variable = { ROOT.RUS_backward_industry_political_power_gain = RUS_backward_industry_industrialisation_rate }
+}
+		force_update_dynamic_modifier = yes
 }
 recalculate_backward_industry_debuff = {
 	if = {
@@ -163,6 +93,41 @@ recalculate_backward_industry_debuff = {
 			min = 0
 			max = 1
 		}
+		set_variable = { RUS_industrialisation_2_var = RUS_industrialisation_var }
+		set_variable = { RUS_industrialisation_3_var = RUS_industrialisation_var }
+		set_variable = { RUS_industrialisation_4_var = RUS_industrialisation_var }
+		
+		set_temp_variable = { RUS_industrialisation_negative_factor = -1 }
+		set_temp_variable = { RUS_industrialisation_negative_3_factor = -0.6 }
+		set_temp_variable = { RUS_industrialisation_negative_4_factor = -0.55 }
+		
+		add_to_variable = { RUS_industrialisation_var = RUS_industrialisation_negative_factor }
+		add_to_variable = { RUS_industrialisation_2_var = RUS_industrialisation_negative_factor }
+		add_to_variable = { RUS_industrialisation_3_var = RUS_industrialisation_negative_3_factor }
+		add_to_variable = { RUS_industrialisation_4_var = RUS_industrialisation_negative_4_factor }
+		
+		set_temp_variable = { RUS_industrialisation_negative_var = -0.1 }
+		multiply_variable = { RUS_industrialisation_var = RUS_industrialisation_negative_var }
+		set_temp_variable = { RUS_industrialisation_negative_2_var = -0.14 }
+		multiply_variable = { RUS_industrialisation_2_var = RUS_industrialisation_negative_2_var }
+		set_temp_variable = { RUS_industrialisation_negative_3_var = -0.08 }
+		multiply_variable = { RUS_industrialisation_3_var = RUS_industrialisation_negative_3_var }
+		set_temp_variable = { RUS_industrialisation_negative_4_var = -0.8 }
+		multiply_variable = { RUS_industrialisation_4_var = RUS_industrialisation_negative_4_var }
+		
+		set_variable = { ROOT.RUS_backward_industry_efficiency_gain = -0.7 }
+		set_variable = { ROOT.RUS_backward_industry_max_efficiency = -0.7 }
+		set_variable = { ROOT.RUS_backward_industry_industrial_capacity = -1 }
+		set_variable = { ROOT.RUS_backward_industry_production_speed_buildings = -1 }
+		set_variable = { ROOT.RUS_backward_industry_research_speed = -1.9 }
+		set_variable = { ROOT.RUS_backward_industry_political_power_gain = -1.3 }
+	
+		multiply_variable = { ROOT.RUS_backward_industry_efficiency_gain = RUS_industrialisation_var }
+		multiply_variable = { ROOT.RUS_backward_industry_max_efficiency = RUS_industrialisation_var }
+		multiply_variable = { ROOT.RUS_backward_industry_industrial_capacity = RUS_industrialisation_2_var }
+		multiply_variable = { ROOT.RUS_backward_industry_production_speed_buildings = RUS_industrialisation_2_var }
+		multiply_variable = { ROOT.RUS_backward_industry_research_speed = RUS_industrialisation_3_var }
+		multiply_variable = { ROOT.RUS_backward_industry_political_power_gain = RUS_industrialisation_4_var }
 		
 		clear_variable = RUS_industrialisation_var
 		clear_variable = RUS_industrialisation_2_var
@@ -3215,74 +3180,74 @@ RUS_remove_divided_staff_ideas = {
 }
 RUS_remove_riga_accords = {
 	if = {
-		limit = { has_idea = RUS_riga_accords }
-		remove_ideas = RUS_riga_accords
+		limit = { has_idea = rus_riga_accords }
+		remove_ideas = rus_riga_accords
 	}
 	if = {
-		limit = { has_idea = RUS_riga_accords_1 }
-		remove_ideas = RUS_riga_accords_1
+		limit = { has_idea = rus_riga_accords_1 }
+		remove_ideas = rus_riga_accords_1
 	}
 	if = {
-		limit = { has_idea = RUS_riga_accords_2 }
-		remove_ideas = RUS_riga_accords_2
+		limit = { has_idea = rus_riga_accords_2 }
+		remove_ideas = rus_riga_accords_2
 	}
 	if = {
-		limit = { has_idea = RUS_riga_accords_3 }
-		remove_ideas = RUS_riga_accords_3
+		limit = { has_idea = rus_riga_accords_3 }
+		remove_ideas = rus_riga_accords_3
 	}
 	if = {
-		limit = { has_idea = RUS_riga_accords_4 }
-		remove_ideas = RUS_riga_accords_4
+		limit = { has_idea = rus_riga_accords_4 }
+		remove_ideas = rus_riga_accords_4
 	}
 	if = {
-		limit = { has_idea = RUS_riga_accords_5 }
-		remove_ideas = RUS_riga_accords_5
+		limit = { has_idea = rus_riga_accords_5 }
+		remove_ideas = rus_riga_accords_5
 	}
 }
 RUS_reduce_german_influence = {
 	if = {
-		limit = { has_idea = RUS_riga_accords_5 }
+		limit = { has_idea = rus_riga_accords_5 }
 		custom_effect_tooltip = RUS_german_influence_is_shrinking
-		remove_ideas = RUS_riga_accords_5
+		remove_ideas = rus_riga_accords_5
 	}
 	else_if = {
-		limit = { has_idea = RUS_riga_accords_4 }
+		limit = { has_idea = rus_riga_accords_4 }
 		custom_effect_tooltip = RUS_german_influence_is_shrinking
 		swap_ideas = {
-			remove_idea = RUS_riga_accords_4
-			add_idea = RUS_riga_accords_5
+			remove_idea = rus_riga_accords_4
+			add_idea = rus_riga_accords_5
 		}
 	}
 	else_if = {
-		limit = { has_idea = RUS_riga_accords_3 }
+		limit = { has_idea = rus_riga_accords_3 }
 		custom_effect_tooltip = RUS_german_influence_is_shrinking
 		swap_ideas = {
-			remove_idea = RUS_riga_accords_3
-			add_idea = RUS_riga_accords_4
+			remove_idea = rus_riga_accords_3
+			add_idea = rus_riga_accords_4
 		}
 	}
 	else_if = {
-		limit = { has_idea = RUS_riga_accords_2 }
+		limit = { has_idea = rus_riga_accords_2 }
 		custom_effect_tooltip = RUS_german_influence_is_shrinking
 		swap_ideas = {
-			remove_idea = RUS_riga_accords_2
-			add_idea = RUS_riga_accords_3
+			remove_idea = rus_riga_accords_2
+			add_idea = rus_riga_accords_3
 		}
 	}
 	else_if = {
-		limit = { has_idea = RUS_riga_accords_1 }
+		limit = { has_idea = rus_riga_accords_1 }
 		custom_effect_tooltip = RUS_german_influence_is_shrinking
 		swap_ideas = {
-			remove_idea = RUS_riga_accords_1
-			add_idea = RUS_riga_accords_2
+			remove_idea = rus_riga_accords_1
+			add_idea = rus_riga_accords_2
 		}
 	}
 	else_if = {
-		limit = { has_idea = RUS_riga_accords }
+		limit = { has_idea = rus_riga_accords }
 		custom_effect_tooltip = RUS_german_influence_is_shrinking
 		swap_ideas = {
-			remove_idea = RUS_riga_accords
-			add_idea = RUS_riga_accords_1
+			remove_idea = rus_riga_accords
+			add_idea = rus_riga_accords_1
 		}
 	}
 }
@@ -6903,6 +6868,7 @@ RUSSIAN_UNIFICATION_play_superevent = {
 				name = "Grigory Zinoviev"
 				ruling_only = yes
 			}
+			NOT = { has_completed_focus = SOV_Tsentrobalt_In_Control }
 		}
 		custom_effect_tooltip = GFX_SPEVNT_RUSSIAN_UNIFICATION_zinoviev
 		hidden_effect = { country_event = super.57 }
@@ -6913,6 +6879,7 @@ RUSSIAN_UNIFICATION_play_superevent = {
 				name = "Lev Kamenev"
 				ruling_only = yes
 			}
+			NOT = { has_completed_focus = SOV_Tsentrobalt_In_Control }
 		}
 		custom_effect_tooltip = GFX_SPEVNT_RUSSIAN_UNIFICATION_kamenev
 		hidden_effect = { country_event = super.58 }
@@ -6923,6 +6890,7 @@ RUSSIAN_UNIFICATION_play_superevent = {
 				name = "Nikolay Yezhov"
 				ruling_only = yes
 			}
+			NOT = { has_completed_focus = SOV_Tsentrobalt_In_Control }
 		}
 		custom_effect_tooltip = GFX_SPEVNT_RUSSIAN_UNIFICATION_yezhov
 		hidden_effect = { country_event = super.59 }
@@ -6933,6 +6901,7 @@ RUSSIAN_UNIFICATION_play_superevent = {
 				has_idea = SOV_Georgy_Blagonravov_hog_tot
 				has_idea = SOV_Genrikh_Yagoda_hog_tot
 			}
+			NOT = { has_completed_focus = SOV_Tsentrobalt_In_Control }
 		}
 		custom_effect_tooltip = GFX_SPEVNT_RUSSIAN_UNIFICATION_yagoda
 		hidden_effect = { country_event = super.60 }
@@ -6944,6 +6913,7 @@ RUSSIAN_UNIFICATION_play_superevent = {
 				name = "Nikolay Krestinsky"
 			}
 			has_idea = SOV_Nikolay_Krestinsky_hog_tot
+			NOT = { has_completed_focus = SOV_Tsentrobalt_In_Control }
 		}
 		custom_effect_tooltip = GFX_SPEVNT_RUSSIAN_UNIFICATION_kaganovich
 		hidden_effect = { country_event = super.61 }
@@ -6955,6 +6925,7 @@ RUSSIAN_UNIFICATION_play_superevent = {
 				name = "Vyacheslav Molotov"
 			}
 			has_idea = SOV_Vyacheslav_Molotov_hog_tot
+			NOT = { has_completed_focus = SOV_Tsentrobalt_In_Control }
 		}
 		custom_effect_tooltip = GFX_SPEVNT_RUSSIAN_UNIFICATION_molotov
 		hidden_effect = { country_event = super.62 }
@@ -6975,6 +6946,7 @@ RUSSIAN_UNIFICATION_play_superevent = {
 					name = "Anatoly Lunacharsky"
 				}
 			}
+			NOT = { has_completed_focus = SOV_Tsentrobalt_In_Control }
 		}
 		custom_effect_tooltip = GFX_SPEVNT_RUSSIAN_UNIFICATION_proletkultists
 		hidden_effect = { country_event = super.63 }
@@ -6991,6 +6963,7 @@ RUSSIAN_UNIFICATION_play_superevent = {
 					name = "Mikhail Kalinin"
 				}
 			}
+			NOT = { has_completed_focus = SOV_Tsentrobalt_In_Control }
 		}
 		custom_effect_tooltip = GFX_SPEVNT_RUSSIAN_UNIFICATION_sokolnikov
 		hidden_effect = { country_event = super.64 }
