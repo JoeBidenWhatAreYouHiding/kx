@@ -477,19 +477,38 @@ country_event = { #Aftermath of assassination
 				name = RUS_left_kadets_party
 				long_name = RUS_right_kadets_party_long
 			}
-			
 			mp_support_calc = yes
+			set_temp_variable = { RUS_new_soclib = RUS.party_popularity_100@social_liberal }
+			divide_temp_variable = { RUS_new_soclib = 2 }
+
+			set_temp_variable = { RUS_new_socdem = RUS.party_popularity_100@social_democrat }
+			add_to_temp_variable = { RUS_new_socdem = RUS_new_soclib }
+
+			set_temp_variable = { sum = 100 }
+			subtract_from_temp_variable = { sum = party_popularity_100@totalist }
+			subtract_from_temp_variable = { sum = party_popularity_100@syndicalist }
+			subtract_from_temp_variable = { sum = party_popularity_100@radical_socialist }
+			subtract_from_temp_variable = { sum = RUS_new_socdem }
+			subtract_from_temp_variable = { sum = RUS_new_soclib }
+			subtract_from_temp_variable = { sum = party_popularity_100@market_liberal }
+			subtract_from_temp_variable = { sum = party_popularity_100@social_conservative }
+			subtract_from_temp_variable = { sum = party_popularity_100@authoritarian_democrat }
+			subtract_from_temp_variable = { sum = party_popularity_100@paternal_autocrat }
+			subtract_from_temp_variable = { sum = party_popularity_100@national_populist }
+
+			add_to_temp_variable = { RUS_new_socdem = sum } #avoid rounding errors
+			
 			set_popularities = {
-				totalist = 0
-				radical_socialist = 6
-				syndicalist = 5
-				social_democrat = 31
-				social_liberal = 8
-				market_liberal = 5
-				social_conservative = 7
-				authoritarian_democrat = 4
-				paternal_autocrat = 6
-				national_populist = 28
+				totalist = party_popularity_100@totalist
+				syndicalist = party_popularity_100@syndicalist
+				radical_socialist = party_popularity_100@radical_socialist
+				social_democrat = RUS_new_socdem
+				social_liberal = RUS_new_soclib
+				market_liberal = party_popularity_100@market_liberal
+				social_conservative = party_popularity_100@social_conservative
+				authoritarian_democrat = party_popularity_100@authoritarian_democrat
+				paternal_autocrat = party_popularity_100@paternal_autocrat
+				national_populist = party_popularity_100@national_populist
 			}
 		}
 		add_stability = -0.21
@@ -1047,7 +1066,7 @@ country_event = { #Black monday hits russia
 			}
 		}
 		ai_chance = {
-			factor = 75
+			factor = 50
 			modifier = {
 				factor = 1000
 				OR = {
@@ -4181,7 +4200,6 @@ country_event = {#Kerensky arrested
 			picture = "gfx/leaders/RUS/Portrait_RUS_The_Senate.png"
 			expire = "1.1.1"
 			ideology = social_liberal_subtype
-			traits = {}
 		}
 		country_event = {
 			id = rusdem.1
@@ -8165,6 +8183,7 @@ country_event = { #1941 elections
 		log = "[GetDateText]: [Root.GetName]: event rusdem.27"
 		hidden_effect = {
 			RUS_calculate_polling_averages = yes
+			RUS_clear_all_preelection_coalitions = yes
 			set_country_flag = RUS_elections_duma_1941
 		}
 	}
@@ -8414,6 +8433,7 @@ country_event = { #Elections 1941
 				}
 			}
 		} 
+		RUS_recheck_president_subideology = yes
 	}
 	option = { #PSR victory
 		name = rusdem.2.e
@@ -8486,6 +8506,7 @@ country_event = { #Elections 1941
 				}
 			}
 		}
+		RUS_recheck_president_subideology = yes
 	}
 	option = { # United Liberals
 		name = rusdem.2.f
@@ -14609,7 +14630,7 @@ country_event = { #RSDRP
 		}
 	}
 	option = {
-		name = rusdem.457.a
+		name = rusdem.457.b
 		ai_chance = {
 			factor = 20
 			modifier = {
@@ -19519,6 +19540,12 @@ country_event = { #Revolution
 				id = russoc.1 
 				days = 6
 			}	
+			random_other_country = {
+				news_event = {
+					id = russianews.5
+					days = 1
+				}
+			}
 		}
 	}
 }
@@ -20248,6 +20275,7 @@ country_event = { #Consolidation
 	title = rusd.50.t
 	desc = rusd.50.d
 	is_triggered_only = yes
+	picture = GFX_report_event_RUS_kornilov2
 	
 	option = {
 		name = rusd.50.a
@@ -21946,32 +21974,32 @@ country_event = { #Thailand
 		SIA = {
 			OR = {
 				has_country_leader = {
+					name = "Rama VII"
 					ruling_only = yes
-					name = "Prajadhipok"
 				}
 				has_country_leader = {
+					name = "Rama VIII"
 					ruling_only = yes
-					name = "Ananda Mahidol"
 				}
 				has_country_leader = {
+					name = "Rama IX"
 					ruling_only = yes
-					name = "Bhumibol Adulyadej"
 				}
 				has_country_leader = {
+					name = "Rama VIII  "
 					ruling_only = yes
-					name = "Chumbhotbongs Paribatra"
 				}
 				has_country_leader = {
+					name = "Rama VIII "
 					ruling_only = yes
-					name = "Sukhumabhinanda"
 				}
 				has_country_leader = {
+					name = "Rama IX "
 					ruling_only = yes
-					name = "Paribatra Sukhumbhand"
 				}
 				has_country_leader = {
+					name = "Rama X"
 					ruling_only = yes
-					name = "Chula Chakrabongse"
 				}
 			}
 		}
@@ -26579,14 +26607,21 @@ country_event = { #Russia wants to join the Internationale
 
 	option = {
 		name = russoc.100.a
-		Faction_mergable_invite = yes
+		every_other_country = {
+			limit = { is_in_faction_with = FROM }
+			set_country_flag = was_in_faction_with_RUS
+		}
+		FROM = { dismantle_faction = yes }
+		add_to_faction = FROM
+		every_other_country = {
+			limit = { has_country_flag = was_in_faction_with_RUS }
+			ROOT = { add_to_faction = PREV }
+		}
 	}
 
 	option = {
 		name = russoc.100.b
-		trigger = {
-			is_ai = no
-		}
+		trigger = { is_ai = no }
 		FROM = {
 			country_event = {
 				id = russoc.101
@@ -26976,6 +27011,10 @@ country_event = { #Chekist
 			name = RUS_syndicalist_party
 			long_name = RUS_syndicalist_party_long
 		}
+		random_unit_leader = {
+			limit = { has_id = 430 }
+			retire = yes
+		}		
 	}
 	option = {
 		name = russoc.37.b
@@ -26997,6 +27036,13 @@ country_event = { #Chekist
 			picture = "gfx/leaders/RUS/Portrait_SOV_Vladimir_Trutovsky.png"
 			expire = "1.1.1"
 			ideology = anarcho_syndicalist_subtype
+		}
+		random_unit_leader = {
+			limit = { has_id = 430 }
+			if = {
+				limit = { is_field_marshal = no }
+				promote_leader = yes
+			}
 		}
 		unlock_national_focus = SOV_Left_SR_Countercoup
 	}	
@@ -30798,7 +30844,12 @@ country_event = { #Autonomy for Don/Kuban
 				}
 			}
 		}
-		else = {
+		else_if = {
+			limit = {
+				FROM = {
+					tag = KUB
+				}
+			}
 			FROM = {
 				set_cosmetic_tag = KUB_RUS
 				hidden_effect = {
@@ -36452,10 +36503,7 @@ country_event = { #Crush Transamur
 		if = {
 			limit = {
 				FROM = {
-					OR = {
-					is_subject_of = JAP
-					is_in_faction_with = JAP
-					}
+					TRM_has_japanese_influence = yes
 				}
 			}
 				JAP = {
@@ -36567,16 +36615,7 @@ country_event = { #The Russians claim Transamur!
 		}
 		hidden_effect = {
 			TRM = {
-				remove_ideas = TRM_JAP_INF_START
-				remove_ideas = TRM_JAP_INF_TRADE
-				remove_ideas = TRM_JAP_DEP_1
-				remove_ideas = TRM_JAP_DEP_2
-				remove_ideas = TRM_JAP_DEP_3
-				remove_ideas = TRM_JAP_NAV_MIS
-				remove_ideas = TRM_JAP_MIL_MIS
-				remove_ideas = TRM_JAP_CONS
-				remove_ideas = hino_automobile
-				remove_ideas = nakajima_factory_vladivostok
+				TRM_remove_japanese_influence = yes		
 			}
 		}
 		add_political_power = -50
@@ -36646,16 +36685,7 @@ country_event = { #Russian Troops arrive in Vladivostok!
 		transfer_state = 408
 		hidden_effect = {
 			TRM = {
-				remove_ideas = TRM_JAP_INF_START
-				remove_ideas = TRM_JAP_INF_TRADE
-				remove_ideas = TRM_JAP_DEP_1
-				remove_ideas = TRM_JAP_DEP_2
-				remove_ideas = TRM_JAP_DEP_3
-				remove_ideas = TRM_JAP_NAV_MIS
-				remove_ideas = TRM_JAP_MIL_MIS
-				remove_ideas = TRM_JAP_CONS
-				remove_ideas = hino_automobile
-				remove_ideas = nakajima_factory_vladivostok
+				TRM_remove_japanese_influence = yes
 			}
 		}
 		add_political_power = -50
@@ -36769,7 +36799,7 @@ country_event = { #Transamur is Russian!
 				target = TRM
 				autonomy_state = kr_occupied_puppet
 			}
-			TRM = { drop_cosmetic_tag = YES }
+			TRM = { drop_cosmetic_tag = yes }
 		}		
 	}
 }
@@ -36819,7 +36849,7 @@ country_event = { #Autonomy
 				autonomy_state = kr_occupied_puppet
 			}
 		}
-		TRM = { drop_cosmetic_tag = YES }
+		TRM = { drop_cosmetic_tag = yes }
 	}
 }
 country_event = { #Alliance
@@ -37094,7 +37124,7 @@ country_event = { #We get TRM without a fight
 			target = TRM
 			autonomy_state = kr_occupied_puppet
 		}
-		TRM = { drop_cosmetic_tag = YES }
+		TRM = { drop_cosmetic_tag = yes }
 	}
 }
 
@@ -37542,79 +37572,15 @@ country_event = { #Vladivostok is Russian!
 		ai_chance = {
 			factor = 20
 		}
-		hidden_effect = {
-			RUS_EVENT_CV01_naval_variant = yes
-			if = {
-				limit = {
-					has_dlc = "Man the Guns"
-				}
-				set_technology = {
-					early_ship_hull_carrier = 1
-					popup = no
-				}
-			}
-			if = {
-				limit = {
-					NOT = {
-						has_dlc = "Man the Guns"
-					}
-				}
-				set_technology = {
-					early_carrier = 1
-					popup = no
-				}
-			}
-		}
-		if = {
-			limit = {
-				tag = RUS
-			}
-			hidden_effect = { load_oob = RUS_TRM_NAVY_BIG }
-		}
 		add_political_power = -80
 		add_equipment_to_stockpile = {
 			type = convoy_1
 			amount = 50
 			producer = RUS
 		}
-		408 = {
-			remove_building = {
-				type = industrial_complex level = 2
-			}
-			add_building_construction = {
-				type = dockyard
-				level = 1
-				instant_build = yes
-			}
-		}
 		add_opinion_modifier = {
 			target = JAP
 			modifier = RUS_vladivostok_big
-		}
-		if = {
-			limit = {
-				tag = SOV
-			}
-			hidden_effect = { load_oob = SOV_TRM_NAVY_BIG }
-			408 = {
-				add_building_construction = {
-					type = coastal_bunker
-					level = 2
-					province = 957
-					instant_build = yes
-				}
-				add_building_construction = {
-					type = naval_base
-					level = 3
-					province = 957
-					instant_build = yes
-				}
-				add_building_construction = {
-					type = infrastructure
-					level = 2
-					instant_build = yes
-				}
-			}
 		}
 	}
 
@@ -37622,12 +37588,6 @@ country_event = { #Vladivostok is Russian!
 		name = rusfor.1208.b #We shall merely use Transamur's old naval designs.
 		ai_chance = {
 			factor = 50
-		}
-		if = {
-			limit = {
-				tag = RUS
-			}
-			hidden_effect = { load_oob = RUS_TRM_NAVY_SMALL }
 		}
 		add_political_power = -40
 		add_opinion_modifier = {
@@ -37638,31 +37598,6 @@ country_event = { #Vladivostok is Russian!
 			type = convoy_1
 			amount = 30
 			producer = RUS
-		}
-		if = {
-			limit = {
-				tag = SOV
-			}
-			hidden_effect = { load_oob = SOV_TRM_NAVY_SMALL }
-			408 = {
-				add_building_construction = {
-					type = coastal_bunker
-					level = 2
-					province = 957
-					instant_build = yes
-				}
-				add_building_construction = {
-					type = naval_base
-					level = 3
-					province = 957
-					instant_build = yes
-				}
-				add_building_construction = {
-					type = infrastructure
-					level = 2
-					instant_build = yes
-				}
-			}
 		}
 	}
 
@@ -41450,12 +41385,12 @@ country_event = { #vladivostok captured
 			limit = {
 				TRM = { is_subject_of = JAP }
 			}
-			white_peace = JAP
 			TRM = {
 				TRM_remove_japanese_influence = yes
 				set_temp_variable = { target = JAP }
 				clear_all_relations_with_TARGET = yes
 			}
+			white_peace = JAP
 		}
 		TRM = { force_capitulate = yes }
 	}
