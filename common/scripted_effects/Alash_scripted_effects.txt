@@ -54,6 +54,10 @@ ALO_setup_initial_variables = {
 	set_variable = { ALO_radicalism_var = 0.15 }
 	set_variable = { ALO_rising_radicalism_var = 0.05 }
 	set_variable = { ALO_contain_revolutionary_impulses_cost = 20 }
+	
+	activate_targeted_decision = { target = ORE decision = ALO_reintegrate_host }
+	activate_targeted_decision = { target = URL decision = ALO_reintegrate_host }
+	activate_targeted_decision = { target = SMR decision = ALO_reintegrate_host }
 }
 
 ALO_setup_initial_popularities = {
@@ -2637,19 +2641,46 @@ ALO_jas_azamat_leave_coalition_alash = {
 }
 ALO_setup_socialist_revolution = {
 	hidden_effect = {
-		create_dynamic_country = {
-			original_tag = ALO
-			copy_tag = ALO
+		start_civil_war = {
+			### basics ###
+			ideology = totalist
+			size = 0
+			navy_ratio = 0
 
+			### states ###
+			capital = 402
+			states = { 402 }			
+
+			### characters ###
+			keep_all_characters = yes
+
+			### effects ###
+			set_temp_variable = { ALO_civil_war_target = THIS }
+		}
+
+		#move all Bolsheviks to revolter
+		every_unit_leader = {
+			limit = { 
+				OR = {
+					has_id = 68685
+					has_id = 68684
+					has_id = 68681
+				}
+			}
+			set_nationality = var:ALO_civil_war_target
+		}		
+		
+		#setup revolter
+		var:ALO_civil_war_target = {
+			#set cosmetic tag
 			save_global_event_target_as = ALO_soviet_republic
 			set_cosmetic_tag = KAZ_civil_war
 			
+			#set leaders and ideology
 			set_politics = {
 				ruling_party = totalist
 				elections_allowed = no
 			}
-			set_stability = 0.4
-			set_war_support = ROOT.has_war_support
 			set_popularities = {
 				totalist = 3
 				radical_socialist = 11
@@ -2662,87 +2693,35 @@ ALO_setup_socialist_revolution = {
 				paternal_autocrat = 5
 				national_populist = 13		
 			}			
-			every_state = {
-				limit = {
-					is_core_of = event_target:ALO_soviet_republic
-				}
-				remove_core_of = event_target:ALO_soviet_republic
-			}
-			add_ai_strategy = {
-				type = contain
-				id = "ALO"
-				value = 200
-			}
-			add_ai_strategy = {
-				type = conquer
-				id = "ALO"
-				value = 500
-			}
-			add_ai_strategy = {
-				type = antagonize
-				id = "ALO"
-				value = 200
-			}
-			reserve_dynamic_country = yes
-							
-			set_temp_variable = { ALO_civil_war_target = THIS }
-		}
-		every_owned_state = {
-			limit = { state = 402 }
-			KAZ = {
-				transfer_state = PREV
-				add_state_core = PREV
-			}
-			remove_core_of = ALO
-			add_claim_by = ALO
-			if = {
-				limit = {
-					ROOT = { divisions_in_state = { state = PREV size > 0 } }
-				}
-				teleport_armies = {
-					limit = { tag = ROOT }
-					to_state_array = owned_controlled_states
-				}
-			}
-		}
-		#move all Bolsheviks to revolter
-		every_unit_leader = {
-			limit = { 
-				OR = {
-					has_id = 68681
-					has_id = 68680
-					has_id = 68678
-				}
-			}
-			set_nationality = var:ALO_civil_war_target
-		}		
+			load_focus_tree = { tree = alash_focus keep_completed = yes }
 			
-		var:ALO_civil_war_target = {
-			copy_government_of_ROOT = yes
-			transfer_technology_and_slots = yes
-			set_capital = { state = 810 }
-			#load_focus_tree = { tree = UKR_focus keep_completed = yes }
-			#mark_focus_tree_layout_dirty = yes
-			remove_all_ministers = yes		
+			set_country_flag = ALO_alash_militia_apolitical
+			set_country_flag = cannot_have_conscription
+			set_country_flag = cannot_have_extensive_conscription
+			country_lock_all_division_template = yes
 			add_ideas = {
 				partial_economic_mobilisation
-				limited_conscription
+				volunteer_only
 				TRK_russian_railways
 				ALO_legacy_of_central_asian_revolt
 				ALO_land_troubles
+				ALO_wounds_of_alash
 				ALO_inexperienced_officials_4
 				ALO_civil_war_idea
+				ALO_medieval_army
 				ALO_Alibi_Jangildin_hog_tot
 				ALO_Oraz_Januzaquly_for_tot
 				ALO_Tel_Zhamanmurynov_eco_tot
 				ALO_Muqash_Orynbayev_sec_tot
 			}
+			set_rule = { can_generate_female_aces = yes }
+			set_rule = { can_generate_female_unit_leaders = yes }
 			set_politics = { 
 				ruling_party = totalist
 				elections_allowed = no
 			}				
 			create_country_leader = {
-				name = "Alibi Jangildin"
+				name = "Älibi Jangeldin"
 				desc = "POLITICS_ALIBI_JANGILDIN_DESC"
 				picture = "gfx/leaders/ALO/Portrait_ALO_Alibi_Dzhangildin.png"
 				expire = "1.1.1"
@@ -2754,6 +2733,11 @@ ALO_setup_socialist_revolution = {
 				picture = "gfx/leaders/ALO/Portrait_ALO_Saken_Seifullin.png"
 				expire = "1.1.1"
 				ideology = radsoc_communism_subtype
+			}
+			set_party_name = {
+				ideology = radical_socialist
+				name = ALO_radical_socialist_party2
+				long_name = ALO_radical_socialist_party2_long
 			}
 			add_popularity = {
 				ideology = totalist
@@ -2778,7 +2762,7 @@ ALO_setup_socialist_revolution = {
 				}
 			}
 			division_template = {
-				name = "Qyzyl Gvardya"
+				name = "Qyzyl Gvardia"
 				division_names_group = ALO_MIL_01
 				regiments = {
 					irregular_infantry = { x = 0 y = 0 }
@@ -2790,22 +2774,24 @@ ALO_setup_socialist_revolution = {
 			}	
 
 			#spawn units
-			capital_scope = {				
+			402 = {				
 				create_unit = {
-					division = "division_template = \"Qyzyl Gvardya\" start_experience_factor = 0.3"
-					owner = PREV
+					division = "division_template = \"Qyzyl Gvardia\" start_experience_factor = 0.3"
+					owner = var:ALO_civil_war_target
 				}
 				create_unit = {
-					division = "division_template = \"Qyzyl Gvardya\" start_experience_factor = 0.2"
-					owner = PREV
+					division = "division_template = \"Qyzyl Gvardia\" start_experience_factor = 0.2"
+					owner = var:ALO_civil_war_target
+					count = 2
 				}
 				create_unit = {
-					division = "division_template = \"Qyzyl Gvardya\" start_experience_factor = 0.1"
-					owner = PREV
+					division = "division_template = \"Qyzyl Gvardia\" start_experience_factor = 0.1"
+					owner = var:ALO_civil_war_target
+					count = 2
 				}
 				create_unit = {
 					division = "division_template = \"Qyzyl Atty Ásker\" start_experience_factor = 0.2"
-					owner = PREV
+					owner = var:ALO_civil_war_target
 					count = 2
 				}
 			}	
@@ -2821,10 +2807,62 @@ ALO_setup_socialist_revolution = {
 				division_template = "Atty ásker Militsiyasy"
 				disband = yes #will refund equipment and manpower
 			}
-			SOV = { SOV_puppet_PREV_effect = yes }
+
+			#remove redundant wargoals
+			if = {
+				limit = { has_wargoal_against = PREV }
+				remove_wargoal = { target = PREV type = all }
+			}
 		}
+		if = {
+			limit = { has_wargoal_against = var:ALO_civil_war_target }
+			remove_wargoal = { target = var:ALO_civil_war_target type = all }
+		}
+		
 		set_political_party = { ideology = totalist popularity = 0 }	
-		set_political_party = { ideology = syndicalist popularity = 0 }	
+		set_political_party = { ideology = syndicalist popularity = 0 }			
+		
+		#if at war, give wargoal to enemies
+		every_other_country = {
+			limit = {
+				OR = {
+					has_wargoal_against = PREV
+					has_offensive_war_with = PREV
+				}
+				can_declare_war_on = var:ALO_civil_war_target
+			}
+			create_wargoal = {
+				target = var:ALO_civil_war_target
+				type = annex_everything
+			}
+		}
+		every_state = {
+			limit = { state = 402 }
+			if = {
+				limit = {
+					ROOT = { divisions_in_state = { state = PREV size > 0 } }
+				}
+				teleport_armies = {
+					limit = { tag = ROOT }
+					to_state_array = owned_controlled_states
+				}
+			}
+		}		
+		XXA = {						
+			random_unit_leader = {
+				limit = { has_id = 68686 }
+				set_nationality = var:ALO_civil_war_target
+			}						
+			random_unit_leader = {
+				limit = { has_id = 68687 }
+				set_nationality = var:ALO_civil_war_target
+			}						
+			random_unit_leader = {
+				limit = { has_id = 68688 }
+				set_nationality = var:ALO_civil_war_target
+			}
+		}
+		RUS = { add_to_faction = var:ALO_civil_war_target }
 	}
 }
 ALO_setup_autonomy_by_event = {
@@ -2934,7 +2972,7 @@ ALO_setup_autonomy_RUS_by_event = {
 ALO_remove_russian_influence = {
 	ALO_remove_russian_influence_without_event = yes
 	if = {
-		limit = { gives_military_access_to = RVA }
+		limit = { ALO_has_russian_influence_RVA = yes }
 		set_temp_variable = { target = RVA }
 		clear_all_relations_with_TARGET = yes
 		RVA = { country_event = alash.401 }
@@ -4928,7 +4966,18 @@ ALO_change_radicalism = {
 			hidden_effect = {
 				if = {
 					limit = { check_variable = { ALO_radicalism_var > 0.9 } }
-					country_event = { id = alash.734 days = 3 }
+					if = {
+						limit = {
+							is_ai = yes
+							OR = {
+								has_game_rule = { rule = ALO_path option = ALO_PATH_USH_JUS }
+								has_game_rule = { rule = ALO_path option = ALO_PATH_USH_JUS_PANTURKIST }
+							}
+						}
+					}
+					else = {
+						country_event = { id = alash.734 days = 3 }
+					}
 				}
 				else_if = {
 					limit = { check_variable = { ALO_radicalism_var > 0.8 } }

@@ -1170,7 +1170,12 @@ TRK_Economy_decisions = {
 		timeout_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision timeout ALO_dealing_with_land_troubles_good"
 			if = {
-				limit = { ALO_ush_juz_in_power = yes }
+				limit = { 
+					OR = {
+						ALO_ush_juz_in_power = yes 
+						ALO_bolsheviks_in_power = yes
+					}
+				}
 				swap_ideas ={
 					remove_idea = ALO_land_troubles
 					add_idea = ALO_nationalized_land				
@@ -1960,13 +1965,14 @@ ALO_relations_with_russia = {
 			modifier = {
 				factor = 0
 				has_government = market_liberal
+				NOT = { has_game_rule = { rule = ALO_status option = ALO_STATUS_INDEPENDENT } }
 			}
 			modifier = {
 				factor = 0
 				OR = {
 					ALO_has_strong_russian_influence = yes
 					has_game_rule = { rule = ALO_status option = ALO_STATUS_PUPPET }
-					has_game_rule = { rule = ALO_status option = ALO_STATUS_ALLY }
+					has_game_rule = { rule = ALO_status option = ALO_STATUS_ANNEXATION }
 				}
 			}
 		}
@@ -2048,66 +2054,105 @@ ALO_relations_with_russia = {
 	}
 }
 foreign_politics = {
-	ALO_reclaim_orenburg = {
-		allowed = { always = no }
-		icon = GFX_decision_infiltrate_state
+	ALO_reintegrate_host = {
+		icon = GFX_decision_generic_cavalry
+		allowed = { original_tag = ALO }
+
+		cost = 10
+		days_remove = 20
+		cancel_if_not_visible = yes
+		fire_only_once = yes
+		war_with_target_on_remove = yes
 		
 		available = {
-			hidden_trigger = { always = no }
-		}
-		cancel_trigger = {
-			NOT = { country_exists = ORE }
-		}
-		
-		priority = 100
-		days_mission_timeout = 21
-		fire_only_once = yes
-		selectable_mission = no
-		war_with_on_timeout = yes
-
-		cancel_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision cancel ALO_reclaim_orenburg target: [From.GetName]"
-		}
-		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision timeout ALO_reclaim_orenburg target: [From.GetName]"
-			declare_war_on = {
-				target = ORE
-				type = annex_everything
+			NOT = { 
+				has_country_flag = ALO_negotiations_with_dutov 
+				has_active_mission = ALO_deal_with_orenburg_uralsk_unrest
+				has_active_mission = ALO_deal_with_orenburg_unrest
+				has_active_mission = ALO_deal_with_uralsk_unrest
+			}
+			if = {
+				limit = { ALO_alash_party_in_power = yes }
+				has_completed_focus = ALO_Cossack_Community_In_Alash
+			}
+			else_if = {
+				limit = { ALO_amonzholov_in_power = yes }
+				has_completed_focus = ALO_Deal_With_The_Cossacks
+			}
+			else_if = {
+				limit = { ALO_jas_azamat_in_power = yes }
+				has_country_flag = ALO_jas_azamat_disband_hosts
+			}
+			else_if = {
+				limit = { ALO_bolsheviks_in_power = yes }
+				has_completed_focus = ALO_Dekazakization
 			}
 		}
-	}
-	ORE_alash_will_declare_war = {
-		allowed = { always = no }
-		icon = GFX_decision_infiltrate_state
-		
-		available = {
-			hidden_trigger = { always = no }
-		}
-		cancel_trigger = {
-			NOT = { country_exists = ALO }
+
+		visible = {
+			country_exists = FROM
 		}
 		
-		priority = 100
-		days_mission_timeout = 21
-		fire_only_once = yes
-		selectable_mission = no
-		war_with_on_timeout = yes
+		ai_will_do = { 
+			factor = 100
+			modifier = {
+				factor = 0
+				dont_start_major_faction_wars = yes
+			}
+			modifier = {
+				factor = 0
+				FROM = { default_attack_AI_trigger_FROM = yes }
+			}
+		}
 
 		cancel_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision cancel ORE_alash_will_declare_war target: [From.GetName]"
+			log = "[GetDateText]: [Root.GetName]: Decision cancel ALO_reintegrate_host target: [From.GetName]"
+			clear_decision_attack_AI = yes
 		}
-		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision timeout ORE_alash_will_declare_war target: [From.GetName]"
-			effect_tooltip = {
-				ALO = {
-					declare_war_on = {
-						target = ROOT
-						type = annex_everything
-					}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete ALO_reintegrate_host target: [From.GetName]"
+			FROM = { incoming_war_notification_effect = yes }
+			setup_decision_attack_AI = yes
+			set_country_flag = ALO_cossacks_repressions			
+			if = {
+				limit = { FROM = { tag = ORE } }
+				every_unit_leader = {
+					limit = { has_trait = RUS_orenburg_cossack }
+					set_nationality = ORE
+				}				
+				delete_unit_template_and_units = {
+					division_template = "Orynbor Kazak Diviziasy"
+					disband = no
+				}
+			}
+			else_if = {
+				limit = { FROM = { tag = URL } }
+				every_unit_leader = {
+					limit = { has_trait = RUS_ural_cossack }
+					set_nationality = URL
+				}				
+				delete_unit_template_and_units = {
+					division_template = "Oral Kazak Diviziasy"
+					disband = no
+				}
+			}
+			else_if = {
+				limit = { FROM = { tag = SMR } }
+				every_unit_leader = {
+					limit = { has_trait = RUS_semirechye_cossack }
+					set_nationality = SMR
 				}
 			}
 		}
-	}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove ALO_reintegrate_host target: [From.GetName]"
+			clear_decision_attack_AI = yes
+			declare_war_on = {
+				target = FROM
+				type = annex_everything
+			}
+		}
+	}	
 }
 political_actions = {
 	ALO_truce_with_KAZ = {
@@ -2136,13 +2181,73 @@ political_actions = {
 
 		ai_will_do = {
 			factor = 0
+			modifier = {
+				add = 100
+				OR = {
+					has_game_rule = { rule = ALO_status option = ALO_STATUS_PUPPET }
+					has_game_rule = { rule = ALO_status option = ALO_STATUS_ANNEXATION }
+				}
+			}
 		}
 
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision ALO_truce_with_KAZ"
+			ALO_jas_azamat_leave_coalition_zhanar = yes
+			ALO_jas_azamat_leave_coalition_alash = yes
 			FROM = { country_event = alash.683 }
 			custom_effect_tooltip = if_FROM_agrees
 			event_option_tooltip = alash.681.a
+		}
+	}
+	KAZ_truce_with_ALO = {
+		allowed = { always = no }
+		icon = GFX_decision_SOV_the_stalin_constitution
+		
+		available = { 
+			has_war_with = FROM
+			is_valid_peace_target = yes
+			FROM = { 
+				is_valid_peace_target = yes
+				has_idea = ALO_general_staff_resistance 
+				ALO_has_russian_influence = no
+			}
+		}
+		
+		visible = {
+			FROM = {
+				is_subject = no
+				OR = {
+					ALO_jas_azamat_in_power = yes
+					ALO_ush_juz_in_power = yes
+				}
+			}
+		}
+		
+		cancel_if_not_visible = yes
+		
+		cost = 0
+		fire_only_once = yes
+
+		ai_will_do = {
+			factor = 0
+			modifier = {
+				add = 100
+				OR = {
+					has_game_rule = { rule = ALO_status option = ALO_STATUS_PUPPET }
+					has_game_rule = { rule = ALO_status option = ALO_STATUS_ANNEXATION }
+				}
+			}
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision KAZ_truce_with_ALO"
+			FROM = { 
+				country_event = alash.683 
+				ALO_jas_azamat_leave_coalition_zhanar = yes
+				ALO_jas_azamat_leave_coalition_alash = yes
+			}
+			custom_effect_tooltip = if_FROM_agrees
+			event_option_tooltip = alash.6810.a
 		}
 	}
 	ALO_core_orenburg = {
@@ -2225,7 +2330,7 @@ political_actions = {
 		priority = 150
 		cost = 0
 		ai_will_do = {
-			factor = 1000
+			factor = 100
 			modifier = {
 				factor = 0
 				ALO_alash_party_in_power = yes
@@ -2262,7 +2367,7 @@ political_actions = {
 		priority = 145
 		cost = 0
 		ai_will_do = {
-			factor = 1000
+			factor = 100
 			modifier = {
 				factor = 0
 				ALO_alash_party_in_power = yes
@@ -2315,33 +2420,6 @@ ALO_steppe_modernization_decisions = {
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision complete ALO_surnames_law"
 			country_event = alash.761
-		}
-	}
-	ALO_promote_cooperative_farming = {
-		icon = GFX_decision_generic_agriculture
-		allowed = { always = no }
-				
-		visible = { has_country_flag = ALO_comprehensive_sedentarization_started }
-		cancel_if_not_visible = yes
-		
-		cost = 20
-		days_remove = 55
-		fire_only_once = yes
-				
-		ai_will_do = {
-			factor = 100
-		}
-		modifier = {
-			consumer_goods_factor = -0.08
-			trade_opinion_factor = 0.20
-		}
-		
-		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove ALO_promote_cooperative_farming"
-			custom_effect_tooltip = ALO_nomadism_var_1
-			add_ideas = ALO_cooperative_farming
-			add_to_variable = { ALO_nomadism_var = 1 }
-			ALO_recheck_nomadism_status = yes
 		}
 	}
 	ALO_modernization_illiteracy = {
@@ -2762,6 +2840,10 @@ ALO_shadow_of_atamans_decisions = {
 				factor = 0
 				has_active_mission = ALO_investigation_semirechye
 			}
+			modifier = {
+				factor = 0
+				has_game_rule = { rule = ALO_cossacks option = ALO_COSSACKS_NEGOTIATIONS }
+			}
 		}
 
 		complete_effect = {
@@ -2809,7 +2891,14 @@ ALO_shadow_of_atamans_decisions = {
 		target_non_existing = yes
 
 		ai_will_do = { 
-			factor = 100 
+			factor = 100
+			modifier = {
+				factor = 0
+				OR = {
+					has_game_rule = { rule = ALO_cossacks option = ALO_COSSACKS_NEGOTIATIONS_URL }
+					has_game_rule = { rule = ALO_cossacks option = ALO_COSSACKS_REVOLT }
+				}
+			} 
 		}
 
 		complete_effect = {
@@ -2846,6 +2935,10 @@ ALO_shadow_of_atamans_decisions = {
 
 		ai_will_do = { 
 			factor = 100 
+			modifier = {
+				factor = 0
+				has_game_rule = { rule = ALO_cossacks option = ALO_COSSACKS_NEGOTIATIONS }
+			} 
 		}
 
 		complete_effect = {
@@ -2917,6 +3010,10 @@ ALO_shadow_of_atamans_decisions = {
 				has_active_mission = ALO_deal_with_orenburg_unrest
 				has_active_mission = ALO_deal_with_uralsk_unrest
 			}
+			OR = {
+				has_country_flag = ALO_1936_elections_completed
+				has_elections = no
+			}
 		}
 
 		visible = {
@@ -2930,6 +3027,10 @@ ALO_shadow_of_atamans_decisions = {
 
 		ai_will_do = { 
 			factor = 150 
+			modifier = {
+				factor = 0
+				has_game_rule = { rule = ALO_cossacks option = ALO_COSSACKS_NEGOTIATIONS }
+			} 
 		}
 
 		remove_effect = {
@@ -2974,6 +3075,10 @@ ALO_shadow_of_atamans_decisions = {
 
 		ai_will_do = { 
 			factor = 150 
+			modifier = {
+				factor = 0
+				has_game_rule = { rule = ALO_cossacks option = ALO_COSSACKS_NEGOTIATIONS }
+			} 
 		}
 
 		cancel_effect = {
@@ -3204,6 +3309,14 @@ ALO_shadow_of_atamans_decisions = {
 		
 		ai_will_do = { 
 			base = 100
+			modifier = {
+				factor = 0
+				OR = {
+					has_game_rule = { rule = ALO_cossacks option = ALO_COSSACKS_REVOLT }
+					has_game_rule = { rule = ALO_cossacks option = ALO_COSSACKS_REVOLT_ORE }
+					has_game_rule = { rule = ALO_cossacks option = ALO_COSSACKS_REVOLT_URL }
+				}
+			} 
 		}
 		
 		fire_only_once = yes
@@ -3239,7 +3352,34 @@ ALO_shadow_of_atamans_decisions = {
 		}
 		timeout_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision timeout ALO_deal_with_orenburg_uralsk_unrest"
-			country_event = alash.592
+			if = {
+				limit = { 
+					is_ai = yes 
+					has_game_rule = { rule = ALO_cossacks option = ALO_COSSACKS_REVOLT_FAILED }
+				}
+				set_country_flag = ALO_dutov_arrested
+				if = {
+					limit = { has_idea = ALO_cossack_garrison }
+					remove_ideas = ALO_cossack_garrison
+				}
+				1208 = { 
+					set_temp_variable = { cossack_change = ALO_cossack_strength }
+					multiply_temp_variable = { cossack_change = -1 }
+					ALO_change_cossack_strength = yes
+					ALO_remove_cossack_host = yes
+					set_demilitarized_zone = no 
+				}
+				406 = { 
+					set_temp_variable = { cossack_change = ALO_cossack_strength }
+					multiply_temp_variable = { cossack_change = -1 }
+					ALO_change_cossack_strength = yes
+					ALO_remove_cossack_host = yes
+					set_demilitarized_zone = no 
+				}
+			}
+			else = {
+				country_event = alash.592
+			}
 		}
 	}
 	ALO_deal_with_orenburg_unrest = {
@@ -3259,6 +3399,10 @@ ALO_shadow_of_atamans_decisions = {
 		
 		ai_will_do = { 
 			base = 100
+			modifier = {
+				factor = 0
+				has_game_rule = { rule = ALO_cossacks option = ALO_COSSACKS_REVOLT_ORE }
+			}
 		}
 		
 		fire_only_once = yes
@@ -3293,7 +3437,33 @@ ALO_shadow_of_atamans_decisions = {
 		}
 		timeout_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision timeout ALO_deal_with_orenburg_unrest"
-			country_event = alash.584
+			if = {
+				limit = { 
+					is_ai = yes 
+					has_game_rule = { rule = ALO_cossacks option = ALO_COSSACKS_REVOLT_FAILED }
+				}
+				set_country_flag = ALO_dutov_arrested
+				if = {
+					limit = { 
+						has_idea = ALO_cossack_garrison 
+						has_country_flag = ALO_supported_tolstov
+					}
+					swap_ideas = {
+						remove_idea = ALO_cossack_garrison
+						add_idea = ALO_cossack_autonomy
+					}				
+				}
+				1208 = { 
+					set_temp_variable = { cossack_change = ALO_cossack_strength }
+					multiply_temp_variable = { cossack_change = -1 }
+					ALO_change_cossack_strength = yes
+					ALO_remove_cossack_host = yes
+					set_demilitarized_zone = no 
+				}
+			}
+			else = {
+				country_event = alash.584
+			}
 		}
 	}
 	ALO_deal_with_uralsk_unrest = {
@@ -3313,6 +3483,10 @@ ALO_shadow_of_atamans_decisions = {
 		
 		ai_will_do = { 
 			base = 100
+			modifier = {
+				factor = 0
+				has_game_rule = { rule = ALO_cossacks option = ALO_COSSACKS_REVOLT_URL }
+			}
 		}
 		
 		fire_only_once = yes
@@ -3341,7 +3515,27 @@ ALO_shadow_of_atamans_decisions = {
 		}
 		timeout_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision timeout ALO_deal_with_uralsk_unrest"
-			country_event = alash.583
+			if = {
+				limit = { 
+					is_ai = yes 
+					has_game_rule = { rule = ALO_cossacks option = ALO_COSSACKS_REVOLT_FAILED }
+				}
+				set_country_flag = ALO_tolstov_arrested
+				if = {
+					limit = { has_idea = ALO_cossack_garrison }
+					remove_ideas = ALO_cossack_garrison
+				}
+				406 = { 
+					set_temp_variable = { cossack_change = ALO_cossack_strength }
+					multiply_temp_variable = { cossack_change = -1 }
+					ALO_change_cossack_strength = yes
+					ALO_remove_cossack_host = yes
+					set_demilitarized_zone = no 
+				}
+			}
+			else = {
+				country_event = alash.583
+			}
 		}
 	}
 }
@@ -3462,6 +3656,11 @@ ALO_Halyq_Keneshi = {
 		
 		ai_will_do = { 
 			factor = 150 
+			modifier = {
+				factor = 0
+				ALO_jas_azamat_in_power = yes
+				has_game_rule = { rule = ALO_path option = ALO_PATH_SOCDEM }
+			}
 		}
 
 		complete_effect = {
@@ -3506,6 +3705,14 @@ ALO_Halyq_Keneshi = {
 		
 		ai_will_do = { 
 			factor = 150 
+			modifier = {
+				factor = 0
+				ALO_jas_azamat_in_power = yes
+				OR = {
+					has_game_rule = { rule = ALO_path option = ALO_PATH_SOCDEM_DEM }
+					has_game_rule = { rule = ALO_path option = ALO_PATH_SOCDEM }
+				}
+			}
 		}
 
 		complete_effect = {
@@ -4749,6 +4956,32 @@ ALO_ush_jus_cat = {
 	}
 }
 ALO_sedentarization_decisions = {
+	ALO_promote_cooperative_farming = {
+		icon = GFX_decision_generic_agriculture
+		allowed = { always = no }
+				
+		cancel_if_not_visible = yes
+		
+		cost = 20
+		days_remove = 55
+		fire_only_once = yes
+				
+		ai_will_do = {
+			factor = 100
+		}
+		modifier = {
+			consumer_goods_factor = -0.08
+			trade_opinion_factor = 0.20
+		}
+		
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove ALO_promote_cooperative_farming"
+			custom_effect_tooltip = ALO_nomadism_var_1
+			add_ideas = ALO_cooperative_farming
+			add_to_variable = { ALO_nomadism_var = 1 }
+			ALO_recheck_nomadism_status = yes
+		}
+	}
 	ALO_social_benefits_for_former_nomads = {
 		icon = GFX_decision_give_cash
 		allowed = { always = no }
