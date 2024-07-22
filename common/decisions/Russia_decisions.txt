@@ -3805,7 +3805,7 @@ RUS_Foreign_Policy_decisions = {
 			}
 		}
 		
-		targets = { ABK MNT DAG GEO AZE ARM }
+		targets = { ABK MTR DAG GEO AZE ARM }
 		target_root_trigger = {
 			OR = {
 				has_completed_focus = RUS_Into_The_Caucasus
@@ -4046,6 +4046,25 @@ RUS_Foreign_Policy_decisions = {
 			log = "[GetDateText]: [Root.GetName]: Decision complete RUS_Attack_Central_Asia target: [From.GetName]"
 			FROM = { incoming_war_notification_effect = yes }
 			setup_decision_attack_AI = yes
+			if = {
+				limit = { 
+					has_country_flag = soviet_russia_restored 
+					FROM = {
+						OR = {
+							has_socialist_government = yes
+							has_left_democratic_government = yes
+						}
+					}
+				}
+				FROM = { 
+					country_event = {
+						id = russoc.504
+						days = 4
+					}
+				}
+				custom_effect_tooltip = if_FROM_agrees
+				effect_tooltip = { SOV_puppet_FROM_effect = yes }
+			}
 		}
 
 		remove_effect = {
@@ -5833,18 +5852,30 @@ RUS_Foreign_Policy_decisions = {
 		days_re_enable = 30
 		fire_only_once = no
 		ai_will_do = {
-			factor = 30
+			factor = 0
 			modifier = {
-				factor = 0
-				has_equipment = { infantry_equipment < 4000 }
+				# avoid division by zero
+				check_variable = { FROM.num_target_equipment_in_armies@infantry_equipment > 0 }
+
+				set_temp_variable = { china_infantry_equipment_ratio = FROM.num_equipment_in_armies@infantry_equipment }
+				divide_temp_variable = { china_infantry_equipment_ratio = FROM.num_target_equipment_in_armies@infantry_equipment }
+
+				set_temp_variable = { china_purchase_infantry_equipment_factor = 1 }
+				subtract_from_temp_variable = { china_purchase_infantry_equipment_factor = china_infantry_equipment_ratio }
+				multiply_temp_variable = { china_purchase_infantry_equipment_factor = 20 }
+
+				add = china_purchase_infantry_equipment_factor
 			}
 			modifier = {
 				factor = 0
-				has_war = yes
+				OR = {
+					has_war = yes
+					has_equipment = { infantry_equipment < 6000 }
+				}
 			}
 		}
 		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_Send_Equipment_China target: [From.GetName]"
+			log = "[GetDateText]: [Root.GetName]: Decision complete RUS_Send_Equipment_China target: [From.GetName]"
 			send_equipment = { target = FROM type = infantry_equipment amount = 2500 }
 			FROM = {
 				country_event = rusfor.1400
@@ -5873,56 +5904,56 @@ RUS_Foreign_Policy_decisions = {
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_Send_Attache target: [From.GetName]"
 			hidden_effect = { add_command_power = -50 }
-			if = {
-				limit = {
-					tag = RUS
-					NOT = { has_country_flag = soviet_russia_restored }
+			#TODO: unit_leader_event
+			random_unit_leader = {
+				limit = { 
+					OR = {
+						has_id = 417 
+						has_id = 606 
+						has_id = 50004 
+					}
 				}
+				set_unit_leader_flag = RUS_russian_in_china
+				set_nationality = FROM
+			}
+			FROM = { 
+				add_command_power = 50
+				army_experience = 50
+			}
+			activate_targeted_decision = { target = FROM decision = RUS_Recall_Attache }
+		}
+	}
+	RUS_Recall_Attache = {
+		icon = hol_draw_up_staff_plans
+		
+		allowed = { always = no }		
+		target_trigger = {
+			FROM = { has_country_flag = Russia_Supports_Us }
+		}
+		cost = 0
+		target_non_existing = yes
+		fire_only_once = yes
+		ai_will_do = {
+			factor = 0
+			modifier = {
+				add = 100
+				OR = {
+					NOT = { country_exists = FROM }
+					FROM = { surrender_progress > 0.2 }
+				}
+			}
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_Recall_Attache target: [From.GetName]"
+			#TODO: unit_leader_event
+			FROM = {
 				random_unit_leader = {
-					limit = { has_id = 417 }
-					set_unit_leader_flag = RUS_russian_in_china
-					set_nationality = FROM
-				}
-				FROM = { 
-					add_command_power = 50
-					army_experience = 50
+					limit = { has_unit_leader_flag = RUS_russian_in_china }
+					clr_unit_leader_flag = RUS_russian_in_china
+					set_nationality = ROOT
 				}
 			}
-			else_if = {
-				limit = {
-					tag = RUS
-					has_country_flag = soviet_russia_restored
-				}
-				random_unit_leader = {
-					limit = { has_id = 606 }
-					set_unit_leader_flag = RUS_russian_in_china
-					set_nationality = FROM
-				}
-				FROM = { 
-					add_command_power = 50
-					army_experience = 50
-				}
-			}
-			else_if = {
-				limit = {
-					tag = TRM
-				}
-				random_unit_leader = {
-					limit = { has_id = 50004 }
-					set_unit_leader_flag = RUS_russian_in_china
-					set_nationality = FROM
-				}
-				FROM = { 
-					add_command_power = 50
-					army_experience = 50
-				}
-			}
-			else = {
-				FROM = { 
-					add_command_power = 50
-					army_experience = 50
-				}
-			}
+			army_experience = 50
 		}
 	}
 			
@@ -7118,88 +7149,6 @@ political_actions = {
 			country_event = russia.2015
 		}
 	}	
-	China_Send_Attache_Back = {
-		icon = hol_draw_up_staff_plans
-		
-		allowed = {
-			OR = {
-				tag = GXC
-				tag = CHI
-				tag = FNG
-				tag = NPA
-				tag = YUN
-				tag = SZC
-			}
-		}
-		available = {
-			608 = { is_owned_and_controlled_by = ROOT }
-		}
-		
-		visible = {
-			OR = {
-				tag = GXC
-				tag = CHI
-				tag = FNG
-				tag = NPA
-				tag = YUN
-				tag = SZC
-			}
-
-			ROOT = {
-				has_country_flag = Russia_Supports_Us
-				OR = {
-					has_unit_leader = 417
-					has_unit_leader = 606
-					has_unit_leader = 50004
-				}
-			}
-		}
-		
-		targets = { RUS TRM }
-		target_root_trigger = {
-			has_country_flag = Russia_Supports_Us
-		}
-		cost = 0
-		fire_only_once = yes
-		ai_will_do = {
-			factor = 30
-			modifier = {
-				factor = 10
-				has_war = no
-			}
-		}
-		complete_effect = {
-			if = {
-				limit = {
-					has_unit_leader = 417
-				}
-				every_unit_leader = {
-					limit = {
-						has_id = 417
-					}
-					set_nationality = RUS
-				}
-			}
-			if = {
-				limit = {
-					has_unit_leader = 606
-				}
-				every_unit_leader = {
-					limit = { has_id = 606 }
-					set_nationality = RUS
-				}
-			}
-			if = {
-				limit = {
-					has_unit_leader = 50004
-				}
-				every_unit_leader = {
-					limit = { has_id = 50004 }
-					set_nationality = TRM
-				}
-			}
-		}
-	}
 	RUS_Join_The_Academy_of_Sciences = {
 		icon = generic_research
 		allowed = {
