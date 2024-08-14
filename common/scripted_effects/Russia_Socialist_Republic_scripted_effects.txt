@@ -145,32 +145,32 @@ SOV_calculate_politburo_factions = {
 		if = {
 			limit = { check_variable = { Politburo_Leader_Status^i > 0 } }
 			if = {
-				limit = { check_variable = { Politburo_Leader_Faction^i = 1 } }
+				limit = { check_variable = { Politburo_Leader_Faction^i = token:SOV_politburo_bukharinists } }
 				add_to_variable = { Politburo_Bukharin_Faction_num = 1 }
 				add_to_variable = { Politburo_Bukharin_Faction = Politburo_Leader_Authority^i }
 			}
 			else_if = {
-				limit = { check_variable = { Politburo_Leader_Faction^i = 2 } }
+				limit = { check_variable = { Politburo_Leader_Faction^i = token:SOV_politburo_rykovites } }
 				add_to_variable = { Politburo_Rykov_Faction_num = 1 }
 				add_to_variable = { Politburo_Rykov_Faction = Politburo_Leader_Authority^i }
 			}
 			else_if = {
-				limit = { check_variable = { Politburo_Leader_Faction^i = 3 } }
+				limit = { check_variable = { Politburo_Leader_Faction^i = token:SOV_politburo_workers_opposition } }
 				add_to_variable = { Politburo_WorkersOpposition_Faction_num = 1 }
 				add_to_variable = { Politburo_WorkersOpposition_Faction = Politburo_Leader_Authority^i }
 			}
 			else_if = {
-				limit = { check_variable = { Politburo_Leader_Faction^i = 4 } }
+				limit = { check_variable = { Politburo_Leader_Faction^i = token:SOV_politburo_old_guard } }
 				add_to_variable = { Politburo_OldGuard_Faction_num = 1 }
 				add_to_variable = { Politburo_OldGuard_Faction = Politburo_Leader_Authority^i }
 			}
 			else_if = {
-				limit = { check_variable = { Politburo_Leader_Faction^i = 5 } }
+				limit = { check_variable = { Politburo_Leader_Faction^i = token:SOV_politburo_left_communists } }
 				add_to_variable = { Politburo_Centre_Faction_num = 1 }
 				add_to_variable = { Politburo_Centre_Faction = Politburo_Leader_Authority^i }
 			}
 			else_if = {
-				limit = { check_variable = { Politburo_Leader_Faction^i = 6 } }
+				limit = { check_variable = { Politburo_Leader_Faction^i = token:SOV_politburo_hardliners } }
 				add_to_variable = { Politburo_Hardliner_Faction_num = 1 }
 				add_to_variable = { Politburo_Hardliner_Faction = Politburo_Leader_Authority^i }
 			}
@@ -196,7 +196,7 @@ SOV_politburo_change_authority_tooltip_for_congress = {
 SOV_politburo_change_authority = {
 	if = {
 		limit = {
-			NOT = { check_variable = { Politburo_Leader_Identity^Politburo_Leader_Name = 0 } }
+			NOT = { check_variable = { Politburo_Leader_Status^Politburo_Leader_Name = 0 } }
 		}
 		# tooltip
 		effect_tooltip = {
@@ -205,21 +205,37 @@ SOV_politburo_change_authority = {
 				tooltip = SOV_politburo_change_authority_tooltip
 			}
 		}
+	}
 
-		# lower limit = influence * -1
-		set_temp_variable = { SOV_lower_limit = Politburo_Leader_Authority^Politburo_Leader_Name }
-		multiply_temp_variable = { SOV_lower_limit = -1 }
+	# lower limit = influence * -1
+	set_temp_variable = { SOV_lower_limit = Politburo_Leader_Authority^Politburo_Leader_Name }
+	multiply_temp_variable = { SOV_lower_limit = -1 }
 
-		# avoid values outside the allowed range
-		clamp_temp_variable = {
-			var = politburo_var_change
-			min = SOV_lower_limit
+	# avoid values outside the allowed range
+	clamp_temp_variable = {
+		var = politburo_var_change
+		min = SOV_lower_limit
+	}
+
+	# add the variable
+	add_to_variable = { Politburo_Leader_Authority^Politburo_Leader_Name = politburo_var_change }
+	clamp_variable = { var = Politburo_Leader_Authority^Politburo_Leader_Name min = 0 }
+	SOV_calculate_politburo_factions = yes
+}
+# requires temp var politburo_faction_change
+# requires temp var politburo_var_change
+SOV_politburo_change_authority_by_faction = {
+	for_each_loop = {
+		array = Politburo_Leader_Faction
+		value = value
+		index = i
+		
+		
+		if = {
+			limit = { check_variable = { Politburo_Leader_Faction^i = politburo_faction_change } }
+			set_temp_variable = { Politburo_Leader_Name = i }
+			SOV_politburo_change_authority = yes			
 		}
-
-		# add the variable
-		add_to_variable = { Politburo_Leader_Authority^Politburo_Leader_Name = politburo_var_change }
-		clamp_variable = { var = Politburo_Leader_Authority^Politburo_Leader_Name min = 0 }
-		SOV_calculate_politburo_factions = yes
 	}
 }
 SOV_turn_nsp_into_totalist = {
