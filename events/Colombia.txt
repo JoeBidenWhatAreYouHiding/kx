@@ -95,6 +95,10 @@ country_event = { #Black Monday Violence
 
 	picture = GFX_report_event_COL_violence
 
+	trigger = {
+		has_government = social_liberal
+	}
+
 	fire_only_once = yes
 	is_triggered_only = yes
 
@@ -2480,6 +2484,523 @@ country_event = { #CAU declared war because COL didn't take action
 	}
 }
 
+country_event = { #COL proposes ceasefire because they're losing
+	id = colcw.7
+	title = colcw.7.t
+	desc = colcw.7.d
+
+	trigger = {
+		surrender_progress > 0.7
+		NOT = { 
+			COC = {
+				has_country_flag = COC_cw_ceasefire_flag
+			}
+		}
+		check_variable = { colcwstartdate > global.year }
+		is_subject = no
+		has_capitulated = no
+		OR = {
+			has_war_with = COC
+			has_war_with = CAU
+		}
+	}
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	immediate = { 
+		log = "[GetDateText]: [Root.GetName]: event colcw.7"
+	}
+
+	option = {
+		name = colcw.7.a
+		ai_will_do = {
+			base = 40
+		}
+		add_political_power = -50
+		add_stability = -0.02
+		add_war_support = -0.1
+		add_popularity = {
+			ideology = paternal_autocrat
+			popularity = -0.05
+		}
+		set_temp_variable = { coccontrolled = 0 }
+		add_to_temp_variable = { coccontrolled = COC.num_of_controlled_states }
+		subtract_from_temp_variable = { coccontrolled = COC.num_owned_controlled_states }
+		set_temp_variable = { caucontrolled = 0 }
+		add_to_temp_variable = { caucontrolled = CAU.num_of_controlled_states }
+		subtract_from_temp_variable = { caucontrolled = CAU.num_owned_controlled_states }
+		if = {
+			limit = {
+				COC = { has_war_with = COL }
+				NOT = {
+					CAU = {
+						has_war_with = COL
+					}
+				}
+			}
+			COC = {
+				country_event = {
+					id = colcw.8
+					days = 5
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				CAU = { has_war_with = COL }
+				NOT = {
+					COC = {
+						has_war_with = COL
+					}
+				}
+			}
+			CAU = {
+				country_event = {
+					id = colcw.8
+					days = 5
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				COC = { has_war_with = COL }
+				CAU = { has_war_with = COL }
+				check_variable = { coccontrolled > caucontrolled }
+				#COC.num_of_controlled_states > CAU.num_of_controlled_states
+			}
+			COC = {
+				country_event = {
+					id = colcw.8
+					days = 5
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				COC = { has_war_with = COL }
+				CAU = { has_war_with = COL }
+				check_variable = { caucontrolled > coccontrolled }
+				#CAU.num_of_controlled_states > COC.num_of_controlled_states
+			}
+			CAU = {
+				country_event = {
+					id = colcw.8
+					days = 5
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				COC = { has_war_with = COL }
+				CAU = { has_war_with = COL }
+				check_variable = { coccontrolled = caucontrolled }
+				#COC.num_of_controlled_states = CAU.num_of_controlled_states
+			}
+			COC = {
+				country_event = {
+					id = colcw.8
+					days = 5
+				}
+			}
+		}
+		set_country_flag = COL_cw_ceasefire_flag
+	}
+
+	option = {
+		name = colcw.7.b
+		ai_will_do = {
+			base = 60
+		}
+		add_political_power = 10
+		add_war_support = 0.1
+		every_enemy_country = {
+			limit = {
+				OR = {
+					tag = COC
+					tag = CAU
+				}
+			}
+			add_war_support = 0.1
+			add_stability = 0.1
+		}
+	}
+}
+
+country_event = { #ceasefire proposal comes
+	id = colcw.8
+	immediate = { log = "[GetDateText]: [Root.GetName]: event colcw.8" }
+	title = colcw.8.t
+	desc = colcw.8.d
+
+	trigger = {
+		OR = {
+			tag = COC
+			tag = CAU
+		}
+		country_exists = COL
+		COL = { has_war_with = ROOT }
+	}
+
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	option = {
+		name = colcw.8.a
+		ai_chance = {
+			base = 75
+		}
+		add_political_power = -50
+		add_stability = 0.1
+		add_war_support = -0.1
+		COL = {
+			country_event = {
+				id = colcw.9
+				days = 5
+			}
+		}
+		set_country_flag = COL_ceasefire_receiver
+	}
+
+	option = {
+		name = colcw.8.b
+		ai_chance = {
+			base = 25
+			modifier = {
+				factor = 0
+				COL = {
+					is_ai = no
+				}
+			}
+		}
+		add_political_power = 75
+		add_war_support = 0.15
+		decrease_ruling_party_popularity_by_3 = yes
+		every_army_leader = {
+			limit = {
+				is_border_war = no
+			}
+			boost_planning = 0.1
+		}
+		every_army_leader = {
+			limit = {
+				is_leading_army_group = no
+				is_leading_army = yes
+				is_border_war = no
+			}
+			add_temporary_buff_to_units = {
+				combat_offense = 0.2
+				combat_breakthrough = 0.25
+				org_damage_multiplier = -1.0
+				str_damage_multiplier = 0.6
+				war_support_reduction_on_damage = 0.2
+				cannot_retreat_while_attacking = 1.0
+				days = 17
+				tooltip = ABILITY_FORCE_ATTACK_TOOLTIP
+			}
+		}
+		COL = {
+			country_event = {
+				id = colcw.10
+				days = 5
+			}
+		}
+	}
+}
+
+country_event = { #Ceasefire accepted
+	id = colcw.9
+	title = colcw.9.t
+	desc = colcw.9.d
+
+	is_triggered_only = yes	
+	fire_only_once = yes
+
+	immediate = { 
+		log = "[GetDateText]: [Root.GetName]: event colcw.9"
+	}
+
+	option = {
+		name = colcw.9.a
+		add_political_power = -75
+		add_stability = 0.1
+		add_war_support = -0.25
+		if = {
+			limit = { 
+				COC = { has_country_flag = COL_ceasefire_receiver }
+				CAU = { NOT = { has_country_flag = COL_ceasefire_receiver } } 
+			}
+			white_peace = COC
+			set_truce = {
+				target = COC
+				days = 400
+			}
+			remove_wargoal = {
+				type = all
+				target = COC
+			}
+		}
+		else_if = {
+			limit = { 
+				CAU = { has_country_flag = COL_ceasefire_receiver }
+				COC = { NOT = { has_country_flag = COL_ceasefire_receiver } } 
+			}
+			white_peace = CAU
+			set_truce = {
+				target = CAU
+				days = 400
+			}
+			remove_wargoal = {
+				type = all
+				target = CAU
+			}
+		}
+		else = {
+			white_peace = COC
+			set_truce = {
+				target = COC
+				days = 400
+			}
+			remove_wargoal = {
+				type = all
+				target = COC
+			}
+			white_peace = CAU
+			set_truce = {
+				target = CAU
+				days = 400
+			}
+			remove_wargoal = {
+				type = all
+				target = CAU
+			}
+		}
+		remove_ideas = COL_civilwar_pataut_1
+		every_other_country = {
+			limit = { has_country_flag = COL_ceasefire_receiver }
+			add_political_power = -75
+			add_stability = 0.1
+			add_war_support = -0.25
+			white_peace = COL
+			set_truce = {
+				target = COL
+				days = 400
+			}
+			remove_wargoal = {
+				type = all
+				target = COL
+			}
+		}
+		COL = {
+			hidden_effect = {
+				country_event = {
+					id = colcw.11
+					days = 5
+				}
+			}
+		}
+	}
+}
+
+
+country_event = { #Ceasefire rejected
+	id = colcw.10
+	title = colcw.10.t
+	desc = colcw.10.d
+
+	is_triggered_only = yes	
+	fire_only_once = yes
+
+	immediate = { 
+		log = "[GetDateText]: [Root.GetName]: event colcw.10"
+	}
+
+	option = {
+		name = colcw.10.a
+		add_political_power = -50
+		add_war_support = 0.3
+		add_popularity = {
+			ideology = paternal_autocrat
+			popularity = -0.07
+		}
+	}
+}
+
+country_event = { #COL after ceasefire - Army coup Pinilla restores democracy
+	id = colcw.11
+	title = colcw.11.t
+	desc = colcw.11.d
+
+	is_triggered_only = yes	
+	fire_only_once = yes
+
+	immediate = { 
+		log = "[GetDateText]: [Root.GetName]: event colcw.11"
+	}
+
+	option = {
+		name = colcw.11.a
+		add_political_power = 30
+		add_stability = -0.05
+		add_command_power = 15
+		create_country_leader = {
+			name = "Colombian Council"
+			desc = "POLITICS_COL_COUNCIL_DESC"
+			picture = "gfx/leaders/COL/Portrait_Colombia_Council.png"
+			expire = "1965.1.1"
+			ideology = junta_subtype
+			traits = { COL_weak_ass_council }
+		}
+		meta_effect = {
+			text = {
+				set_politics = {
+					ruling_party = paternal_autocrat
+					last_election = "[CURRENT_DATE]"
+					election_frequency = 1
+					elections_allowed = yes
+				}
+			}
+			CURRENT_DATE = "[?global.date.GetDateStringNoHour]"
+		}
+	}
+
+	option = {
+		name = colcw.11.b
+		add_political_power = -70
+		add_stability = -0.2
+		add_war_support = -0.15
+	}
+}
+
+
+country_event = { #COL proposes ceasefire because they're losing
+	id = colcw.12
+	title = colcw.12.t
+	desc = colcw.12.d
+
+	trigger = {
+		surrender_progress > 0.55
+		is_subject = no
+		has_capitulated = no
+		OR = {
+			has_war_with = COC
+			has_war_with = CAU
+		}
+	}
+	#is_triggered_only = yes
+	fire_only_once = yes
+
+	immediate = { 
+		log = "[GetDateText]: [Root.GetName]: event colcw.12"
+	}
+
+	option = {
+		name = colcw.12.a
+		add_political_power = -50
+		add_stability = -0.02
+		add_war_support = -0.1
+		add_popularity = {
+			ideology = paternal_autocrat
+			popularity = -0.05
+		}
+		set_temp_variable = { coccontrolled = 0 }
+		add_to_temp_variable = { coccontrolled = COC.num_of_controlled_states }
+		subtract_from_temp_variable = { coccontrolled = COC.num_owned_controlled_states }
+		set_temp_variable = { caucontrolled = 0 }
+		add_to_temp_variable = { caucontrolled = CAU.num_of_controlled_states }
+		subtract_from_temp_variable = { caucontrolled = CAU.num_owned_controlled_states }
+		if = {
+			limit = {
+				COC = { has_war_with = COL }
+				NOT = {
+					CAU = {
+						has_war_with = COL
+					}
+				}
+			}
+			COC = {
+				country_event = {
+					id = colcw.8
+					days = 5
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				CAU = { has_war_with = COL }
+				NOT = {
+					COC = {
+						has_war_with = COL
+					}
+				}
+			}
+			CAU = {
+				country_event = {
+					id = colcw.8
+					days = 5
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				COC = { has_war_with = COL }
+				CAU = { has_war_with = COL }
+				check_variable = { coccontrolled > caucontrolled }
+				#COC.num_of_controlled_states > CAU.num_of_controlled_states
+			}
+			COC = {
+				country_event = {
+					id = colcw.8
+					days = 5
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				COC = { has_war_with = COL }
+				CAU = { has_war_with = COL }
+				check_variable = { caucontrolled > coccontrolled }
+				#CAU.num_of_controlled_states > COC.num_of_controlled_states
+			}
+			CAU = {
+				country_event = {
+					id = colcw.8
+					days = 5
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				COC = { has_war_with = COL }
+				CAU = { has_war_with = COL }
+				check_variable = { coccontrolled = caucontrolled }
+				#COC.num_of_controlled_states = CAU.num_of_controlled_states
+			}
+			COC = {
+				country_event = {
+					id = colcw.8
+					days = 5
+				}
+			}
+		}
+	}
+
+	option = {
+		name = colcw.12.b
+		add_political_power = 10
+		add_war_support = 0.1
+		every_enemy_country = {
+			limit = {
+				OR = {
+					tag = COC
+					tag = CAU
+				}
+			}
+			add_war_support = 0.1
+			add_stability = 0.1
+		}
+	}
+}
+
 
 #################################################################################################################################
 ############ COLOMBIA ELECTION EVENTS ############ COLOMBIA ELECTION EVENTS ############ COLOMBIA ELECTION EVENTS ###############
@@ -4473,10 +4994,16 @@ country_event = { #Pinilla steps down - Frente Nacional
 		hidden_effect = {
 			remove_all_ministers = yes
 		}
-		set_politics = {
-			ruling_party = social_conservative
-			election_frequency = 96
-			elections_allowed = yes
+		meta_effect = {
+			text = {
+				set_politics = {
+					ruling_party = social_conservative
+					last_election = "[CURRENT_DATE]"
+					election_frequency = 96
+					elections_allowed = yes
+				}
+			}
+			CURRENT_DATE = "[?global.date.GetDateStringNoHour]"
 		}
 		create_country_leader = {
 			name = "Francisco de Paula Peréz Tamayo"
@@ -7866,18 +8393,6 @@ country_event = { #Ceasefire accepted
 
 	option = {
 		name = colfocus.996.a
-		COL = { 
-			white_peace = COC
-			set_truce = {
-				target = COC
-				days = 400
-			}
-			remove_wargoal = {
-				type = all
-				target = COC
-			}
-			remove_ideas = COL_civilwar_pataut_1
-		}
 		add_political_power = -75
 		add_stability = 0.1
 		add_war_support = -0.25
@@ -7889,6 +8404,18 @@ country_event = { #Ceasefire accepted
 		remove_wargoal = {
 			type = all
 			target = COL
+		}
+		COL = { 
+			white_peace = COC
+			set_truce = {
+				target = COC
+				days = 400
+			}
+			remove_wargoal = {
+				type = all
+				target = COC
+			}
+			remove_ideas = COL_civilwar_pataut_1
 		}
 	}
 }
@@ -8334,7 +8861,7 @@ country_event = { #MAKE NATIVES ANGERY
 	}
 
 	option = {
-		name = col.987.d
+		name = col.987.e
 	}
 }
 
