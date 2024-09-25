@@ -1,4 +1,38 @@
 on_actions = {
+	on_startup = {
+		effect = {
+			add_to_array = { global.italian_tags_array = ITA }
+			add_to_array = { global.italian_tags_array = SRI }
+			add_to_array = { global.italian_tags_array = PAP }
+			add_to_array = { global.italian_tags_array = SIC }
+			add_to_array = { global.italian_tags_array = SRD }
+			add_to_array = { global.italian_tags_array = LOM }
+			add_to_array = { global.italian_tags_array = VNC }
+			add_to_array = { global.italian_tags_array = TUS }
+
+			for_each_scope_loop = {
+				array = global.italian_tags_array
+				if = {
+					limit = { NOT = { tag = SIC } }
+					activate_targeted_decision = { decision = SIC_develop_campania_steel_mines target = 117 }
+					activate_targeted_decision = { decision = SIC_develop_campania_aluminium_mines target = 117 }
+				}
+				if = {
+					limit = { NOT = { tag = SRD } }
+					activate_targeted_decision = { decision = SRD_develop_cagliari_coal_mines target = 114 }
+				}
+				if = {
+					limit = { NOT = { tag = LOM } }
+					activate_targeted_decision = { decision = LOM_develop_lombardy_coal_mines target = 159 }
+				}
+				if = {
+					limit = { NOT = { tag = TUS } }
+					activate_targeted_decision = { decision = TUS_develop_tuscany_coal_mines target = 162 }
+				}
+			}
+		}
+	}
+	
 	#ROOT is winner #FROM is loser
 	on_peaceconference_ended = {
 		effect = {
@@ -6,58 +40,50 @@ on_actions = {
 				limit = {
 					FROM = { tag = SRI }
 				}
-				if = {
-					limit = {
-						ROOT = { tag = PAP }
-					}
-					ROOT = { country_event = papalstate.65 }
-				}
-				if = {
-					limit = {
-						ROOT = { tag = ITA }
-					}
-					ROOT = {
-						country_event = { id = papalstate.65 days = 45 random_days = 45 }
-						country_event = ita.173
-					}
-					FROM = { country_event = ita.173 }
-				}
+				PAP = { country_event = papalstate.65 }
+				ITA = { country_event = italianrepublic.173 }
+			}
+			if = {
+				limit = { original_tag = VNC }
+				country_event = { id = italianrepublic.42 days = 1 random_days = 2 }
+			}
+			else_if = {
+				limit = { FROM = { original_tag = VNC } }
+				FROM = { country_event = { id = italianrepublic.42 days = 1 random_days = 2 } }
 			}
 			if = {
 				limit = {
-					ROOT = { tag = VNC }
-					FROM = { tag = ITA }
-				}
-				ROOT = {
-					country_event = { id = ita.42 days = 1 random_days = 2 }
-				}
-			}
-			if = {
-				limit = {
-					ROOT = { tag = SRI }
+					tag = SRI
 					FROM = { tag = ITA }
 					country_exists = VNC
 				}
 				VNC = {
-					country_event = { id = ita.44 days = 2 random_days = 4 }
+					country_event = { id = italianrepublic.44 days = 2 random_days = 4 }
 				}
 			}
 			if = {
 				limit = {
-					ROOT = { tag = ITA }
+					tag = ITA
 					FROM = { tag = VNC }
 				}
 				AUS = {
-					country_event = { id = ita.122 days = 1 random_days = 2 }
+					country_event = { id = italianrepublic.122 days = 1 random_days = 2 }
+				}
+				ROM = {
+					country_event = { id = romania.169 days = 3 }
 				}
 			}
 			if = {
-				limit = {
-					ROOT = { has_country_flag = ITA_libya_war_@FROM }
-				}
-				ROOT = {
-					clr_country_flag = ITA_libya_war_@FROM
-					clr_country_flag = ITA_war_for_libya
+				limit = { has_country_flag = ITA_libya_war_@FROM }
+				clr_country_flag = ITA_libya_war_@FROM
+				clr_country_flag = ITA_war_for_libya
+			}
+			if = {
+				limit = { is_italian_tag = yes }
+				italy_move_capital_to_rome = yes
+				if = {
+					limit = { original_tag = SRD }
+					country_event = { id = srd.42 days = 55 }
 				}
 			}
 		}
@@ -71,10 +97,10 @@ on_actions = {
 					tag = SRI
 					FROM = { tag = ITA }
 				}
-				AUS = { country_event = { id = ita.38 hours = 1 } }
+				AUS = { country_event = { id = italianrepublic.38 hours = 1 } }
 				if = {
 					limit = { country_exists = VNC }
-					VNC = { country_event = { id = ita.38 hours = 2 } }
+					VNC = { country_event = { id = italianrepublic.38 hours = 2 } }
 				}
 			}
 			if = {
@@ -111,6 +137,31 @@ on_actions = {
 					clr_country_flag = ITA_war_for_libya
 				}
 			}
+			if = {
+				limit = { is_italian_tag = yes }
+				italy_move_capital_to_rome = yes
+			}
+			else_if = {
+				limit = { FROM = { is_italian_tag = yes } }
+				if = {
+					limit = { FROM = { tag = SRD } }
+					FROM = { SRD_remove_entente_support_idea = yes }
+				}
+			}
+		}
+	}
+
+	on_war_relation_added = { # Clear the Italian balance if a non-Italian country ends up at war with the SRI
+		effect = {
+			if = {
+				limit = {
+					OR = {
+						tag = SRI
+						FROM = { tag = SRI }
+					}
+				}
+				SRI = { country_event = socitaly.127 }
+			}
 		}
 	}
 
@@ -119,33 +170,35 @@ on_actions = {
 			### Republic of Italy ###
 			if = {
 				limit = { tag = ITA	}
-				country_event = ita.12	#1936
-				country_event = ita.19	#1941
+				country_event = italianrepublic.12	#1936
+				country_event = italianrepublic.19	#1941
 			}
 			### Lombardy ###
-			if = {
+			else_if = {
 				limit = { tag = LOM }
 				country_event = lombardy.15
 			}
 			### Papal States ###
-			if = {
+			else_if = {
 				limit = { tag = PAP }
 				country_event = papalstate.10
 			}
 			### Two Sicilies ###
-			if = {
+			else_if = {
 				limit = { tag = SIC }
 				country_event = sic.10
-				country_event = sic.11
+				country_event = sic.20
 			}
 			### Sardinia ###
-			if = {
+			else_if = {
 				limit = { tag = SRD }
-				country_event = srd.29
-				country_event = srd.30
+				country_event = srd.30 #Generic
+				country_event = srd.29 #First Elections
+				country_event = srd.17 #Generic Authoritarian Liberal Elections
+				country_event = srd.16 #Generic Badoglio Elections
 			}
 			### Venice ###
-			if = {
+			else_if = {
 				limit = { tag = VNC }
 				country_event = venice.50
 			}
@@ -156,8 +209,46 @@ on_actions = {
 		effect = {
 			if = {
 				limit = { tag = ITA }
-				country_event = { id = ita.61 days = 2 random_days = 5 }
-				country_event = { id = ita.68 days = 2 random_days = 5 }
+				country_event = { id = italianrepublic.61 days = 2 random_days = 5 }
+				country_event = { id = italianrepublic.68 days = 2 random_days = 5 }
+			}
+		}
+	}
+
+	on_war_relation_added = {
+		effect = {
+			if = {
+				limit = {
+					ROOT = {
+						OR = {
+							tag = INT
+							tag = SRD
+						}
+					}
+					FROM = {
+						OR = {
+							tag = INT
+							tag = SRD
+						}
+					}
+				}
+				SRD = {
+					country_event = { id = srd.41 days = 30 random_days = 180 }
+				}
+			}
+		}
+	}
+
+	# ROOT is capitulated country, FROM is winner
+	on_capitulation_immediate = {
+		effect = {
+			### Transfer VNC navy to ITA
+			if = {
+				limit = {
+					original_tag = VNC
+					FROM = { original_tag = ITA }
+				}
+				transfer_navy = { target = FROM }
 			}
 		}
 	}

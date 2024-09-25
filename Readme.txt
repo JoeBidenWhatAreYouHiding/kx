@@ -17,6 +17,6 @@ Discord:
 https://steamcommunity.com/linkfilter/?url=https://discord.gg/5KdFMYK
 
 Reddit:
-http://reddit.com/r/liberia
+http://reddit.com/r/kaiserredux
 
 - The KX and KR4 Team, full credits list found in \interface\credits.txt

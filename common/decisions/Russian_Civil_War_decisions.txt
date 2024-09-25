@@ -15,7 +15,7 @@ RUS_civil_war_decisions = {
 			NOT = {
 				has_war_with = GER
 				has_war_with = DKB
-				has_war_with = TRM
+				has_war_with = FIN
 			}
 			if = {
 				limit = { tag = RRF }
@@ -41,6 +41,8 @@ RUS_civil_war_decisions = {
 				NOT = { country_exists = RUS }
 				NOT = { country_exists = RVA }
 			}
+			owns_state = 195
+			owns_state = 219
 		}
 		
 		cost = 0
@@ -56,14 +58,13 @@ RUS_civil_war_decisions = {
 		icon = generic_civil_support
 		allowed = {
 			OR = {
-				tag = WHR
-				tag = UKR
-				tag = TRM
+				original_tag = UKR
 				tag = ALO
 				tag = SIB
 				tag = LAT
-				tag = FIN
+				tag = EST
 				tag = GER
+				tag = WHR
 			}
 		}
 		available = {
@@ -93,44 +94,20 @@ RUS_civil_war_decisions = {
 			}
 			if = {
 				limit = {
-					tag = FIN
+					tag = WHR
 				}
-				country_exists = RVA
-				NOT = { has_completed_focus = FIN_diplomacy }
+				has_completed_focus = WHR_global_belarus
 			}			
 			if = {
 				limit = {
-					tag = LAT
+					original_tag = WHR
 				}
-				OR = {
-					AND = {
-						has_completed_focus = LAT_look_to_russian_bolshevism
-						has_socialist_government = yes
-						RUS = {
-							NOT = {
-								has_country_leader = {
-									name = "Georgy Zhukov"
-									ruling_only = yes
-								}
-							}
-							NOT = { has_idea = SOV_foreign_aid }
-						}
-					}
-					AND = {
-						has_completed_focus = LAT_dissolve_the_assembly
-						has_government = national_populist
-						country_exists = RRF
-						RRF = { RUS_savinkov_in_power = yes }
-					}
-				}
+				NOT = { owns_state = 240 }
 			}			
 			if = {
 				limit = { 
 					NOT = { 
-						OR = {
-							tag = GER
-							tag = WHR
-						}
+						tag = GER
 					}
 				}
 				has_war = no
@@ -157,6 +134,16 @@ RUS_civil_war_decisions = {
 		
 		ai_will_do = {
 			factor = 1000
+			modifier = {
+				factor = 0
+				AND = {
+					tag = WHR
+					has_game_rule = {
+						rule = WHR_foreign_policy
+						option = WHR_FOREIGN_POLICY_RUSSIA_SECRET_PACT
+					}
+				}
+			}
 		}
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision RCW_intervene_in_the_rcw"
@@ -171,41 +158,83 @@ RUS_civil_war_decisions = {
 			}
 			else_if = {
 				limit = {
-					tag = WHR
-				}
-				country_event = rcw.27
-			}
-			else_if = {
-				limit = {
 					tag = ALO
 				}
-				country_event = rcw.32
-			}
-			else_if = {
-				limit = {
-					tag = FIN
+				country_event = {
+					id = rcw.32
+					days = 7
+					random_days = 4
 				}
-				country_event = rcw.37
-			}
-			else_if = {
-				limit = {
-					tag = LAT
-					has_socialist_government = yes
-				}
-				country_event = rcw.47
 			}
 			else_if = {
 				limit = {
 					tag = LAT
-					has_government = national_populist
 				}
-				country_event = rcw.48
+				if = {
+					limit = {
+						has_completed_focus = LAT_look_to_russian_bolshevism
+						has_socialist_government = yes
+						RUS = {
+							NOT = { has_idea = SOV_foreign_aid }
+						}
+					}
+					country_event = rcw.47
+				}
+				else_if = {
+					limit = {
+						has_completed_focus = LAT_dissolve_the_assembly
+						has_government = national_populist
+						country_exists = RRF
+						RRF = { RUS_savinkov_in_power = yes }
+					}
+					country_event = rcw.48
+				}
+				else = {
+					transfer_state = 880
+				}
 			}
 			else_if = {
 				limit = {
-					tag = UKR
+					original_tag = UKR
 				}
-				country_event = rcw.55
+				country_event = {
+					id = rcw.55
+					days = 4
+				}
+			}
+			else_if = {
+				limit = {
+					tag = EST
+				}
+				transfer_state = 1288
+			}
+			else_if = {
+				limit = {
+					tag = WHR
+				}
+				if = {
+					limit = {
+						NOT = { has_country_flag = WHR_anarchists }
+						OR = {
+							has_socialist_government = yes
+							has_government = social_democrat							
+						}
+						is_subject = no
+						russian_civil_war = yes
+					}
+					country_event = {
+						id = rcw.27
+						days = 5
+						random_days = 10
+					}
+				}
+				else = {
+					country_event = {
+						id = whiteruthenia.63
+						days = 5
+						random_days = 10
+					}
+				}
 			}
 		}
 	}
@@ -369,73 +398,136 @@ RUS_civil_war_decisions = {
 			}		
 		}
 	}
-	RCW_pact_with_rrf = {
+	RCW_joint_front = {
 		icon = generic_agreement
 		allowed = { tag = RVA }
 		available = {
-			NOT = { has_global_flag = RCW_begun }
-			NOT = { has_war_with = FROM }
+			country_exists = RUS
+			count_triggers = {
+				amount = 2
+				RRF = { has_war_with = RUS }
+				TRM = { has_war_with = RUS }
+				WRA = { has_war_with = RUS }
+			}
+		}
+		visible = {
+			has_global_flag = RCW_begun
+			NOT = { has_global_flag = RCW_over }
 		}
 		cost = 0
 		fire_only_once = yes
 		ai_will_do = { factor = 200 }
-		targets = { RRF }
-		target_root_trigger = {
-			RUS_kornilov_in_power = yes			
-		}
-		target_trigger = {
-			FROM = {
-				at_peace_or_same_enemies_as_ROOT = yes
-				RUS_savinkov_in_power = yes
-			}
-		}
+		
 		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision RCW_pact_with_rrf"
-			FROM = {
+			log = "[GetDateText]: [Root.GetName]: Decision RCW_joint_front"
+			create_faction = "South-Eastern Union"
+			every_other_country = {
+				limit = {
+					OR = {
+						AND = { 
+							tag = RRF
+							NOT = { has_global_flag = RCW_SOV_RRF_peace }
+						}
+						tag = TRM
+					}
+					exists = yes
+					has_war_with = RUS
+				}
 				country_event = {
-					id = rcw.41
+					id = rcw.251
 					days = 2
 				}
 			}
 		}
 	}
-	RCW_alliance_fails = {
+	RCW_invite_to_pact = {
 		icon = generic_agreement
-		allowed = { always = no } #activated by event
+		allowed = { tag = RVA }
 		available = {
-			has_non_aggression_pact_with = FROM
-			NOT = { country_exists = RUS }
-		}
-		cost = 0
-		fire_only_once = yes
-		ai_will_do = { 
-			base = 200
-			modifier = {
-				factor = 0
-				AND = {
-					FROM = { RUS_dont_attack_if_target_is_stronger = yes }
-					date < 1938.1.1
+			country_exists = RUS
+			if = {
+				limit = { FROM = { tag = TRM } }
+				if = {
+					limit = {
+						OR = { 
+							RUS_kornilov_in_power = yes
+							RUS_denikin_in_power = yes
+						}
+					}
+					FROM = { has_government = paternal_autocrat }
+				}
+				else_if = {
+					limit = { RUS_wrangel_in_power = yes }
+					FROM = { TRM_do_rovs_in_power = yes }
 				}
 			}
 		}
-		war_with_target_on_remove = yes
+		visible = {
+			has_global_flag = RCW_begun
+			NOT = { has_global_flag = RCW_over }			
+		}
+		targets = { ALO DKB TRM }
+		target_root_trigger = { is_faction_leader = yes }
+		target_trigger = {
+			FROM = {
+				has_war_with = var:219:owner
+				NOT = { has_war_with = ROOT }
+			}
+		}
+		cost = 0
+		fire_only_once = yes
+		ai_will_do = { factor = 200 }
 		
 		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision RCW_alliance_fails"
-			setup_decision_attack_AI = yes
+			log = "[GetDateText]: [Root.GetName]: Decision RCW_invite_to_pact target: [From.GetName]"
+			FROM = {
+				country_event = {
+					id = rcw.251
+					days = 2
+				}
+			}
 		}
-		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove RCW_alliance_fails"
-			clear_decision_attack_AI = yes
-			diplomatic_relation = {
-				country = FROM
-				relation = non_aggression_pact
-				active = no
+	}
+	RCW_give_to_the_people = {
+		icon = generic_prepare_civil_war
+		allowed = { always = no  }
+		available = {
+			OR = {
+				controls_province = 6174
+				controls_province = 6380
 			}
-			declare_war_on = {
-				target = FROM
-				type = civil_war
+		}
+		cancel_trigger = {
+			hidden_trigger = { 
+				OR = {
+					has_capitulated = yes 
+					NOT = { country_exists = RUS }
+				}
 			}
+		}
+		selectable_mission = no
+		fire_only_once = yes
+		days_mission_timeout = 365
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision RCW_give_to_the_people target: [From.GetName]"
+			if = {
+				limit = { has_idea = RRF_victory_expectations }
+				remove_ideas = RRF_victory_expectations
+			}
+			add_war_support = 0.2
+			add_popularity = { ideology = national_populist popularity = 0.2 }
+			every_controlled_state = {
+				limit = {
+					NOT = { is_core_of = ROOT }
+					has_resistance = yes
+				}
+				add_compliance = 40
+			}
+		}
+		timeout_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision timeout RCW_give_to_the_people target: [From.GetName]"
+			country_event = rcw.262
 		}
 	}
 	RUS_propose_ceasefire_trm = {
@@ -450,35 +542,32 @@ RUS_civil_war_decisions = {
 		}
 		available = {
 			has_global_flag = RCW_begun
-			OR = {
-				AND = {
-					tag = RUS
-					NOT = { country_exists = RRF }
-					NOT = { country_exists = RVA }
-					NOT = { country_exists = WRA }
-					has_war_with = TRM
-				}
-				AND = {
-					tag = RRF
-					NOT = { country_exists = RUS }
-					NOT = { country_exists = RVA }
-					NOT = { country_exists = WRA }
-					has_war_with = TRM
-				}
-				AND = {
-					tag = RVA
-					NOT = { country_exists = RUS }
-					NOT = { country_exists = RRF }
-					NOT = { country_exists = WRA }
-					has_war_with = TRM
-				}
-				AND = {
-					tag = WRA
-					NOT = { country_exists = RUS }
-					NOT = { country_exists = RRF }
-					NOT = { country_exists = RVA }
-					has_war_with = TRM
-				}
+			if = {
+				limit = { tag = RRF }
+				NOT = { country_exists = RUS }
+				NOT = { country_exists = RVA }
+				NOT = { country_exists = WRA }
+				has_war_with = TRM
+			}
+			else_if = {
+				limit = { tag = RVA }
+				NOT = { country_exists = RUS }
+				NOT = { country_exists = RRF }
+				NOT = { country_exists = WRA }
+				has_war_with = TRM
+			}
+			else_if = {
+				limit = { tag = WRA }
+				NOT = { country_exists = RUS }
+				NOT = { country_exists = RRF }
+				NOT = { country_exists = RVA }
+				has_war_with = TRM
+			}
+			else = {
+				NOT = { country_exists = WRA }
+				NOT = { country_exists = RRF }
+				NOT = { country_exists = RVA }
+				has_war_with = TRM
 			}
 		}
 		cost = 0
@@ -486,78 +575,16 @@ RUS_civil_war_decisions = {
 		ai_will_do = { 
 			base = 2000
 		}
-		targets = { TRM }
-		target_root_trigger = {
-			has_war_with = FROM
-		}
-		target_trigger = {
+		visible = {
 			has_global_flag = RCW_begun
+			has_war_with = TRM
 		}
 		
 		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision RCW_alliance_fails"
-			FROM = { country_event = rcw.101 }
+			log = "[GetDateText]: [Root.GetName]: Decision RUS_propose_ceasefire_trm"
+			TRM = { country_event = rcw.101 }
 		}
-	}
-	RCW_invite_cossacks = {
-		icon = generic_agreement
-		allowed = { tag = RVA }
-		available = {
-			NOT = { has_global_flag = RCW_begun }
-			NOT = { has_war_with = FROM }
-		}
-		cost = 0
-		fire_only_once = yes
-		ai_will_do = { factor = 200 }
-		targets = { DKB }
-		target_root_trigger = {
-			OR = {
-				RUS_kornilov_in_power = yes			
-				RUS_denikin_in_power = yes
-				RUS_wrangel_in_power = yes
-			}
-		}
-		target_trigger = {
-			FROM = {
-				at_peace_or_same_enemies_as_ROOT = yes
-				is_subject = no
-				has_war = no
-				is_in_faction = no
-				has_socialist_government = no
-				don_is_pro_russian = yes				
-			}
-		}
-		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision RCW_invite_cossacks"
-			FROM = {
-				country_event = {
-					id = rcw.20
-					days = 2
-				}				
-			}
-		}
-	}
-	RCW_pact_with_trm = {
-		icon = generic_agreement
-		allowed = { always = no } #activated by event
-		available = {
-			NOT = { has_war_with = FROM }
-		}
-		
-		cost = 0
-		fire_only_once = yes
-		ai_will_do = { factor = 200 }
-		
-		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision RCW_pact_with_trm"
-			FROM = {
-				country_event = {
-					id = rcw.43
-					days = 2
-				}
-			}
-		}
-	}
+	}		
 	RCW_conquer_siberia = {
 		icon = generic_agreement
 		allowed = { 
@@ -608,12 +635,16 @@ RUS_civil_war_decisions = {
 		ai_will_do = { factor = 200 }
 		war_with_target_on_remove = yes
 		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision RCW_invite_cossacks"
+			log = "[GetDateText]: [Root.GetName]: Decision RCW_conquer_siberia"
 			setup_decision_attack_AI = yes
 		}
 		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove RCW_invite_cossacks"
+			log = "[GetDateText]: [Root.GetName]: Decision remove RCW_conquer_siberia"
 			clear_decision_attack_AI = yes
+			declare_war_on = {
+				target = FROM
+				type = annex_everything
+			}
 		}		
 	}
 	
@@ -621,7 +652,6 @@ RUS_civil_war_decisions = {
 		icon = generic_prepare_civil_war
 		allowed = {
 			OR = {
-				tag = SOV
 				tag = RUS
 				tag = RVA
 				tag = WRA
@@ -724,7 +754,6 @@ RUS_civil_war_decisions = {
 		icon = generic_prepare_civil_war
 		allowed = {
 			OR = {
-				tag = SOV
 				tag = RUS
 				tag = RVA
 				tag = RRF
@@ -932,7 +961,6 @@ RUS_civil_war_decisions = {
 			OR = {
 				tag = WRA
 				tag = RUS
-				tag = SOV
 				tag = RRF
 				tag = TRM
 			}
@@ -1035,7 +1063,6 @@ RUS_civil_war_decisions = {
 			OR = {
 				tag = WRA
 				tag = RUS
-				tag = SOV
 				tag = RRF
 				tag = RVA
 			}
@@ -1137,7 +1164,6 @@ RUS_civil_war_decisions = {
 		allowed = {
 			OR = {
 				tag = TRM
-				tag = SOV
 				tag = WRA
 				tag = RRF
 				tag = RVA
@@ -1148,6 +1174,14 @@ RUS_civil_war_decisions = {
 			NOT = {
 				has_country_flag = RCW_is_recruiting
 				FROM = { is_demilitarized_zone = yes }
+			}
+			if = {
+				limit = { has_focus_tree = Russia_Socialist }
+				has_completed_focus = RUS_Local_Defense_Militias
+			}
+			else_if = {
+				limit = { tag = RRF }
+				has_completed_focus = RRF_Organize_Green_Armies
 			}
 		}
 		visible = {
@@ -1176,16 +1210,14 @@ RUS_civil_war_decisions = {
 		fire_only_once = no
 		days_remove = 6
 		cost = 0
-		on_map_mode = map_only 
-		
+		on_map_mode = map_only		
 		
 		state_target = yes
 		target_array = RUS.RUS_starting_states_array 
 		target_trigger = {
 			FROM = {
-				is_controlled_by = ROOT
 				NOT = { has_state_flag = RCW_recruited_@ROOT }
-				impassable = no
+				valid_state_for_spawning_friendly_unit = yes
 				NOT = { has_state_category = zero }
 				NOT = { has_state_category = one }
 			}
@@ -1202,14 +1234,8 @@ RUS_civil_war_decisions = {
 			highlight_state_targets = {
 				state = FROM
 			}
-		}
+		}		
 		
-		
-		cancel_trigger = {
-			has_global_flag = RCW_begun
-		}
-
-
 		ai_will_do = {
 			factor = 10
 			modifier = {
@@ -1220,7 +1246,7 @@ RUS_civil_war_decisions = {
 				set_temp_variable = { units_to_spawn = FROM.state_population_k }
 				divide_temp_variable = { units_to_spawn = 500 }
 				round_temp_variable = units_to_spawn
-
+	
 				if = {
 					limit = {
 						NOT = { has_global_flag = KR_no_unit_limits }
@@ -1230,19 +1256,20 @@ RUS_civil_war_decisions = {
 					}
 					set_temp_variable = { units_to_spawn = 0 }
 				}
-
+	
 				factor = units_to_spawn
 			}			
 		}
 		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel RCW_recruit_state target: [From.GetName]"
 			clr_country_flag = RCW_is_recruiting
 		}
 		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision RCW_recruit_state"
-			set_country_flag = RCW_is_recruiting
+			log = "[GetDateText]: [Root.GetName]: Decision RCW_recruit_state target: [From.GetName]"
+			set_country_flag = { flag = RCW_is_recruiting value = 1 days = 6 }
 		}
 		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove RCW_recruit_state"
+			log = "[GetDateText]: [Root.GetName]: Decision remove RCW_recruit_state target: [From.GetName]"
 			clr_country_flag = RCW_is_recruiting
 			FROM = {
 				set_state_flag = RCW_recruited_@ROOT
@@ -1274,7 +1301,7 @@ RUS_Siberian_Insurgency_decisions = {
 		days_remove = 5
 		fire_only_once = yes
 		state_target = yes
-		targets = { 583 572 653 580 403 577 590 571 588 570 578 40 569 568 576 567 575 }
+		targets = { 583 572 653 580 403 577 590 571 588 570 578 40 569 568 576 567 575 1292 }
 		target_root_trigger = {
 			has_country_flag = RCW_should_deal_with_siberian_revolt
 		}
@@ -1298,8 +1325,10 @@ RUS_Siberian_Insurgency_decisions = {
 				set_demilitarized_zone = no
 				add_core_of = ROOT
 				remove_core_of = SIB
-				add_claim_by = SIB
-				cancel_resistance = yes
+				if = {
+					limit = { has_resistance = yes }
+					cancel_resistance = yes
+				}
 				force_disable_resistance = { clear = yes }
 			}
 			if = {
@@ -1309,9 +1338,10 @@ RUS_Siberian_Insurgency_decisions = {
 				1201 = {
 					set_demilitarized_zone = no
 					add_core_of = ROOT
-					remove_core_of = SIB
-					add_claim_by = SIB
-					cancel_resistance = yes
+					if = {
+						limit = { has_resistance = yes }
+						cancel_resistance = yes
+					}
 					force_disable_resistance = { clear = yes }
 				}
 			}
@@ -1322,9 +1352,10 @@ RUS_Siberian_Insurgency_decisions = {
 				1200 = {
 					set_demilitarized_zone = no
 					add_core_of = ROOT
-					remove_core_of = SIB
-					add_claim_by = SIB
-					cancel_resistance = yes
+					if = {
+						limit = { has_resistance = yes }
+						cancel_resistance = yes
+					}
 					force_disable_resistance = { clear = yes }
 				}
 			}
@@ -1335,9 +1366,88 @@ RUS_Siberian_Insurgency_decisions = {
 				516 = {
 					set_demilitarized_zone = no
 					add_core_of = ROOT
-					remove_core_of = SIB
-					add_claim_by = SIB
-					cancel_resistance = yes
+					if = {
+						limit = { has_resistance = yes }
+						cancel_resistance = yes
+					}
+					force_disable_resistance = { clear = yes }
+				}
+			}
+			if = {
+				limit = {
+					FROM = { state = 570 }
+				}
+				578 = {
+					set_demilitarized_zone = no
+					add_core_of = ROOT
+					if = {
+						limit = { has_resistance = yes }
+						cancel_resistance = yes
+					}
+					force_disable_resistance = { clear = yes }
+				}
+				40 = {
+					set_demilitarized_zone = no
+					add_core_of = ROOT
+					if = {
+						limit = { has_resistance = yes }
+						cancel_resistance = yes
+					}
+					force_disable_resistance = { clear = yes }
+				}
+			}
+			if = {
+				limit = {
+					FROM = { state = 578 }
+				}
+				570 = {
+					set_demilitarized_zone = no
+					add_core_of = ROOT
+					if = {
+						limit = { has_resistance = yes }
+						cancel_resistance = yes
+					}
+					force_disable_resistance = { clear = yes }
+				}
+				40 = {
+					set_demilitarized_zone = no
+					add_core_of = ROOT
+					if = {
+						limit = { has_resistance = yes }
+						cancel_resistance = yes
+					}
+					force_disable_resistance = { clear = yes }
+				}
+			}
+			if = {
+				limit = {
+					FROM = { state = 40 }
+				}
+				570 = {
+					set_demilitarized_zone = no
+					add_core_of = ROOT
+					if = {
+						limit = { has_resistance = yes }
+						cancel_resistance = yes
+					}
+					force_disable_resistance = { clear = yes }
+				}
+				578 = {
+					set_demilitarized_zone = no
+					add_core_of = ROOT
+					if = {
+						limit = { has_resistance = yes }
+						cancel_resistance = yes
+					}
+					force_disable_resistance = { clear = yes }
+				}
+				1292 = {
+					set_demilitarized_zone = no
+					add_core_of = ROOT
+					if = {
+						limit = { has_resistance = yes }
+						cancel_resistance = yes
+					}
 					force_disable_resistance = { clear = yes }
 				}
 			}
@@ -1351,19 +1461,12 @@ RUS_Siberian_Insurgency_decisions = {
 RUS_Tambov_Rebellion_decisions = {
 	RUS_control_rrf_state = {
 		icon = GFX_decision_revolt
-		
+		allowed = { always = no }
 		available = {
 			FROM = {
 				any_neighbor_state = {
-					is_demilitarized_zone = no
 					is_owned_by = ROOT
 				}
-			}
-		}
-		visible = {
-			FROM = {
-				is_demilitarized_zone = yes
-				is_owned_by = ROOT
 			}
 		}
 		custom_cost_trigger = {
@@ -1376,16 +1479,7 @@ RUS_Tambov_Rebellion_decisions = {
 		fire_only_once = yes
 		
 		state_target = yes
-		targets = { 257 258 254 223 205 224 220 222 240 260 1229 821 }
-		target_root_trigger = {
-			has_country_flag = RCW_should_deal_with_rrf_revolt
-		}
-		target_trigger = {
-			FROM = {
-				is_demilitarized_zone = yes
-			}
-		}
-		
+				
 		ai_will_do = {
 			factor = 1000
 		}
@@ -1402,15 +1496,461 @@ RUS_Tambov_Rebellion_decisions = {
 		}
 		remove_effect = {
 			FROM = {
-				set_demilitarized_zone = no
-				add_core_of = ROOT
-				remove_core_of = RRF
-				cancel_resistance = yes
-				force_disable_resistance = { clear = yes }
+				set_border_war = no
 			}
-			ROOT = {
-				add_stability = -0.02
-			}
+			add_stability = -0.02
 		}
 	}	
+}
+RUS_dealing_with_opposition = {
+	RUS_fight_socialist_resistance = {
+		icon = GFX_decision_oppression
+		available = {
+			hidden_trigger = {
+				OR = {
+					has_idea = RUS_socialist_resistance
+					has_idea = RUS_socialist_resistance_1
+					has_idea = RUS_socialist_resistance_2
+				}
+			}
+		}
+		visible = {
+			OR = {
+				has_idea = RUS_socialist_resistance
+				has_idea = RUS_socialist_resistance_1
+				has_idea = RUS_socialist_resistance_2
+			}
+		}
+		cost = 25
+		days_remove = 120
+		fire_only_once = no
+		
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				has_war = yes
+			}
+			modifier = {
+				factor = 0
+				OR = {
+					255 = { is_demilitarized_zone = yes }
+					257 = { is_demilitarized_zone = yes }
+					258 = { is_demilitarized_zone = yes }
+					254 = { is_demilitarized_zone = yes }
+					223 = { is_demilitarized_zone = yes }
+					249 = { is_demilitarized_zone = yes }
+					651 = { is_demilitarized_zone = yes }
+				}
+			}
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_fight_socialist_resistance target: [From.GetName]"
+			if = {
+				limit = {
+					has_idea = RUS_socialist_resistance
+				}
+				swap_ideas = {
+					remove_idea = RUS_socialist_resistance
+					add_idea = RUS_socialist_resistance_1
+				}
+			}
+			else_if = {
+				limit = {
+					has_idea = RUS_socialist_resistance_1
+				}
+				swap_ideas = {
+					remove_idea = RUS_socialist_resistance_1
+					add_idea = RUS_socialist_resistance_2
+				}
+			}
+			else = {
+				remove_ideas = RUS_socialist_resistance_2
+			}
+		}
+	}
+	RUS_fight_nationalist_resistance = {
+		icon = GFX_decision_oppression
+		available = {
+			hidden_trigger = {
+				OR = {
+					has_idea = RUS_nationalist_resistance
+					has_idea = RUS_nationalist_resistance_1
+					has_idea = RUS_nationalist_resistance_2
+				}
+			}
+		}
+		visible = {
+			OR = {
+				has_idea = RUS_nationalist_resistance
+				has_idea = RUS_nationalist_resistance_1
+				has_idea = RUS_nationalist_resistance_2
+			}
+		}
+		cost = 25
+		days_remove = 120
+		fire_only_once = no
+		
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				has_war = yes
+			}
+			modifier = {
+				factor = 0
+				OR = {
+					255 = { is_demilitarized_zone = yes }
+					257 = { is_demilitarized_zone = yes }
+					258 = { is_demilitarized_zone = yes }
+					254 = { is_demilitarized_zone = yes }
+					223 = { is_demilitarized_zone = yes }
+					249 = { is_demilitarized_zone = yes }
+					651 = { is_demilitarized_zone = yes }
+				}
+			}
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_fight_nationalist_resistance target: [From.GetName]"
+			if = {
+				limit = {
+					has_idea = RUS_nationalist_resistance
+				}
+				swap_ideas = {
+					remove_idea = RUS_nationalist_resistance
+					add_idea = RUS_nationalist_resistance_1
+				}
+			}
+			else_if = {
+				limit = {
+					has_idea = RUS_nationalist_resistance_1
+				}
+				swap_ideas = {
+					remove_idea = RUS_nationalist_resistance_1
+					add_idea = RUS_nationalist_resistance_2
+				}
+			}
+			else = {
+				remove_ideas = RUS_nationalist_resistance_2
+			}
+		}
+	}
+	RUS_fight_monarchist_resistance = {
+		icon = GFX_decision_oppression
+		available = {
+			hidden_trigger = {
+				OR = {
+					has_idea = RUS_monarchist_resistance
+					has_idea = RUS_monarchist_resistance_1
+				}
+			}
+		}
+		visible = {
+			OR = {
+				has_idea = RUS_monarchist_resistance
+				has_idea = RUS_monarchist_resistance_1
+			}
+		}
+		cost = 25
+		days_remove = 120
+		fire_only_once = no
+		
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				has_war = yes
+			}
+			modifier = {
+				factor = 0
+				OR = {
+					255 = { is_demilitarized_zone = yes }
+					257 = { is_demilitarized_zone = yes }
+					258 = { is_demilitarized_zone = yes }
+					254 = { is_demilitarized_zone = yes }
+					223 = { is_demilitarized_zone = yes }
+					249 = { is_demilitarized_zone = yes }
+					651 = { is_demilitarized_zone = yes }
+				}
+			}
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_fight_monarchist_resistance target: [From.GetName]"
+			if = {
+				limit = {
+					has_idea = RUS_monarchist_resistance
+				}
+				swap_ideas = {
+					remove_idea = RUS_monarchist_resistance
+					add_idea = RUS_monarchist_resistance_1
+				}
+			}
+			else = {
+				remove_ideas = RUS_monarchist_resistance_1
+			}
+		}
+	}
+	RUS_fight_democrat_resistance = {
+		icon = GFX_decision_oppression
+		available = {
+			hidden_trigger = {
+				OR = {
+					has_idea = RUS_democrat_resistance
+					has_idea = RUS_democrat_resistance_1
+					has_idea = RUS_democrat_resistance_2
+				}
+			}
+		}
+		visible = {
+			OR = {
+				has_idea = RUS_democrat_resistance
+				has_idea = RUS_democrat_resistance_1
+				has_idea = RUS_democrat_resistance_2
+			}
+		}
+		cost = 25
+		days_remove = 120
+		fire_only_once = no
+		
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				has_war = yes
+			}
+			modifier = {
+				factor = 0
+				OR = {
+					255 = { is_demilitarized_zone = yes }
+					257 = { is_demilitarized_zone = yes }
+					258 = { is_demilitarized_zone = yes }
+					254 = { is_demilitarized_zone = yes }
+					223 = { is_demilitarized_zone = yes }
+					249 = { is_demilitarized_zone = yes }
+					651 = { is_demilitarized_zone = yes }
+				}
+			}
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_fight_democrat_resistance target: [From.GetName]"
+			if = {
+				limit = {
+					has_idea = RUS_democrat_resistance
+				}
+				swap_ideas = {
+					remove_idea = RUS_democrat_resistance
+					add_idea = RUS_democrat_resistance_1
+				}
+			}
+			else_if = {
+				limit = {
+					has_idea = RUS_democrat_resistance_1
+				}
+				swap_ideas = {
+					remove_idea = RUS_democrat_resistance_1
+					add_idea = RUS_democrat_resistance_2
+				}
+			}
+			else = {
+				remove_ideas = RUS_democrat_resistance_2
+			}
+		}
+	}
+	RUS_fight_oblastniki_resistance = {
+		icon = GFX_decision_oppression
+		available = {
+			hidden_trigger = {
+				OR = {
+					has_idea = RUS_oblastnik_resistance
+					has_idea = RUS_oblastnik_resistance_1
+					has_idea = RUS_oblastnik_resistance_2
+				}
+			}
+		}
+		visible = {
+			OR = {
+				has_idea = RUS_oblastnik_resistance
+				has_idea = RUS_oblastnik_resistance_1
+				has_idea = RUS_oblastnik_resistance_2
+			}
+		}
+		cost = 25
+		days_remove = 120
+		fire_only_once = no
+		
+		ai_will_do = {
+			factor = 100
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_fight_oblastniki_resistance target: [From.GetName]"
+			if = {
+				limit = {
+					has_idea = RUS_oblastnik_resistance
+				}
+				swap_ideas = {
+					remove_idea = RUS_oblastnik_resistance
+					add_idea = RUS_oblastnik_resistance_1
+				}
+			}
+			else_if = {
+				limit = {
+					has_idea = RUS_oblastnik_resistance_1
+				}
+				swap_ideas = {
+					remove_idea = RUS_oblastnik_resistance_1
+					add_idea = RUS_oblastnik_resistance_2
+				}
+			}
+			else = {
+				remove_ideas = RUS_oblastnik_resistance_2
+			}
+		}
+	}
+	RUS_fight_cossack_resistance = {
+		icon = GFX_decision_oppression
+		available = {
+			hidden_trigger = {
+				OR = {
+					has_idea = RUS_semyenov_loyalists_resistance
+					has_idea = RUS_semyenov_loyalists_resistance_1
+					has_idea = RUS_semyenov_loyalists_resistance_2
+				}
+			}
+		}
+		visible = {
+			OR = {
+				has_idea = RUS_semyenov_loyalists_resistance
+				has_idea = RUS_semyenov_loyalists_resistance_1
+				has_idea = RUS_semyenov_loyalists_resistance_2
+			}
+		}
+		cost = 25
+		days_remove = 120
+		fire_only_once = no
+		
+		ai_will_do = {
+			factor = 100
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_fight_cossack_resistance target: [From.GetName]"
+			if = {
+				limit = {
+					has_idea = RUS_semyenov_loyalists_resistance
+				}
+				swap_ideas = {
+					remove_idea = RUS_semyenov_loyalists_resistance
+					add_idea = RUS_semyenov_loyalists_resistance_1
+				}
+			}
+			else_if = {
+				limit = {
+					has_idea = RUS_semyenov_loyalists_resistance_1
+				}
+				swap_ideas = {
+					remove_idea = RUS_semyenov_loyalists_resistance_1
+					add_idea = RUS_semyenov_loyalists_resistance_2
+				}
+			}
+			else = {
+				remove_ideas = RUS_semyenov_loyalists_resistance_2
+			}
+		}
+	}
+	RUS_fight_kolchak_resistance = {
+		icon = GFX_decision_oppression
+		available = {
+			hidden_trigger = {
+				OR = {
+					has_idea = RUS_kolchak_loyalists_resistance
+					has_idea = RUS_kolchak_loyalists_resistance_1
+				}
+			}
+		}
+		visible = {
+			OR = {
+				has_idea = RUS_kolchak_loyalists_resistance
+				has_idea = RUS_kolchak_loyalists_resistance_1
+			}
+		}
+		cost = 25
+		days_remove = 120
+		fire_only_once = no
+		
+		ai_will_do = {
+			factor = 100
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_fight_kolchak_resistance target: [From.GetName]"
+			if = {
+				limit = {
+					has_idea = RUS_kolchak_loyalists_resistance
+				}
+				swap_ideas = {
+					remove_idea = RUS_kolchak_loyalists_resistance
+					add_idea = RUS_kolchak_loyalists_resistance_1
+				}
+			}
+			else = {
+				remove_ideas = RUS_kolchak_loyalists_resistance_1
+			}
+		}
+	}
+	RUS_fight_sibmonarchists_resistance = {
+		icon = GFX_decision_oppression
+		available = {
+			hidden_trigger = {
+				OR = {
+					has_idea = RUS_siberian_monarchists_resistance
+					has_idea = RUS_siberian_monarchists_resistance_1
+					has_idea = RUS_siberian_monarchists_resistance_2
+				}
+			}
+		}
+		visible = {
+			OR = {
+				has_idea = RUS_siberian_monarchists_resistance
+				has_idea = RUS_siberian_monarchists_resistance_1
+				has_idea = RUS_siberian_monarchists_resistance_2
+			}
+		}
+		cost = 25
+		days_remove = 120
+		fire_only_once = no
+		
+		ai_will_do = {
+			factor = 100
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_fight_sibmonarchists_resistance target: [From.GetName]"
+			if = {
+				limit = {
+					has_idea = RUS_siberian_monarchists_resistance
+				}
+				swap_ideas = {
+					remove_idea = RUS_siberian_monarchists_resistance
+					add_idea = RUS_siberian_monarchists_resistance_1
+				}
+			}
+			else_if = {
+				limit = {
+					has_idea = RUS_siberian_monarchists_resistance_1
+				}
+				swap_ideas = {
+					remove_idea = RUS_siberian_monarchists_resistance_1
+					add_idea = RUS_siberian_monarchists_resistance_2
+				}
+			}
+			else = {
+				remove_ideas = RUS_siberian_monarchists_resistance_2
+			}
+		}
+	}
 }

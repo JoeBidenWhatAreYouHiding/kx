@@ -61,12 +61,22 @@ ARM_foreign_policy = {
 		}
 
 		visible = {
-			FROM = {
-				is_faction_leader = yes
-				NOT = { has_war_with = ROOT }
-			}
 			has_socialist_government = yes
 			is_in_faction = no
+			is_subject = no
+			if = {
+				limit = {
+					FROM = { tag = RUS }
+				}
+				FROM = {
+					has_country_flag = soviet_russia_restored
+				}
+			}
+			FROM = {
+				is_faction_leader = yes
+				has_socialist_government = yes
+				NOT = { has_war_with = ROOT }
+			}
 		}
 		
 		cost = 0
@@ -74,20 +84,24 @@ ARM_foreign_policy = {
 
 		ai_will_do = {
 			factor = 100
+			modifier = {
+				factor = 0
+				FROM = { tag = INT }
+				RUS = {
+					has_country_flag = soviet_russia_restored
+					NOT = { is_in_faction_with = INT }
+				}
+			}
 		}
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove ARM_join_internationale target: [From.GetName]"
+			FROM = { country_event = arm.46 }
 			if = {
-				limit = { 
-					RUS = { 
-						is_faction_leader = yes
-						has_socialist_government = yes
-					}
+				limit = {
+					FROM = { tag = RUS }
 				}
-				RUS = { country_event = arm.46 }
-			}
-			else = {
-				INT = { country_event = arm.46 }
+				custom_effect_tooltip = if_FROM_agrees
+				effect_tooltip = { FROM = { SOV_puppet_ROOT_effect = yes } }
 			}
 		}
 	}
@@ -251,12 +265,14 @@ ARM_foreign_policy = {
 
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision ARM_proclaim_transcaucasia target: [From.GetName]"
-			add_state_core = 230
-			add_state_core = 229
-			add_state_core = 998
-			add_state_core = 1082
-			add_state_core = 1081
-			add_state_core = 990
+			every_state = {
+			limit = { is_core_of = GEO }
+			add_core_of = ARM
+				}
+			every_state = {
+			limit = { is_core_of = AZE }
+			add_core_of = ARM
+				}
 			set_cosmetic_tag = ARM_TCU
 		}
 	}
@@ -283,7 +299,7 @@ ARM_foreign_policy = {
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision ARM_SOV_Create_Soviet_Union"
 			add_stability = 0.1
-			set_country_flag = RUS_can_integrate
+			RUS_enable_integration = yes
 			ROOT = { save_global_event_target_as = soviet_russia }
 			set_country_flag = soviet_russia_restored
 			set_cosmetic_tag = SOV
@@ -304,7 +320,10 @@ ARM_foreign_policy = {
 					}
 					add_core_of = RUS
 					remove_core_of = RRF
-					cancel_resistance = yes
+					if = {
+						limit = { has_resistance = yes }
+						cancel_resistance = yes
+					}
 					force_disable_resistance = { clear = yes }
 				}
 			}
@@ -359,33 +378,438 @@ ARM_foreign_policy = {
 					ideology = radical_socialist
 					long_name = RUS_totalist_party_long
 					name = RUS_totalist_party
+				}				
+				for_each_scope_loop = {
+					array = CAN.faction_members
+					embargo_ROOT = yes
 				}
-				every_country = {
-					limit = {
-						OR = {
-							tag = AST
-							tag = CAF
-							tag = CAN
-							tag = CAR
-							tag = COR
-							tag = FIN
-							tag = GER
-							tag = NFA
-							tag = SAF
-							tag = SPR
-							tag = TEX
-						}
+				for_each_scope_loop = {
+					array = GER.faction_members
+					embargo_ROOT = yes
+				}
+				for_each_scope_loop = {
+					array = AUS.faction_members
+					embargo_ROOT = yes
+				}
+				FRP = { embargo_ROOT = yes }
+				GBR = { embargo_ROOT = yes }
+			}
+		}
+	}	
+	ARM_integrate_state = {
+		name = integrate_state
+		icon = eng_trade_unions_demand
+
+		allowed = { tag = ARM }
+
+		available = {
+			ARM = {
+			has_completed_focus = ARM_expansionism
+			}
+			FROM = {
+				is_controlled_by = ROOT
+				any_neighbor_state = {
+					is_owned_and_controlled_by = ROOT
+					is_core_of = ROOT
+				}
+			}
+		}
+
+		visible = {
+			ARM = {
+			has_completed_focus = ARM_expansionism
+			}
+			FROM = {
+				is_controlled_by = ROOT
+				NOT = { is_core_of = ROOT }
+			}
+		}
+
+		cost = 75
+		days_remove = 120
+		cancel_if_not_visible = yes
+
+		state_target = yes
+		targets = { 229 990 1267 1081 1301 1300 1298 1213 1001 354 352 417 }
+		target_trigger = {
+			FROM = {
+				is_controlled_by = ROOT
+				NOT = { is_core_of = ROOT }
+			}
+		}
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel GEO_integrate_state target: [From.GetName]"
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove GEO_integrate_state target: [From.GetName]"
+			hidden_effect = { remove_state_claim = FROM }
+			add_state_core = FROM
+		}
+	}
+	ARM_even_greater_armenia_integrate_state = {
+		name = integrate_state
+		icon = eng_trade_unions_demand
+
+		allowed = { tag = ARM }
+
+		available = {
+			ARM = {
+			has_completed_focus = ARM_expansionism
+			}
+			FROM = {
+				is_controlled_by = ROOT
+				any_neighbor_state = {
+					is_owned_and_controlled_by = ROOT
+					is_core_of = ROOT
+				}
+			}
+		}
+
+		visible = {
+			ARM = {
+			has_completed_focus = ARM_expansionism
+			has_country_flag = ARM_even_greater_armenia
+			}
+			FROM = {
+				is_controlled_by = ROOT
+				NOT = { is_core_of = ROOT }
+			}
+		}
+
+		cost = 100
+		days_remove = 120
+		cancel_if_not_visible = yes
+
+		state_target = yes
+		targets = { 344 819 349 1304 419 350 677 676 995 680 554 553 992 454 455 }
+		target_trigger = {
+			FROM = {
+				is_controlled_by = ROOT
+				NOT = { is_core_of = ROOT }
+			}
+		}
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel GEO_integrate_state target: [From.GetName]"
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove GEO_integrate_state target: [From.GetName]"
+			hidden_effect = { remove_state_claim = FROM }
+			add_state_core = FROM
+		}
+	}
+}
+ARM_war_of_independence = {
+	ARM_capture_Kars = {
+		icon = generic_prepare_civil_war
+
+		allowed = { always = no }
+
+		highlight_states = {
+			highlight_state_targets = { state = 1000 }
+		}
+
+		available = {
+			1000 = { is_controlled_by_ROOT_or_ally = yes }
+		}
+
+		is_good = no
+		days_mission_timeout = 35
+
+		cancel_trigger = {
+			OR = {
+				TUR = { NOT = { owns_state = 1000 } }
+				NOT = { has_war_with = TUR }
+				is_subject = yes
+			}
+		}
+
+		timeout_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision timeout ARM_capture_Kars"
+			add_war_support = -0.05
+			add_political_power = -25
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision ARM_capture_Kars"
+			add_war_support = 0.05
+			add_popularity = { ideology = paternal_autocrat popularity = 0.03 }
+			add_political_power = 35
+			country_event = { id = arm.87 days = 1 }
+			if = {
+				limit = {
+					NOT = { GEO = { has_war_with = TUR } }
+					TUR = { owns_state = 1213 }
+				}
+				activate_mission = ARM_capture_Batumi
+			}
+		}
+	}
+	ARM_capture_Batumi = {
+		icon = generic_prepare_civil_war
+
+		allowed = { always = no }
+
+		highlight_states = {
+			highlight_state_targets = { state = 1213 }
+		}
+
+		available = {
+			1213 = { is_controlled_by_ROOT_or_ally = yes }
+		}
+
+		is_good = no
+		days_mission_timeout = 60
+
+		cancel_trigger = {
+			OR = {
+				TUR = { NOT = { owns_state = 1213 } }
+				NOT = { has_war_with = TUR }
+				GEO = { has_war_with = TUR }
+				is_subject = yes
+			}
+		}
+
+		timeout_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision timeout ARM_capture_Batumi"
+			add_war_support = -0.03
+			add_political_power = -10
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision ARM_capture_Batumi"
+			add_war_support = 0.05
+			add_popularity = { ideology = paternal_autocrat popularity = 0.02 }
+			add_political_power = 25
+			country_event = { id = arm.35 days = 1 }
+		}
+	}
+}
+
+ARM_black_sea_trade = {
+	ARM_propose_trade_agreement = {
+		icon = GFX_decision_generic_agreement
+		allowed = { original_tag = ARM }
+
+		visible = { country_exists = FROM }
+
+		available = {
+			NOT = { has_war_with = FROM }
+			NOT = { has_country_flag = ARM_trade_proposal_ongoing }
+			if = {
+				limit = { FROM = { tag = TUR } }
+				is_in_faction_with = FROM
+			}
+			else_if = {
+				limit = { FROM = { original_tag = GRE } }
+				FROM = {
+					OR = {
+						owns_state = 341
+						owns_state = 773
 					}
-					add_opinion_modifier = {
-						modifier = embargo
-						target = SOV
-					}
-					reverse_add_opinion_modifier = {
-						modifier = embargo
-						target = SOV
+				}
+			}
+			else_if = {
+				limit = { FROM = { original_tag = SER } }
+				FROM = {
+					OR = {
+						owns_state = 211
+						owns_state = 771
 					}
 				}
 			}
 		}
-	}	
+
+		targets = { BUL GEO GRE ROM RUS SER TUR UKR }
+		targets_dynamic = yes
+
+		target_root_trigger = {
+			has_completed_focus = ARM_trade_agreements
+		}
+
+		cost = 20
+		days_remove = 20
+		fire_only_once = yes
+
+		ai_will_do = { factor = 10 }
+
+		cancel_trigger = {
+			OR = {
+				NOT = { country_exists = FROM }
+				has_war_with = FROM
+			}
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel ARM_propose_trade_agreement target: [From.GetName]"
+			add_political_power = 20
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete ARM_propose_trade_agreement target: [From.GetName]"
+			set_country_flag = ARM_trade_proposal_ongoing
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove ARM_propose_trade_agreement target: [From.GetName]"
+			clr_country_flag = ARM_trade_proposal_ongoing
+			FROM = { country_event = arm.116 }
+		}
+	}
+}
+
+ARM_acquire_navy = {
+	ARM_purchase_submarines = {
+		icon = GFX_decision_generic_naval
+		allowed = { always = no }
+
+		visible = {
+			country_exists = FROM
+			is_in_faction_with = FROM
+		}
+
+		cost = 35
+		days_remove = 50
+		fire_only_once = yes
+
+		ai_will_do = { factor = 10 }
+
+		targeted_modifier = {
+			tag = FROM
+			cic_to_target_factor = 0.2
+		}
+
+		cancel_trigger = {
+			OR = {
+				NOT = { country_exists = FROM }
+				has_war_with = FROM
+				FROM = { is_faction_leader = no }
+			}
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel ARM_purchase_submarines target: [From.GetName]"
+			add_political_power = 35
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove ARM_purchase_submarines target: [From.GetName]"
+			if = {
+				limit = { has_dlc = "Man the Guns" }
+				if = {
+					limit = { NOT = { has_tech = basic_ship_hull_submarine } }
+					set_technology = { basic_ship_hull_submarine = 1 popup = no }
+				}
+				create_equipment_variant = {
+					name = "Aragats Class"
+					type = ship_hull_submarine_2
+					name_group = ARM_RIVERS_THEME
+					parent_version = 0
+					modules = {
+						fixed_ship_torpedo_slot = ship_torpedo_sub_2
+						fixed_ship_engine_slot = sub_ship_engine_1
+						rear_1_custom_slot = ship_torpedo_sub_1
+					}
+				}
+				create_ship = { type = ship_hull_submarine_2 equipment_variant = "Aragats Class" creator = ARM }
+				create_ship = { type = ship_hull_submarine_2 equipment_variant = "Aragats Class" creator = ARM }
+				create_ship = { type = ship_hull_submarine_2 equipment_variant = "Aragats Class" creator = ARM }
+				create_ship = { type = ship_hull_submarine_2 equipment_variant = "Aragats Class" creator = ARM }
+			}
+			else = {
+				if = {
+					limit = { NOT = { has_tech = early_submarine } }
+					set_technology = { early_submarine = 1 popup = no }
+				}
+				create_ship = { type = submarine_2 equipment_variant = "Improved Submarine" creator = ARM }
+				create_ship = { type = submarine_2 equipment_variant = "Improved Submarine" creator = ARM }
+				create_ship = { type = submarine_2 equipment_variant = "Improved Submarine" creator = ARM }
+				create_ship = { type = submarine_2 equipment_variant = "Improved Submarine" creator = ARM }
+			}
+		}
+	}
+	ARM_purchase_destroyers = {
+		icon = GFX_decision_generic_naval
+		allowed = { always = no }
+
+		visible = {
+			country_exists = FROM
+			is_in_faction_with = FROM
+		}
+
+		cost = 35
+		days_remove = 50
+		fire_only_once = yes
+
+		ai_will_do = { factor = 10 }
+
+		targeted_modifier = {
+			tag = FROM
+			cic_to_target_factor = 0.2
+		}
+
+		cancel_trigger = {
+			OR = {
+				NOT = { country_exists = FROM }
+				has_war_with = FROM
+			}
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel ARM_purchase_destroyers target: [From.GetName]"
+			add_political_power = 35
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove ARM_purchase_destroyers target: [From.GetName]"
+			if = {
+				limit = { has_dlc = "Man the Guns" }
+				if = {
+					limit = { NOT = { has_tech = basic_ship_hull_light } }
+					set_technology = { basic_ship_hull_light = 1 }
+				}
+				create_equipment_variant = {
+					name = "Ararat Class"
+					type = ship_hull_light_2
+					name_group = ARM_CITIES_THEME
+					parent_version = 0
+					modules = {
+						fixed_ship_battery_slot = ship_light_battery_2
+						fixed_ship_anti_air_slot = ship_anti_air_1
+						fixed_ship_fire_control_system_slot = ship_fire_control_system_0
+						fixed_ship_radar_slot = ship_sonar_1
+						fixed_ship_engine_slot = light_ship_engine_2
+						fixed_ship_torpedo_slot = ship_torpedo_1
+						mid_1_custom_slot = ship_torpedo_1
+						rear_1_custom_slot = ship_depth_charge_1
+					}
+				}
+				create_ship = { type = ship_hull_light_2 equipment_variant = "Ararat Class" creator = ARM }
+				create_ship = { type = ship_hull_light_2 equipment_variant = "Ararat Class" creator = ARM }
+				create_ship = { type = ship_hull_light_2 equipment_variant = "Ararat Class" creator = ARM }
+				create_ship = { type = ship_hull_light_2 equipment_variant = "Ararat Class" creator = ARM }
+			}
+			else = {
+				if = {
+					limit = { NOT = { has_tech = basic_destroyer } }
+					set_technology = { basic_destroyer = 1 }
+				}
+				create_ship = { type = destroyer_2 equipment_variant = "Improved Destroyer" creator = ARM }
+				create_ship = { type = destroyer_2 equipment_variant = "Improved Destroyer" creator = ARM }
+				create_ship = { type = destroyer_2 equipment_variant = "Improved Destroyer" creator = ARM }
+				create_ship = { type = destroyer_2 equipment_variant = "Improved Destroyer" creator = ARM }
+			}
+		}
+	}
 }

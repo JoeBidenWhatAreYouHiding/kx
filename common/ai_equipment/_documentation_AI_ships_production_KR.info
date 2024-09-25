@@ -1,0 +1,364 @@
+# By Pelmen, August 2021, 1.10.7
+
+Contents:
+1. Hierarchy
+2. AI strategy
+3. AI ship design group
+4. AI ship design
+5. Defines
+6. How to track AI behavior in-game
+7. A copy of PDX documentation and some comments
+
+
+
+#########################
+# 1. Hierarchy
+#########################
+
+The control of what AI produces and how spends XP can (and should) be enforced on different levels:
+1. AI strategy level. Regulates, what types of ships AI will build. DOES NOT stop AI from spending XP or refitting ships
+2. AI ship design group level. Includes several ship designs of one role. Allows XP spending and production/refitting as long as priority >0
+3. AI ship design level. Singular design and its modules. Allows XP spending and production/refitting as long as priority >0
+
+To block production - simply use AI strategies (0 or negative values)
+To block refitting - you have to disable the variants (priority = 0)
+
+
+#########################
+#2. AI ship production - ai_strategy:
+#########################
+
+The highest level that defines, what AI will build, is the ai_strategy file.
+There are 2 possible ways to make AI build something. They are described exactly the same way by PDX, so the only difference is the flexibility of each method.
+Please note, that they are conflicting, so only one way should be used.
+2. 1. Using unit_ratio. Used for non-MTG users, only possible units are:
+- capital_ship
+- submarine
+- screen_ship
+- carrier
+If used - default ratios should be set to negative (at least -100 to block production), or AI will ignore it.
+2. 2. Using role_ratio. Can be used for MTG users. Created roles for MTG:
+- naval_mine_layer
+- naval_mine_sweeper
+- naval_escort
+- naval_screen
+- naval_cruiser_light
+- naval_cruiser_heavy
+- naval_capital_bc
+- naval_capital_bb
+- naval_carrier
+- naval_submarine
+- naval_capital_shbb
+...and anything else you want, just create equipment for new roles.
+PLEASE NOTE - AI have big problems when dealing with multiple roles, so don't expect balanced buildup if it has a lot of roles allowed. This can be negated by big dockyard numbers
+Setting to 0 disables the role production. You don't have to set the role negative or zero to disable its production - not defining the role_ratio for the tag works the same way.
+Setting each role to 0 disables the production of all ships.
+The scope of ships, that are included in a role, is defined at the AI ship design group level.
+
+Example of strategy:
+
+naval_unit_role_ratios_ENG = {
+	allowed = {
+		has_dlc_mtg = yes			#DLC check should always be there, since MTG and non-MTG roles are not the same. Put the check under "allowed"
+		OR = {								#Tag check
+			tag = ENG
+			tag = GBR
+			tag = CAN
+		}
+	}
+	abort = { always = no }
+
+	ai_strategy = {
+		type = role_ratio
+		id = naval_capital_bb				#Naval role
+		value = 10
+	}
+......
+
+Role_ratio doesn't influence refitting, AI will still refit BBs even if naval_capital_bb is set to 0, to negative or just not defined
+
+TLDR:
+- Use role_ratio for NTG AI strategies, and unit_ratio for non-MTG ones
+- role_ratio doesn't influence refitting
+- to disable role set role_ratio to zero, to negative or just don't set it for a specific tag
+- Limit the number of active roles
+
+
+#########################
+#3. AI ship design group - common/ai_equipment
+#########################
+
+Regulates the production, refitting and XP spending for each ship included in the group.
+There can be several design groups for one role. Example of a good use: role - naval_capital_bb; design groups - naval_capital_battleship and naval_super_heavy_battleship.
+
+The name of the design groups is not hardcoded and can be changed to whatever you want. Don't create too long role names to maintain readability at the debug screen (more in chapter 6)
+
+
+Example:
+
+naval_carrier = {								#Name of a design group. Can be changed to whatever you like
+	category = naval
+	#available_for = {}							#Can be uncommented and set to allow only these tags produce this design group
+	#blocked_for = {}							#Can be uncommented and set to block tags from producing and spending xp on this design group
+	roles = { naval_carrier }					#Hardcoded, see the list of the available roles in ch.2
+	priority = { base = 0 } 					#In this case the design group will never be produced/refitted and XP will never be spend on it. As soon as it is >0 - AI will spend the XP ASAP
+		"design_name" = {
+
+
+
+#########################
+#4. AI ship design - common/ai_equipment
+#########################
+
+Regulates the production and XP spending for a single "template".
+There can be several designs in a design group. Example: group - naval_carrier, designs - carrier_1936, carrier_1940, carrier_1944
+
+! If AI has the 1936 hull tech, restrict it from producing 1922 hull ship, or AI may produce the outdated designs even when it has better ones"
+! Make sure your 1922 designs are competitive (like CLs) before allowing them to be produced for tags with 1936 designesm
+
+Some info about the possible modules of the hull:
+4.1 if the module slot is not defined - it will never be filled by anything, so make sure you list each available slot in the target_variant.
+4.2 available_for = {}/blocked_for = {} don't work for a single variant
+4.2 Possible <module slot> input:
+
+Commonly used:
+- <module slot> = <module category>					This makes the AI to pick the latest version of the modules from the category
+- <module slot> = <module>							Hardcodes AI to use only one version of the module. Should be used only for the modules that have no upgrades (i.e. ship_mine_sweeper_1, ship_mine_layer_1)
+- <module slot> > <module>							Makes AI use any module that is better than the set one. Used for the modules that don't have a category (example - ship_light_medium_battery)
+- any_of = { [modules or module categories...] }	Makes AI pick from several modules or categories. PLEASE NOTE - the one that is defined earlier will be always prioritised by AI.
+													Example - any_of = { ship_anti_air ship_deck_space ship_secondaries } will make AI replace everything in this slot with AA
+Possible usage scenario - chaining the modules that lack the category:
+fixed_ship_armor_slot = { upgrade = current	 any_of = { ship_armor_bb_3 ship_armor_bb_2 ship_armor_bb_1 } }
+Explanation: AI will try to get v3 armor or will use v2 armor if v3 is not available or v1 if both are not researched. Upgrade = current makes AI not upgrade ships with armor 1 to armor 2 (because of costs).
+
+No one cares about them:
+- <module slot> = empty
+- <module slot> > empty								#These 2 just make the slot empty. AI will never install anything here and remove already installed modules
+- <module slot> < <module>							Makes AI use the version of the module, that is worse than the set one
+
+Use for refitting:
+- upgrade = current									#Defining this makes AI not upgrade the current slot. Use for capitals and cruisers engines/armor
+
+
+4.3 common use scenario - setting <module slot> = <module category>. AI will automatically update the modules to the best available version
+4.4 Modules without the category set (use "any_of" or "> module" for them):
+- bb/bc armor (example - ship_armor_bb_3)
+- ship_light_medium_battery (big CL gun)
+- ship_medium_battery (CA gun). The same behavior as with CL gun, just don't trigger errors. If you set module = ship_medium_battery, AI will never build the hull and the game will not tell you why
+
+4.5 Requirements code:
+Is used to block the template to a specific module. If I don't want each DD to match minelayer/minesweeper categories, I have to restrict these categories:
+		requirements = {
+			module = ship_mine_layer
+		}
+Use this one for minesweepers/minelayers/heavy cruisers
+
+4.6 Allowed_modules code - has no real purpose to be used (the purpose was to make AI select something for empty slots after all the previous requirements are met). If the slot is not defined - AI will never fill it. "<module slot> > empty" don't work properly.
+Can be used only as an additional restriction to each module slot of the design (which is not useful, since the restrictions are already set by "<module slot> ...")
+		allowed_modules = {
+			# modules or module categories...
+		}
+
+Example:
+
+	carrier_1936 = {															#Name of a design
+		role_icon_index = 7														#Image used by the AI for a design
+
+		priority = {
+			base = 10
+			modifier = { factor = 0 has_tech = improved_ship_hull_carrier }		#Example of restricting the older "templates" if the newer are available
+		}
+
+		target_variant = {
+			match_value = 1000.0												#Matters only for selecting the existing hull, that will be produced/upgraded by the AI. Can vary from 100% (each slot matches) to 25% (4 or more slots are not matching)
+
+			type = ship_hull_carrier_1											#The specific hull that is used for the variant. Ships with other hulls will not be included in this template
+			modules = {
+				fixed_ship_deck_slot_1 = ship_deck_space						#In this case, the module will be fit with the best module of the category. Works as long as the category has >0 modules
+				fixed_ship_deck_slot_2 = ship_deck_space
+				fixed_ship_anti_air_slot = ship_anti_air
+				fixed_ship_engine_slot = { upgrade = current any_of = { carrier_ship_engine_3 carrier_ship_engine_2 carrier_ship_engine_1 } }  # Possible engines are chained. If AI has ships with v1, it will upgrade other modules and create good version with engine 1, then with 2 and 3 if available
+				fixed_ship_secondaries_slot = ship_secondaries
+				fixed_ship_radar_slot = empty 									#In some cases it makes sense to leave the module empty (no radars in 1936 anyway)
+				front_1_custom_slot = ship_deck_space
+			}
+		}
+	}
+
+
+
+#########################
+#5. Defines
+#########################
+
+NDefines.NAI.VARIANT_UPGRADE_MIN_XP = 105 - Keep >100 to make AI save XP for doctrines. Requlates XP spending for all xp types
+
+#########################
+#6. How to track AI behavior in-game
+#########################
+
+1. Enable "aiview" in console
+
+Scenario 1. I want to check, what ships are going to what roles:
+- Hover the mouse over the right side of the ship design. It will open an additional window:
+If it displays the design group, the design name and the score - we are good
+If the red warning is displayed instead - the hull is not matching any created ship variant and will never be produced/upgraded by AI. It is fine if the hull is not optimal (convertible carriers/snowflake hulls, battleships/BC/carriers etc) to block refitting
+
+Scenario 2. I want to check, how AI spends its XP and what it produces
+2.1 First thing to check, is to hover the mouse over the navy xp bar:
+- If the tooltip doesn't have red text in the first line - we are good, and AI is ready to waste XP.
+- If there is a red text (nothing to upgrade) - AI already upgraded everything it could or the defines/design role/design block the XP from being spent
+
+2.2 Unpause the game. AI will immediately spend the XP and start producing ships.
+2.3 Check the created designs. They'll have generic names
+
+Scenario 3. I'm not satisfied with what AI builds/how it spends XP, and I want to tweak it.
+
+3.1 No need to exit the game. Just pause it
+3.2 Delete everything from the production line (Shift+click on delete)
+3.2 Make the changes in files and save them
+3.4 Unpause the game - AI will react immediately (production and XP spending doesn't require reloading to be changed)
+
+
+
+#########################
+#7. A copy of PDX documentation and some comments
+#########################
+
+AI Equipment Designs
+
+These scripts are used to direct AI to create equipment variants and upgrade
+existing equipment in order to satisfy specific role needs.  Equipment type and
+equipment module specifications determine what is necessary and desirable for
+filling particular roles, and priority triggers provide additional hooks to
+encourage the AI in different directions.
+
+Syntax:
+----------------
+
+<AI design group name> = {
+	# Only category = naval is currently supported, starting with version 1.6.0
+	category = <equipment category>
+
+	# Exclusionary list of countries that will not use this design group.
+	blocked_for = {
+		# country tags...
+	}
+
+	# Inclusionary list of countries that will use this design group.
+	# If this list is empty, all countries not in the block list will be allowed.
+	# If this list is not empty, only countries that are in this list and not in the blocked list will be allowed.
+	available_for = {
+		# country tags...
+	}
+
+	# List of roles that this design group can be used for.
+	# AI will attempt to design and produce equipment to satisfy all roles that it can.
+	# So it will try to actively use one design per role for new production and upgrading/refitting.
+	# roles here are dynamically generated and should work with role_ratio ai_strategy
+	roles = {
+		# roles...
+	}
+
+	# Base priority for creating a design in this group or for creating or upgrading equipment to use one of these designs. A higher number means higher priority.
+	priority = {
+		factor = <numeric weight>
+		# Zero or more weighted modifiers to affect priority based on triggers.
+		modifier = {
+			factor = <numeric weight>
+			# triggers...
+		}
+	}
+
+	# One or more specifications of designs belonging to this design group.
+	<AI design name> = {
+		# Further priority for creating this design specifically or for creating or upgrading equipment to use this design.
+		priority = {
+			factor = <numeric weight>
+			# Zero or more weighted modifiers to affect priority based on triggers.
+			modifier = {
+				factor = <numeric weight>
+				# triggers...
+			}
+		}
+
+		# List of triggers that must all be true for the design to be usable; true by default if empty or missing.
+		enable = {
+			# triggers...
+		}
+
+		# Specifications about how a matching equipment variant should be designed.
+		target_variant = {
+			# An additional weight indicating how much the particular design is worth, if it matches.
+			match_value = <numeric weight>
+
+			# The equipment archetype or equipment type that the variant must use to match.
+			type = <equipment archetype or type>
+
+			# The matching requirements on individual module slots.
+			modules = {
+				# A slot can be assigned a module category.  Any other module category fails the match.
+				# When designing an equipment variant, the latest available will be favored.
+				<slot> = <module category>
+
+				# A slot can be assigned a specific module.  Any other module fails the match.
+				<slot> = <module>
+
+				# Less than and greater than comparisons can be used to force lesser or greater modules within a chain of module upgrades.
+				# When designing an equipment variant, the earliest module will be favored for the lesser restriction, and the latest will be favored for the greater restriction.
+				<slot> < <module>
+				<slot> > <module>
+
+				# A slot can be assigned empty.  Any module of any kind fails the match.
+				<slot> = empty
+
+				# A slot can be greater than empty.  Only an empty slot fails the match.
+				<slot> > empty																																			#This equals <slot> = empty - don't use it, it will remove any module already installed from the slot
+
+				# A slot can refer to a nested group of more detailed requirements.
+				<slot> = {
+					# As above, you can specify a module category, or an equal, lesser, or greater module, or empty/non-empty.
+					module = <module category>
+					# -or-
+					module = <module>
+					# -or-
+					module < <module>
+					# -or-
+					module > <module>
+					# -or-
+					module = empty
+					# -or-
+					module > empty																																		#This equals slot = empty - don't use it, it will remove any module already installed in the slot
+
+					# Or you can provide a list of modules or module categories, any of which are sufficient for a match.
+					any_of = { [modules or module categories...] }																										#The first set one will be always used if available but the variants with other variants will also be used if possible. Use to chain armor/engines
+
+					# If you provide multiple instances of module attributes or any_of attributes, then only one must match for the match to succeed.
+
+					# Optionally, for upgrading existing equipment to a this design, you can require that this slot must have a better module in order to use this design.
+					upgrade > current
+					# Alternatively, you can require that it must use exactly the same module that is already on the existing equipment.
+					upgrade = current
+				}
+			}
+		}
+
+		# List of hard requirements that all must match for this design to be usable.
+		# These follow the same pattern as a slot entry above within target_variant = { modules = { ... } },
+		# but without being tied to an individual slot.
+		requirements = {
+			module = <requirements>
+		}
+
+		# Additional modules that are allowed in any available slots for any of the above designs, after all requirements are fulfilled.
+		# Modules at the top of this list are favored over those at the bottom.
+		# Modules not in this list will not be used in any remaining open slots.
+		allowed_modules = {																																				#Doesn't work as described, see the ch.4
+			# modules or module categories...
+		}
+	}
+}
+
+ToDo:
+- PDX wanted to tweak MTG with NSB patch, so this should be revisited in 1.11
+
