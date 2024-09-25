@@ -5702,10 +5702,23 @@ setup_bjorko_pact = {
 		}
 		custom_effect_tooltip = "We will seize Eastern Ukraine"
 		hidden_effect = {
+			if = {
+				limit = { 1087 = { is_owned_by = UKR } }
+				ROOT = { 
+					transfer_state = 1087
+					add_state_core = 1087
+				}	
+			}
 			every_state = {
 				limit = {
-					is_russian_majority_in_ukraine = yes
-					is_east_ukrainian_state = yes
+					OR = {
+						is_russian_majority_in_ukraine = yes
+						is_core_of = KUB
+						is_core_of = DKB
+						is_core_of = MTR
+						is_core_of = KLY
+					}					
+					is_west_ukrainian_state = no
 					is_owned_by = UKR
 				}
 				ROOT = { transfer_state = PREV }
@@ -5743,6 +5756,15 @@ setup_bjorko_pact = {
 }
 setup_vilnius_accords = {
 	set_global_flag = vilnius_accords_active
+	set_global_flag = RUS_capitulated		
+	every_country = {
+		limit = { is_in_tech_sharing_group = russian_research }
+		remove_from_tech_sharing_group = russian_research
+	}
+	if = {
+		limit = { is_in_faction = yes }
+		faction_leader = { dismantle_faction = yes }
+	}	
 	# free all puppets 
 	every_country = {
 		limit = {
@@ -5753,33 +5775,6 @@ setup_vilnius_accords = {
 		}
 	}	
 	
-	# dissolve the Reichspakt
-	every_other_country = {
-		limit = {
-			OR = {
-				is_in_faction_with = RUS
-				is_subject_of = RUS
-			}
-		}
-		set_country_flag = former_moscow_accord_member
-	}
-	dismantle_faction = yes
-
-	# give Moscow Accord members military access to each other
-	every_country = {
-		limit = {
-			has_country_flag = former_moscow_accord_member
-			has_capitulated = no
-		}
-		every_country = {
-			limit = {
-				has_country_flag = former_moscow_accord_member
-				has_capitulated = no
-				NOT = { tag = PREV }
-			}
-			give_military_access = PREV
-		}
-	}
 	every_other_country = {
 		limit = {
 			OR = {
@@ -5855,6 +5850,8 @@ setup_vilnius_accords = {
 			FIN = { transfer_state = PREV }
 		}
 	}
+	if = {
+	limit = { UKR = { has_war_with = ROOT } }
 	every_owned_state = {
 		limit = {
 			OR = {
@@ -5869,6 +5866,9 @@ setup_vilnius_accords = {
 			transfer_state = PREV
 		}
 	}
+    }
+	if = {
+	limit = { WHR = { has_war_with = ROOT } }
 	every_owned_state = {
 		limit = {
 			OR = {
@@ -5886,7 +5886,11 @@ setup_vilnius_accords = {
 			transfer_state = PREV
 		}
 	}
+    }
+	if = {
+	limit = { DKB = { has_war_with = ROOT } }
 	217 = { add_claim_by = DKB }
+	}
 		
 	save_event_target_as = peace_country
 	every_enemy_country = {
@@ -6667,6 +6671,18 @@ RUS_puppet_setup = {
 				set_country_flag = TRM_Yui
 				remove_ideas = TRM_dream
 				hidden_effect = {
+					set_party_name = {
+						ideology = authoritarian_democrat
+						name = TRM_authoritarian_democrat_party
+						long_name = TRM_authoritarian_democrat_party_long
+					}
+					create_country_leader = {
+						name = "Yui Mitsue"
+						desc = "POLITICS_YUI_DESC"
+						picture = "gfx/leaders/TRM/Portrait_Transamur_Yui_Mitsue.png"
+						expire = "1.1.1"
+						ideology = authdem_junta_subtype
+					}
 					set_politics = {
 						ruling_party = authoritarian_democrat
 					}
@@ -7125,6 +7141,7 @@ RUSSIAN_UNIFICATION_play_superevent = {
 		limit = {
 			RUS_russian_monarch = yes
 			RUS_wrangel_tsar_in_power = no
+			NOT = { tag = MON }
 		}
 		custom_effect_tooltip = GFX_SPEVNT_RUSSIAN_UNIFICATION_monarchy
 		hidden_effect = { country_event = super.75 }
@@ -7269,7 +7286,7 @@ RUSSIAN_UNIFICATION_play_superevent = {
 			tag = MON
 			MON_sternberg_in_power = yes
 		}
-		custom_effect_tooltip = GFX_SPEVNT_RUSSIAN_UNIFICATION_shteinberg
+		custom_effect_tooltip = GFX_SPEVNT_RUSSIAN_UNIFICATION_sternberg
 		hidden_effect = { country_event = super.83 }
 	}
 	else_if = {
@@ -7375,29 +7392,53 @@ RUS_enable_integration = {
 		set_country_flag = RUS_can_integrate
 		hidden_effect = {
 			EST = { enable_coring_at_eighty_compliance = yes }
-			LAT = { enable_coring_at_eighty_compliance = yes }
+			if = {
+				limit = { ROOT = { NOT = { tag = LAT } } }
+				LAT = { enable_coring_at_eighty_compliance = yes }
+			}
 			LIT = { enable_coring_at_eighty_compliance = yes }
-			WHR = { enable_coring_at_eighty_compliance = yes }
-			UKR = { enable_coring_at_eighty_compliance = yes }
+			WHR = { enable_coring_at_fifty_compliance = yes }
+			if = {
+				limit = { ROOT = { NOT = { tag = UKR } } }
+				UKR = { enable_coring_at_fifty_compliance = yes }
+			}
 			WSU = { enable_coring_at_eighty_compliance = yes }
 			ALO = { enable_coring_at_fifty_compliance = yes }
 			TRK = { enable_coring_at_eighty_compliance = yes }
 			UZB = { enable_coring_at_eighty_compliance = yes }
 			KYR = { enable_coring_at_eighty_compliance = yes }
 			ABK = { enable_coring_at_eighty_compliance = yes }
-			GEO = { enable_coring_at_eighty_compliance = yes }
+			if = {
+				limit = { ROOT = { NOT = { tag = GEO } } }
+				GEO = { enable_coring_at_fifty_compliance = yes }
+			}
 			AZE = { enable_coring_at_eighty_compliance = yes }
-			ARM = { enable_coring_at_eighty_compliance = yes }
-			KUB = { enable_coring_at_eighty_compliance = yes }
+			if = {
+				limit = { ROOT = { NOT = { tag = ARM } } }
+				ARM = { enable_coring_at_fifty_compliance = yes }
+			}
+			if = {
+				limit = { ROOT = { NOT = { tag = KUB } } }
+				KUB = { enable_coring_at_fifty_compliance = yes }
+			}
 			KLY = { enable_coring_at_eighty_compliance = yes }
 			MTR = { enable_coring_at_eighty_compliance = yes }
 			DAG = { enable_coring_at_eighty_compliance = yes }
 			BRY = { enable_coring_at_fifty_compliance = yes }
 			YAK = { enable_coring_at_fifty_compliance = yes }
 			KAR = { enable_coring_at_fifty_compliance = yes }
-			CRM = { enable_coring_at_fifty_compliance = yes }
-			TRM = { enable_coring_at_fifty_compliance = yes }
-			DKB = { enable_coring_at_fifty_compliance = yes }
+			if = {
+				limit = { ROOT = { NOT = { tag = CRM } } }
+				CRM = { enable_coring_at_fifty_compliance = yes }
+			}
+			if = {
+				limit = { ROOT = { NOT = { tag = TRM } } }
+				TRM = { enable_coring_at_fifty_compliance = yes }
+			}
+			if = {
+				limit = { ROOT = { NOT = { tag = DKB } } }
+				DKB = { enable_coring_at_fifty_compliance = yes }
+			}
 			
 			### Eurasian Integration ###
 			
@@ -7431,6 +7472,7 @@ RUS_enable_integration = {
 			584 = { enable_state_integration_80_compliance = yes } #Transcaspia
 			1275 = { enable_state_integration_80_compliance = yes } #Merv
 			1213 = { enable_state_integration_80_compliance = yes } #Batumi
+			1001 = { enable_state_integration_80_compliance = yes } #Lazistan
 			1221 = { enable_state_integration_80_compliance = yes } #Bujak
 			776 = { enable_state_integration_80_compliance = yes } #West Prussia
 			792 = { enable_state_integration_80_compliance = yes } #Volhynia
