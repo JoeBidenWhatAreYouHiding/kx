@@ -144,7 +144,7 @@ political_actions = {
 			surrender_progress > 0.35
 		}
 
-		targets = { AUS TUR BUL }
+		targets = { AUS TUR BUL OTT }
 
 		target_trigger = {
 			FROM = {
@@ -646,6 +646,380 @@ GER_halifax_category = {
 }
 
 GER_desperate_struggle_category = {
+
+	GER_recruit_landsturm = {
+		icon = GFX_decision_generic_military
+
+		allowed = { original_tag = GER }
+		
+		available = {
+			has_war_support > 0
+			has_country_flag = GER_Desperate_Struggle_Flag
+			has_completed_focus = GER_Landsturm
+			NOT = {
+				has_country_flag = GER_landsturm_is_recruiting
+			}
+		}
+		visible = {
+			NOT = { FROM = { has_state_flag = GER_landsturm_recruited_@ROOT } }
+			has_defensive_war = yes
+		}
+		custom_cost_trigger = {
+			has_equipment = { infantry_equipment > 499 }
+			command_power > 4
+		}
+		custom_cost_text = 500_infantry_equipment_1_cp_5
+		days_remove = 15
+		cancel_if_not_visible = yes
+		on_map_mode = map_only
+
+		state_target = yes
+		target_array = GER.owned_states
+		target_trigger = {
+			FROM = {
+				is_owned_by = ROOT
+				is_core_of = ROOT
+			}
+		}
+		target_root_trigger = {
+			has_country_flag = GER_Desperate_Struggle_Flag
+			has_defensive_war = yes
+		}
+		ai_will_do = {
+			factor = 100
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel GER_recruit_landsturm target: [From.GetName]"
+			hidden_effect = {
+				add_command_power = 5
+				add_equipment_to_stockpile = {
+					type = infantry_equipment
+					amount = 500
+				}
+			}
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision GER_recruit_landsturm target: [From.GetName]"
+			set_country_flag = GER_landsturm_is_recruiting
+			hidden_effect = {
+				add_command_power = -5
+				add_equipment_to_stockpile = {
+					type = infantry_equipment
+					amount = -500
+				}
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove GER_recruit_landsturm target: [From.GetName]"
+			clr_country_flag = GER_landsturm_is_recruiting
+			FROM = {
+				set_state_flag = GER_landsturm_recruited_@ROOT
+				### calculate number of units to spawn
+				set_temp_variable = { units_to_spawn = state_population_k }
+				divide_temp_variable = { units_to_spawn = 500 }
+
+				### failsafe so at least one unit is always spawned
+				clamp_temp_variable = { var = units_to_spawn min = 1 max = 7 }
+
+				### tooltip
+				set_temp_variable = { total_units_to_spawn = units_to_spawn }
+				custom_effect_tooltip = GER_recruit_landsturm_units
+
+				### spawn normal militias
+				set_temp_variable = { counter = 1 }
+				if = {
+					limit = {
+						check_variable = { var = units_to_spawn value = 1 compare = greater_than_or_equals }
+					}
+					ROOT = { 
+						if = {
+							limit = {
+								NOT = { has_template = "Landsturm" }
+							}
+							division_template = {
+								name = "Landsturm"
+								division_names_group = GER_MILINF_01
+								regiments = {
+									irregular_infantry = { x = 0 y = 0 }
+									irregular_infantry = { x = 0 y = 1 }
+									irregular_infantry = { x = 0 y = 2 }
+									irregular_infantry = { x = 1 y = 0 }
+									irregular_infantry = { x = 1 y = 1 }
+									irregular_infantry = { x = 1 y = 2 }
+									irregular_infantry = { x = 2 y = 0 }
+								}						
+								support = {
+									anti_tank = { x = 0 y = 0 }
+								}
+								priority = 0
+								template_counter = 68
+							}
+						}
+					}
+					for_loop_effect = {
+						start = 1
+						end = units_to_spawn
+						compare = less_than_or_equals
+
+						meta_effect = {
+							text = {
+								create_unit = {
+									division = "name = [DIVISION] division_template = \"Landsturm\" start_experience_factor = 0.1 start_equipment_factor = 1"
+									allow_spawning_on_enemy_provs = yes
+									owner = ROOT
+								}
+							}
+							DIVISION = "\\\"[?counter]a [THIS.GetName] Landsturm Division\\\""
+						}
+						add_to_temp_variable = { counter = 1 }
+					}
+				}
+			}
+		}
+	}
+	
+	GER_armeehelferinnen_air = {
+		icon = GFX_decision_generic_military
+	
+		allowed = { original_tag = GER }
+	
+		available = {
+			has_idea = GER_Desperate_Struggle2_idea
+		}
+		visible = {
+			has_completed_focus = GER_Armeehelferinnen
+		}
+		
+		cost = 20
+		days_remove = 20
+		
+		complete_effect = {
+			add_stability = -0.04
+			set_country_flag = GER_recruiting_armeehelferinnen
+		}
+		
+		remove_effect = {
+			add_to_variable = { GER.GERAH_air_home_defence_factor = 0.10 }
+			custom_effect_tooltip = GER_armeehelferinnen_air_tooltip
+			clr_country_flag = GER_recruiting_armeehelferinnen
+		}
+	
+	}
+	
+	GER_armeehelferinnen_hospitals = {
+		icon = GFX_decision_generic_military
+	
+		allowed = { original_tag = GER }
+	
+		available = {
+			has_country_flag = GER_Desperate_Struggle_Flag
+		}
+		visible = {
+			has_completed_focus = GER_Armeehelferinnen
+		}
+		
+		cost = 20
+		days_remove = 20
+		
+		complete_effect = {
+			add_stability = -0.02
+			set_country_flag = GER_recruiting_armeehelferinnen
+		}
+		
+		remove_effect = {
+			add_to_variable = { GER.GERAH_weekly_casualties_war_support = 0.010 } #CHECK THIS LATER
+			custom_effect_tooltip = GER_armeehelferinnen_hospitals_tooltip
+			clr_country_flag = GER_recruiting_armeehelferinnen
+		}
+	
+	}
+	
+	GER_armeehelferinnen_factories = {
+		icon = GFX_decision_generic_military
+	
+		allowed = { original_tag = GER }
+	
+		available = {
+			has_country_flag = GER_Desperate_Struggle_Flag
+			NOT = {
+				has_country_flag = GER_recruiting_armeehelferinnen
+			}
+		}
+		visible = {
+			has_completed_focus = GER_Armeehelferinnen
+		}
+		
+		cost = 20
+		days_remove = 20
+		
+		complete_effect = {
+			add_stability = -0.02
+			set_country_flag = GER_recruiting_armeehelferinnen
+		}
+		
+		remove_effect = {
+			add_to_variable = { GER.GERAH_production_factory_efficiency_gain_factor = 0.15 }
+			custom_effect_tooltip = GER_armeehelferinnen_factories_tooltip
+			clr_country_flag = GER_recruiting_armeehelferinnen
+		}
+	
+	}
+	
+	GER_armeehelferinnen_logistics = {
+		icon = GFX_decision_generic_military
+	
+		allowed = { original_tag = GER }
+	
+		available = {
+			has_country_flag = GER_Desperate_Struggle_Flag
+			NOT = {
+				has_country_flag = GER_recruiting_armeehelferinnen
+			}
+		}
+		visible = {
+			has_completed_focus = GER_Armeehelferinnen
+		}
+		
+		cost = 20
+		days_remove = 20
+		
+		complete_effect = {
+			add_stability = -0.02
+			set_country_flag = GER_recruiting_armeehelferinnen
+		}
+		
+		remove_effect = {
+			add_to_variable = { GER.GERAH_supply_consumption_factor = -0.10 }
+			custom_effect_tooltip = GER_armeehelferinnen_logistics_tooltip
+			clr_country_flag = GER_recruiting_armeehelferinnen
+		}
+	
+	}
+	
+	GER_armeehelferinnen_navy = {
+		icon = GFX_decision_generic_military
+	
+		allowed = { original_tag = GER }
+	
+		available = {
+			has_idea = GER_Desperate_Struggle2_idea
+			NOT = {
+				has_country_flag = GER_recruiting_armeehelferinnen
+			}
+		}
+		visible = {
+			has_completed_focus = GER_Armeehelferinnen
+		}
+		
+		cost = 20
+		days_remove = 20
+		
+		complete_effect = {
+			add_stability = -0.04
+			set_country_flag = GER_recruiting_armeehelferinnen
+		}
+		
+		remove_effect = {
+			add_to_variable = { GER.GERAH_convoy_retreat_speed = 0.10 }
+			add_to_variable = { GER.GERAH_convoy_escort_efficiency = 0.10 }
+			custom_effect_tooltip = GER_armeehelferinnen_navy_tooltip
+			clr_country_flag = GER_recruiting_armeehelferinnen
+		}
+	
+	}
+	
+	GER_armeehelferinnen_partisans = {
+		icon = GFX_decision_generic_military
+	
+		allowed = { original_tag = GER }
+	
+		available = {
+			has_idea = GER_Desperate_Struggle3_idea
+			NOT = {
+				has_country_flag = GER_recruiting_armeehelferinnen
+			}
+		}
+		visible = {
+			has_completed_focus = GER_Armeehelferinnen
+		}
+		
+		cost = 20
+		days_remove = 20
+		
+		complete_effect = {
+			add_stability = -0.10
+			set_country_flag = GER_recruiting_armeehelferinnen
+		}
+		
+		remove_effect = {
+			add_to_variable = { GER.GERAH_resistance_growth_on_our_occupied_states = 0.15 }
+			custom_effect_tooltip = GER_armeehelferinnen_partisans_tooltip
+			clr_country_flag = GER_recruiting_armeehelferinnen
+		}
+	
+	}
+	
+	GER_launch_chemical_attack = {
+		icon = GFX_decision_generic_military
+	
+		allowed = { original_tag = GER }
+	
+		available = {
+			NOT = {
+				has_country_flag = GER_preparing_chemical_attack
+			}
+		}
+		visible = {
+			has_completed_focus = GER_Reigniting_the_Chemists_War
+		}
+		
+		custom_cost_trigger = {
+			has_equipment = { support_equipment > 1999 }
+			command_power > 19
+		}
+		custom_cost_text = 2000_support_equipment_cp_20
+		days_remove = 15
+		
+		targets = { FRA ENG RUS CAN NFA USA COR CSA TEX JAP }
+		target_trigger = {
+			FROM = {
+				has_war_with = GER
+				NOT = {
+					has_idea = GER_Chemical_Attack_idea
+				}
+			}
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision GER_launch_chemical_attack target: [From.GetName]"
+			set_country_flag = GER_preparing_chemical_attack
+			hidden_effect = {
+				add_command_power = -20
+				add_equipment_to_stockpile = {
+					type = support_equipment
+					amount = -2000
+				}
+			}
+		}
+		
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove GER_recruit_landsturm target: [From.GetName]"
+			clr_country_flag = GER_preparing_chemical_attack
+			FROM = {
+				country_event = gerdom.511
+				add_timed_idea = {
+					idea = GER_Chemical_Attack_idea
+					days = 70
+				}
+			}
+		}
+	
+	}
 
 }
 
