@@ -1,11 +1,15 @@
-#   Definition: SCOPE_OPERATION
-# ------------------------------------------
-# FROM = the target country of the operation
-# ROOT = the origin country of the operation
-# ------------------------------------------
+# Operations
 
+```
+Definition: SCOPE_OPERATION
+------------------------------------------
+FROM = the target country of the operation
+ROOT = the origin country of the operation
+------------------------------------------
+```
 
-# Every operation needs a <unique id>, which is operation_test in this case
+Every operation needs a `<unique id>`, which is `operation_test` in this case
+```
 operation_test = {
 
 	#
@@ -163,7 +167,7 @@ operation_test = {
 	}
 
 	#
-	# Determines requirements other than equipment to launch the operation
+	# Determines requirements other than equipment to launch the operation. If the requirements are not met anymore while the operation is running, it is cancelled.
 	# SCOPE_COUNTRY [ ROOT, FROM ]
 	#
 
@@ -257,7 +261,7 @@ operation_test = {
 	# Same as outcome_execute
 	#
 	
-	outcome_execute_extra = {
+	outcome_extra_execute = {
 		# ...
 	}
 
@@ -290,3 +294,4 @@ operation_test = {
 
 	will_lead_to_war_with = yes
 }
+```
