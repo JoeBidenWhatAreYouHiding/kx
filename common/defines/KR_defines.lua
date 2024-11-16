@@ -8,11 +8,10 @@ NDefines.NWiki.BASE_URL = "https://kaiserreich.fandom.com/wiki/The_Kaiserreich_W
 -- Vanilla is "http://www.hoi4wiki.com/"
 
 -- Career Profile
-NDefines.NCareerProfile.MOD_STATISTICS_GROUP = "kaiserreich_career_profile"
-NDefines.NCareerProfile.MOD_STATISTICS_GROUP_NAME = "KAISERREICH_CAREER_PROFILE"
+NDefines.NCareerProfile.MOD_STATISTICS_GROUP = "kaiserredux_career_profile"
+NDefines.NCareerProfile.MOD_STATISTICS_GROUP_NAME = "KAISERREDUX_CAREER_PROFILE"
 
 -- Game
-NDefines.NGame.SAVE_VERSION = 132											-- Vanilla is 20
 NDefines.NGame.END_DATE = "1959.1.1.1"										-- Vanilla is 1949.1.1.1
 NDefines.NGame.HANDS_OFF_START_TAG = "NSW"									-- Vanilla is URG
 NDefines.NGame.DECISION_ALERT_TIMEOUT_DAYS = 60								-- Vanilla is 30
