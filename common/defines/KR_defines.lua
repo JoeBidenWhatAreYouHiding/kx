@@ -1,5 +1,7 @@
--- Kaiserreich defines
--- Commented out items are under re-evaluation
+-- Kaiserreich defines values
+
+
+
 
 -- Links
 NDefines.NWiki.BASE_URL = "https://kaiserreich.fandom.com/wiki/The_Kaiserreich_Wiki"
@@ -12,17 +14,31 @@ NDefines.NCareerProfile.MOD_STATISTICS_GROUP_NAME = "KAISERREICH_CAREER_PROFILE"
 -- Game
 NDefines.NGame.SAVE_VERSION = 132											-- Vanilla is 20
 NDefines.NGame.END_DATE = "1959.1.1.1"										-- Vanilla is 1949.1.1.1
-NDefines.NGame.HANDS_OFF_START_TAG = "BHU"									-- Vanilla is URG
+NDefines.NGame.HANDS_OFF_START_TAG = "NSW"									-- Vanilla is URG
 NDefines.NGame.DECISION_ALERT_TIMEOUT_DAYS = 60								-- Vanilla is 30
+NDefines.NCountry.BASE_STABILITY_WAR_FACTOR = -0.1							-- Vanilla is -0.3
+NDefines.NCountry.BASE_STABILITY_PARTY_POPULARITY_FACTOR = 0.0				-- Vanilla is 0.15
 NDefines.NCountry.MIN_STABILITY = -1.0										-- Vanilla is 0.0
 NDefines.NCountry.EVENT_PROCESS_OFFSET = 5									-- Vanilla is 20
+NDefines.NCountry.FEMALE_UNIT_LEADER_BASE_CHANCE = {
+	-- applies as a factor to female unit leader randomization
+	-- the values needs to be zero if you don't actually have random portraits
+	0.0, -- navy leaders												-- Vanilla is 0.0
+	0.0, -- army leaders												-- Vanilla is 0.0
+	0.7, -- operatives													-- Vanilla is 1.0
+}
 NDefines.NPolitics.BASE_POLITICAL_POWER_INCREASE = 1.5						-- Vanilla is 2
+NDefines.NBuildings.INFRASTRUCTURE_RESOURCE_BONUS = 0.1						-- Vanilla is 0.2 
+NDefines.NTrade.ALLOW_TRADE_CUT_OFF = 0 									-- Vanilla is 0
+NDefines.NTrade.BASE_TRADE_FACTOR = 100										-- Vanilla is 150
 NDefines.NBuildings.OWNER_CHANGE_EXTRA_SHARED_SLOTS_FACTOR = 1              -- Vanilla is 0.5
 NDefines.NCountry.SPECIAL_FORCES_CAP_BASE = 0.1								-- Vanilla is 0.05
 NDefines.NCountry.SPECIAL_FORCES_CAP_MIN = 32								-- Vanilla is 24
 NDefines.NMilitary.EQUIPMENT_COMBAT_LOSS_FACTOR = 0.45						-- Vanilla is 0.7
 NDefines.NGame.LAG_DAYS_FOR_LOWER_SPEED = 30								-- Vanilla is 10
-NDefines.NGame.LAG_DAYS_FOR_PAUSE = 60										-- Vanilla is 25
+NDefines.NGame.LAG_DAYS_FOR_PAUSE = 60										-- Vanilla is 25	
+NDefines.NDiplomacy.IDEOLOGY_JOIN_FACTION_MIN_LEVEL = 0						-- Vanilla is 0.3
+NDefines.NDiplomacy.JOIN_FACTION_LIMIT_CHANGE_AT_WAR = 0					-- Vanilla is 0.5
 
 -- Resistance
 NDefines.NResistance.RESISTANCE_TARGET_MODIFIER_PER_STABILITY_LOSS = 0.1	-- Vanilla is 0.2
@@ -178,6 +194,17 @@ NDefines.NAI.MAX_FULLY_TRAINED_SHIP_RATIO_FOR_TRAINING = 0.99				-- Vanilla is 0
 NDefines.NAI.REFIT_SHIP_PERCENTAGE_OF_FORCES = 0.25							-- Vanilla is 0.1
 NDefines.NAI.DESIRE_USE_XP_TO_UPGRADE_AIR_EQUIPMENT = 1.5					-- Vanilla is 1 - AI more eagerly upgrades its planes, they are much more important than doctrines
 
+NDefines.NAI.NAVY_PREFERED_MAX_SIZE = 50									-- Vanilla is 20
+NDefines.NAI.MAX_DISTANCE_NAVAL_INVASION = 300.0							-- Vanilla is 200
+NDefines.NAI.DIFFERENT_FACTION_THREAT = 0									-- Vanilla is 30
+NDefines.NAI.NAVAL_INVADED_AREA_PRIO_MULT = 4.0								-- Vanilla is 2.0
+NDefines.NProduction.DEFAULT_MAX_NAV_FACTORIES_PER_LINE = 15
+NDefines.NProduction.CONVOY_MAX_NAV_FACTORIES_PER_LINE = 15
+NDefines.NProduction.CAPITAL_SHIP_MAX_NAV_FACTORIES_PER_LINE = 15
+NDefines.NProduction.RAILWAY_GUN_MAX_MIL_FACTORIES_PER_LINE = 15
+
+--SHUT UP
+NDefines.NInterface.SLOW_INTERFACE_THRESHOLD = 500000
 -- Supply AI
 NDefines.NSupply.AI_FRONT_MINIMUM_UNITS_PER_PROVINCE_FOR_SUPPLY_CALCULATIONS = 0	-- Vanilla is 1
 NDefines.NSupply.AI_FRONT_DIVISIONS_PER_SUPPLY_POINT = 0.7							-- Vanilla is 1.0
