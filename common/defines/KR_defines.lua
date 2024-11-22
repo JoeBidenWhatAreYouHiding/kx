@@ -39,6 +39,9 @@ NDefines.NGame.LAG_DAYS_FOR_PAUSE = 60										-- Vanilla is 25
 NDefines.NDiplomacy.IDEOLOGY_JOIN_FACTION_MIN_LEVEL = 0						-- Vanilla is 0.3
 NDefines.NDiplomacy.JOIN_FACTION_LIMIT_CHANGE_AT_WAR = 0					-- Vanilla is 0.5
 
+NDefines.NCountry.BASE_MAX_COMMAND_POWER = 200							-- Matches Vanilla with Advisor Boosts
+
+
 -- Resistance
 NDefines.NResistance.RESISTANCE_TARGET_MODIFIER_PER_STABILITY_LOSS = 0.1	-- Vanilla is 0.2
 NDefines.NResistance.MAXIMUM_GARRISON_HARDNESS_WHEN_ATTACKED = 0.70         -- vanilla is 0.90
@@ -208,3 +211,10 @@ NDefines.NInterface.SLOW_INTERFACE_THRESHOLD = 500000
 NDefines.NSupply.AI_FRONT_MINIMUM_UNITS_PER_PROVINCE_FOR_SUPPLY_CALCULATIONS = 0	-- Vanilla is 1
 NDefines.NSupply.AI_FRONT_DIVISIONS_PER_SUPPLY_POINT = 0.7							-- Vanilla is 1.0
 NDefines.NAITheatre.AI_THEATRE_SUPPLY_CRISIS_LIMIT = 0.25								-- Vanilla is 0.1
+
+--NProject
+NDefines.NProject.BREAKTHROUGH_DAILY_TECHNOLOGY_GAIN = 24           -- Amount in 1/100th percentage. E.g. 25 = 0.25%
+NDefines.NProject.BREAKTHROUGH_DAILY_ROCKET_SITE_GAIN = 1.5		   -- Amount in 1/100th percentage gained per rocket site level. E.g. 1 = 0.01% per rocket site level.
+NDefines.NProject.BREAKTHROUGH_DAILY_NUCLEAR_REACTOR_GAIN = 1.5       -- Amount in 1/100th percentage gained per nuclear reactor. E.g. 2 = 0.02% per nuclear reactor.
+NDefines.NProject.BASIC_RESEARCH_TECHNOLOGY_BONUS_DIMINISHING_RETURN_FACTOR = 0.75 -- Diminishing return on BASIC_RESEARCH_TECHNOLOGY_BONUS_FACTOR for each extra scientist performing basic research for multiple facilities.
+NDefines.NProject.BREAKTHROUGH_DAILY_SCIENTIST_SKILL_GAIN = 10
