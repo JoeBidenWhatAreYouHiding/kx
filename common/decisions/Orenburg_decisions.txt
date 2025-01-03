@@ -735,7 +735,7 @@ UCH_union_of_cossack_hosts_cat = {
 			log = "[GetDateText]: [Root.GetName]: Decision UCH_invite_country_to_union target: [From.GetName]"
 			FROM = { 
 				country_event = {
-					id = uch.1
+					id = uch.2
 					days = 3
 					random_days = 4
 				}
@@ -775,25 +775,6 @@ UCH_union_of_cossack_hosts_cat = {
 			FROM = { 
 				is_subject = no
 				has_idea = UCH_union_of_cossack_hosts
-				NOT = { has_completed_focus = KUB_Sign_The_Federative_Treaty }
-				OR = {
-					has_country_leader = { name = "Pyotr Krasnov" ruling_only = yes }
-					has_country_leader = { name = "Afrikan Bogaewsky" ruling_only = yes }
-					has_country_leader = { name = "Aleksandr Dutov" ruling_only = yes }
-					has_completed_focus = KLY_Ties_With_Cossacks
-					has_country_leader = { name = "Aleksandr Ionov" ruling_only = yes }
-					has_country_leader = { name = "Mikhail Borodin" ruling_only = yes }
-					has_cosmetic_tag = KLY_cossack
-					has_idea = BRY_Buryat_Cossack_Host
-					TRM_semyenov_in_power = yes
-					KUB_has_lineytsy = yes
-					has_idea = BKN_Bashkir_Cossack_Host
-					AND = {
-						TRK_tvo_in_power = yes 
-						TRK_osipov_in_power = no
-						has_completed_focus = TRK_Zaitsev_Autocratic_Consolidation
-					}
-				}
 			}
 		}
 
@@ -816,13 +797,13 @@ UCH_union_of_cossack_hosts_cat = {
 			log = "[GetDateText]: [Root.GetName]: Decision UCH_invite_country_to_faction target: [From.GetName]"
 			FROM = { 
 				country_event = {
-					id = orenburg.21
+					id = uch.21
 					days = 3
 					random_days = 4
 				}
 			}
 			custom_effect_tooltip = if_FROM_agrees
-			effect_tooltip = { UCH_add_to_uch = yes }
+			effect_tooltip = { add_to_faction = FROM }
 		}
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove UCH_invite_country_to_faction target: [From.GetName]"
@@ -897,18 +878,69 @@ UCH_union_of_cossack_hosts_cat = {
 			}
 			every_other_country = {
 				limit = { UCH_is_uch_member_tag = yes }
-				#event for members
+				country_event = uch.10
 			}
 			every_other_country = {
 				limit = { is_russian_tag = yes }
-				#event for other claimants
+				country_event = uch.11
 			}
-			every_other_country = {
-				limit = { 
-					is_russian_tag = no
-					has_country_flag = RUS_can_integrate
-				}
-				#event for other non-Russian CW claimants
+			set_country_flag = UCH_can_attack_RUS
+			unlock_decision_tooltip = UCH_attack_russia
+		}
+	}
+	UCH_attack_russia = {
+		name = DKU_attack_russia
+		icon = hol_draw_up_staff_plans
+
+		available = {
+			is_subject = no
+			OR = {
+				is_owner_neighbor_of = FROM
+				any_allied_country = { is_owner_neighbor_of = FROM }
+			}
+		}
+		
+		visible = {
+			can_declare_war_on = FROM
+		}
+
+		targets = { RUS RVA RRF WRA TRM }
+		target_root_trigger = {
+			has_country_flag = UCH_can_attack_RUS
+		}
+		target_trigger = {
+			can_declare_war_on = FROM			
+		}
+
+		cost = 10
+		days_remove = 14
+		fire_only_once = yes
+		war_with_target_on_remove = yes
+
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				FROM = { default_attack_AI_trigger_FROM = yes }
+			}
+			modifier = { # the best chance
+				add = 1000
+				russian_civil_war = yes
+			}
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UCH_attack_russia target: [From.GetName]"
+			set_country_flag = { flag = imminent_war days = 20 value = 1 }
+			setup_decision_attack_AI = yes
+		}
+	
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UCH_attack_russia target: [From.GetName]"
+			clear_decision_attack_AI = yes
+			declare_war_on = {
+				target = FROM
+				type = annex_everything
 			}
 		}
 	}
