@@ -899,6 +899,7 @@ UCH_union_of_cossack_hosts_cat = {
 	UCH_invite_ukrainian_free_cossacks = {
 		icon = GFX_decision_generic_cavalry
 		priority = 100
+		allowed = { always = no }
 		
 		available = {
 			at_peace_or_same_enemies_as_FROM = yes
@@ -1039,7 +1040,10 @@ UCH_union_of_cossack_hosts_cat = {
 			factor = 20
 			modifier = {
 				factor = 0
-				check_variable = { UCH_increasing_opinion > 1 }
+				OR = {
+					check_variable = { UCH_increasing_opinion > 1 }
+					check_variable = { FROM.UCH_approval > 0.7 }
+				}
 			}
 		}
 
@@ -1058,6 +1062,48 @@ UCH_union_of_cossack_hosts_cat = {
 				set_temp_variable = { UCH_support_change = 0.10 }
 				UCH_change_support = yes
 			}
+		}
+	}
+	UCH_resist_UCH_influence = {
+		icon = GFX_decision_generic_civil_support
+		priority = 100
+				
+		target_array = global.UCH_members
+		target_root_trigger = {
+			is_subject = no
+			has_idea = UCH_union_of_cossack_hosts
+			NOT = { tag = UCH }
+		}
+		target_trigger = {
+			FROM = { tag = UCH }
+		}
+
+		cost = 45
+		days_remove = 30
+		days_re_enable = 90
+		
+		modifier = {
+			political_power_cost = 0.02
+		}
+	
+		ai_will_do = {
+			factor = 0
+			modifier = {
+				add = 5
+				original_tag = KUB
+			}
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel UCH_resist_UCH_influence target: [From.GetName]"
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UCH_resist_UCH_influence target: [From.GetName]"
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UCH_resist_UCH_influence target: [From.GetName]"
+			set_temp_variable = { UCH_support_change = -0.075 }
+			UCH_change_support = yes
 		}
 	}
 	UCH_integrate_cossack_host = {
@@ -1126,9 +1172,6 @@ UCH_union_of_cossack_hosts_cat = {
 		}
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove UCH_integrate_cossack_host target: [From.GetName]"
-			hidden_effect = { 
-				activate_targeted_decision = { target = FROM decision = UCH_integrate_cossack_host_2 }
-			}
 		}
 	}
 	UCH_integrate_cossack_host_2 = {
@@ -1410,6 +1453,39 @@ UCH_union_of_cossack_hosts_cat = {
 				target = FROM
 				type = annex_everything
 			}
+		}
+	}
+	UCH_centrifugal_force = {
+		icon = GFX_decision_revolt
+		allowed = { always = no }
+		available = {
+			hidden_trigger = { always = no }
+		}
+		cancel_trigger = {
+			OR = {
+				is_subject = yes
+				is_faction_leader = no
+				NOT = { tag = UCH }
+				has_country_flag = UCH_A_Cossack_Led_Russia_completed
+			}
+		}
+		cancel_if_not_visible = yes
+		fire_only_once = yes
+		selectable_mission = no
+		is_good = no
+		days_mission_timeout = 90
+		
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel UCH_centrifugal_force"
+		}
+		timeout_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision timeout UCH_centrifugal_force"
+			every_other_country = {
+				limit = { UCH_is_uch_member_tag = yes }
+				set_temp_variable = { UCH_support_change = -0.05 }
+				UCH_change_support = yes
+			}
+			activate_mission = UCH_centrifugal_force
 		}
 	}
 }
