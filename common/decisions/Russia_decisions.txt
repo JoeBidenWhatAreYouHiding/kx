@@ -2420,15 +2420,9 @@ RUS_Alliance_decisions = {
 		available = {
 			is_neighbor_of = FROM
 			NOT = { has_country_flag = RUS_invited_country }
-		}
-
-		visible = {
-			FROM = {
-				has_completed_focus = MON_russia_friendship
-				at_peace_or_same_enemies_as_ROOT = yes
-				is_subject = no
-				is_in_faction = no
-				has_socialist_government = no
+			OR = {
+				TRM = { is_ally_of_ROOT = yes }
+				NOT = { country_exists = TRM }
 			}
 		}
 
@@ -2441,13 +2435,15 @@ RUS_Alliance_decisions = {
 				}
 				has_completed_focus = TRM_on_our_own
 			}
-			
 			has_global_flag = northwest_conflict_ended
 			has_socialist_government = no
 		}
 		target_trigger = {
 			FROM = {
-				has_completed_focus = MON_russia_friendship
+				OR = {
+					has_completed_focus = MON_russia_friendship
+					has_country_flag = MON_can_be_invited_to_alliance
+				}
 				at_peace_or_same_enemies_as_ROOT = yes
 				is_subject = no
 				is_in_faction = no
@@ -3814,6 +3810,63 @@ RUS_Alliance_decisions = {
 	
 }
 RUS_Foreign_Policy_decisions = {
+	### Missions ###
+	RUS_defeat_finland = {
+		icon = generic_ignite_civil_war
+
+		allowed = { always = no } #manually activated
+
+		available = {
+			NOT = { has_war_with = FIN }
+		}
+
+		cancel_trigger = {
+			FIN = { is_valid_peace_target = no }
+		}
+
+		is_good = no
+		fire_only_once = yes
+		days_mission_timeout = 180
+
+		timeout_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision timeout RUS_defeat_finland"
+			country_event = rusfor.1260
+		}
+	}
+
+	RUS_defeat_mongolia = {
+		icon = generic_ignite_civil_war
+
+		allowed = { always = no } #manually activated
+
+		available = {
+			NOT = { has_war_with = MON }
+		}
+
+		cancel_trigger = {
+			MON = { is_valid_peace_target = no }
+		}
+
+		is_good = no
+		fire_only_once = yes
+		days_mission_timeout = 180
+
+		timeout_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision timeout RUS_defeat_mongolia"
+			country_event = rusfor.1261
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete RUS_defeat_mongolia"
+			if = {
+				limit = {
+					has_war_with = TIB
+				}
+				TIB = { country_event = rusfor.1262 }
+			}
+		}
+	}
+
+	
 	### Default decisions first ###
 	RUS_Attack_Country_default = {
 		name = RUS_Attack_Region
@@ -3888,6 +3941,15 @@ RUS_Foreign_Policy_decisions = {
 			declare_war_on = {
 				target = FROM
 				type = annex_everything
+			}
+			if = {
+				limit = { FROM = { tag = FIN } }
+				activate_mission = RUS_defeat_finland
+				FIN = { activate_mission = FIN_survive_russia }
+			}
+			if = {
+				limit = { FROM = { tag = MON } }
+				activate_mission = RUS_defeat_mongolia
 			}
 		}
 	}	
@@ -4438,6 +4500,28 @@ RUS_Foreign_Policy_decisions = {
 					FROM = { RUS_dont_attack_if_overlord_is_stronger = yes }
 				}
 			}
+			# don't invade possible allies
+			modifier = {
+				factor = 0
+				FROM = { tag = TRK }
+				has_game_rule = { rule = TRK_foreign option = TRK_FOREIGN_RUS }
+			}
+			modifier = {
+				factor = 0
+				FROM = { tag = UZB }
+				OR = {
+					has_game_rule = { rule = UZB_foreign option = UZB_FOREIGN_RUS }
+					AND = {
+						has_game_rule = { rule = UZB_foreign option = UZB_FOREIGN_SOV }
+						has_socialist_government = yes
+					}
+				}
+			}
+			modifier = {
+				factor = 0
+				FROM = { tag = KHI }
+				has_game_rule = { rule = KHI_foreign option = KHI_FOREIGN_RUS }
+			}
 		}
 
 		cancel_effect = {
@@ -4491,7 +4575,17 @@ RUS_Foreign_Policy_decisions = {
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_Attack_Central_Asia target: [From.GetName]"
 			clear_decision_attack_AI = yes
-			activate_mission = RUS_defeat_central_asia
+			if = {
+				limit = {
+					FROM = {
+						NOT = { 
+							original_tag = ORE
+							original_tag = URL
+						}
+					}
+				}
+				activate_mission = RUS_defeat_central_asia
+			}
 			declare_war_on = {
 				target = FROM
 				type = annex_everything
@@ -5086,42 +5180,12 @@ RUS_Foreign_Policy_decisions = {
 					name = RUS_aggression_threat_FROM
 				}
 			}
-			if = {
-				limit = {
-					FROM = { is_subject = yes }
-				}
-				var:FROM.overlord = {
-					country_event = { id = rusfor.1229 days = 2 random_days = 2 } #warning event
-				}
-			}
-			else = {
-				FROM = {
-					country_event = { id = rusfor.1229 days = 2 random_days = 2 } #warning event
-				}
-			}
+			country_event = { id = rusfor.1224 days = 3 }
 		}
 
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_Demand_Karelia target: [From.GetName]"
 			clear_decision_attack_AI = yes
-			custom_effect_tooltip = if_they_accept_tt
-			effect_tooltip = {
-				every_state = {
-					limit = {
-						OR = {
-							is_claim_or_core_of_ROOT = yes
-							state = 1324
-							state = 1326
-						}
-						is_owned_by = FROM
-					}
-					transfer_state_to = ROOT
-				}
-			}
-			custom_effect_tooltip = if_they_refuse_tt
-			effect_tooltip = {
-				activate_targeted_decision = { target = FIN decision = RUS_Attack_Country_default }
-			}
 		}
 	}
 		
@@ -5516,10 +5580,7 @@ RUS_Foreign_Policy_decisions = {
 			is_neighbor_of = FROM
 			NOT = {
 				has_non_aggression_pact_with = FROM
-				custom_trigger_tooltip = {
-					tooltip = RUS_attacking_ottomans #cleaner tooltip
-					has_country_flag = RUS_attacking_ottomans
-				}
+				has_country_flag = RUS_attacking_ottomans
 			}
 		}
 
@@ -6433,24 +6494,20 @@ RUS_Foreign_Policy_decisions = {
 
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision complete RUS_Seize_Tuva target: [From.GetName]"
-			setup_decision_attack_AI = yes
+			setup_decision_attack_AI = yes			
+			if = {
+				limit = { NOT = { has_global_flag = second_weltkrieg_has_started } }
+				add_named_threat = {
+					threat = 1
+					name = RUS_aggression_threat_FROM
+				}
+			}
+			country_event = { id = rusfor.1110 days = 3 }
 		}
 
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_Seize_Tuva target: [From.GetName]"
 			clear_decision_attack_AI = yes
-			if = {
-				limit = { var:329.owner = { is_subject = yes } }
-				var:329.owner:overlord = { country_event = rusfor.1113 }
-			}
-			else = {
-				var:329.owner = { country_event = rusfor.1113 }
-			}
-			custom_effect_tooltip = may_lead_to_war_with_FROM
-			transfer_state = 329 #Tuva
-			transfer_state = 654 #Ulala
-			transfer_state = 811 #Minusinsk
-			transfer_state = 1293 #Khakassia
 		}
 	}	
 	
@@ -10872,7 +10929,7 @@ RUS_Siberian_War = {
 	}
 	
 }
-RUS_integration_of_turkestan_cat = {
+RUS_integration_of_turkestan_cat = {	
 	RUS_defeat_central_asia = {
 		icon = generic_ignite_civil_war
 
