@@ -5841,6 +5841,8 @@ setup_danzig_treaty = {
 }
 setup_yerevan_treaty = {
 	set_global_flag = yerevan_treaty_active
+	
+	# Annex Turkish Allies that Capitulated
 	every_other_country = {
 		limit = {
 			OR = {
@@ -5850,15 +5852,15 @@ setup_yerevan_treaty = {
 				tag = ARM
 				tag = DAG
 				tag = CRM
+				tag = PER
+				tag = AFG
+				is_central_asian_tag = yes
 			}
 			OR = {
 				is_in_faction_with = TUR
 				is_subject_of = TUR
 			}
-			OR = {
-				exists = no
-				has_capitulated = yes
-			}
+			has_capitulated = yes
 		}
 		ROOT = {
 			annex_country = {
@@ -5866,114 +5868,70 @@ setup_yerevan_treaty = {
 			}
 		}
 	}
-	if = {
-		limit = {
-			OR = {
-				has_global_flag = RUS_OTT_some_concessions
-				has_global_flag = RUS_OTT_more_concessions
-			}
-		}
-		every_other_country = {
+	
+	# Annex Our Claims 
+	TUR = {
+		every_owned_state = {
 			limit = {
-				tag = ARM
 				OR = {
-					is_in_faction_with = TUR
-					is_subject_of = TUR
+					state = 1213
+					state = 1000
+					state = 1001
+					state = 230
 				}
-				OR = {
-					exists = no
-					has_capitulated = yes
-				}
+				is_controlled_by_ROOT_or_ally = yes
 			}
-			ROOT = {
-				annex_country = {
-					target = PREV
-				}
-			}
+			transfer_state_to = ROOT
 		}
-		transfer_state = 1213
-		add_state_claim = 1213
 		if = {
-			limit = {
-				BUL = { is_in_faction_with = ROOT }
-			}
-			BUL = { transfer_state = 341 }
-		}
-		TUR = {
-			diplomatic_relation = {
-				country = ROOT
-				relation = non_aggression_pact
-				active = yes
-			}
-			diplomatic_relation = {
-				country = ROOT
-				relation = docking_rights
-				active = yes
-			}
-			diplomatic_relation = {
-				country = ROOT
-				relation = military_access
-				active = yes
-			}
-		}
-		hidden_effect = {
-			TUR = {
-				diplomatic_relation = {
-					country = ROOT
-					relation = non_aggression_pact
-					active = yes
-				}
-				diplomatic_relation = {
-					country = ROOT
-					relation = docking_rights
-					active = yes
-				}
-				diplomatic_relation = {
-					country = ROOT
-					relation = military_access
-					active = yes
+			limit = { 
+				773 = { 
+					is_claimed_by = ROOT 
+					is_controlled_by_ROOT_or_ally = yes
 				}
 			}
-		}
-	}
-	if = {
-		limit = {
-			has_global_flag = RUS_OTT_more_concessions
-		}
-		transfer_state = 1000 #Kars
-		add_state_claim = 1000 #Kars
-		transfer_state = 1001 #Lazistan
-		add_state_claim = 1001 #Lazistan
-		if = {
-			limit = {
-				PER = {
+			every_owned_state = {
+				limit = {
 					OR = {
-						is_in_faction_with = TUR
-						is_subject_of = TUR
+						state = 773
+						state = 1225
+						region = 25
+						region = 26
 					}
 				}
+				transfer_state_to = ROOT
 			}
-			transfer_state = 420
-			add_state_claim = 420
-			transfer_state = 418
-			add_state_claim = 418
-			transfer_state = 804
-			add_state_claim = 804
-			if = {
-				limit = {
-					has_completed_focus = RUS_Expansionism
+		}
+	}
+		
+	### Release Persia if it was annexed
+	TUR = {
+		if = {
+			limit = {
+				owns_state = 266 #Teheran
+				NOT = { country_exists = PER }
+			}
+			release = PER
+		}
+		every_owned_state = {
+			limit = {
+				OR = {
+					is_core_of = PER
+					region = 116 #Persia
+					state = 413 #Khuzestan
+					state = 417 #Urmia
+					state = 421 #Kermanshah
 				}
-				puppet = PER
+			}
+			transfer_state_to = PER
+			if = {
+				limit = { is_claim_or_core_of_owner = no }
+				add_core_of = PER
 			}
 		}
 	}
-	#recheck if OTT is in RSP and kick it
-	if = {
-		limit = {
-			TUR = { is_in_faction_with = GER }
-		}
-		leave_faction = yes
-	}
+	
+	# Peace Out With Turkey and its subjects 
 	save_event_target_as = peace_country
 	every_enemy_country = {
 		limit = {
@@ -5986,7 +5944,88 @@ setup_yerevan_treaty = {
 			is_subject_of = TUR
 		}
 		event_target:peace_country = { white_peace = PREV }
-	}	
+	}
+	every_enemy_country = {
+		limit = {
+			is_in_faction_with = TUR
+			NOT = { 
+				tag = MTR
+				tag = GEO
+				tag = AZE
+				tag = ARM
+				tag = DAG
+				tag = CRM
+				tag = PER
+				tag = AFG
+			}
+			is_central_asian_tag = no
+			is_valid_peace_target = yes
+			has_capitulated = no
+			NOT = {
+				civilwar_target = PREV #do not peace out civil wars
+				PREV = {
+					OR = {
+						any_home_area_neighbor_country = { is_ally_with = PREV.PREV } #== invading
+						any_owned_state = {
+							OR = {
+								is_core_of = PREV.PREV
+								is_claimed_by = PREV.PREV
+							}
+						}
+					}
+				}
+				any_subject_country = {
+					PREV.PREV = {
+						any_owned_state = {
+							OR = {
+								is_core_of = PREV.PREV
+								is_claimed_by = PREV.PREV
+							}
+						}
+					}
+				}
+				any_allied_country = {
+					PREV.PREV = {
+						any_owned_state = {
+							OR = {
+								is_core_of = PREV.PREV
+								is_claimed_by = PREV.PREV
+							}
+						}
+					}
+				}
+			}
+		}
+		white_peace = PREV
+	}
+	
+	### Diplomatic Actions ###
+	TUR = {
+		if = {
+			limit = { is_faction_leader = yes }
+			dismantle_faction = yes
+		}
+		diplomatic_relation = {
+			country = ROOT
+			relation = non_aggression_pact
+			active = yes
+		}
+		diplomatic_relation = {
+			country = ROOT
+			relation = docking_rights
+			active = yes
+		}
+	}
+	every_other_country = {
+		limit = { is_guaranteed_by = TUR }
+		TUR = {
+			diplomatic_relation = {
+				country = PREV
+				relation = guarantee
+				active = no
+			}
+		}
+	}
 }
 setup_budapest_treaty = {
 	set_global_flag = budapest_treaty_active
