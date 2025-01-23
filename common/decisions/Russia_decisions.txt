@@ -3296,48 +3296,29 @@ RUS_Alliance_decisions = {
 				country_event = {
 					id = rusfor.52
 					days = 8
+				}
 			}
-		}
 		}
 	}
 	RUS_Invite_East_Turkestan = {
 		name = RUS_Invite_Country
 		icon = generic_agreement
+		allowed = { always = no }
 		priority = 100
-		available = {
-			FROM = { has_completed_focus = ETS_uyghur_independence }
-			FROM = { at_peace_or_same_enemies_as_ROOT = yes }
-		}
-
-		visible = {
-			has_completed_focus = RUS_Realpolitik
-			country_exists = FROM
-		}
-		targets = { ETS }
-		target_root_trigger = {
-			OR = {
-				AND = {
-					is_faction_leader = yes
-					has_completed_focus = RUS_Negotiations_Fail
-				}
-				has_completed_focus = RUS_China_Policy
-				has_completed_focus = TRM_China_Policy
-			}
-		}
-		target_trigger = {
+		available = {			
 			FROM = {
-				NOT = { has_war_with = ROOT }
-				is_valid_peace_target = yes
+				has_completed_focus = ETS_uyghur_independence
+				at_peace_or_same_enemies_as_ROOT = yes
 			}
+		}
+		visible = {
+			NOT = { has_country_flag = ETS_no_support }
 		}
 
 		cost = 25
 		days_remove = 24
 		fire_only_once = yes
 
-		cancel_effect = {
-			clr_country_flag = RUS_invited_country
-		}
 		ai_will_do = {
 			factor = 1000
 			modifier = {
@@ -3346,6 +3327,9 @@ RUS_Alliance_decisions = {
 			}
 		}
 
+		cancel_effect = {
+			clr_country_flag = RUS_invited_country
+		}
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision RUS_Invite_East_Turkestan target: [From.GetName]"
 		}
@@ -4039,20 +4023,9 @@ RUS_Foreign_Policy_decisions = {
 				limit = {
 					FROM = { tag = KUB }
 				}
-				if = {
-					limit = { kuban_is_pro_russian = yes }
-					FROM = {
-						country_event = {
-							id = rusfor.101
-							days = 1
-						}
-					}
-				}
-				else = {
-					country_event = {
-						id = rusfor.1280
-						days = 1
-					}
+				country_event = {
+					id = rusfor.1280
+					days = 1
 				}
 			}
 		}
@@ -4094,18 +4067,6 @@ RUS_Foreign_Policy_decisions = {
 
 		ai_will_do = {
 			factor = 100
-			modifier = {
-				factor = 0
-				OR = {
-					has_stability < 0.25
-					has_war = yes
-					strength_ratio = {
-						tag = FROM
-						ratio < 0.8
-					}
-					has_country_flag = imminent_war
-				}
-			}
 		}
 
 		complete_effect = {
@@ -4144,35 +4105,30 @@ RUS_Foreign_Policy_decisions = {
 					}
 				}
 			}
-			FROM = {
-				country_event = rusfor.1048
-			}
 		}
 
 		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_Demand_Concessions_In_The_Caucasus target: [From.GetName]"
-			if = {
-				limit = { has_country_flag = RUS_GER_blocks_caucasus }
-				clr_country_flag = RUS_GER_blocks_caucasus
-			}
-			every_other_country = {
-				limit = {
-					ROOT = { has_country_flag = RUS_prepare_for_war_@PREV }
-				}
-				add_ai_strategy = {
-					type = prepare_for_war
-					id = ROOT
-					value = -1000
-				}
-				ROOT = {
-					clr_country_flag = RUS_prepare_for_war_@PREV
-					add_ai_strategy = {
-						type = prepare_for_war
-						id = PREV
-						value = -1000
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_Demand_Concessions_In_The_Caucasus target: [From.GetName]"			
+			FROM = { country_event = rusfor.1048 }
+			custom_effect_tooltip = if_FROM_agrees
+			effect_tooltip = {
+				every_other_country = {
+					limit = {
+						capital_scope = {
+							OR = {
+								region = 134 #Caucasus
+								region = 135 #Kuban
+							}
+						}						
 					}
+					FROM = { clear_relations_with_PREV = yes }
 				}
-			}
+				diplomatic_relation = {
+					country = FROM
+					relation = non_aggression_pact
+					active = yes
+				}
+			}			
 		}
 	}
 
@@ -4869,6 +4825,7 @@ RUS_Foreign_Policy_decisions = {
 
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision RUS_Attack_Germany target: [From.GetName]"
+			clr_country_flag = RUS_GER_blocks_caucasus
 			set_country_flag = { flag = imminent_war days = 45 value = 1 }
 			for_each_scope_loop = {
 				array = FROM.faction_members
@@ -4877,10 +4834,11 @@ RUS_Foreign_Policy_decisions = {
 						OR = {
 							is_in_europe = yes
 							tag = DKB
-							tag = KUB
 							tag = KLY
+							tag = KUB
 							tag = MTR
 							tag = GEO
+							tag = ABK
 							tag = AZE
 						}
 						is_in_faction_with = GER
@@ -4920,7 +4878,11 @@ RUS_Foreign_Policy_decisions = {
 						OR = {
 							is_in_europe = yes
 							tag = DKB
+							tag = KLY
+							tag = KUB
+							tag = MTR
 							tag = GEO
+							tag = ABK
 							tag = AZE
 						}
 						is_in_faction_with = GER
@@ -7230,6 +7192,17 @@ RUS_Integration_decisions = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_Annex_Puppet target: [From.GetName]"
 			FROM = {
 				save_event_target_as = RUS_puppet_to_annex
+			}
+			if = {
+				limit = {
+					FROM = { has_autonomy_state = kr_cossack_host }
+				}
+				FROM = {
+					every_unit_leader = {
+						limit = { RUS_is_cossack_leader = yes }
+						set_nationality = ROOT
+					}
+				}
 			}
 			hidden_effect = { country_event = rusfor.12800 }
 			every_owned_state = {
