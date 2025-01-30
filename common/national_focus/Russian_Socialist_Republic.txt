@@ -222,6 +222,10 @@ focus = {
 				id = russoc.160
 				days = 20
 			}
+			country_event = {
+				id = rusdem.314
+				days = 35
+			}
 		}	
 	}
 }
@@ -514,8 +518,7 @@ focus = {
 	ai_will_do = { factor = 20 }
 	completion_reward = {
 		log = "[GetDateText]: [Root.GetName]: Focus SOV_Control_The_Unions"		
-		set_country_flag = SOV_congress_control_unions
-		activate_mission = SOV_get_ready_for_congress			
+		country_event = russoc.181
 	}
 }
 focus = {
@@ -534,8 +537,7 @@ focus = {
 	ai_will_do = { factor = 20 }
 	completion_reward = {
 		log = "[GetDateText]: [Root.GetName]: Focus SOV_Entrust_VSNKh_To_Shlyapnikov"
-		set_country_flag = SOV_congress_trade_union_economy
-		activate_mission = SOV_get_ready_for_congress		
+		country_event = russoc.180
 	}
 }
 focus = {
@@ -1004,12 +1006,7 @@ focus = {
 			SOV_sokolnikov_in_power = yes
 			has_completed_focus = SOV_Confide_In_Kamenev
 		}
-		OR = {
-			set_temp_variable = { Politburo_Leader_Name = 17 }
-			SOV_check_status_politburo = yes
-			set_temp_variable = { Politburo_Leader_Name = 21 }
-			SOV_check_status_politburo = yes
-		}
+		has_country_flag = SOV_rkp_in_politburo
 	}
 	bypass = {
 		hidden_trigger = { has_country_flag = RUS_nsp_rkp_united }
@@ -1106,9 +1103,8 @@ focus = {
 	completion_reward = { 
 		log = "[GetDateText]: [Root.GetName]: Focus SOV_Rykovs_Selkhoznalog"
 		RUS_nep_increase_state_and_peasant = yes
-		set_temp_variable = { Politburo_Leader_Name = 2 }
-		set_temp_variable = { politburo_var_change = 2 }
-		SOV_politburo_change_authority = yes
+		set_temp_variable = { politburo_change = 2 }
+		SOV_change_politburo_rykov = yes
 		hidden_effect = {
 			country_event = {
 				id = russoc.201
@@ -1660,6 +1656,20 @@ focus = {
 	completion_reward = { 
 		log = "[GetDateText]: [Root.GetName]: Focus SOV_Revolutionary_Terror"
 		country_event = rusdem.332 
+		if = {
+			limit = {
+				has_dlc_lar = yes
+				NOT = { has_done_agency_upgrade = upgrade_psycho_warfare }
+			}
+			upgrade_intelligence_agency = upgrade_psycho_warfare
+		}
+		if = {
+			limit = {
+				has_dlc_lar = yes
+				NOT = { has_done_agency_upgrade = upgrade_anti_partisan }
+			}
+			upgrade_intelligence_agency = upgrade_anti_partisan
+		}
 	}
 }
 focus = {
@@ -2540,9 +2550,18 @@ focus = {
 		factor = 20
 	}
 	completion_reward = {
-		swap_ideas = {
-			remove_idea = RUS_Restored_Cheka
-			add_idea = SOV_institutionalized_terror
+		if = {
+			limit = { has_dlc_lar = yes }
+			swap_ideas = {
+				remove_idea = RUS_Restored_Cheka_lar
+				add_idea = SOV_institutionalized_terror_lar
+			}
+		}
+		else = {
+			swap_ideas = {
+				remove_idea = RUS_Restored_Cheka
+				add_idea = SOV_institutionalized_terror
+			}
 		}
 	}
 }
@@ -2734,12 +2753,34 @@ focus = {
 			ruling_only = yes
 		}
 	}
+	bypass = {
+		hidden_trigger = {
+			NOT = { has_idea = RUS_Restored_Cheka }
+			NOT = { has_idea = RUS_Restored_Cheka_lar }
+			NOT = { has_idea = SOV_institutionalized_terror }
+			NOT = { has_idea = SOV_institutionalized_terror_lar }
+		}
+	}
 	ai_will_do = {
 		factor = 100
 	}
 	completion_reward = {
-		remove_ideas = RUS_Restored_Cheka
-		remove_ideas = SOV_institutionalized_terror
+		if = {
+			limit = { has_idea = RUS_Restored_Cheka }
+			remove_ideas = RUS_Restored_Cheka
+		}
+		if = {
+			limit = { has_idea = SOV_institutionalized_terror }
+			remove_ideas = SOV_institutionalized_terror
+		}
+		if = {
+			limit = { has_idea = RUS_Restored_Cheka_lar }
+			remove_ideas = RUS_Restored_Cheka_lar
+		}
+		if = {
+			limit = { has_idea = SOV_institutionalized_terror_lar }
+			remove_ideas = SOV_institutionalized_terror_lar
+		}
 	}
 }
 
@@ -3120,22 +3161,9 @@ focus = {
 		swap_ideas = {
 			remove_idea = RUS_sovietification_1
 			add_idea = RUS_sovietification_2
-		}
-		if = {
-			limit = {
-				NOT = { 
-					check_variable = { Politburo_Leader_Status^10 = token:SOV_politburo_member }
-					check_variable = { Politburo_Leader_Status^10 = token:SOV_politburo_candidate }
-				}
-			}
-			custom_effect_tooltip = SOV_politburo_add_to_politburo_candidate
-			set_variable = { Politburo_Leader_Status^10 = token:SOV_politburo_candidate }
-		}
-		set_temp_variable = { Politburo_Leader_Name = 10 }
-		set_temp_variable = { politburo_var_change = 4 }
-		set_temp_variable = { politburo_faction_change = token:SOV_politburo_zhdanovites }
-		custom_effect_tooltip = SOV_politburo_change_faction_tooltip
-		SOV_politburo_change_authority = yes	
+		}		
+		set_temp_variable = { politburo_change = 4 }
+		SOV_change_politburo_zhdanov = yes	
 		SOV_calculate_politburo_factions = yes
 	}
 }
@@ -3618,13 +3646,7 @@ focus = {
 		factor = 20
 	}
 	completion_reward = {
-		log = "[GetDateText]: [Root.GetName]: Focus SOV_Capitalism_In_City"
-		every_owned_state = {
-			limit = {
-				has_dynamic_modifier = { modifier = RUS_socialism_in_city_modifier }
-			}
-			remove_dynamic_modifier = { modifier = RUS_socialism_in_city_modifier }
-		}
+		log = "[GetDateText]: [Root.GetName]: Focus SOV_Capitalism_In_City"		
 		RUS_nep_increase_market = yes
 	}
 }
@@ -4535,7 +4557,7 @@ focus = {
 	id = SOV_Chairman_Molotov
 	icon = GFX_SOV_molotov
 	relative_position_id = RUS_Bolsheviks_In_Power
-	x = 12
+	x = 8
 	y = 1
 	prerequisite = {
 		focus = RUS_Bolsheviks_In_Power
@@ -4565,7 +4587,7 @@ focus = {
 	id = SOV_Chairman_Blagonravov
 	icon = GFX_SOV_blagonravov
 	relative_position_id = RUS_Bolsheviks_In_Power
-	x = 17
+	x = 13
 	y = 1
 	prerequisite = {
 		focus = RUS_Bolsheviks_In_Power
@@ -4629,7 +4651,7 @@ focus = {
 	id = SOV_Chairman_Krestinsky
 	icon = GFX_SOV_krestinsky
 	relative_position_id = RUS_Bolsheviks_In_Power
-	x = 14
+	x = 10
 	y = 1
 	prerequisite = {
 		focus = RUS_Bolsheviks_In_Power
@@ -4653,7 +4675,7 @@ focus = {
 	id = SOV_Chairman_Yezhov
 	icon = GFX_SOV_yezhov
 	relative_position_id = RUS_Bolsheviks_In_Power
-	x = 21
+	x = 16
 	y = 1
 	prerequisite = {
 		focus = RUS_Bolsheviks_In_Power
@@ -4731,7 +4753,7 @@ focus = {
 	id = SOV_Prolektult
 	icon = GFX_SOV_proletkult
 	relative_position_id = RUS_Bolsheviks_In_Power
-	x = -3
+	x = -4
 	y = 1
 	available = {
 		OR = {
@@ -5513,7 +5535,6 @@ focus = {
 	completion_reward = {
 		log = "[GetDateText]: [Root.GetName]: Focus RUS_Bureaucratic_Centralism"
 		add_ideas = SOV_bureaucratic_centralism_1
-		country_event = bolsheviks.47
 	}
 }
 
@@ -5641,9 +5662,6 @@ focus = {
 	completion_reward = {
 		log = "[GetDateText]: [Root.GetName]: Focus SOV_Cement_Zinoviev_Authority"
 		add_stability = 0.1
-		set_temp_variable = { politburo_var_change = 3 }
-		set_temp_variable = { Politburo_Leader_Name = 17 }
-		SOV_politburo_change_authority = yes
 		set_country_flag = SOV_politburo_dissolved
 		swap_ideas = {
 			remove_idea = SOV_bureaucratic_centralism_1
@@ -5657,7 +5675,7 @@ focus = {
 	id = SOV_Diminish_The_Cheka
 	icon = GFX_SOV_diminsh_the_cheka 
 	relative_position_id = RUS_Bolsheviks_In_Power
-	x = 2
+	x = 6
 	y = 1
 	cost = 5
 	prerequisite = {
@@ -5666,6 +5684,13 @@ focus = {
 	available = { 
 		has_country_flag = SOV_politburo_active
 		SOV_hardliners_in_power = no
+		if = {
+			limit = { has_dlc_lar = yes }
+			has_idea = RUS_Restored_Cheka_lar
+		}
+		else = {
+			has_idea = RUS_Restored_Cheka
+		}
 	}
 	mutually_exclusive = { focus = SOV_Expand_The_Cheka }
 	ai_will_do = {
@@ -5673,15 +5698,24 @@ focus = {
 	}
 	completion_reward = {
 		log = "[GetDateText]: [Root.GetName]: Focus SOV_Diminish_The_Cheka"
-		country_event = bolsheviks.63
+		add_stability = 0.10
+		decrease_ruling_party_popularity_by_10 = yes
+		if = {
+			limit = { has_idea = RUS_Restored_Cheka_lar }
+			add_ideas = RUS_Restored_Cheka_lar
+		}
+		else = {
+			remove_ideas = RUS_Restored_Cheka
+		}
+		set_temp_variable = { politburo_change = -3 }
+		SOV_change_politburo_hardliners = yes
 	}
 }
-
 focus = {
-	id = SOV_Support_NEP
-	icon = GFX_SOV_sokolnikov
+	id = SOV_Decentralize_The_Supreme_Soviet
+	icon = GFX_SOV_decentralize_the_congress 
 	relative_position_id = RUS_Bolsheviks_In_Power
-	x = 8
+	x = -2
 	y = 1
 	prerequisite = { focus = RUS_Bolsheviks_In_Power }
 	available = {
@@ -5690,35 +5724,6 @@ focus = {
 			has_active_mission = SOV_preparing_for_zinovievs_rally 
 			has_active_mission = SOV_elections_of_the_chairman
 		}
-		SOV_hardliners_in_power = no
-	}
-	select_effect = {
-		country_event = {
-			id = sokolnikov.1
-			days = 3
-		}
-	}
-	mutually_exclusive = { focus = SOV_Council_Of_Labour_And_Defence }
-	cost = 5
-	ai_will_do = {
-		factor = 40
-	}
-	completion_reward = {
-		log = "[GetDateText]: [Root.GetName]: Focus SOV_Support_NEP"
-		add_dynamic_modifier = { modifier = RUS_New_Economic_Policy_modifier }
-	}
-}
-focus = {
-	id = SOV_Decentralize_The_Supreme_Soviet
-	icon = GFX_SOV_decentralize_the_congress 
-	relative_position_id = SOV_Support_NEP
-	x = 2
-	y = 2
-	cost = 8
-	prerequisite = {
-		focus = SOV_Support_NEP
-	}
-	available = {
 		SOV_hardliners_in_power = no
 	}
 	ai_will_do = {
@@ -5729,102 +5734,10 @@ focus = {
 		add_stability = 0.03
 		add_political_power = 15
 		add_ideas = SOV_decentralized_supreme_soviet
-	}
-}
-focus = {
-	id = SOV_Save_Trading_Contracts
-	icon = GFX_SOV_chicherin
-	relative_position_id = SOV_Support_NEP
-	x = 1
-	y = 1
-	prerequisite = { 
-		focus = SOV_Support_NEP 
-	}
-	available = {
-		has_country_flag = SOV_politburo_active
-		SOV_hardliners_in_power = no
-		has_dynamic_modifier = { modifier = RUS_New_Economic_Policy_modifier }
-	}
-	cost = 5
-	ai_will_do = {
-		factor = 40
-	}
-	completion_reward = {
-		log = "[GetDateText]: [Root.GetName]: Focus SOV_Save_Trading_Contracts"
-		country_event = sokolnikov.3
-		hidden_effect = {
-			country_event = {
-				id = sokolnikov.8
-				days = 50
-				random_days = 150
-			}
-		}
-	}
-}
-
-focus = {
-	id = SOV_Save_The_Village
-	icon = GFX_SOV_save_village
-	relative_position_id = SOV_Support_NEP
-	x = -1
-	y = 1
-	prerequisite = { focus = SOV_Support_NEP }
-	available = {
-		SOV_hardliners_in_power = no
-		has_dynamic_modifier = { modifier = RUS_New_Economic_Policy_modifier }
-	}
-	cost = 5
-	ai_will_do = {
-		factor = 40
-	}
-	completion_reward = {
-		log = "[GetDateText]: [Root.GetName]: Focus SOV_Save_The_Village"
-		country_event = sokolnikov.7
-		if = {
-			limit = {
-				has_idea = rus_unfinished_land_reform
-			}
-			destroy_unfinished_land_reform = yes
-		}
-		every_owned_state = {
-			limit = {
-				OR = {
-					has_state_category = four
-					has_state_category = three
-					has_state_category = two
-					has_state_category = one
-				}
-			}
-			if = {
-				limit = {
-					NOT = { has_dynamic_modifier = { modifier = RUS_capitalism_in_village_modifier } }
-				}
-				add_dynamic_modifier = { modifier = RUS_capitalism_in_village_modifier }
-			}
-		}
-	}
-}
-
-focus = {
-	id = SOV_Popular_Economy
-	icon = GFX_SOV_happy_sokolnikov
-	relative_position_id = SOV_Support_NEP
-	x = 0
-	y = 2
-	prerequisite = { focus = SOV_Save_The_Village }
-	prerequisite = { focus = SOV_Save_Trading_Contracts }
-	available = {
-		SOV_hardliners_in_power = no
-		has_dynamic_modifier = { modifier = RUS_New_Economic_Policy_modifier }
-	}
-	cost = 5
-	ai_will_do = {
-		factor = 40
-	}
-	completion_reward = {
-		log = "[GetDateText]: [Root.GetName]: Focus SOV_Popular_Economy"
-		RUS_nep_increase_market = yes
-		RUS_nep_increase_peasant = yes
+		set_temp_variable = { politburo_change = -2 }
+		SOV_change_politburo_left_communists = yes
+		set_temp_variable = { politburo_change = -2 }
+		SOV_change_politburo_hardliners = yes
 	}
 }
 
@@ -5832,7 +5745,7 @@ focus = {
 	id = SOV_Council_Of_Labour_And_Defence
 	icon = GFX_SOV_molotov_2
 	relative_position_id = RUS_Bolsheviks_In_Power
-	x = 6
+	x = 2
 	y = 1
 	prerequisite = { focus = RUS_Bolsheviks_In_Power }
 	available = {
@@ -5843,7 +5756,6 @@ focus = {
 		}
 		SOV_moderate_bolsheviks_in_power = no
 	}
-	mutually_exclusive = { focus = SOV_Support_NEP }
 	cost = 5
 	ai_will_do = {
 		factor = 40
@@ -5851,7 +5763,8 @@ focus = {
 	completion_reward = {
 		log = "[GetDateText]: [Root.GetName]: Focus SOV_Council_Of_Labour_And_Defence"
 		country_event = molotov.2
-		add_political_power = 15
+		add_one_random_civilian_factory = yes
+		add_one_random_military_factory = yes
 		add_ideas = SOV_Council_Of_Labour_And_Defence_1
 	}
 }
@@ -5859,7 +5772,7 @@ focus = {
 	id = SOV_Down_With_The_Village
 	icon = GFX_SOV_down_villages
 	relative_position_id = SOV_Council_Of_Labour_And_Defence
-	x = -1
+	x = 1
 	y = 1
 	prerequisite = { focus = SOV_Council_Of_Labour_And_Defence }
 	available = {
@@ -5881,38 +5794,15 @@ focus = {
 			remove_idea = SOV_Council_Of_Labour_And_Defence_1
 			add_idea = SOV_Council_Of_Labour_And_Defence_2
 		}
-	}
-}
-focus = {
-	id = SOV_Rapid_Industrialization
-	icon = GFX_SOV_rapid_industrialization
-	relative_position_id = SOV_Council_Of_Labour_And_Defence
-	x = -2
-	y = 2
-	prerequisite = {
-		focus = SOV_Down_With_The_Village
-	}
-	available = {
-		SOV_moderate_bolsheviks_in_power = no	
-	}
-		
-	cost = 5
-	ai_will_do = {
-		factor = 40
-	}
-	completion_reward = {
-		log = "[GetDateText]: [Root.GetName]: Focus SOV_Rapid_Industrialization"
-		swap_ideas = {
-			remove_idea = SOV_Council_Of_Labour_And_Defence_2
-			add_idea = SOV_Council_Of_Labour_And_Defence_3
-		}
+		set_temp_variable = { politburo_change = 1 }
+		SOV_change_politburo_hardliners = yes
 	}
 }
 focus = {
 	id = SOV_Deal_With_Kulaks
 	icon = GFX_SOV_dekulakization
 	relative_position_id = SOV_Council_Of_Labour_And_Defence
-	x = 0
+	x = 2
 	y = 2
 	prerequisite = {
 		focus = SOV_Down_With_The_Village
@@ -5942,6 +5832,8 @@ focus = {
 			idea = SOV_mass_collectivization
 			days = 900
 		}
+		set_temp_variable = { politburo_change = 1 }
+		SOV_change_politburo_hardliners = yes
 		hidden_effect = {
 			country_event = {
 				id = bolsheviks.50
@@ -5958,10 +5850,10 @@ focus = {
 	id = SOV_Militarize_The_Labour
 	icon = GFX_SOV_labor_militarization
 	relative_position_id = SOV_Council_Of_Labour_And_Defence
-	x = -1
+	x = 1
 	y = 3
 	prerequisite = {
-		focus = SOV_Rapid_Industrialization
+		focus = SOV_Down_With_The_Village
 	}
 	available = {
 		SOV_moderate_bolsheviks_in_power = no	
@@ -5973,16 +5865,18 @@ focus = {
 	completion_reward = {
 		log = "[GetDateText]: [Root.GetName]: Focus SOV_Militarize_The_Labour"
 		swap_ideas = {
-			remove_idea = SOV_Council_Of_Labour_And_Defence_3
-			add_idea = SOV_Council_Of_Labour_And_Defence_4
+			remove_idea = SOV_Council_Of_Labour_And_Defence_2
+			add_idea = SOV_Council_Of_Labour_And_Defence_3
 		}
+		set_temp_variable = { politburo_change = 1 }
+		SOV_change_politburo_hardliners = yes
 	}
 }
 focus = {
 	id = SOV_Improve_The_Supplies
 	icon = GFX_SOV_supply_network
 	relative_position_id = SOV_Council_Of_Labour_And_Defence
-	x = 0
+	x = 2
 	y = 4
 	prerequisite = { focus = SOV_Militarize_The_Labour }
 	prerequisite = { focus = SOV_Deal_With_Kulaks }
@@ -6145,7 +6039,33 @@ focus = {
 	}
 	completion_reward = {
 		log = "[GetDateText]: [Root.GetName]: Focus SOV_Expand_The_Cheka"
-		country_event = nkvd.21
+		if = {
+			limit = { has_dlc_lar = yes }
+			swap_ideas = {
+				remove_idea = RUS_Restored_Cheka_lar
+				add_idea = SOV_institutionalized_terror_lar
+			}
+		}
+		else = {
+			swap_ideas = {
+				remove_idea = RUS_Restored_Cheka
+				add_idea = SOV_institutionalized_terror
+			}
+		}
+		if = {
+			limit = {
+				has_dlc_lar = yes
+				NOT = { has_done_agency_upgrade = upgrade_psycho_warfare }
+			}
+			upgrade_intelligence_agency = upgrade_psycho_warfare
+		}
+		if = {
+			limit = {
+				has_dlc_lar = yes
+				NOT = { has_done_agency_upgrade = upgrade_anti_partisan }
+			}
+			upgrade_intelligence_agency = upgrade_anti_partisan
+		}
 		hidden_effect = {
 			if = {
 				limit = {
@@ -6352,9 +6272,7 @@ focus = {
 		log = "[GetDateText]: [Root.GetName]: Focus SOV_Military_Purges"		
 		add_ideas = SOV_NKVD_State_1
 		if = {
-			limit = {
-				check_variable = { Politburo_Leader_Faction^18 = token:SOV_politburo_hardliners }
-			}
+			limit = { has_country_flag = SOV_blagonravov_is_hardliner }
 			activate_targeted_decision = { target = ROOT decision = SOV_case_of_italian_clique }
 		}
 		else = {
@@ -6445,32 +6363,34 @@ focus = {
 		log = "[GetDateText]: [Root.GetName]: Focus SOV_penal_battalions"
 		#Spawn Penal divisions
 		set_technology = { penal_infantry = 1 popup = no }
-
-		division_template = {
-			name = "Shtrafnaya Chast"
-			division_names_group = SOV_PEN_01
-
-			regiments = {
-				penal_battalion = { x = 0 y = 0 }
-				penal_battalion = { x = 0 y = 1 }
-				penal_battalion = { x = 0 y = 2 }
-				penal_battalion = { x = 1 y = 0 }
-				penal_battalion = { x = 1 y = 1 }
-				penal_battalion = { x = 1 y = 2 }
-				penal_battalion = { x = 2 y = 0 }
-				penal_battalion = { x = 2 y = 1 }
-				penal_battalion = { x = 2 y = 2 }
-			}
-			support = {
-				artillery = { x = 0 y = 0 }
+		hidden_effect = {
+			if = {
+				limit = { NOT = { has_template = "Shtrafnaya Chast" } }
+				division_template = {
+					name = "Shtrafnaya Chast"
+					division_names_group = SOV_PEN_01
+					regiments = {
+						penal_battalion = { x = 0 y = 0 }
+						penal_battalion = { x = 0 y = 1 }
+						penal_battalion = { x = 0 y = 2 }
+						penal_battalion = { x = 1 y = 0 }
+						penal_battalion = { x = 1 y = 1 }
+						penal_battalion = { x = 1 y = 2 }
+						penal_battalion = { x = 2 y = 0 }
+						penal_battalion = { x = 2 y = 1 }
+						penal_battalion = { x = 2 y = 2 }
+					}
+					support = {
+						artillery = { x = 0 y = 0 }
+					}
+				}
 			}
 		}
-
 		capital_scope = {
 			create_unit = {
 				division = "division_template = \"Shtrafnaya Chast\" start_experience_factor = 0.5 start_equipment_factor = 1.0"
 				owner = ROOT
-				count = 4
+				count = 10
 			}
 		}
 	}
@@ -11932,7 +11852,7 @@ shared_focus = {
 			limit = { has_idea = RUS_federation_of_syndicates_3 }
 			swap_ideas = {
 				remove_idea = RUS_federation_of_syndicates_3
-				add_idea = RUS_federation_of_syndicates_3
+				add_idea = RUS_federation_of_syndicates_4
 			}
 		}
 		else = {
@@ -12060,7 +11980,7 @@ shared_focus = {
 	icon = GFX_SOV_socialist_market
 	x = 32
 	y = 8
-	cost = 3
+	cost = 1
 	available = {		
 		russian_civil_war = no
 		OR = {
@@ -12197,21 +12117,32 @@ shared_focus = {
 			}
 			destroy_unfinished_land_reform = yes
 		}
-		every_owned_state = {
-			limit = {
-				OR = {
-					has_state_category = five
-					has_state_category = six
-					has_state_category = seven
-					has_state_category = eight
-					has_state_category = nine
-					has_state_category = eleven
-					has_state_category = twelve
-				}
-			}
-			add_dynamic_modifier = { modifier = RUS_socialism_in_city_modifier	}
-		}
 		RUS_nep_increase_worker = yes
+		add_political_power = 75
+		random_owned_controlled_state = {
+			limit = { has_state_category = six }
+			increase_state_category_by_one_level = yes
+		}
+		random_owned_controlled_state = {
+			limit = { has_state_category = six }
+			increase_state_category_by_one_level = yes
+		}
+		random_owned_controlled_state = {
+			limit = { has_state_category = six }
+			increase_state_category_by_one_level = yes
+		}
+		random_owned_controlled_state = {
+			limit = { has_state_category = five }
+			increase_state_category_by_one_level = yes
+		}
+		random_owned_controlled_state = {
+			limit = { has_state_category = five }
+			increase_state_category_by_one_level = yes
+		}
+		random_owned_controlled_state = {
+			limit = { has_state_category = five }
+			increase_state_category_by_one_level = yes
+		}
 	}
 }
 shared_focus = {
@@ -12221,8 +12152,8 @@ shared_focus = {
 	cost = 5
 	prerequisite = { focus = SOV_Khozraschyot }
 	relative_position_id = RUS_Revive_Market_Elements
-	x = -1
-	y = 3
+	x = 0
+	y = 4
 	available = {
 		has_dynamic_modifier = { modifier = RUS_New_Economic_Policy_modifier }	
 	}
@@ -12245,68 +12176,12 @@ shared_focus = {
 		activate_targeted_decision = { target = 566 decision = RUS_Develop_Civilian_Industry_In_State } #Irkutsk
 		activate_targeted_decision = { target = 217 decision = RUS_Develop_Civilian_Industry_In_State } #Tsaritsyn
 		custom_effect_tooltip = tooltip_white_line
-		custom_effect_tooltip = RUS_Cautious_Industrialization_nsp_tt
+		custom_effect_tooltip = RUS_modify_nep
 		add_to_variable = { 
-			RUS_NEP_production_speed_buildings_factor = 0.05 
+			RUS_NEP_production_speed_buildings_factor = -0.03
 			tooltip = construction_speed_tooltip
 		}
 		RUS_nep_increase_state = yes
-	}
-}
-shared_focus = {
-	id = SOV_Allow_Small_Traders
-	text = RUS_Allow_Small_Traders
-	icon = GFX_RUS_Allow_Small_Traders
-	cost = 5
-	relative_position_id = RUS_Revive_Market_Elements
-	x = 1
-	y = 3
-	prerequisite = { focus = SOV_Khozraschyot }
-	available = {
-		has_dynamic_modifier = { modifier = RUS_New_Economic_Policy_modifier }	
-	}
-	bypass = { 
-		hidden_trigger = {
-			OR = {
-				has_country_flag = RUS_bypass_nep
-				has_country_flag = SOV_decided_to_go_down_with_nep
-			}
-		}
-	}
-	
-	ai_will_do = { factor = 40 }
-	completion_reward = {
-		log = "[GetDateText]: [Root.GetName]: Focus SOV_Allow_Small_Traders"
-		country_event = rusdem.314
-		activate_targeted_decision = { target = 217 decision = RUS_Develop_Civilian_Industry_In_State } #Tsaritsyn	
-		custom_effect_tooltip = RUS_nep_increase_market
-		add_to_variable = { RUS_nep_market = 1 }
-		add_to_variable = { RUS_nep_state = -1 }
-		custom_effect_tooltip = RUS_modify_nep	
-		add_to_variable = {
-			RUS_NEP_consumer_goods_factor = 0.07
-			tooltip = consumer_goods_factor_tooltip
-		}
-		add_to_variable = {
-			RUS_NEP_party_popularity_stability_factor = 0.07
-			tooltip = party_popularity_stability_factor_tooltip
-		}
-		add_to_variable = {
-			RUS_NEP_trade_opinion_factor = 0.02
-			tooltip = trade_opinion_factor_tooltip
-		}
-		add_to_variable = {
-			RUS_NEP_production_factory_max_efficiency_factor = -0.01
-			tooltip = production_factory_max_efficiency_factor_tooltip
-		}
-		add_to_variable = {
-			RUS_NEP_production_factory_efficiency_gain_factor = 0.01
-			tooltip = production_factory_efficiency_gain_factor_tooltip
-		}
-		add_to_variable = { 
-			RUS_NEP_political_power_gain = 0.05 
-			tooltip = pp_gain_tooltip
-		}
 	}
 }
 shared_focus = {
@@ -12315,10 +12190,9 @@ shared_focus = {
 	icon = GFX_RUS_Foreign_Concessions
 	cost = 5
 	relative_position_id = RUS_Revive_Market_Elements
-	x = 0
-	y = 4
-	prerequisite = { focus = SOV_Allow_Small_Traders }
-	prerequisite = { focus = SOV_Cautious_Industrialization_nsp }
+	x = 2
+	y = 2
+	prerequisite = { focus = RUS_Revive_Market_Elements }
 	available = {
 		has_dynamic_modifier = { modifier = RUS_New_Economic_Policy_modifier }	
 		NOT = { 
@@ -12343,12 +12217,14 @@ shared_focus = {
 	text = RUS_Go_On_With_NEP
 	icon = GFX_focus_rus_right_communists
 	relative_position_id = RUS_Revive_Market_Elements
-	x = 2
-	y = 4
+	x = -1
+	y = 3
 	cost = 1
-	available = { has_country_flag = SOV_decided_to_go_on_with_nep }
-	prerequisite = { focus = SOV_Cautious_Industrialization_nsp }
-	prerequisite = { focus = SOV_Allow_Small_Traders }
+	available = { 
+		has_country_flag = SOV_decided_to_go_on_with_nep 
+		has_dynamic_modifier = { modifier = RUS_New_Economic_Policy_modifier }	
+	}
+	prerequisite = { focus = SOV_Khozraschyot }
 	ai_will_do = { factor = 100 }
 	completion_reward = { 
 		log = "[GetDateText]: [Root.GetName]: Focus SOV_Go_On_With_NEP"
@@ -12359,10 +12235,13 @@ shared_focus = {
 	id = SOV_Farmers_Instead_Of_Peasants
 	icon = GFX_SOV_farmers
 	relative_position_id = SOV_Go_On_With_NEP
-	x = 0
+	x = -1
 	y = 1
 	cost = 5
-	available = { has_country_flag = SOV_decided_to_go_on_with_nep }
+	available = { 
+		has_country_flag = SOV_decided_to_go_on_with_nep 
+		has_dynamic_modifier = { modifier = RUS_New_Economic_Policy_modifier }	
+	}
 	prerequisite = { focus = SOV_Go_On_With_NEP }
 	ai_will_do = { factor = 20 }
 	completion_reward = {
@@ -12386,10 +12265,13 @@ shared_focus = {
 	id = SOV_Tax_The_Workers
 	icon = GFX_RUS_Tax_Workers
 	relative_position_id = SOV_Go_On_With_NEP
-	x = 1
+	x = 0
 	y = 2
 	cost = 5
-	available = { has_country_flag = SOV_decided_to_go_on_with_nep }
+	available = { 
+		has_country_flag = SOV_decided_to_go_on_with_nep 
+		has_dynamic_modifier = { modifier = RUS_New_Economic_Policy_modifier }	
+	}
 	prerequisite = { focus = SOV_Farmers_Instead_Of_Peasants }
 	ai_will_do = { factor = 20 }
 	completion_reward = {
@@ -12411,16 +12293,22 @@ shared_focus = {
 			RUS_NEP_consumer_goods_factor = -0.05
 			tooltip = consumer_goods_factor_tooltip 
 		}
+		hidden_effect = {
+
+		}
 	}
 }
 shared_focus = {
 	id = SOV_Fight_Urban_Rural_Conflict
 	icon = GFX_SOV_strengthen_smychka
 	relative_position_id = SOV_Go_On_With_NEP
-	x = -1
+	x = -2
 	y = 2
 	cost = 5
-	available = { has_country_flag = SOV_decided_to_go_on_with_nep }
+	available = { 
+		has_country_flag = SOV_decided_to_go_on_with_nep 
+		has_dynamic_modifier = { modifier = RUS_New_Economic_Policy_modifier }	
+	}
 	prerequisite = { focus = SOV_Farmers_Instead_Of_Peasants }
 	ai_will_do = { factor = 20 }
 	completion_reward = {
@@ -12452,12 +12340,14 @@ shared_focus = {
 	id = SOV_Down_With_Nep
 	icon = GFX_SOV_down_with_nep
 	relative_position_id = RUS_Revive_Market_Elements
-	x = -2
-	y = 4
+	x = 1
+	y = 3
 	cost = 1
-	available = { has_country_flag = SOV_decided_to_go_down_with_nep }
-	prerequisite = { focus = SOV_Cautious_Industrialization_nsp }
-	prerequisite = { focus = SOV_Allow_Small_Traders }
+	available = { 
+		has_country_flag = SOV_decided_to_go_down_with_nep 
+		has_dynamic_modifier = { modifier = RUS_New_Economic_Policy_modifier }	
+	}
+	prerequisite = { focus = SOV_Khozraschyot }
 	ai_will_do = { factor = 100 }
 	completion_reward = {
 		log = "[GetDateText]: [Root.GetName]: Focus SOV_Down_With_Nep"
@@ -12481,10 +12371,13 @@ shared_focus = {
 	id = SOV_Install_Bread_Monopoly
 	icon = GFX_RUS_Bread_Monopoly
 	relative_position_id = SOV_Down_With_Nep
-	x = -1
+	x = 1
 	y = 1
 	cost = 5
-	available = { has_country_flag = SOV_decided_to_go_down_with_nep }
+	available = { 
+		has_country_flag = SOV_decided_to_go_down_with_nep 
+		has_dynamic_modifier = { modifier = RUS_New_Economic_Policy_modifier }	
+	}
 	prerequisite = { focus = SOV_Down_With_Nep }
 	ai_will_do = { factor = 20 }
 	completion_reward = {
@@ -12513,10 +12406,13 @@ shared_focus = {
 	id = SOV_Tax_The_Peasants
 	icon = GFX_RUS_Tax_Peasants
 	relative_position_id = SOV_Down_With_Nep
-	x = 1
-	y = 1
+	x = 0
+	y = 2
 	cost = 5
-	available = { has_country_flag = SOV_decided_to_go_down_with_nep }
+	available = { 
+		has_country_flag = SOV_decided_to_go_down_with_nep 
+		has_dynamic_modifier = { modifier = RUS_New_Economic_Policy_modifier }	
+	}
 	prerequisite = { focus = SOV_Down_With_Nep }
 	ai_will_do = { factor = 20 }
 	completion_reward = {
@@ -12548,10 +12444,13 @@ shared_focus = {
 	id = SOV_Supplant_Private_Sector
 	icon = GFX_goal_Workers_Paradise
 	relative_position_id = SOV_Down_With_Nep
-	x = 0
-	y = 2
+	x = 1
+	y = 3
 	cost = 5
-	available = { has_country_flag = SOV_decided_to_go_down_with_nep }
+	available = { 
+		has_country_flag = SOV_decided_to_go_down_with_nep 
+		has_dynamic_modifier = { modifier = RUS_New_Economic_Policy_modifier }	
+	}
 	prerequisite = { focus = SOV_Tax_The_Peasants }
 	prerequisite = { focus = SOV_Install_Bread_Monopoly }
 	ai_will_do = { factor = 20 }
@@ -12599,7 +12498,7 @@ shared_focus = {
 	ai_will_do = { factor = 40 }
 	completion_reward = {
 		log = "[GetDateText]: [Root.GetName]: Focus RUS_Form_Gosplan"
-		add_ideas = RUS_gosplan
+		add_ideas = SOV_gosplan_1
 	}
 }
 shared_focus = {
@@ -12626,6 +12525,64 @@ shared_focus = {
 	}
 }
 shared_focus = {
+	id = SOV_Mechanisation
+	icon = GFX_goal_BUL_mechanize_farming
+	relative_position_id = RUS_Form_Gosplan
+	x = 1
+	y = 1
+	cost = 5
+	prerequisite = { focus = RUS_Form_Gosplan }
+	ai_will_do = { factor = 40 }
+	completion_reward = {
+		log = "[GetDateText]: [Root.GetName]: Focus SOV_Mechanisation"
+		if = {
+			limit = { has_idea = SOV_gosplan_2 }
+			swap_ideas = {
+				remove_idea = SOV_gosplan_2
+				add_idea = SOV_gosplan_4
+			}
+		}
+		else = {
+			swap_ideas = {
+				remove_idea = SOV_gosplan_1
+				add_idea = SOV_gosplan_3
+			}
+		}	
+		activate_targeted_decision = { target = 254 decision = RUS_Mechanize_Agriculture_In_State } #Simbirsk
+		activate_targeted_decision = { target = 258 decision = RUS_Mechanize_Agriculture_In_State } #Simbirsk
+		activate_targeted_decision = { target = 265 decision = RUS_Mechanize_Agriculture_In_State } #Simbirsk
+	}
+}
+shared_focus = {
+	id = RUS_Promote_Industrialization
+	icon = GFX_goal_CAN_We_Need_Industry
+	relative_position_id = RUS_Form_Gosplan
+	x = -1
+	y = 1
+	cost = 5
+	prerequisite = { focus = RUS_Form_Gosplan }
+	ai_will_do = { factor = 25 }
+	completion_reward = {
+		log = "[GetDateText]: [Root.GetName]: Focus RUS_Promote_Industrialization"
+		if = {
+			limit = { has_idea = SOV_gosplan_3 }
+			swap_ideas = {
+				remove_idea = SOV_gosplan_3
+				add_idea = SOV_gosplan_4
+			}
+		}
+		else = {
+			swap_ideas = {
+				remove_idea = SOV_gosplan_1
+				add_idea = SOV_gosplan_2
+			}
+		}
+		activate_targeted_decision = { target = 263 decision = RUS_Develop_Civilian_Industry_In_State } #Novgorod
+		activate_targeted_decision = { target = 248 decision = RUS_Develop_Civilian_Industry_In_State } #Yaroslavl
+		activate_targeted_decision = { target = 252 decision = RUS_Develop_Civilian_Industry_In_State } #Nizhny Novgorod
+	}	
+}
+shared_focus = {
 	id = RUS_First_Five_Year_Plan
 	icon = GFX_GRU_PIECK_five_year_plan
 	relative_position_id = RUS_Form_Gosplan
@@ -12640,8 +12597,8 @@ shared_focus = {
 	completion_reward = {
 		log = "[GetDateText]: [Root.GetName]: Focus RUS_First_Five_Year_Plan"
 		swap_ideas = {
-			remove_idea = RUS_gosplan_3
-			add_idea = RUS_gosplan_4
+			remove_idea = SOV_gosplan_4
+			add_idea = SOV_gosplan_5
 		}
 		activate_mission = SOV_The_First_Five_Year_Plan
 	}
@@ -12666,64 +12623,6 @@ shared_focus = {
 	}
 }
 shared_focus = {
-	id = SOV_Mechanisation
-	icon = GFX_goal_BUL_mechanize_farming
-	relative_position_id = RUS_Form_Gosplan
-	x = 1
-	y = 1
-	cost = 5
-	prerequisite = { focus = RUS_Form_Gosplan }
-	ai_will_do = { factor = 40 }
-	completion_reward = {
-		log = "[GetDateText]: [Root.GetName]: Focus SOV_Mechanisation"
-		if = {
-			limit = { has_idea = RUS_gosplan_2 }
-			swap_ideas = {
-				remove_idea = RUS_gosplan_2
-				add_idea = RUS_gosplan_3
-			}
-		}
-		else = {
-			swap_ideas = {
-				remove_idea = RUS_gosplan
-				add_idea = RUS_gosplan_1
-			}
-		}		
-		activate_targeted_decision = { target = 254 decision = RUS_Mechanize_Agriculture_In_State } #Simbirsk
-		activate_targeted_decision = { target = 258 decision = RUS_Mechanize_Agriculture_In_State } #Simbirsk
-		activate_targeted_decision = { target = 265 decision = RUS_Mechanize_Agriculture_In_State } #Simbirsk
-	}
-}
-shared_focus = {
-	id = RUS_Promote_Industrialization
-	icon = GFX_goal_CAN_We_Need_Industry
-	relative_position_id = RUS_Form_Gosplan
-	x = -1
-	y = 1
-	cost = 5
-	prerequisite = { focus = RUS_Form_Gosplan }
-	ai_will_do = { factor = 25 }
-	completion_reward = {
-		log = "[GetDateText]: [Root.GetName]: Focus RUS_Promote_Industrialization"
-		if = {
-			limit = { has_idea = RUS_gosplan_1 }
-			swap_ideas = {
-				remove_idea = RUS_gosplan_1
-				add_idea = RUS_gosplan_3
-			}
-		}
-		else = {
-			swap_ideas = {
-				remove_idea = RUS_gosplan
-				add_idea = RUS_gosplan_2
-			}
-		}
-		activate_targeted_decision = { target = 263 decision = RUS_Develop_Civilian_Industry_In_State } #Novgorod
-		activate_targeted_decision = { target = 248 decision = RUS_Develop_Civilian_Industry_In_State } #Yaroslavl
-		activate_targeted_decision = { target = 252 decision = RUS_Develop_Civilian_Industry_In_State } #Nizhny Novgorod
-	}	
-}
-shared_focus = {
 	id = RUS_Heavy_Industry_Development
 	icon = GFX_IRE_heavy_industry
 	relative_position_id = RUS_Form_Gosplan
@@ -12735,8 +12634,8 @@ shared_focus = {
 	completion_reward = {
 		log = "[GetDateText]: [Root.GetName]: Focus RUS_Heavy_Industry_Development"
 		swap_ideas = {
-			remove_idea = RUS_gosplan_4
-			add_idea = RUS_gosplan_5
+			remove_idea = SOV_gosplan_5
+			add_idea = SOV_gosplan_6
 		}
 		activate_targeted_decision = { target = 263 decision = RUS_Develop_Civilian_Industry_In_State } #Novgorod
 		activate_targeted_decision = { target = 248 decision = RUS_Develop_Civilian_Industry_In_State } #Yaroslavl
@@ -12756,8 +12655,8 @@ shared_focus = {
 	completion_reward = {
 		log = "[GetDateText]: [Root.GetName]: Focus RUS_SOV_Ural_Tractor_Plants"
 		swap_ideas = {
-			remove_idea = RUS_gosplan_5
-			add_idea = RUS_gosplan_6
+			remove_idea = SOV_gosplan_6
+			add_idea = SOV_gosplan_7
 		}
 		activate_targeted_decision = { target = 652 decision = RUS_Develop_Civilian_Industry_In_State } #Orenburg
 		activate_targeted_decision = { target = 653 decision = RUS_Develop_Military_Industry_In_State } #Yekaterinburg
