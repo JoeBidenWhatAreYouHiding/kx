@@ -4714,6 +4714,7 @@ country_event = { # Kitei Son and Nan Shoryu
 
 	fire_only_once = yes
 	is_triggered_only = yes
+	trigger = { KOR = { exists = no } }
 
 	option = { # How unfortunate.
 		log = "[GetLogInfo]: event japfor.500 option japfor.500.a"
@@ -6749,6 +6750,7 @@ country_event = { #hidden event to fire the peace mission
 					OR = {
 						china_is_potential_government = yes
 						is_faction_leader = yes #United Front
+						is_ai = no
 					}
 					is_valid_peace_target = yes
 				}
@@ -6839,6 +6841,16 @@ country_event = { #hidden event to fire the peace mission
 country_event = { #Japan Offers Peace
 	id = japfor.230
 	title = japfor.230.t
+	immediate = {
+		hidden_effect = {
+			event_target:current_china_leader = {
+				clr_country_flag = is_chinese_national_leader
+			}
+			clear_global_event_target = current_china_leader
+			set_country_flag = is_chinese_national_leader
+		    save_global_event_target_as = current_china_leader
+		}
+	}
 
 	desc = {
 		text = japfor.230.d.taiwan_kept
@@ -7389,6 +7401,50 @@ country_event = { #Peace Goes Into Effect
 			every_country = {
 				clr_country_flag = JAP_accepted_peace
 				clr_country_flag = JAP_refused_peace
+			}
+		}
+
+		### Collapse the United Front, if it exists ###
+		disable_united_front_AI = yes
+		every_other_country = {
+			limit = { has_country_flag = was_chinese_faction_leader }
+			add_to_temp_array = { global.chinese_faction_leaders = THIS }
+		}
+		if = {
+			limit = {
+				event_target:chinese_united_front_leader = {
+					all_allied_country = {
+						OR = {
+							tag = ROOT
+							is_subject_of = ROOT
+							has_country_flag = original_front_faction_member
+						}
+					}
+				}
+			}
+			event_target:chinese_united_front_leader = {
+				country_event = {
+					id = china_shared.11
+					days = 6
+				}
+			}
+		}
+		else = {
+			every_other_country = {
+				limit = {
+					is_in_faction_with = event_target:chinese_united_front_leader
+					OR = {
+						has_country_flag = was_chinese_faction_leader
+						NOT = {
+							any_of_scopes = {
+								array = global.chinese_faction_leaders
+								is_in_array = { chinese_faction_members = PREV }
+							}
+						}
+					}
+					NOT = { has_country_flag = original_front_faction_member }
+				}
+				activate_decision = leave_chinese_united_front
 			}
 		}
 	}
