@@ -168,13 +168,7 @@ add_state_core_upon_reaching_compliance_threshold = {
 		remove_claim_by = FROM
 
 		#disable resistance if set
-		force_enable_resistance = { occupied = XXB clear = yes }
-		if = {
-			limit = { has_resistance = yes }
-			cancel_resistance = yes
-		}
-		#remove core of XXB
-		remove_core_of = XXB
+		clear_state_integration_resistance = yes
 
 		#check all cores in state, remove cores of dead tags if set
 		for_each_scope_loop = {
@@ -301,33 +295,24 @@ start_state_integration_resistance = {
 			cancel_resistance = yes
 		}
 		add_core_of = XXB
-		force_enable_resistance = { occupied = XXB }
 		start_resistance = XXB
 		set_compliance = var:previous_compliance?0
 		set_resistance = var:previous_resistance?0
-		#remove_core_of = XXB
 	}
-	PREV = { XXB = { set_occupation_law_where_available = territorial_integration } }
+	hidden_effect = { clear_state_integration_resistance = yes }
+	controller = { XXB = { set_occupation_law_where_available = territorial_integration } }
 }
 
 clear_state_integration_resistance = {
-	force_enable_resistance = { occupied = XXB clear = yes }
-	if = {
-		limit = {
-			has_resistance = yes
-			occupied_country_tag = XXB
-		}
-		set_temp_variable = { previous_compliance = compliance }
-		set_temp_variable = { previous_resistance = resistance }
-		cancel_resistance = yes
-		if = {
+	XXB = {
+		every_core_state = {
 			limit = {
-				NOT = { is_core_of = PREV }
-				check_variable = { core_countries^num > 0 }
+				OR = {
+					is_core_of = controller
+					NOT = { has_variable = can_integrate_@var:controller }
+				}
 			}
-			start_resistance = yes
-			set_compliance = var:previous_compliance?0
-			set_resistance = var:previous_resistance?0
+			remove_core_of = XXB
 		}
 	}
 }
