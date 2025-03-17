@@ -455,6 +455,7 @@ RUS_Duma = {
 					ruling_only = yes
 				}
 			}
+			RUS_denikin_in_power = no
 		}
 		available = {
 			has_country_flag = rus_president_elections_1936_over
@@ -712,7 +713,7 @@ RUS_Duma = {
 		available = {
 			OR = {
 				nsp_in_power = yes
-				psr_in_power = yes
+			psr_in_power = yes
 			}
 			has_country_flag = rus_president_elections_1936_over
 			NOT = { check_variable = { RUS_law_in_progress = 1 } }
@@ -1928,6 +1929,70 @@ RUS_Duma = {
 			activate_mission = RUS_LAW_DUMA_LEVEL_DEADLINE
 		}
 	}
+	RUS_LAW_STATE_RELIGION_initialize = {
+		icon = GFX_decision_generic_political_discourse
+		visible = {
+			check_variable = { Duma_Bill_Status^44 = 1 }
+		}
+		available = {
+			has_country_flag = rus_president_elections_1936_over
+			NOT = { check_variable = { RUS_law_in_progress = 1 } }
+		}
+		days_remove = 0
+		cost = 25
+		fire_only_once = yes
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				set_temp_variable = { how_much_pp_needed = 550 }
+				subtract_from_temp_variable = { how_much_pp_needed = mp_support }
+				divide_temp_variable = { how_much_pp_needed = 11 }
+				has_political_power < var:how_much_pp_needed
+			}		
+		}
+		remove_effect = {
+			set_variable = { Duma_Bill_Status^44 = 2 }
+			set_variable = { RUS_law_level = 1 }
+			set_variable = { RUS_law_in_progress = 1 }
+			set_country_flag = RUS_LAW_CHANGING_CONSTITUTION
+			Get_initial_RUS_LAW_STATE_RELIGION = yes
+			activate_mission = RUS_LAW_DUMA_LEVEL_DEADLINE
+			hidden_effect = {
+				country_event = { id = rusd.39 days = 5 }
+			}
+		}
+	}
+	RUS_LAW_COSSACK_HOSTS_initialize = {
+		icon = GFX_decision_generic_political_discourse
+		visible = {
+			check_variable = { Duma_Bill_Status^45 = 1 }
+		}
+		available = {
+			has_country_flag = rus_president_elections_1936_over
+			NOT = { check_variable = { RUS_law_in_progress = 1 } }
+		}
+		days_remove = 0
+		cost = 25
+		fire_only_once = yes
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				set_temp_variable = { how_much_pp_needed = 550 }
+				subtract_from_temp_variable = { how_much_pp_needed = mp_support }
+				divide_temp_variable = { how_much_pp_needed = 11 }
+				has_political_power < var:how_much_pp_needed
+			}		
+		}
+		remove_effect = {
+			set_variable = { Duma_Bill_Status^45 = 2 }
+			set_variable = { RUS_law_level = 1 }
+			set_variable = { RUS_law_in_progress = 1 }
+			Get_initial_RUS_LAW_COSSACK_HOSTS = yes
+			activate_mission = RUS_LAW_DUMA_LEVEL_DEADLINE
+		}
+	}
 	RUS_rise_parliament_barrier = {
 		icon = GFX_decision_generic_political_rally
 		
@@ -1997,21 +2062,11 @@ RUS_Duma = {
 		}
 		cost = 50
 		remove_effect = {
-			custom_effect_tooltip = "We will allow the PLSR and the NSP to participate in the next elections"
+			custom_effect_tooltip = bolsheviks_allowed
+			RUS_increase_nsp_pop_small = yes
 			clr_country_flag = bolsheviks_banned
-			set_country_flag = bolsheviks_allowed
-			add_popularity = {
-				ideology = radical_socialist
-				popularity = 0.05
-			}
-			add_popularity = {
-				ideology = syndicalist
-				popularity = 0.05
-			}
-			add_popularity = {
-				ideology = social_democrat
-				popularity = 0.05
-			}
+			clr_country_flag = nsp_banned
+			set_country_flag = bolsheviks_allowed			
 			add_stability = 0.07
 		}
 	}
@@ -2029,10 +2084,6 @@ RUS_Duma = {
 				hidden_trigger = {
 					is_ai = yes
 					OR = {
-						has_game_rule = {
-							rule = RUS_post_assassination
-							option = RULE_OPTION_RUS_POST_ASSASSINATION_PLSR
-						}
 						has_game_rule = {
 							rule = RUS_post_assassination
 							option = RULE_OPTION_RUS_POST_ASSASSINATION_PEACEFUL_REVOLUTION
@@ -2150,10 +2201,6 @@ RUS_Duma = {
 			modifier = {
 				factor = 1000
 				OR = {
-					has_game_rule = {
-						rule = RUS_post_assassination
-						option = RULE_OPTION_RUS_POST_ASSASSINATION_PLSR
-					}
 					has_game_rule = {
 						rule = RUS_post_assassination
 						option = RULE_OPTION_RUS_POST_ASSASSINATION_PEACEFUL_REVOLUTION
@@ -2502,7 +2549,7 @@ RUS_democratic_politics_category = {
 	RUS_plsr_campaign = {
 		icon = GFX_decision_eng_propaganda_campaigns
 		visible = {
-			NOT = { has_country_flag = bolsheviks_banned }
+			NOT = { has_country_flag = plsr_banned }
 		}
 		days_remove = 15
 		days_re_enable = RUS_political_campaigns_days?15
@@ -2511,13 +2558,6 @@ RUS_democratic_politics_category = {
 		fire_only_once = no
 		ai_will_do = {
 			base = 10
-			modifier = {
-				factor = 1000
-				has_game_rule = {
-					rule = RUS_post_assassination
-					option = RULE_OPTION_RUS_POST_ASSASSINATION_PLSR
-				}
-			}
 			modifier = {
 				factor = 0
 				OR = {
@@ -2545,20 +2585,14 @@ RUS_democratic_politics_category = {
 		
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_plsr_campaign"
-			every_owned_state = {
-				RUS_increase_plsr_pop_election = yes
-			}
-			add_popularity = {
-				ideology = syndicalist
-				popularity = 0.05
-			}
+			RUS_increase_plsr_pop_election = yes
 			hidden_effect = { RUS_calculate_polling_averages = yes }
 		}
 	}
 	RUS_nsp_campaign = {
 		icon = GFX_decision_eng_propaganda_campaigns
 		visible = {
-			NOT = { has_country_flag = bolsheviks_banned }
+			NOT = { has_country_flag = nsp_banned }
 		}
 		days_remove = 15
 		days_re_enable = RUS_political_campaigns_days?15
@@ -2608,13 +2642,7 @@ RUS_democratic_politics_category = {
 		
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_nsp_campaign"
-			every_owned_state = {
-				RUS_increase_nsp_pop_election = yes
-			}
-			add_popularity = {
-				ideology = radical_socialist
-				popularity = 0.05
-			}
+			RUS_increase_nsp_pop_election = yes
 			hidden_effect = { RUS_calculate_polling_averages = yes }
 		}
 	}
@@ -2672,13 +2700,7 @@ RUS_democratic_politics_category = {
 		
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_rsdrp_campaign"
-			every_owned_state = {
-				RUS_increase_rsdrp_pop_election = yes
-			}
-			add_popularity = {
-				ideology = social_democrat
-				popularity = 0.05
-			}
+			RUS_increase_rsdrp_pop_election = yes
 			hidden_effect = { RUS_calculate_polling_averages = yes }
 		}
 	}
@@ -2739,13 +2761,7 @@ RUS_democratic_politics_category = {
 		
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_psr_campaign"
-			every_owned_state = {
-				RUS_increase_psr_pop_election = yes
-			}
-			add_popularity = {
-				ideology = social_democrat
-				popularity = 0.05
-			}
+			RUS_increase_psr_pop_election = yes
 			hidden_effect = { RUS_calculate_polling_averages = yes }
 		}
 	}
@@ -2811,26 +2827,10 @@ RUS_democratic_politics_category = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_lkdp_campaign"
 			if = {
 				limit = { has_country_flag = kdp_united }
-				every_owned_state = {
-					RUS_increase_kdp_pop_election = yes
-				}
-				add_popularity = {
-					ideology = social_liberal
-					popularity = 0.05
-				}
-				add_popularity = {
-					ideology = market_liberal
-					popularity = 0.05
-				}			
+				RUS_increase_kdp_pop_election = yes
 			}
 			else = {
-				every_owned_state = {
-					RUS_increase_lkdp_pop_election = yes
-				}
-				add_popularity = {
-					ideology = social_liberal
-					popularity = 0.05
-				}				
+				RUS_increase_lkdp_pop_election = yes
 			}
 			hidden_effect = { RUS_calculate_polling_averages = yes }
 		}
@@ -2881,13 +2881,7 @@ RUS_democratic_politics_category = {
 		
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_pp_campaign"
-			every_owned_state = {
-				RUS_increase_pp_pop_election = yes
-			}
-			add_popularity = {
-				ideology = market_liberal
-				popularity = 0.05
-			}
+			RUS_increase_pp_pop_election = yes
 			hidden_effect = { RUS_calculate_polling_averages = yes }
 		}
 	}
@@ -2937,13 +2931,7 @@ RUS_democratic_politics_category = {
 		
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_rkdp_campaign"
-			every_owned_state = {
-				RUS_increase_rkdp_pop_election = yes
-			}
-			add_popularity = {
-				ideology = market_liberal
-				popularity = 0.05
-			}
+			RUS_increase_rkdp_pop_election = yes
 			hidden_effect = { RUS_calculate_polling_averages = yes }
 		}
 	}
@@ -3007,17 +2995,7 @@ RUS_democratic_politics_category = {
 		
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_vns_campaign"
-			every_owned_state = {
-				RUS_increase_vns_pop_election = yes
-			}
-			add_popularity = {
-				ideology = social_conservative
-				popularity = 0.05
-			}
-			add_popularity = {
-				ideology = authoritarian_democrat
-				popularity = 0.05
-			}
+			RUS_increase_vns_pop_election = yes
 			hidden_effect = { RUS_calculate_polling_averages = yes }
 		}
 	}
@@ -3073,13 +3051,7 @@ RUS_democratic_politics_category = {
 		
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_nrpr_campaign"
-			every_owned_state = {
-				RUS_increase_nrpr_pop_election = yes
-			}
-			add_popularity = {
-				ideology = national_populist
-				popularity = 0.1
-			}
+			RUS_increase_nrpr_pop_election = yes
 			hidden_effect = { RUS_calculate_polling_averages = yes }
 		}
 	}
@@ -3128,13 +3100,7 @@ RUS_democratic_politics_category = {
 		
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_nsnp_campaign"
-			every_owned_state = {
-				RUS_increase_nsnp_pop_election = yes
-			}
-			add_popularity = {
-				ideology = national_populist
-				popularity = 0.1
-			}
+			RUS_increase_nsnp_pop_election = yes
 			hidden_effect = { RUS_calculate_polling_averages = yes }
 		}
 	}
@@ -3491,7 +3457,7 @@ RUS_Passing_Laws = {
 		}
 		cost = 5
 		days_remove = 5
-		days_re_enable = 7
+		days_re_enable = 3
 		fire_only_once = no
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_LAW_GET_PLSR_DUMA_VOTES target: [From.GetName]"
@@ -3584,7 +3550,7 @@ RUS_Passing_Laws = {
 		}
 		cost = 5
 		days_remove = 5
-		days_re_enable = 7
+		days_re_enable = 3
 		fire_only_once = no
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_LAW_GET_NSP_DUMA_VOTES target: [From.GetName]"
@@ -3677,7 +3643,7 @@ RUS_Passing_Laws = {
 		}
 		cost = 5
 		days_remove = 5
-		days_re_enable = 7
+		days_re_enable = 3
 		fire_only_once = no
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_LAW_GET_PSR_DUMA_VOTES target: [From.GetName]"
@@ -3770,7 +3736,7 @@ RUS_Passing_Laws = {
 		}
 		cost = 5
 		days_remove = 5
-		days_re_enable = 7
+		days_re_enable = 3
 		fire_only_once = no
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_LAW_GET_RSDRP_DUMA_VOTES target: [From.GetName]"
@@ -3848,7 +3814,7 @@ RUS_Passing_Laws = {
 			if = {
 				limit = { check_variable = { Duma_Bill_Status^3 = 2 } }
 				has_a_lkdp_president = no
-			}			
+			}		
 		}
 		cancel_trigger = {
 			hidden_trigger = {
@@ -3863,7 +3829,7 @@ RUS_Passing_Laws = {
 		}
 		cost = 5
 		days_remove = 5
-		days_re_enable = 7
+		days_re_enable = 3
 		fire_only_once = no
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_LAW_GET_LKDP_DUMA_VOTES target: [From.GetName]"
@@ -3956,7 +3922,7 @@ RUS_Passing_Laws = {
 		}
 		cost = 5
 		days_remove = 5
-		days_re_enable = 7
+		days_re_enable = 3
 		fire_only_once = no
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_LAW_GET_PP_DUMA_VOTES target: [From.GetName]"
@@ -4049,7 +4015,7 @@ RUS_Passing_Laws = {
 		}
 		cost = 5
 		days_remove = 5
-		days_re_enable = 7
+		days_re_enable = 3
 		fire_only_once = no
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_LAW_GET_RKDP_DUMA_VOTES target: [From.GetName]"
@@ -4142,7 +4108,7 @@ RUS_Passing_Laws = {
 		}
 		cost = 5
 		days_remove = 5
-		days_re_enable = 7
+		days_re_enable = 3
 		fire_only_once = no
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_LAW_GET_VNS_DUMA_VOTES target: [From.GetName]"
@@ -4235,7 +4201,7 @@ RUS_Passing_Laws = {
 		}
 		cost = 5
 		days_remove = 5
-		days_re_enable = 7
+		days_re_enable = 3
 		fire_only_once = no
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_LAW_GET_EP_DUMA_VOTES target: [From.GetName]"
@@ -4324,7 +4290,7 @@ RUS_Passing_Laws = {
 		}
 		cost = 5
 		days_remove = 5
-		days_re_enable = 7
+		days_re_enable = 3
 		fire_only_once = no
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_LAW_GET_RMS_DUMA_VOTES target: [From.GetName]"
@@ -4417,7 +4383,7 @@ RUS_Passing_Laws = {
 		}
 		cost = 5
 		days_remove = 5
-		days_re_enable = 7
+		days_re_enable = 3
 		fire_only_once = no
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_LAW_GET_NSNP_DUMA_VOTES target: [From.GetName]"
@@ -4510,7 +4476,7 @@ RUS_Passing_Laws = {
 		}
 		cost = 5
 		days_remove = 5
-		days_re_enable = 7
+		days_re_enable = 3
 		fire_only_once = no
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_LAW_GET_NRPR_DUMA_VOTES target: [From.GetName]"
@@ -4599,9 +4565,9 @@ RUS_Passing_Laws = {
 		ai_will_do = {
 			base = 100
 		}
-		cost = 15
+		cost = RUS_law_cost_fed?15
 		days_remove = 5
-		days_re_enable = 7
+		days_re_enable = 3
 		fire_only_once = no
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_LAW_GET_AUTONOMISTS_DUMA_VOTES target: [From.GetName]"
@@ -4678,9 +4644,9 @@ RUS_Passing_Laws = {
 		ai_will_do = {
 			base = 100
 		}
-		cost = 15
+		cost = RUS_law_cost_fed?15
 		days_remove = 5
-		days_re_enable = 7
+		days_re_enable = 3
 		fire_only_once = no
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_LAW_GET_FEDERALISTS_DUMA_VOTES target: [From.GetName]"
@@ -4757,7 +4723,7 @@ RUS_Passing_Laws = {
 		}
 		cost = 15
 		days_remove = 5
-		days_re_enable = 7
+		days_re_enable = 3
 		fire_only_once = no
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_LAW_GET_INDEPENDENTS_DUMA_VOTES target: [From.GetName]"
@@ -5424,10 +5390,6 @@ RUS_Senate_Duma_Conflict_Decisions = {
 					}
 					has_game_rule = {
 						rule = RUS_post_assassination
-						option = RULE_OPTION_RUS_POST_ASSASSINATION_PLSR
-					}
-					has_game_rule = {
-						rule = RUS_post_assassination
 						option = RULE_OPTION_RUS_POST_ASSASSINATION_RSRPI
 					}
 					has_game_rule = {
@@ -5478,10 +5440,6 @@ RUS_Senate_Duma_Conflict_Decisions = {
 					has_game_rule = {
 						rule = RUS_post_assassination
 						option = RUS_POST_ASSASSINATION_LEFT_REPUBLIC
-					}
-					has_game_rule = {
-						rule = RUS_post_assassination
-						option = RULE_OPTION_RUS_POST_ASSASSINATION_PLSR
 					}
 					has_game_rule = {
 						rule = RUS_post_assassination
@@ -5549,10 +5507,6 @@ RUS_Senate_Duma_Conflict_Decisions = {
 					has_game_rule = {
 						rule = RUS_post_assassination
 						option = RUS_POST_ASSASSINATION_LEFT_REPUBLIC
-					}
-					has_game_rule = {
-						rule = RUS_post_assassination
-						option = RULE_OPTION_RUS_POST_ASSASSINATION_PLSR
 					}
 					has_game_rule = {
 						rule = RUS_post_assassination
@@ -5682,10 +5636,6 @@ RUS_Senate_Duma_Conflict_Decisions = {
 					}
 					has_game_rule = {
 						rule = RUS_post_assassination
-						option = RULE_OPTION_RUS_POST_ASSASSINATION_PLSR
-					}
-					has_game_rule = {
-						rule = RUS_post_assassination
 						option = RULE_OPTION_RUS_POST_ASSASSINATION_RSRPI
 					}
 					has_game_rule = {
@@ -5739,10 +5689,6 @@ RUS_Senate_Duma_Conflict_Decisions = {
 					has_game_rule = {
 						rule = RUS_post_assassination
 						option = RUS_POST_ASSASSINATION_LEFT_REPUBLIC
-					}
-					has_game_rule = {
-						rule = RUS_post_assassination
-						option = RULE_OPTION_RUS_POST_ASSASSINATION_PLSR
 					}
 					has_game_rule = {
 						rule = RUS_post_assassination
