@@ -127,8 +127,20 @@ clear_all_relations = {
 				autonomy_state = autonomy_free
 			}
 		}
+	}	
+	if = {
+		limit = { is_faction_leader = yes }
+		dismantle_faction = yes
 	}
 	else_if = {
+		limit = { is_in_faction = yes }
+		leave_faction = yes
+	}
+	if = {
+		limit = { NOT = { has_variable = keep_wars } }
+		separate_peace_all_wars = yes
+	}
+	if = {
 		limit = { num_subjects > 0 }
 		every_subject_country = {
 			overlord = {
@@ -139,15 +151,6 @@ clear_all_relations = {
 			}
 		}
 	}
-	if = {
-		limit = { is_faction_leader = yes }
-		dismantle_faction = yes
-	}
-	else_if = {
-		limit = { is_in_faction = yes }
-		leave_faction = yes
-	}
-	separate_peace_all_wars = yes
 	every_other_country = {
 		if = {
 			limit = { has_guaranteed = ROOT }
@@ -211,6 +214,13 @@ clear_all_relations = {
 	}
 	remove_from_all_tech_sharing_groups = yes
 }
+
+# ends puppet status, removes from faction and clears all relations except wars (used for rebellions)
+clear_all_relations_except_wars = {
+	set_temp_variable = { keep_wars = 1 }
+	clear_all_relations = yes
+}
+
 # clears all relations with a specific country and its allies, does not end wars
 # requires temp variable target = TAG
 clear_all_relations_with_TARGET = {
@@ -267,33 +277,34 @@ clear_all_relations_with_TARGET = {
 		limit = { is_in_faction_with = var:target }
 		leave_faction = yes
 	}
-	every_other_country = {
-		limit = { is_ally_with = var:target }
-		diplomatic_relation = {
-			country = PREV
-			relation = guarantee
-			active = no
-		}
-		diplomatic_relation = {
-			country = PREV
-			relation = non_aggression_pact
-			active = no
-		}
-		diplomatic_relation = {
-			country = PREV
-			relation = military_access
-			active = no
-		}
-		diplomatic_relation = {
-			country = PREV
-			relation = market_access_rights
-			active = no
-		}
-		PREV = {
+	
+	effect_tooltip = {
+		every_other_country = {
+			limit = {
+				is_ally_with = var:target
+				has_guaranteed = PREV
+			}
 			diplomatic_relation = {
 				country = PREV
 				relation = guarantee
 				active = no
+			}
+		}
+		every_other_country = {
+			limit = {
+				is_ally_with = var:target
+				has_non_aggression_pact_with = PREV
+			}
+			diplomatic_relation = {
+				country = PREV
+				relation = non_aggression_pact
+				active = no
+			}
+		}
+		every_other_country = {
+			limit = {
+				is_ally_with = var:target
+				has_military_access_to = PREV
 			}
 			diplomatic_relation = {
 				country = PREV
@@ -301,7 +312,134 @@ clear_all_relations_with_TARGET = {
 				active = no
 			}
 		}
-		clear_embargo_PREV = yes
+		every_other_country = {
+			limit = {
+				is_ally_with = var:target
+				is_guaranteed_by = PREV
+			}
+			PREV = {
+				diplomatic_relation = {
+					country = PREV
+					relation = guarantee
+					active = no
+				}
+			}
+		}
+		every_other_country = {
+			limit = {
+				is_ally_with = var:target
+				gives_military_access_to = PREV
+			}
+			PREV = {
+				diplomatic_relation = {
+					country = PREV
+					relation = military_access
+					active = no
+				}
+			}
+		}
+		every_other_country = {
+			limit = {
+				is_ally_with = var:target
+				gives_military_access_to = PREV
+			}
+			PREV = {
+				diplomatic_relation = {
+					country = PREV
+					relation = military_access
+					active = no
+				}
+			}
+		}
+		if = {
+			limit = { has_dlc_bba = yes }
+			every_other_country = {
+				limit = {
+					is_ally_with = var:target
+					is_embargoing = PREV
+				}
+				diplomatic_relation = {
+					country = ROOT
+					relation = embargo
+					active = no
+				}
+			}
+			every_other_country = {
+				limit = {
+					is_ally_with = var:target
+					is_embargoed_by = PREV
+				}
+				PREV = {
+					diplomatic_relation = {
+						country = PREV
+						relation = embargo
+						active = no
+					}
+				}
+			}
+		}
+		else = {
+			every_other_country = {
+				limit = {
+					is_ally_with = var:target
+					has_country_flag = embargoed_@PREV
+				}
+				remove_opinion_modifier = {
+					modifier = embargo
+					target = PREV
+				}
+			}
+			every_other_country = {
+				limit = {
+					is_ally_with = var:target
+					PREV = { has_country_flag = embargoed_@PREV }
+				}
+				PREV = {
+					remove_opinion_modifier = {
+						modifier = embargo
+						target = PREV
+					}
+				}
+			}
+		}
+	}
+	hidden_effect = {
+		every_other_country = {
+			limit = { is_ally_with = var:target }
+			diplomatic_relation = {
+				country = PREV
+				relation = guarantee
+				active = no
+			}
+			diplomatic_relation = {
+				country = PREV
+				relation = non_aggression_pact
+				active = no
+			}
+			diplomatic_relation = {
+				country = PREV
+				relation = military_access
+				active = no
+			}
+			diplomatic_relation = {
+				country = PREV
+				relation = market_access_rights
+				active = no
+			}
+			PREV = {
+				diplomatic_relation = {
+					country = PREV
+					relation = guarantee
+					active = no
+				}
+				diplomatic_relation = {
+					country = PREV
+					relation = military_access
+					active = no
+				}
+			}
+			clear_embargo_PREV = yes
+		}
 	}
 }
 # clears all relations with PREV (won't remove from faction if not a faction leader, nor stop wars if not a valid target)
@@ -474,7 +612,7 @@ force_capitulate = {
 	hidden_effect = {
 		add_timed_idea = {
 			idea = ready_to_surrender
-			days = 3
+			days = 14
 		}
 	}
 }
