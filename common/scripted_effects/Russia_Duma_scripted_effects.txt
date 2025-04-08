@@ -715,8 +715,61 @@ RUS_psr_rrdo = {
 		}
 	}
 	set_variable = { RUS_psr_minister_for = token:RUS_Nikolay_V_Nekrasov_for_sli }
-	remove_ideas_with_trait = foreign_minister
-	add_ideas = RUS_Nikolay_V_Nekrasov_for_sli
+	if = {
+		limit = { psr_in_power = yes }
+		remove_ideas_with_trait = foreign_minister
+		add_ideas = RUS_Nikolay_V_Nekrasov_for_sli
+	}
+}
+RUS_lkdp_rrdo = {
+	if = {
+		limit = { has_country_flag = kdp_united }
+		RUS_dissolve_kdp_and_make_rkdp_pp = yes
+	}
+	add_to_variable = { Duma_Party_Seats^3 = Duma_Party_Seats^5 }
+	set_variable = { Duma_Party_Seats^5 = 0 }
+	add_to_variable = { Senate_Party_General_Seats^3 = Senate_Party_General_Seats^5 }
+	set_variable = { Senate_Party_General_Seats^5 = 0 }
+	add_to_variable = { Senate_Party_Regional_Seats^3 = Senate_Party_Regional_Seats^5 }
+	set_variable = { Senate_Party_Regional_Seats^5 = 0 }
+	RUS_Get_Lower_House_Array = yes
+	RUS_Get_Senate_Elections_Array = yes
+	remove_add_presidential_senators = yes
+	mp_support_calc = yes 
+	senators_support_calc = yes	
+	custom_effect_tooltip = RUS_integrate_psr_full
+	hidden_effect = {
+		set_temp_variable = { RUS_new_soclib = party_popularity_100@social_liberal }
+		add_to_temp_variable = { RUS_new_soclib = party_popularity_100@social_democrat }
+
+		set_temp_variable = { sum = 100 }
+		subtract_from_temp_variable = { sum = party_popularity_100@totalist }
+		subtract_from_temp_variable = { sum = party_popularity_100@syndicalist }
+		subtract_from_temp_variable = { sum = party_popularity_100@radical_socialist }
+		subtract_from_temp_variable = { sum = RUS_new_soclib }
+		subtract_from_temp_variable = { sum = party_popularity_100@market_liberal }
+		subtract_from_temp_variable = { sum = party_popularity_100@social_conservative }
+		subtract_from_temp_variable = { sum = party_popularity_100@authoritarian_democrat }
+		subtract_from_temp_variable = { sum = party_popularity_100@paternal_autocrat }
+		subtract_from_temp_variable = { sum = party_popularity_100@national_populist }
+
+		add_to_temp_variable = { RUS_new_soclib = sum } #avoid rounding errors
+
+		set_popularities = {
+			totalist = party_popularity_100@totalist
+			syndicalist = party_popularity_100@syndicalist
+			radical_socialist = party_popularity_100@radical_socialist
+			social_democrat = 0
+			social_liberal = RUS_new_soclib
+			market_liberal = party_popularity_100@market_liberal
+			social_conservative = party_popularity_100@social_conservative
+			authoritarian_democrat = party_popularity_100@authoritarian_democrat
+			paternal_autocrat = party_popularity_100@paternal_autocrat
+			national_populist = party_popularity_100@national_populist
+		}
+	}
+	set_variable = { RUS_lkdp_minister_eco = token:RUS_Vladimir_M_Zenzinov_eco_sde }
+	set_variable = { RUS_lkdp_minister_sec = token:RUS_Pitirim_A_Sorokin_sec_sli }
 }
 RUS_psr_rpr = {
 	clr_country_flag = nsnp_banned
@@ -14310,7 +14363,7 @@ RUS_pass_current_law = {
 			check_variable = { Duma_Bill_Status^37 = 2 }
 		}
 		add_stability = 0.03
-		add_ideas = RUS_Judicial_Reform 	
+		add_ideas = RUS_Judicial_Reform
 		RUS_increase_ruling_party_pop = yes
 	}
 	
@@ -14846,68 +14899,11 @@ RUS_not_pass_current_law = {
 		limit = {
 			check_variable = { Duma_Bill_Status^5 = 2 }
 		}
-		if = {
-			limit = { #Tweak for dumb AI
-				is_ai = yes
-				OR = {
-					has_game_rule = {
-						rule = RUS_post_assassination
-						option = RULE_OPTION_RUS_POST_ASSASSINATION_VNS_MONARCHY
-					}
-					has_game_rule = {
-						rule = RUS_post_assassination
-						option = RULE_OPTION_RUS_POST_ASSASSINATION_RKDP
-					}
-				}
-			}
-			set_country_flag = monarchy_referendum_accepted
-			if = {
-				limit = {
-					has_country_flag = RUS_LAW_OPPOSITION_VOTES
-				}
-				country_event = rusdem.2090
-			}
-			country_event = rusdem.552
-			country_event = {
-				id = rusdem.554
-				days = 1
-			}
-			add_stability = 0.04
-			RUS_increase_vns_pop_large = yes
-			RUS_increase_rkdp_pop_large = yes
-			set_variable = { RUS_state_monarchy_referendum_turnout = 0.37 }			
-			set_variable = { RUS_state_monarchy_referendum_turnout = 0.37 }
-			set_temp_variable = { temp1 = party_popularity@ruling_party }
-			set_temp_variable = { temp3 = 1 }
-			subtract_from_temp_variable = { temp3 = modifier@consumer_goods_factor }
-			multiply_temp_variable = { temp1 = temp3 }
-			set_temp_variable = { temp2 = RUS.stability }
-			if = {
-				limit = {
-					check_variable = { temp2 < 0.5 }
-				}
-				set_temp_variable = { temp2 = 0.5 }
-			}
-			add_to_temp_variable = { temp2 = 1 }
-			multiply_temp_variable = { temp1 = temp2 }
-			multiply_temp_variable = { temp1 = 2 }
-			clamp_variable = { var = temp1 min = 0 max = 1 }
-			set_variable = { RUS_monarchy_popular_support = temp1 }					
-			set_variable = { RUS_monarchy_popular_support_bonus = 0 }
-			set_variable = { RUS_monarchy_candidate_legitimacy = 0 }
-			set_variable = { RUS_monarchy_referendum_legitimacy = party_popularity@ruling_party }
-			set_variable = { RUS_monarchy_referendum_legitimacy_bonus = 0 }
-			set_variable = { RUS_days_till_referendum = 90 }
-			RUS_calculate_expected_monarchy_referendum = yes
-			activate_mission = RUS_Monarchy_Referendum_deadline
-		}
-		else = {
-			set_country_flag = monarchy_referendum_blocked
-			country_event = rusdem.553
-			add_stability = -0.15
-			RUS_decrease_vns_pop_large = yes
-			RUS_decrease_rkdp_pop_large = yes
-		}
+		set_country_flag = monarchy_referendum_blocked
+		country_event = rusdem.553
+		add_stability = -0.15
+		RUS_decrease_vns_pop_large = yes
+		RUS_decrease_rkdp_pop_large = yes
 	}	
 	if = {
 		limit = {
