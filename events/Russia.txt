@@ -8869,6 +8869,61 @@ country_event = { #Elections 1941
 	option = {
 		name = rusdem.2.h
 		trigger = {
+			RUS_rkdp_victory_in_elections = yes
+			NOT = { has_country_flag = rkdp_banned }
+		}
+		ai_chance = {
+			factor = 10
+			modifier = {
+				factor = 0
+				OR = {
+					has_game_rule = { rule = RUS_1936_elections option = RUS_1936_ELECTIONS_PSR }
+					has_game_rule = { rule = RUS_1936_elections option = RUS_1936_ELECTIONS_PSR_SOV }
+					has_game_rule = { rule = RUS_1936_elections option = RUS_1936_ELECTIONS_PSR_KDP }
+					has_game_rule = { rule = RUS_1936_elections option = RUS_1936_ELECTIONS_PSR_NRPR }
+					has_game_rule = { rule = RUS_1936_elections option = RUS_1936_ELECTIONS_LKDP }
+					has_game_rule = { rule = RUS_1936_elections option = RUS_1936_ELECTIONS_RKDP }
+					has_game_rule = { rule = RUS_1936_elections option = RUS_1936_ELECTIONS_VNS }
+					has_game_rule = { rule = RUS_1936_elections option = RUS_1936_ELECTIONS_VNS_ARISTOCRATIC_MONARCHY }
+					has_game_rule = { rule = RUS_1936_elections option = RUS_1936_ELECTIONS_VNS_OLIGARCHIC_MONARCHY }
+					has_game_rule = { rule = RUS_1936_elections option = RUS_1936_ELECTIONS_VNS_ARISTOCRATIC_REPUBLIC }
+					has_game_rule = { rule = RUS_1936_elections option = RUS_1936_ELECTIONS_VNS_OLIGARCHIC_REPUBLIC }
+				}	
+			}
+		}
+		meta_effect = {
+			text = {
+				set_politics = {
+					ruling_party = market_liberal
+					last_election = "[CURRENT_DATE]"
+					election_frequency = 60
+					elections_allowed = yes
+				}
+			}
+			CURRENT_DATE = "[?global.date.GetDateStringNoHour]"
+		}
+		remove_all_ministers = yes
+		if = {
+			limit = { has_country_flag = RUS_marlibs_vps }
+			add_soccon_to_coalition = yes
+			add_ideas = {
+				RUS_Pavel_N_Milyukov_hog_sli
+				RUS_Nikolay_Rybinsky_for_pau
+				RUS_Vasiliy_Leontief_eco_mli
+				RUS_Vasiliy_A_Maklakov_sec_mli
+			}
+		}
+		else = {
+			RUS_setup_rkdp_government = yes
+		}
+		hidden_effect = {
+			mp_support_calc = yes
+			senators_support_calc = yes
+		}
+	}
+	option = {
+		name = rusdem.2.h
+		trigger = {
 			has_country_flag = kdp_united
 			OR = {
 				RUS_rrdo_victory_in_elections = yes
@@ -8969,7 +9024,12 @@ country_event = { #Elections 1941
 			}
 		}
 		if = {
-			limit = { has_country_flag = VNS_aristocratic }
+			limit = { 
+				OR = {
+					has_country_flag = VNS_aristocratic 
+					has_country_flag = RUS_authdems_vps 
+				}
+			}
 			meta_effect = {
 				text = {
 					set_politics = {
@@ -8998,7 +9058,18 @@ country_event = { #Elections 1941
 			add_authdem_to_coalition = yes
 		}
 		remove_all_ministers = yes
-		RUS_setup_vns_government = yes
+		if = {
+			limit = { has_country_flag = RUS_authdems_vps }
+			add_ideas = {
+				RUS_Abram_Dragomirov_hog_pau
+				RUS_Pavel_N_Milyukov_for_sli
+				RUS_Vasiliy_Leontief_eco_mli
+				RUS_Vasiliy_Shulgin_sec_sco
+			}
+		}
+		else = {
+			RUS_setup_vns_government = yes
+		}
 		hidden_effect = {
 			mp_support_calc = yes
 			senators_support_calc = yes
@@ -9008,17 +9079,11 @@ country_event = { #Elections 1941
 					days = 5
 				}
 			}
-			load_base_russian_tree = yes
-			set_country_flag = make_russia_liberal_conservative_democratic_tree_visible
-			mark_focus_tree_layout_dirty = yes
 			if = {
-				limit = { RUS_denikin_in_power = yes }
-				RUS_recheck_president_subideology = yes
-				set_party_name = {
-					ideology = authoritarian_democrat
-					name = RUS_authoritarian_democrat_party
-					long_name = RUS_authoritarian_democrat_party_long
-				}
+				limit = { RUS_denikin_in_power = no }
+				load_base_russian_tree = yes
+				set_country_flag = make_russia_liberal_conservative_democratic_tree_visible
+				mark_focus_tree_layout_dirty = yes
 			}
 		}
 	}
@@ -15182,7 +15247,19 @@ country_event = { #RKDP
 		
 	option = {
 		name = rusdem.500.a
-		RUS_dissolve_kdp_into_three = yes		
+		RUS_dissolve_kdp_into_three = yes
+		if = {
+			limit = { 
+				RUS_kornilov_in_power = yes 
+				is_in_coalition_with_social_liberal = yes
+			}
+			set_temp_variable = { RUS_coalition_partner = 5 }
+			RUS_remove_from_coalition = yes
+			set_temp_variable = { RUS_coalition_partner = 7 }
+			RUS_add_to_coalition = yes
+			mp_support_calc = yes 
+			senators_support_calc = yes	
+		}
 	} 
 }
 country_event = { #LKDP
@@ -20275,6 +20352,8 @@ country_event = { #Kornilov's Death
 			limit = { has_idea = RUS_Lavr_G_Kornilov_cos_pau }
 			remove_ideas_with_trait = chief_of_staff
 		}
+		RUS_decrease_rovs_pop_large = yes
+		add_stability = -0.2
 		hidden_effect = {
 			RUS_setup_acting_president_senate = yes			
 			create_country_leader = {
@@ -56766,6 +56845,10 @@ country_event = { #Kornilov coup
 		remove_ideas_with_trait = head_of_government
 		add_ideas = RUS_Abram_Dragomirov_hog_pau			
 		set_country_flag = rus_president_elections_1936_over
+		random_unit_leader = {
+			limit = { has_id = 616 }
+			add_unit_leader_trait = politically_connected
+		}
 		hidden_effect = {
 			country_event = {
 				id = rusd.3112
@@ -56956,7 +57039,7 @@ country_event = { #Kornilov coup
 	
 	option = {
 		name = rusd.3014.a
-		RUS_increase_rovs_pop = yes
+		RUS_increase_rovs_pop_small = yes
 		RUS_decrease_plsr_pop_small = yes
 		RUS_decrease_nsp_pop_small = yes
 		RUS_decrease_rsdrp_pop_small = yes
@@ -56994,6 +57077,7 @@ country_event = { #Kornilov coup
 		name = rusd.3016.a
 		RUS_increase_psr_pop_small = yes
 		RUS_increase_rsdrp_pop_small = yes
+		RUS_decrease_rovs_pop_large = yes
 		set_temp_variable = { RUS_rev_ferment_change = 10 }
 		RUS_change_rev_ferment = yes
 	}
@@ -57103,8 +57187,20 @@ country_event = { #Kornilov coup
 	
 	option = {
 		name = rusd.3021.a		
-		RUS_increase_rovs_pop = yes
-		RUS_bop_increase_republicans = yes
+		RUS_increase_rovs_pop_small = yes
+		if = {
+			limit = { 
+				has_power_balance = { id = RUS_rovs_balance }
+			}
+			add_power_balance_value = {
+				id = RUS_rovs_balance
+				value = -0.10
+			}
+		}
+		add_to_variable = { RUS_vvsr_monarchist = -2 }
+		clamp_variable = { var = RUS_vvsr_monarchist min = 0 }
+		set_temp_variable = { RUS_vvsr_rovs_unity_change = 0.10 }
+		RUS_change_rovs_unity = yes
 	}
 	option = {
 		name = rusd.3021.b		
@@ -57123,7 +57219,7 @@ country_event = { #Kornilov coup
 	
 	option = {
 		name = rusd.3024.a		
-		RUS_increase_rovs_pop = yes
+		RUS_increase_rovs_pop_small = yes
 		add_ideas = RUS_cult_of_volunteers	
 		hidden_effect = {
 			country_event = {
@@ -57222,7 +57318,6 @@ country_event = { #Kornilov coup
 	
 	option = {
 		name = rusd.3028.a		
-		RUS_increase_rovs_pop = yes
 	}
 }
 country_event = { #Kornilov coup
@@ -57381,6 +57476,10 @@ country_event = { #Kornilov coup
 		RUS_increase_monarchists_pop = yes
 		RUS_decrease_rovs_pop = yes
 		RUS_bop_increase_republicans = yes
+		every_unit_leader = {
+			limit = { has_trait = RUS_drozdovsky_officer }
+			add_unit_leader_trait = politically_connected
+		}
 		hidden_effect = {
 			country_event = {
 				id = rusd.3045
@@ -57458,6 +57557,12 @@ country_event = { #Kornilov coup
 		}
 		random_unit_leader = {
 			limit = { has_id = 411 }
+			if = {
+				limit = {
+					NOT = { has_trait = politically_connected }
+				}
+				add_unit_leader_trait = politically_connected
+			}
 			promote_to_marshal = yes
 		}
 		remove_all_ministers = yes
@@ -57500,6 +57605,7 @@ country_event = { #Kornilov coup
 		}
 		random_unit_leader = {
 			limit = { has_id = 400 }
+			add_unit_leader_trait = politically_connected
 			promote_to_marshal = yes
 		}
 		remove_ideas_with_trait = head_of_government
@@ -57530,6 +57636,7 @@ country_event = { #Kornilov coup
 		}
 		random_unit_leader = {
 			limit = { has_id = 401 }
+			add_unit_leader_trait = politically_connected
 			promote_to_marshal = yes
 		}
 		remove_ideas_with_trait = head_of_government
@@ -57561,12 +57668,16 @@ country_event = { #Kornilov coup
 		}
 		random_unit_leader = {
 			limit = { has_id = 405 }
+			add_unit_leader_trait = politically_connected
 			promote_to_marshal = yes
 		}
 		random_unit_leader = {
 			limit = { has_id = 411 }
-			remove_unit_leader_trait = RUS_kornilov_officer
-			add_unit_leader_trait = RUS_drozdovsky_officer
+			if = {
+				limit = { NOT = { has_trait = RUS_drozdovsky_officer } }
+				remove_unit_leader_trait = RUS_kornilov_officer
+				add_unit_leader_trait = RUS_drozdovsky_officer
+			}
 		}
 		remove_all_ministers = yes
 		set_country_flag = RUS_duma_dissolved
@@ -57601,6 +57712,7 @@ country_event = { #Kornilov coup
 		}
 		random_unit_leader = {
 			limit = { has_id = 412 }
+			add_unit_leader_trait = politically_connected
 			promote_to_marshal = yes
 		}
 		remove_all_ministers = yes
@@ -57822,6 +57934,7 @@ country_event = { #Kornilov coup
 		}
 		random_unit_leader = {
 			limit = { has_id = 50003 }
+			add_unit_leader_trait = politically_connected
 			promote_to_marshal = yes
 		}
 		set_country_flag = RUS_duma_dissolved
@@ -58035,6 +58148,15 @@ country_event = { #Kornilov coup
 			RUS_Aleksey_A_Ignatiev_for_pau
 			RUS_Aleksey_P_Arkhangelskiy_eco_pau
 			RUS_Yakov_Slaschyov_sec_pau
+		}
+		random_unit_leader = {
+			limit = { has_id = 616 }
+			if = {
+				limit = {
+					NOT = { has_trait = politically_connected }
+				}
+				add_unit_leader_trait = politically_connected
+			}
 		}
 		set_cosmetic_tag = RUS_state
 		set_country_flag = disable_duma
@@ -58299,7 +58421,7 @@ country_event = { #Kornilov coup
 			}
 		}
 		RUS_bop_increase_monarchists_large = yes
-		RUS_increase_rovs_pop_large = yes
+		RUS_increase_rovs_pop_small = yes
 		set_country_flag = RUS_TSAR_ROMAN
 		custom_effect_tooltip = RUS_TSAR_ROMAN_TT
 		set_variable = { RUS_monarchy_candidate_legitimacy = 0.45 }
@@ -59588,6 +59710,7 @@ country_event = { #Kornilov coup
 			}
 		}
 		set_country_flag = rovs_banned
+		set_country_flag = RUS_rovs_dissolved
 		RUS_decrease_rovs_pop = yes
 	}
 	option = {
@@ -60161,25 +60284,20 @@ country_event = {
 				}
 			}
 		}
-		clr_country_flag = RUS_duma_dissolved		
-		set_country_flag = RUS_early_elections
-		custom_effect_tooltip = elections_in_three_months		
-		hidden_effect = {	
-			set_party_name = {
-				ideology = paternal_autocrat
-				name = RUS_paternal_autocrat_party
-				long_name = RUS_paternal_autocrat_party_long
-			}
-			create_country_leader = {
-				name = "Ivan Romanovsky"
-				desc = "POLITICS_IVAN_ROMANOVSKIY_DESC"
-				picture = "gfx/leaders/RUS/Portrait_RUS_Ivan_Romanovsky.png"
-				expire = "1.1.1"
-				ideology = junta_subtype
-			}
-			RUS_clear_all_preelection_coalitions = yes
-			RUS_calculate_polling_averages = yes
-			activate_mission = RUS_early_elections_mission
+		if = {
+			limit = { has_idea = RUS_osvag_idea }
+			remove_ideas = RUS_osvag_idea
+		}
+		if = {
+			limit = { has_power_balance = { id = RUS_rovs_balance } }
+			remove_power_balance = { id = RUS_rovs_balance }
+		}
+		create_country_leader = {
+			name = "Ivan Romanovsky"
+			desc = "POLITICS_IVAN_ROMANOVSKIY_DESC"
+			picture = "gfx/leaders/RUS/Portrait_RUS_Ivan_Romanovsky.png"
+			expire = "1.1.1"
+			ideology = junta_subtype
 		}
 	}
 } 
@@ -60260,5 +60378,255 @@ country_event = {
 		}
 		unlock_national_focus = RUS_Reaffirm_Emergency_Powers
 		RUS_increase_democratic_opposition = yes
+	}
+} 
+country_event = { 
+	id = rusd.3223
+	immediate = {log = "[GetDateText]: [Root.GetName]: event rusd.3223"}
+	title = rusd.3223.t 
+	desc = rusd.3223.d
+	
+	is_triggered_only = yes
+	fire_only_once = yes
+	picture = GFX_report_event_RUS_denikin4
+	
+	option = {
+		name = rusd.3223.a		
+		if = {
+			limit = { has_country_flag = RUS_vvsr_republic }
+			drop_cosmetic_tag = yes
+			add_ideas = RUS_constitution_of_denikin_2
+		}
+		else = {
+			if = {
+				limit = { has_idea = RUS_regency_council_engelhardt }
+				custom_effect_tooltip = tooltip_white_line
+				remove_ideas = RUS_regency_council_engelhardt
+			}
+			else_if = {
+				limit = { has_idea = RUS_regency_council_wrangel }
+				custom_effect_tooltip = tooltip_white_line
+				remove_ideas = RUS_regency_council_wrangel
+				set_temp_variable = { RUS_wrangel_change = -2 }
+				RUS_change_wrangels_ambitions = yes
+			}
+			else_if = {
+				limit = { has_idea = RUS_regency_council_lukomsky }
+				custom_effect_tooltip = tooltip_white_line
+				remove_ideas = RUS_regency_council_lukomsky
+				set_temp_variable = { RUS_wrangel_change = -1 }
+				RUS_change_wrangels_ambitions = yes
+			}
+			add_ideas = RUS_constitution_of_denikin_1
+		}
+	}
+} 
+country_event = { 
+	id = rusd.3224
+	immediate = {log = "[GetDateText]: [Root.GetName]: event rusd.3224"}
+	title = rusd.3224.t 
+	desc = rusd.3224.d
+	
+	is_triggered_only = yes
+	fire_only_once = yes
+	picture = GFX_report_event_RUS_denikin4
+	
+	option = {
+		name = rusd.3224.a
+		RUS_remove_democratic_opposition = yes
+		clr_country_flag = RUS_duma_dissolved		
+		set_country_flag = RUS_early_elections
+		custom_effect_tooltip = elections_in_three_months
+		RUS_setup_acting_president_senate = yes
+		random_unit_leader = {
+			limit = { has_id = 401 }
+			remove_unit_leader_trait = politically_connected
+		}
+		hidden_effect = {			
+			RUS_clear_all_preelection_coalitions = yes
+			RUS_calculate_polling_averages = yes
+			activate_mission = RUS_early_elections_mission
+			country_event = rusdem.62
+		}
+	}
+} 
+country_event = { 
+	id = rusd.3225
+	immediate = {
+		log = "[GetDateText]: [Root.GetName]: event rusd.3225"
+		hidden_effect = {
+			set_variable = { RUS_early_elections_mission_timeout = 180 }
+		}
+	}
+	title = rusd.3225.t 
+	desc = rusd.3225.d
+	
+	is_triggered_only = yes
+	fire_only_once = yes
+	picture = GFX_report_event_RUS_denikin4
+	
+	option = {
+		name = rusd.3225.a
+		effect_tooltip = { retire_country_leader = yes }
+		random_unit_leader = {
+			limit = { has_id = 456 }
+			promote_to_marshal = yes
+		}
+		create_country_leader = {
+			name = "Ivan Romanovsky"
+			desc = "POLITICS_IVAN_ROMANOVSKIY_DESC"
+			picture = "gfx/leaders/RUS/Portrait_RUS_Ivan_Romanovsky.png"
+			expire = "1.1.1"
+			ideology = junta_subtype
+			traits = { RUS_supreme_ruler }
+		}
+		if = {
+			limit = { has_country_flag = RUS_supreme_rulership_act }
+			add_stability = -0.1
+			add_war_support = -0.1
+		}
+		else = {
+			random_unit_leader = {
+				limit = { has_id = 401 }
+				remove_unit_leader_trait = politically_connected
+			}
+			RUS_remove_democratic_opposition = yes
+			if = {
+				limit = {
+					NOT = { has_idea = RUS_empowered_president }
+				}
+				add_ideas = RUS_empowered_president
+				set_variable = { RUS_pp_minister_hog = token:RUS_Ivan_Yefremov_hog_mli }
+				set_variable = { Duma_Bill_Status^34 = 3 }
+			}
+			clr_country_flag = RUS_duma_dissolved		
+			set_country_flag = RUS_early_elections
+			custom_effect_tooltip = elections_in_six_months
+			hidden_effect = {			
+				RUS_clear_all_preelection_coalitions = yes
+				RUS_calculate_polling_averages = yes
+				activate_mission = RUS_early_elections_mission
+				set_country_flag = RUS_president_elections_campaign
+				RUS_calculate_polling_presidential_averages = yes
+				hidden_effect = {
+					country_event = { #rsdrp primaries
+						id = rusdem.53
+						days = 7
+					}
+					country_event = { #psr primaries
+						id = rusdem.54
+						days = 10
+					}
+					country_event = { #kdp primaries
+						id = rusdem.55
+						days = 14
+					}
+					country_event = { #vns primaries
+						id = rusdem.56
+						days = 17
+					}
+					country_event = { #nsnp primaries
+						id = rusdem.58
+						days = 20
+					}
+					country_event = {
+						id = rusdem.50
+						days = 120
+					}
+				}
+			}
+		}
+	}
+} 
+unit_leader_event = { 
+	id = rusd.3226
+	immediate = { log = "[GetDateText]: [Root.GetName]: event rusd.3226" }
+	title = rusd.3226.t 
+	desc = rusd.3226.d
+	
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	option = {
+		name = rusd.3226.a
+		random_unit_leader = {
+			limit = { has_id = 405 }
+			retire = yes
+		}
+		RUS_bop_increase_republicans = yes
+		hidden_effect = {
+			random_unit_leader = {
+				limit = { has_id = 496 }
+				unit_leader_event = {
+					id = rusd.3227
+					days = 60
+					random_days = 50
+				}
+			}
+		}
+	}
+	option = {
+		name = rusd.3226.b
+		RUS_bop_increase_monarchists_small = yes
+	}
+} 
+unit_leader_event = { 
+	id = rusd.3227
+	immediate = { log = "[GetDateText]: [Root.GetName]: event rusd.3227" }
+	title = rusd.3227.t 
+	desc = rusd.3227.d
+	
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	option = {
+		name = rusd.3227.a
+		random_unit_leader = {
+			limit = { has_id = 496 }
+			retire = yes
+		}
+		random_unit_leader = {
+			limit = { has_id = 411 }
+			retire = yes
+		}
+		RUS_decrease_monarchists_pop = yes
+	}
+} 
+country_event = { 
+	id = rusd.3228
+	immediate = { log = "[GetDateText]: [Root.GetName]: event rusd.3228" }
+	title = rusd.3228.t 
+	desc = rusd.3228.d
+	
+	is_triggered_only = yes
+	fire_only_once = yes
+	picture = GFX_report_event_RUS_denikin
+	
+	option = {
+		name = rusd.3228.a
+		RUS_increase_democratic_opposition = yes
+		RUS_decrease_rovs_pop_large = yes
+		set_country_flag = RUS_supreme_rulership_act
+		add_ideas = RUS_guarantor_of_stability
+	}
+	option = {
+		name = rusd.3228.b
+		RUS_decrease_democratic_opposition = yes
+		RUS_bop_increase_republicans = yes
+		if = {
+			limit = { has_idea = RUS_Pavel_N_Milyukov_hog_sli }
+			RUS_increase_lkdp_pop = yes
+			RUS_increase_pp_pop = yes
+			RUS_increase_rkdp_pop = yes
+		}
+		else_if = {
+			limit = { has_idea = RUS_Vasiliy_Shulgin_sec_sco }
+			RUS_increase_lkdp_pop = yes
+			RUS_increase_rkdp_pop = yes
+			RUS_increase_vns_pop = yes
+		}
+		else = {
+			RUS_increase_rovs_pop_small = yes
+		}
 	}
 } 
