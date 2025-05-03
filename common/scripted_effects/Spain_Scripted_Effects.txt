@@ -1,3 +1,92 @@
+SPR_general_setup = {
+	set_country_flag = rad_socs_arent_syndie
+	set_variable = {
+		var = SPR_opposing_side_progress_var
+		value = 0
+	}
+	set_variable = {
+		var = SPR_desperate_measures_uses
+		value = 0
+	}
+	set_variable = {
+		var = global.SPR_scw_focus_check_var
+		value = 0.65
+	}
+	set_variable = {
+		var = SPR_opposing_side_progress_time_var
+		value = 60
+	}
+	set_variable = {
+		var = civil_war_countdown_length_var
+		value = 30
+	}
+	every_owned_state = {
+		limit = {
+			OR = {
+				state = 171
+				state = 172
+				state = 174
+				state = 176
+				state = 793
+			}
+		}
+		set_state_flag = is_car_state
+	}
+	every_owned_state = {
+		limit = {
+			OR = {
+				state = 165
+				state = 166
+				state = 167
+				state = 168
+				state = 940
+				state = 1313
+			}
+		}
+		set_state_flag = is_cnt_state
+	}
+	add_opinion_modifier = {
+		target = USA
+		modifier = SPR_legacy_of_1898
+	}
+}
+
+SPR_setup_state_modifiers = {
+	every_state = {
+		limit = {
+			OR = {
+				state = 1313
+			}
+		}
+		add_dynamic_modifier = { modifier = SPR_andorra_modifier }
+	}
+	every_state = {
+		limit = {
+			OR = {
+				state = 165
+				state = 1313
+			}
+		}
+		add_dynamic_modifier = { modifier = SPR_catalan_nationalists }
+	}
+	every_state = {
+		limit = {
+			OR = {
+				state = 172
+			}
+		}
+		add_dynamic_modifier = { modifier = SPR_basque_nationalists }
+	}
+	every_state = {
+		limit = {
+			OR = {
+				state = 171
+			}
+		}
+		add_dynamic_modifier = { modifier = SPR_galicia_nationalists }
+	}
+}
+
 SPR_opposing_side_effect_1 = {
 	decrease_ruling_party_popularity_by_3 = yes
 	random_list = {
@@ -346,7 +435,12 @@ SPR_civil_war_kingdom_debuffs_setup = {
 
 SPR_civil_war_prelude_setup = {
 	SPR_civil_war_kingdom_debuffs_setup = yes
-	set_country_flag = SPR_civil_war_unavoidable
+	if = {
+		limit = {
+			has_allied_with_anyone_kingdom = yes
+		}
+		set_country_flag = SPR_civil_war_unavoidable
+	}
 	every_owned_state = {
 		limit = {
 			has_state_flag = is_car_state
@@ -389,6 +483,7 @@ SPR_civil_war_prelude_setup = {
 }
 SPR_civil_war_start_effect = {
 	set_global_flag = spanish_civil_war
+	set_global_flag = spanish_civil_war_happened
 	if = {
 		limit = {
 			SPR = { exists = yes }
@@ -513,24 +608,6 @@ SPR_civil_war_start_effect = {
 		}
 	}
 }
-
-SPR_civil_war_setup_opposed_kingdom = {
-	SPR_civil_war_kingdom_debuffs_setup = yes
-	set_country_flag = SPR_civil_war_unavoidable
-	every_owned_state = {
-		limit = {
-			has_state_flag = is_car_state
-		}
-		CAR = { add_state_core = PREV }
-	}
-	every_owned_state = {
-		limit = {
-			has_state_flag = is_cnt_state
-		}
-		CNT = { add_state_core = PREV }
-	}
-}
-
 CAR_setup_effect = {
 	CAR = {
 		every_state = {
@@ -620,6 +697,12 @@ CAR_setup_effect = {
 		}
 		add_ideas = extensive_conscription
 		set_cosmetic_tag = CAR_PROV_GOV
+		if = {
+			limit = {
+				SPR = { has_country_flag = SPR_carlism_chose_carlos }
+			}
+			CAR_setup_carlos_VIII = yes
+		}
 	}
 	SPR = {
 		add_popularity = {
@@ -629,6 +712,53 @@ CAR_setup_effect = {
 		add_popularity = {
 			ideology = national_populist
 			popularity = -0.5
+		}
+	}
+}
+
+CAR_setup_carlos_VIII = {
+	CAR = {
+		set_politics = {
+			ruling_party = national_populist
+			last_election = "1888.6.15"
+			election_frequency = 48
+			elections_allowed = no
+		}
+		set_popularities = {
+			totalist = 0
+			radical_socialist = 0
+			syndicalist = 0
+			social_democrat = 3
+			social_liberal = 3
+			market_liberal = 7
+			social_conservative = 0
+			authoritarian_democrat = 10
+			paternal_autocrat = 17
+			national_populist = 60
+		}
+		add_ideas = {
+			CAR_Jesus_Cora_y_Lira_hog_npo
+			CAR_Jose_Luis_Arrese_Magra_for_pau
+			CAR_Joaquin_Bau_Nolla_eco_npo
+			CAR_Jose_Luis_Arrese_Magra_sec_pau
+		}
+		random_unit_leader = {
+			limit = { has_id = 3110 }			
+			remove_unit_leader = yes
+		}
+		create_field_marshal = { #Auto-Generated
+			name = "Carlos VIII"
+			portrait_path = "gfx/leaders/CAR/Portrait_CAR_Carlos_VIII.png"
+			traits = {
+				media_personality
+				trait_reckless
+				inspirational_leader
+			}
+			skill = 1
+			attack_skill = 1
+			defense_skill = 1
+			planning_skill = 1
+			logistics_skill = 1
 		}
 	}
 }
@@ -735,20 +865,26 @@ CNT_setup_effect = {
 			country_event = { id = sprc.121 days = 15 random_days = 20 }
 		}
 		add_ideas = extensive_conscription
+		if = {
+			limit = {
+				has_country_flag = CNT_Add_Anarchy_Idea_On_Civil_War_Start
+			}
+			add_ideas = CNT_SCW_we_love_anarchy
+		}
 		set_cosmetic_tag = CNT_PROV_GOV
+		end_coalition = yes
 		if = {
 			limit = {
 				has_country_flag = popular_front_on_start_flag
 			}
-			end_coalition = yes
 			add_soccon_to_coalition = yes
 			add_marlib_to_coalition = yes
 			add_soclib_to_coalition = yes
 			add_socdem_to_coalition = yes
-			add_radsoc_to_coalition = yes
-			add_synd_to_coalition = yes
-			add_tot_to_coalition = yes
 		}
+		add_radsoc_to_coalition = yes
+		add_synd_to_coalition = yes
+		add_tot_to_coalition = yes
 	}
 	SPR = {
 		add_popularity = {
@@ -984,92 +1120,8 @@ SPR_remove_separatist_effect = {
 	remove_ideas = SPR_Rising_Separatism
 }
 
-SPR_setup_state_modifiers = {
-	every_state = {
-		limit = {
-			OR = {
-				state = 1313
-			}
-		}
-		add_dynamic_modifier = { modifier = SPR_andorra_modifier }
-	}
-	every_state = {
-		limit = {
-			OR = {
-				state = 165
-				state = 1313
-			}
-		}
-		add_dynamic_modifier = { modifier = SPR_catalan_nationalists }
-	}
-	every_state = {
-		limit = {
-			OR = {
-				state = 172
-			}
-		}
-		add_dynamic_modifier = { modifier = SPR_basque_nationalists }
-	}
-	every_state = {
-		limit = {
-			OR = {
-				state = 171
-			}
-		}
-		add_dynamic_modifier = { modifier = SPR_galicia_nationalists }
-	}
-}
-
-SPR_general_setup = {
-	set_country_flag = rad_socs_arent_syndie
-	set_variable = {
-		var = SPR_opposing_side_progress_var
-		value = 0
-	}
-	set_variable = {
-		var = SPR_scw_focus_check_var
-		value = 0.65
-	}
-	set_variable = {
-		var = SPR_opposing_side_progress_time_var
-		value = 60
-	}
-	set_variable = {
-		var = civil_war_countdown_length_var
-		value = 30
-	}
-	every_owned_state = {
-		limit = {
-			OR = {
-				state = 171
-				state = 172
-				state = 174
-				state = 176
-				state = 793
-			}
-		}
-		set_state_flag = is_car_state
-	}
-	every_owned_state = {
-		limit = {
-			OR = {
-				state = 165
-				state = 166
-				state = 167
-				state = 168
-				state = 940
-				state = 1313
-			}
-		}
-		set_state_flag = is_cnt_state
-	}
-	add_opinion_modifier = {
-		target = USA
-		modifier = SPR_legacy_of_1898
-	}
-}
-
 SPR_scw_black_monday_replace_current = {
+	remove_ideas = SPR_no_food_mierda
 	if = {
 		limit = {
 			has_idea = SPR_black_monday
@@ -1113,6 +1165,7 @@ SPR_scw_black_monday_replace_current = {
 }
 
 SPR_scw_black_monday_readd_old = {
+	add_ideas = SPR_no_food_mierda
 	if = {
 		limit = {
 			check_variable = { SPR_scw_bm_progress = 1 }
