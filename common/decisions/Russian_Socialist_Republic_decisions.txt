@@ -311,6 +311,9 @@ SOV_politburo_decisions = {
 				remove_idea = SOV_disgruntled_trade_unions_1
 				add_idea = SOV_disgruntled_trade_unions_2
 			}
+			hidden_effect = {
+				country_event = { id = russoc.227 days = 2 }
+			}
 		}
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove SOV_deal_with_trade_unions target: [From.GetName]"
@@ -626,6 +629,83 @@ SOV_politburo_decisions = {
 			activate_mission = SOV_secretariat_gains_power
 			set_temp_variable = { politburo_change = 2 }
 			SOV_change_politburo_hardliners = yes
+		}
+	}
+	SOV_petrograd_rallies_zinovievites = {
+		icon = GFX_decision_eng_propaganda_campaigns
+		allowed = { always = no } # manually activated
+		priority = 1
+		available= {
+			hidden_trigger = {
+				always = no
+			}
+		}
+		cancel_trigger = {
+			OR = {
+				195 = { NOT = { has_dynamic_modifier = { modifier = SOV_petrosoviet_zinoviev } } }
+				NOT = { has_country_flag = SOV_rkp_in_politburo }
+				SOV_molotov_in_power = no
+			}
+		}
+		
+		fire_only_once = yes
+		selectable_mission = no
+		is_good = no
+		days_mission_timeout = 80
+		
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel SOV_petrograd_rallies_zinovievites"			
+		}
+		timeout_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision timeout SOV_petrograd_rallies_zinovievites"
+			activate_mission = SOV_petrograd_rallies_zinovievites
+			set_temp_variable = { politburo_change = 3 }
+			SOV_change_politburo_left_communists = yes
+		}
+	}
+	SOV_moscow_rallies_opposition = {
+		icon = GFX_decision_eng_propaganda_campaigns
+		allowed = { always = no } # manually activated
+		priority = 1
+		available= {
+			hidden_trigger = {
+				always = no
+			}
+		}
+		cancel_trigger = {
+			OR = {
+				219 = { 
+					NOT = { 
+						has_dynamic_modifier = { modifier = SOV_mossoviet_uglanov } 
+						has_dynamic_modifier = { modifier = SOV_mossoviet_kamenev } 
+					} 
+				}
+				SOV_molotov_in_power = no
+			}
+		}
+		
+		fire_only_once = yes
+		selectable_mission = no
+		is_good = no
+		days_mission_timeout = SOV_moscow_rallies_opposition_timeout?110
+		
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel SOV_moscow_rallies_opposition"			
+		}
+		timeout_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision timeout SOV_moscow_rallies_opposition"
+			activate_mission = SOV_moscow_rallies_opposition
+			if = {
+				limit = { 
+					219 = { has_dynamic_modifier = { modifier = SOV_mossoviet_kamenev } }
+				}
+				set_temp_variable = { politburo_change = 2 }
+				SOV_change_politburo_left_communists = yes
+			}
+			else = {
+				set_temp_variable = { politburo_change = 2 }
+				SOV_change_politburo_bukharin = yes
+			}
 		}
 	}
 	SOV_concentrate_power_around_secretary = {
@@ -1487,7 +1567,7 @@ SOV_politburo_decisions = {
 		cancel_if_not_visible = yes
 		
 		state_target = yes
-		cost = 50
+		cost = SOV_smash_bukharinist_opposition_in_moscow_var?50
 		days_remove = 15 
 		fire_only_once = yes
 		ai_will_do = {
@@ -1496,11 +1576,51 @@ SOV_politburo_decisions = {
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove SOV_smash_bukharinist_opposition_in_moscow target: [From.GetName]"
 			set_country_flag = SOV_smash_bukharinist_opposition_in_moscow_completed
-			set_temp_variable = { politburo_change = -2 }
-			SOV_change_politburo_bukharin = yes
 			if = {
-				limit = { FROM = { has_dynamic_modifier = { modifier = SOV_mossoviet_uglanov } } }
-				remove_dynamic_modifier = { modifier = SOV_mossoviet_uglanov }
+				limit = { SOV_molotov_in_power = yes }
+				if = {
+					limit = { FROM = { has_dynamic_modifier = { modifier = SOV_mossoviet_kamenev } } }
+					remove_dynamic_modifier = { modifier = SOV_mossoviet_kamenev }
+					set_temp_variable = { politburo_change = -2 }
+					SOV_change_politburo_left_communists = yes
+					set_temp_variable = { politburo_change = -2 }
+					SOV_change_politburo_old_guard = yes
+				}
+				if = {
+					limit = {
+						has_country_flag = SOV_molotov_bukharin_moscow
+						FROM = { 
+							NOT = { has_dynamic_modifier = { modifier = SOV_mossoviet_uglanov } } 
+						}
+					}
+					add_dynamic_modifier = { modifier = SOV_mossoviet_uglanov }
+					set_temp_variable = { politburo_change = 2 }
+					SOV_change_politburo_bukharin = yes
+				}
+				else = {
+					if = {
+						limit = { 
+							FROM = { 
+								NOT = { has_dynamic_modifier = { modifier = SOV_mossoviet_zagorsky } } 
+							}
+						}
+						add_dynamic_modifier = { modifier = SOV_mossoviet_zagorsky }
+					}
+				}
+			}
+			else = {
+				if = {
+					limit = { FROM = { has_dynamic_modifier = { modifier = SOV_mossoviet_uglanov } } }
+					remove_dynamic_modifier = { modifier = SOV_mossoviet_uglanov }
+					set_temp_variable = { politburo_change = -2 }
+					SOV_change_politburo_bukharin = yes
+				}
+				if = {
+					limit = { FROM = { has_dynamic_modifier = { modifier = SOV_mossoviet_zagorsky } } }
+					remove_dynamic_modifier = { modifier = SOV_mossoviet_zagorsky }
+					set_temp_variable = { politburo_change = -2 }
+					SOV_change_politburo_hardliners = yes
+				}
 			}
 		}
 	}
@@ -2479,10 +2599,11 @@ RUS_Economy_decisions = {
 		allowed = { always = no } #manually activated
 
 		available = {
-			num_of_factories > 200
+			num_of_factories > 300
 			has_completed_focus = RUS_Defending_Our_Lifelines
 			has_completed_focus = RUS_SOV_Ural_Tractor_Plants
 			has_completed_focus = RUS_Nationalization_Of_Resources
+			has_country_flag = SOV_mass_collectivization_done
 		}
 
 		is_good = no
@@ -3136,6 +3257,14 @@ SOV_NKVD_decisions = {
 				limit = { has_id = 430 }
 				retire = yes
 			}
+			random_unit_leader = {
+				limit = { has_id = 431 }
+				retire = yes
+			}
+			random_unit_leader = {
+				limit = { has_id = 432 }
+				retire = yes
+			}
 			set_variable = { nkvd_operation_ongoing = 0 }
 		}
 		cancel_effect = {
@@ -3215,6 +3344,14 @@ SOV_NKVD_decisions = {
 			}
 			random_unit_leader = {
 				limit = { has_id = 430 }
+				retire = yes
+			}
+			random_unit_leader = {
+				limit = { has_id = 431 }
+				retire = yes
+			}
+			random_unit_leader = {
+				limit = { has_id = 432 }
 				retire = yes
 			}
 			set_variable = { nkvd_operation_ongoing = 0 }
@@ -3329,27 +3466,6 @@ SOV_NKVD_decisions = {
 		}
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove SOV_deal_with_left_srs target: [From.GetName]"
-			if = {
-				limit = {
-					has_idea = RUS_socialist_resistance
-				}
-				swap_ideas = {
-					remove_idea = RUS_socialist_resistance
-					add_idea = RUS_socialist_resistance_1
-				}
-			}
-			else_if = {
-				limit = {
-					has_idea = RUS_socialist_resistance_1
-				}
-				swap_ideas = {
-					remove_idea = RUS_socialist_resistance_1
-					add_idea = RUS_socialist_resistance_2
-				}
-			}
-			else = {
-				remove_ideas = RUS_socialist_resistance_2
-			}
 			country_event = nkvd.29
 			set_variable = { nkvd_operation_ongoing = 0 }
 		}
@@ -3392,27 +3508,6 @@ SOV_NKVD_decisions = {
 		}
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove SOV_deal_with_mensheviks target: [From.GetName]"
-			if = {
-				limit = {
-					has_idea = RUS_democrat_resistance
-				}
-				swap_ideas = {
-					remove_idea = RUS_democrat_resistance
-					add_idea = RUS_democrat_resistance_1
-				}
-			}
-			else_if = {
-				limit = {
-					has_idea = RUS_democrat_resistance_1
-				}
-				swap_ideas = {
-					remove_idea = RUS_democrat_resistance_1
-					add_idea = RUS_democrat_resistance_2
-				}
-			}
-			else = {
-				remove_ideas = RUS_democrat_resistance_2
-			}
 			country_event = nkvd.31
 			set_variable = { nkvd_operation_ongoing = 0 }
 		}
@@ -3609,7 +3704,10 @@ SOV_NKVD_decisions = {
 				has_country_flag = SOV_cleanse_gosplan_completed
 			}
 			
-			has_completed_focus = SOV_A_Party_Without_Weakness
+			OR = {
+				has_completed_focus = SOV_A_Party_Without_Weakness
+				has_completed_focus = SOV_Expand_The_Cheka
+			}
 		}
 		visible = {
 			NOT = { has_country_flag = SOV_politburo_bukharin_banned }
@@ -3707,13 +3805,12 @@ SOV_NKVD_decisions = {
 		}
 		visible = {
 			OR = {
-				has_country_flag = SOV_rkp_is_in_politburo
+				has_country_flag = SOV_rkp_in_politburo
 				has_country_flag = SOV_politburo_united_opposition_exist
 			}
 		}
 		cancel_trigger = {
 			SOV_left_communists_in_power = no
-			SOV_hardliners_in_power = no
 		}
 		cancel_if_not_visible = yes
 		cost = 50
@@ -4681,6 +4778,55 @@ RUS_Foreign_Policy_decisions = {
 		}
 		cancel_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove SOV_train_latvian_red_militias target: [From.GetName]"
+		}
+	}
+	
+	SOV_secret_deal_with_belarus = {
+		name = RUS_secret_deal_with_belarus
+		icon = generic_civil_support
+
+		available = {
+			NOT = {
+				has_war_with = FROM
+				has_war_with = GER
+			}
+		}
+
+		visible = {
+			is_in_faction = yes
+			is_subject = no
+			FROM = {
+				has_government = social_democrat
+				is_in_faction_with = GER
+				NOT = { owns_state = 243 }
+			}
+		}
+
+		targets = { WHR }
+		target_root_trigger = {
+			date > 1938.1.1
+			has_country_flag = soviet_russia_restored
+		}
+		target_trigger = {
+			FROM = {
+				OR = {
+					has_government = social_democrat
+					has_socialist_government = yes
+				}
+				is_in_faction_with = GER
+			}
+		}
+
+		cost = 75
+		fire_only_once = yes
+
+		ai_will_do = {
+			factor = 1000
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete SOV_secret_deal_with_belarus target: [From.GetName]"
+			FROM = { country_event = whrpol.56 }
 		}
 	}
 }
