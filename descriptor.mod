@@ -84,5 +84,5 @@ tags={
 	"National Focuses"
 }
 supported_version="1.16.*"
-path="C:/Users/acer/Documents/Paradox Interactive/Hearts of Iron IV/mod/kx"
+path="C:/Users/User/Desktop/Documents/Paradox Interactive/Hearts of Iron IV/mod/kx"
 remote_file_id="2206134307"
