@@ -22,7 +22,7 @@ shared_focus = {
 	
 	completion_reward = {
 		log = "[GetDateText]: [Root.GetName]: Focus RUS_black_monday"
-	add_political_power = 25
+		add_political_power = 25
 	}
 }
 
@@ -5573,7 +5573,6 @@ shared_focus = {
 	cost = 5
 	available = {
 		is_subject = no
-		has_war = no
 		RUS_focus_blocked_for_non_decided_socialists = yes
 	}
 	prerequisite = {
@@ -5587,19 +5586,94 @@ shared_focus = {
 	}
 	completion_reward = {
 		log = "[GetDateText]: [Root.GetName]: Focus RUS_Expansionism"
-		custom_effect_tooltip = RUS_Expansionism_tooltip		
-		add_war_support = 0.05
-		increase_ruling_party_popularity_by_3 = yes
-		hidden_effect = {
-			random_other_country = {
-				news_event = {
-					id = worldnews.8
-					days = 1
+		if = {
+			limit = { has_country_flag = soviet_russia_restored }
+			if = {
+				limit = { NOT = { country_exists = INT } }
+				save_global_event_target_as = KR_internationale_leader
+			}
+			else = {
+				if = {
+					limit = { has_global_flag = FRA_created_phalanstere }
+					FRA_add_to_phalanstere = yes
+				}
+				custom_effect_tooltip = tooltip_white_line
+				INT = {
+					diplomatic_relation = {
+						country = ROOT
+						relation = non_aggression_pact
+					}
+				}
+				custom_effect_tooltip = tooltip_white_line
+				every_other_country = {
+					limit = {
+						is_subject = no
+						is_in_faction_with = INT
+						NOT = {
+							tag = INT
+							tag = FIN
+							tag = EST
+							tag = LAT
+							tag = LIT
+							tag = WHR
+							tag = UKR
+							tag = POL
+						}
+					}
+					diplomatic_relation = {
+						country = ROOT
+						relation = non_aggression_pact
+					}
+				}
+				if = {
+					limit = {
+						INT = {
+							any_allied_country = {
+								OR = {
+									tag = FIN
+									tag = EST
+									tag = LAT
+									tag = LIT
+									tag = WHR
+									tag = UKR
+									tag = POL
+								}
+								is_subject = no
+							}
+						}
+					}
+					custom_effect_tooltip = tooltip_white_line
+					every_other_country = {
+						limit = {
+							is_subject = no
+							is_in_faction_with = INT
+							OR = {
+								tag = FIN
+
+								tag = LAT
+							}
+						}
+						country_event = socrus.114
+					}
 				}
 			}
-			country_event = {
-				id = worldtension.9
-				days = 1
+		}
+		else = {
+			custom_effect_tooltip = RUS_Expansionism_tooltip		
+			add_war_support = 0.05
+			increase_ruling_party_popularity_by_3 = yes
+
+			hidden_effect = {
+				random_other_country = {
+					news_event = {
+						id = worldnews.8
+						days = 1
+					}
+				}
+				country_event = {
+					id = worldtension.9
+					days = 1
+				}
 			}
 		}
 	}
@@ -5790,7 +5864,13 @@ shared_focus = {
 }
 shared_focus = {
 	id = RUS_Bring_Back_Cossacks
-	icon = GFX_RUS_caucasus
+	icon = {
+		trigger = { has_country_flag = soviet_russia_restored }
+		value = GFX_UKR_Red_Cossacks
+	}
+	icon = {
+		value = GFX_RUS_caucasus
+	}
 	relative_position_id = RUS_Enemy_In_The_South
 	x = -1
 	y = 1
@@ -6124,8 +6204,13 @@ shared_focus = {
 	id = RUS_Demand_West_Karelia
 	icon = GFX_focus_rus_finland
 	relative_position_id = RUS_Enemy_In_The_West
-	x = -1
+	x = -2
 	y = 1
+	offset = {
+		x = 1
+		y = 0
+		trigger = { has_country_flag = soviet_russia_restored }
+	}
 	cost = 2
 	available = {
 		is_subject = no
@@ -6155,6 +6240,199 @@ shared_focus = {
 	}
 	search_filters = { FOCUS_FILTER_POLITICAL }
 }
+shared_focus = {
+	id = RUS_Russo-Serbian_Friendship
+	icon = GFX_goal_serbia
+	relative_position_id = RUS_Enemy_In_The_West
+	x = 2
+	y = 1
+	cost = 2
+	allow_branch = {
+		NOT = { 
+			has_country_flag = soviet_russia_restored 
+			has_country_leader = {
+				name = "Alexandr Kerensky"
+				ruling_only = yes
+			}
+		}
+	}
+	available = {
+		is_subject = no
+		RUS_focus_blocked_for_non_decided_socialists = yes
+		
+	}
+	bypass = {
+		SER = { is_ally_of_ROOT = yes }
+	}
+	prerequisite = {
+		focus = RUS_Enemy_In_The_West
+	}
+	mutually_exclusive = {
+		focus = RUS_Sway_Bulgaria_To_Our_Side
+	}
+	ai_will_do = {
+		factor = 5
+		modifier = {
+			add = 15
+			SER = { is_faction_leader = yes }
+		}
+		modifier = {
+			add = 40
+			date > 1938.1.1
+			OR = {
+				has_idea = volunteer_only
+				has_idea = civilian_economy
+			}
+		}
+		modifier = {
+			factor = 0
+			has_game_rule = {
+				rule = BUL_foreign_policy
+				option = BUL_FOREIGN_POLICY_RUSSIA
+			}
+		}
+	}
+	completion_reward = {
+		log = "[GetDateText]: [Root.GetName]: Focus RUS_Russo-Serbian_Friendship"
+		activate_targeted_decision = { target = SER decision = RUS_Invite_Serbia }
+		activate_targeted_decision = { target = ROM decision = RUS_Invite_Romania }
+		activate_targeted_decision = { target = GRE decision = RUS_Invite_Greece }
+		if = {
+			custom_effect_tooltip = tooltip_white_line
+			limit = { NOT = { has_global_flag = balkan_war_ended } }
+			add_relation_modifier = {
+				target = SER
+				modifier = volunteer_limit_plus_one
+			}
+			SER = { country_event = rusfor.10 }
+			custom_effect_tooltip = if_they_accept_tt
+			effect_tooltip = {
+				add_ideas = RUS_SER_aid_RUS
+				SER = { add_ideas = RUS_SER_aid }
+			}
+			GRE = { country_event = rusfor.10 }
+			if = {
+				limit = { has_government = national_populist }
+				ROM = { country_event = rusfor.10 }
+			}
+		}
+	}
+	search_filters = { FOCUS_FILTER_POLITICAL }
+}
+shared_focus = {
+	id = RUS_Sway_Bulgaria_To_Our_Side
+	icon = {
+		trigger = { has_country_flag = soviet_russia_restored }
+		value = GFX_BUL_Front
+	}
+	icon = {
+		value = GFX_BUL_National_Catastrophe
+	}
+	relative_position_id = RUS_Enemy_In_The_West
+	x = 0
+	y = 1
+	offset = {
+		x = 1
+		y = 0
+		trigger = { has_country_flag = soviet_russia_restored }
+	}
+	cost = 2
+	available = {
+		is_subject = no
+		RUS_focus_blocked_for_non_decided_socialists = yes
+		has_right_democratic_government = no
+		has_authoritarian_government = no
+		OR = {
+			has_global_flag = balkan_war_ended
+			SER = { has_country_flag = BUL_surrender_no_war }
+		}
+		NOT = { has_country_flag = BUL_rus_declined_offer }
+	}
+	bypass = {
+		BUL = { is_ally_of_ROOT = yes }
+	}
+	prerequisite = {
+		focus = RUS_Enemy_In_The_West
+	}
+	mutually_exclusive = {
+		focus = RUS_Russo-Serbian_Friendship
+	}
+	ai_will_do = {
+		factor = 5
+		modifier = {
+			add = 15
+			OR = {
+				has_global_flag = balkan_war_ended
+				SER = { has_country_flag = BUL_surrender_no_war }
+			}
+		}
+		modifier = {
+			add = 40
+			date > 1938.1.1
+			OR = {
+				has_idea = volunteer_only
+				has_idea = civilian_economy
+			}
+		}
+		modifier = {
+			factor = 0
+			OR = {
+				has_game_rule = {
+					rule = BUL_foreign_policy
+					option = BUL_FOREIGN_POLICY_NEUTRALITY
+				}
+				has_game_rule = {
+					rule = BUL_foreign_policy
+					option = BUL_FOREIGN_POLICY_SERBIA
+				}
+				has_game_rule = {
+					rule = BUL_foreign_policy
+					option = BUL_FOREIGN_POLICY_AUSTRIA
+				}
+				has_game_rule = {
+					rule = BUL_foreign_policy
+					option = BUL_FOREIGN_POLICY_REICHSPAKT
+				}
+				has_game_rule = {
+					rule = BUL_foreign_policy
+					option = BUL_FOREIGN_POLICY_INTERNATIONALE
+				}
+				has_game_rule = {
+					rule = BUL_foreign_policy
+					option = BUL_FOREIGN_POLICY_UKRAINE
+				}
+			}
+		}
+	}
+	completion_reward = {
+		log = "[GetDateText]: [Root.GetName]: Focus RUS_Sway_Bulgaria_To_Our_Side"
+		if = {
+			limit = { BUL = { both_socialist_or_both_not_socialist = yes } }
+			effect_tooltip = {
+				activate_targeted_decision = { target = BUL decision = RUS_Invite_Bulgaria }
+			}
+			add_relation_modifier = {
+				target = BUL
+				modifier = volunteer_limit_plus_one
+			}
+		}
+		else_if = {
+			limit = { has_country_flag = soviet_russia_restored }
+			effect_tooltip = {
+				activate_targeted_decision = { target = BUL decision = SOV_prepare_coup_in_bulgaria }
+			}
+		}
+		SER = {
+			remove_opinion_modifier = { target = ROOT modifier = KR_pleased }
+			add_opinion_modifier = { target = ROOT modifier = KR_disapproves_of_govt }
+		}
+		hidden_effect = {
+			activate_targeted_decision = { target = BUL decision = RUS_Invite_Bulgaria }
+			activate_targeted_decision = { target = BUL decision = SOV_prepare_coup_in_bulgaria }
+		}
+	}
+	search_filters = { FOCUS_FILTER_POLITICAL }
+}
 
 shared_focus = {
 	id = RUS_Demand_North_Iran
@@ -6163,6 +6441,15 @@ shared_focus = {
 	x = -2
 	y = 4
 	cost = 2
+	allow_branch = {
+		NOT = { has_country_flag = soviet_russia_restored }
+		NOT = { 
+			has_country_leader = {
+				name = "Alexandr Kerensky"
+				ruling_only = yes
+			}
+		}
+	}
 	available = {
 		is_subject = no
 		if = {
@@ -6184,7 +6471,7 @@ shared_focus = {
 	prerequisite = { focus = RUS_Secure_Central_Asia }
 	ai_will_do = {
 		factor = 80
-		}
+	}
 	completion_reward = {
 		log = "[GetDateText]: [Root.GetName]: Focus RUS_Demand_North_Iran"
 		add_political_power = 15
@@ -6203,10 +6490,45 @@ shared_focus = {
 	}
 	search_filters = { FOCUS_FILTER_ARMY_BONUS FOCUS_FILTER_POLITICAL }
 }
+shared_focus = {
+	id = RUS_Turn_South
+	icon = GFX_focus_GER_align_middle_east
+	relative_position_id = RUS_Realpolitik
+	x = -2
+	y = 4
+	cost = 2
+	allow_branch = { has_country_flag = soviet_russia_restored }
+	available = {
+		is_subject = no
+		OR = {
+			NOT = { country_exists = GER }
+			GER = { has_idea = GER_danzig_treaty }
+		}
+	}
+	prerequisite = { focus = RUS_Into_The_Caucasus }
+	prerequisite = { focus = RUS_Secure_Central_Asia }
+	ai_will_do = {
+		factor = 80
+	}
+	completion_reward = {
+		log = "[GetDateText]: [Root.GetName]: Focus RUS_Demand_North_Iran"
+		add_political_power = 15
+		army_experience = 10
+		activate_targeted_decision = { target = PER decision = RUS_Attack_Country_default }
+		activate_targeted_decision = { target = TUR decision = RUS_Attack_Country_default }
+	}
+	search_filters = { FOCUS_FILTER_ARMY_BONUS FOCUS_FILTER_POLITICAL }
+}
 
 shared_focus = {
 	id = RUS_India_Policy
-	icon = GFX_focus_rus_india
+	icon = {
+		trigger = { has_country_flag = soviet_russia_restored }
+		value = GFX_goal_SKM_Emphasize_Our_Indian_Identity
+	}
+	icon = {
+		value = GFX_focus_rus_india
+	}
 	relative_position_id = RUS_Realpolitik
 	x = -2
 	y = 6
@@ -6232,6 +6554,7 @@ shared_focus = {
 	}
 	prerequisite = {
 		focus = RUS_Demand_North_Iran
+		focus = RUS_Turn_South
 	}
 	ai_will_do = {
 		factor = 5
@@ -6265,7 +6588,7 @@ shared_focus = {
 	x = -1
 	y = 1
 	offset = {
-		x = 2
+		x = 1
 		y = 0
 		trigger = { has_country_flag = soviet_russia_restored }
 	}
@@ -6379,8 +6702,13 @@ shared_focus = {
 	id = RUS_The_Final_Battle
 	icon = GFX_goal_MLT_fuck_germany
 	relative_position_id = RUS_Enemy_In_The_West
-	x = 0
+	x = -1
 	y = 2
+	offset = {
+		x = 1
+		y = 0
+		trigger = { has_country_flag = soviet_russia_restored }
+	}
 	cost = 2
 	available = {
 		is_subject = no
@@ -6470,7 +6798,7 @@ shared_focus = {
 		if = {
 			limit = {
 				country_exists = LAT
-				LIT = { is_subject = no }
+				LAT = { is_subject = no }
 			}
 			custom_effect_tooltip = unlocks_decision
 			custom_effect_tooltip = RUS_Attack_Latvia_tooltip
@@ -6478,7 +6806,7 @@ shared_focus = {
 		if = {
 			limit = {
 				country_exists = EST
-				LIT = { is_subject = no }
+				EST = { is_subject = no }
 			}
 			custom_effect_tooltip = unlocks_decision
 			custom_effect_tooltip = RUS_Attack_Estonia_tooltip
@@ -6498,6 +6826,15 @@ shared_focus = {
 		trigger = { has_country_flag = soviet_russia_restored }
 	}
 	cost = 2
+	allow_branch = {
+		NOT = { 
+			has_country_flag = soviet_russia_restored 
+			has_country_leader = {
+				name = "Alexandr Kerensky"
+				ruling_only = yes
+			}
+		}
+	}
 	available = {
 		is_subject = no
 		is_neighbor_of = POL
@@ -6533,12 +6870,17 @@ shared_focus = {
 	id = RUS_Demand_Bessarabia_Back
 	icon = GFX_focus_rus_bessarabia
 	relative_position_id = RUS_Enemy_In_The_West
-	x = 3
-	y = 3
-	offset = {
-		x = -1
-		y = 0
-		trigger = { has_country_flag = soviet_russia_restored }
+	x = 1
+	y = 2
+	
+	allow_branch = {
+		NOT = { 
+			has_country_flag = soviet_russia_restored 
+			has_country_leader = {
+				name = "Alexandr Kerensky"
+				ruling_only = yes
+			}
+		}
 	}
 	cost = 2
 	available = {
@@ -6554,59 +6896,14 @@ shared_focus = {
 		}
 	}
 	prerequisite = {
-		focus = RUS_The_Final_Battle
+		focus = RUS_Sway_Bulgaria_To_Our_Side
+		focus = RUS_Russo-Serbian_Friendship
 	}
 	ai_will_do = { factor = 20 }
 	completion_reward = {
 		log = "[GetDateText]: [Root.GetName]: Focus RUS_Demand_Bessarabia_Back"
 		add_stability = -0.025
 		unlock_decision_tooltip = RUS_Demand_Bessarabia 
-	}
-}
-shared_focus = {
-	id = RUS_Bring_Revolution_To_Balkans
-	icon = GFX_focus_rus_balkans
-	relative_position_id = RUS_Enemy_In_The_West
-	x = 3
-	y = 5
-	offset = {
-		x = -1
-		y = -1
-		trigger = { has_country_flag = soviet_russia_restored }
-	}
-	cost = 2
-	available = {
-		is_subject = no
-		has_completed_focus = RUS_Expansionism
-	}
-	cost = 2
-	prerequisite = { focus = RUS_Demand_Bessarabia_Back }
-	prerequisite = { focus = RUS_The_Final_Battle }
-	ai_will_do = {
-		factor = 15
-		modifier = {
-			factor = 0
-			has_war = yes
-		}
-		modifier = {
-			factor = 0
-			has_stability < 0.3
-		}
-	}
-	completion_reward = {
-		log = "[GetDateText]: [Root.GetName]: Focus RUS_Bring_Revolution_To_Balkans"
-		every_other_country = {
-			limit = {
-				OR = {
-					is_south_slav_tag = yes
-					tag = BUL
-					tag = GRE
-					tag = ALB
-				}
-				is_ally_of_ROOT = no
-			}
-			ROOT = { activate_targeted_decision = { target = PREV decision = RUS_Attack_Country_default } }
-		}
 	}
 }
 shared_focus = {
@@ -6988,15 +7285,161 @@ shared_focus = {
 	id = RUS_Join_The_Internationale
 	icon = GFX_goal_FRA_Internationale_Congress
 	relative_position_id = RUS_Enemy_In_The_West
+	x = -2
+	y = 3
+	cost = 5
+	available = {
+		is_subject = no		
+		NOT = { country_exists = GER }
+		NOT = {
+			is_in_faction_with = INT
+			has_war_with = INT
+			GER = { has_idea = GER_danzig_treaty }
+		}
+		if = {
+			limit = { SOV_hardliners_in_power = yes }
+			INT = { has_communist_government = yes }
+		}
+	}	
+	allow_branch = { has_country_flag = soviet_russia_restored }
+	prerequisite = {
+		focus = RUS_The_Final_Battle
+	}
+	mutually_exclusive = { focus = RUS_The_New_Internationale }
+	ai_will_do = {
+		factor = 100		
+		modifier = {
+			factor = 0
+			has_game_rule = {
+				rule = RUS_foreign_policy
+				option = RUS_FOREIGN_POLICY_MOSCOW_ACCORD
+			}
+		}
+	}
+	completion_reward = {
+		log = "[GetDateText]: [Root.GetName]: Focus RUS_Join_The_Internationale"
+		RUS_decrease_ruling_party_pop_large = yes
+		add_stability = 0.15
+		if = {
+			limit = { INT = { is_ai = no } }
+			INT = { country_event = russoc.100 }				
+		}
+		else = {
+			every_country = {
+				limit = {
+					OR = {
+						tag = RUS
+						is_in_faction_with = RUS
+					}
+				}
+				INT = { add_to_faction = PREV }
+			}
+			add_ideas = RUS_INT_industrialisation
+		}
+	}
+}
+
+shared_focus = {
+	id = RUS_The_New_Internationale
+	icon = GFX_focus_SOV_socialism_in_one_country
+	relative_position_id = RUS_Enemy_In_The_West
 	x = 0
 	y = 3
 	cost = 5
 	available = {
 		is_subject = no		
-		country_exists = INT
-		set_temp_variable = { target = INT }
-		at_peace_or_same_enemies_as_TARGET = yes
-		SOV_hardliners_in_power = no
+		is_faction_leader = yes
+		OR = {
+			NOT = { country_exists = GER }
+			GER = { has_idea = GER_danzig_treaty }
+		}
+		if = {
+			limit = {
+				has_communist_government = yes
+			}
+			INT = {
+				has_communist_government = no
+			}
+		}
+		else_if = {
+			limit = {
+				has_democratic_socialist_government = no
+			}
+			INT = {
+				has_democratic_socialist_government = yes
+			}
+		}
+		else = {
+			INT = { has_democratic_socialist_government = no }
+		}
+	}	
+	allow_branch = { has_country_flag = soviet_russia_restored }
+	prerequisite = {
+		focus = RUS_The_Final_Battle
+	}
+	mutually_exclusive = { focus = RUS_Join_The_Internationale }
+	ai_will_do = {
+		factor = 100
+		modifier = {
+			factor = 0
+			has_game_rule = {
+				rule = RUS_foreign_policy
+				option = RUS_FOREIGN_POLICY_INTERNATIONALE_LITE
+			}
+		}
+	}
+	completion_reward = {
+		log = "[GetDateText]: [Root.GetName]: Focus RUS_The_New_Internationale"
+		if = {
+			limit = { is_in_tech_sharing_group = phalanstere_research }
+			remove_from_tech_sharing_group = phalanstere_research
+			add_to_tech_sharing_group = russian_research
+		}	
+		if = {
+			limit = { NOT = { country_exists = INT } }
+			save_global_event_target_as = KR_internationale_leader
+		}
+		if = {
+			limit = {
+				has_communist_government = yes
+				INT = {
+					has_communist_government = no
+				}
+			}
+			custom_effect_tooltip = RUS_communist_invite_countries_tt
+		}
+		else_if = {
+			limit = {
+				has_democratic_socialist_government = no
+				INT = {
+					has_democratic_socialist_government = yes
+				}
+			}
+			custom_effect_tooltip = RUS_totalist_invite_countries_tt
+		}
+		else_if = {
+			limit = {
+				has_democratic_socialist_government = yes
+				INT = { has_democratic_socialist_government = no}
+			}
+			custom_effect_tooltip = RUS_syndieradsoc_invite_countries_tt
+		}
+		RUS_increase_ruling_party_pop_large = yes
+	}
+}
+shared_focus = {
+	id = RUS_Eastern_Bloc
+	icon = GFX_goal_FRA_Internationale_Congress
+	relative_position_id = RUS_Enemy_In_The_West
+	x = 1
+	y = 4
+	cost = 5
+	available = {
+		is_subject = no
+		OR = {
+			NOT = { country_exists = GER }
+			GER = { has_idea = GER_danzig_treaty }
+		}
 	}	
 	allow_branch = { has_country_flag = soviet_russia_restored }
 	prerequisite = {
@@ -7013,15 +7456,138 @@ shared_focus = {
 		}
 	}
 	completion_reward = {
-		log = "[GetDateText]: [Root.GetName]: Focus RUS_Join_The_Internationale"
-		INT = { country_event = russoc.100 }				
+		log = "[GetDateText]: [Root.GetName]: Focus RUS_Eastern_Bloc"
+		custom_effect_tooltip = RUS_Eastern_Bloc_tt
+	}
+}
+shared_focus = {
+	id = RUS_Rebuilding_Liberated_Lands
+	icon = GFX_goal_POL_Rebuilding_Krakow
+	relative_position_id = RUS_Enemy_In_The_West
+	x = 2
+	y = 3
+	cost = 2
+	available = {
+		is_subject = no
+		202 = { is_owned_by_ROOT_or_subject = yes }
+		206 = { is_owned_by_ROOT_or_subject = yes }
+		OR = {
+			96 = { is_owned_by_ROOT_or_subject = yes }
+			1091 = { is_owned_by_ROOT_or_subject = yes }				
+		}
+	}	
+	allow_branch = { has_country_flag = soviet_russia_restored }
+	prerequisite = {
+		focus = RUS_The_Final_Battle
+	}
+	ai_will_do = {
+		factor = 100
+	}
+	completion_reward = {
+		log = "[GetDateText]: [Root.GetName]: Focus RUS_Rebuilding_Liberated_Lands"
+		every_country = {
+			limit = {
+				OR = {
+					tag = RUS
+					has_autonomy_state = kr_soviet_republic_not_equal
+					has_autonomy_state = kr_autonomous_soviet_republic
+				}
+			}
+			add_timed_idea = {
+				idea = SOV_soc_rebuilding
+				days = 365
+			}
+		}
+			
 	}
 }
 
-
+shared_focus = {
+	id = RUS_Form_The_USSR
+	icon = GFX_SOV_ussr
+	relative_position_id = RUS_Enemy_In_The_West
+	x = 3
+	y = 4
+	cost = 2
+	available = {
+		is_subject = no
+		408 = { is_controlled_by_ROOT_or_subject = yes }
+		OR = {
+			202 = { is_controlled_by_ROOT_or_subject = yes }
+			206 = { is_controlled_by_ROOT_or_subject = yes }
+		}
+		OR = {
+			231 = { is_controlled_by_ROOT_or_subject = yes }
+			990 = { is_controlled_by_ROOT_or_subject = yes }
+			230 = { is_controlled_by_ROOT_or_subject = yes }
+		}
+		OR = {
+			96 = { is_controlled_by_ROOT_or_subject = yes }
+			1091 = { is_controlled_by_ROOT_or_subject = yes }				
+		}
+	}
+	prerequisite = {
+		focus = RUS_Rebuilding_Liberated_Lands
+	}
+	ai_will_do = {
+		factor = 100
+	}
+	completion_reward = {
+		log = "[GetDateText]: [Root.GetName]: Focus RUS_Form_The_USSR"
+		if = {
+			limit = {
+				OR = {
+					SOV_any_bolshevik_in_power = yes
+					has_country_leader = { ruling_only = yes name = "Dmitriy Ulyanov" }
+					has_country_leader = { ruling_only = yes name = "Sergey Syrtsov" }
+					has_country_leader = { ruling_only = yes name = "Semyon Budyonny" }
+					has_country_leader = { ruling_only = yes name = "Georgy Zhukov" }				
+					has_country_leader = { ruling_only = yes name = "Maria Spiridonova" }				
+					has_country_leader = { ruling_only = yes name = "Vladimir Volsky" }
+					has_country_leader = { ruling_only = yes name = "Lev Gershtein" }
+					has_country_leader = { ruling_only = yes name = "Mikhail Likhach" }
+					has_country_leader = { ruling_only = yes name = "Mikhail Gendelman" }
+					has_country_leader = { ruling_only = yes name = "Nikolay Ivanov" }
+					has_country_leader = { ruling_only = yes name = "Solomon Lozovskiy" }
+					has_country_leader = { ruling_only = yes name = "Rafail Abramovich" }
+					has_country_leader = { ruling_only = yes name = "Isaak Shteinberg" }
+					has_country_leader = { ruling_only = yes name = "Vladimir Karelin" }
+					has_country_leader = { ruling_only = yes name = "Yakov Fishman" }
+					has_country_leader = { ruling_only = yes name = "Vladimir Trutovsky"}
+				}
+				SOV_hardliners_in_power = no
+			}
+			unlock_decision_tooltip = SOV_Form_USSR
+		}
+		if = {
+			limit = { 
+				NOT = {
+					has_government = totalist 
+					has_government = syndicalist 
+				}
+			}
+			every_subject_country = {
+				add_popularity = { ideology = var:ROOT.current_party_ideology_group popularity = 0.2 }
+				add_one_random_civilian_factory = yes
+			}
+		}
+		else = {
+			every_subject_country = {
+				add_popularity = { ideology = var:ROOT.current_party_ideology_group popularity = 0.2 }
+				add_one_random_military_factory = yes
+			}
+		}
+	}
+}
 shared_focus = {
 	id = RUS_Secure_Afghanistan
-	icon = GFX_focus_rus_afghanistan
+	icon = {
+		trigger = { has_country_flag = soviet_russia_restored }
+		value = GFX_goal_AFG_Towards_Vanguard_Party
+	}
+	icon = {
+		value = GFX_focus_rus_afghanistan
+	}
 	relative_position_id = RUS_Realpolitik
 	x = -1
 	y = 5
@@ -7287,7 +7853,6 @@ shared_focus = {
 		every_other_country = {
 			limit = {
 				is_in_europe = yes
-				is_south_slav_tag = no
 				NOT = {
 					original_tag = BUL
 					original_tag = GRE
@@ -7312,6 +7877,15 @@ shared_focus = {
 		trigger = { has_country_flag = soviet_russia_restored }
 	}
 	cost = 3
+	allow_branch = {
+		NOT = { 
+			has_country_flag = soviet_russia_restored 
+			has_country_leader = {
+				name = "Alexandr Kerensky"
+				ruling_only = yes
+			}
+		}
+	}
 	available = {
 		has_completed_focus = RUS_Expansionism
 		is_subject = no
@@ -7345,11 +7919,15 @@ shared_focus = {
 	icon = GFX_focus_rus_alaska
 	relative_position_id = RUS_Enemy_In_The_East
 	x = 0
-	y = 3
-	offset = {
-		x = 2
-		y = 0
-		trigger = { has_country_flag = soviet_russia_restored }
+	y = 3	
+	allow_branch = {
+		NOT = { has_country_flag = soviet_russia_restored }
+		NOT = { 
+			has_country_leader = {
+				name = "Alexandr Kerensky"
+				ruling_only = yes
+			}
+		}
 	}
 	cost = 2
 	available = {
@@ -17564,7 +18142,10 @@ focus_tree = {
 				}
 				activate_targeted_decision = { target = DKB decision = RUS_Attack_Cossacks }
 				activate_targeted_decision = { target = KUB decision = RUS_Attack_Cossacks }
-				activate_targeted_decision = { target = KLY decision = RUS_Attack_Cossacks }			
+				activate_targeted_decision = { target = KLY decision = RUS_Attack_Cossacks }
+				activate_targeted_decision = { target = SER decision = RUS_Invite_Serbia }
+				activate_targeted_decision = { target = ROM decision = RUS_Invite_Romania }
+				activate_targeted_decision = { target = GRE decision = RUS_Invite_Greece }
 			}
 		}
 	}
