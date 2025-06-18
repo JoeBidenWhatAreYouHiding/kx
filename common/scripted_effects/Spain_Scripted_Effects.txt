@@ -1119,8 +1119,8 @@ SPR_civil_war_CAR_prelude_setup = {
 		limit = {
 			has_state_flag = is_car_state
 		}
+		set_demilitarized_zone = no
 		CAR = { add_state_core = PREV }
-		set_demilitarized_zone = yes
 	}
 	every_state = {
 		limit = {
@@ -1140,6 +1140,60 @@ SPR_civil_war_CAR_prelude_setup = {
 	}
 	every_state = {
 		limit = {
+			has_state_flag = is_car_state
+			NOT = { state = 172 }
+		}
+		set_demilitarized_zone = yes
+	}
+	CAR = {
+		division_template = {
+			name = "Guardia Carlista"
+			priority = 10
+			template_counter = 0
+			regiments = {
+				infantry = { x = 0 y = 0 }
+				infantry = { x = 0 y = 1 }
+				infantry = { x = 0 y = 2 }
+				infantry = { x = 1 y = 0 }
+				infantry = { x = 1 y = 1 }
+				infantry = { x = 1 y = 2 }
+			}
+			support = {
+				artillery = { x = 0 y = 0 }
+			}
+		}
+		172 = {
+			create_unit = {
+				division = "name = \"División de Infantería\" division_template = \"Guardia Carlista\" start_experience_factor = 0.1"
+				owner = CAR
+				id = 14
+				count = 4
+			}
+		}
+		add_opinion_modifier = {
+			target = CAR
+			modifier = KR_hostile
+		}
+		reverse_add_opinion_modifier = {
+			target = CAR
+			modifier = KR_hostile
+		}
+		if = {
+			limit = {
+				CNT = { exists = yes }
+			}
+			add_opinion_modifier = {
+				target = CNT
+				modifier = KR_hostile
+			}
+			reverse_add_opinion_modifier = {
+				target = CNT
+				modifier = KR_hostile
+			}
+		}
+	}
+	every_state = {
+		limit = {
 			is_core_of = SPR
 			is_core_of = CAR
 		}
@@ -1155,7 +1209,7 @@ SPR_civil_war_CNT_prelude_setup = {
 			has_state_flag = is_cnt_state
 		}
 		CNT = { add_state_core = PREV }
-		set_demilitarized_zone = yes
+		set_demilitarized_zone = no
 	}
 	every_state = {
 		limit = {
@@ -1170,12 +1224,76 @@ SPR_civil_war_CNT_prelude_setup = {
 	}
 	every_state = {
 		limit = {
+			has_state_flag = is_cnt_state
+			NOT = { state = 165 }
+			NOT = { state = 1313 }
+		}
+		set_demilitarized_zone = yes
+	}
+	every_state = {
+		limit = {
 			is_core_of = SPR
 			is_core_of = CNT
 		}
 		SPR = {
 			remove_state_core = PREV
 			add_state_claim = PREV
+		}
+	}
+	CNT = {
+		division_template = {
+			name = "Milicia Popular Revolucionaria"
+			priority = 10
+			template_counter = 0
+			regiments = {
+				infantry = { x = 0 y = 0 }
+				infantry = { x = 0 y = 1 }
+				infantry = { x = 0 y = 2 }
+				infantry = { x = 0 y = 2 }
+				infantry = { x = 1 y = 0 }
+				infantry = { x = 1 y = 1 }
+				infantry = { x = 1 y = 2 }
+			}
+			support = {
+				artillery = { x = 0 y = 0 }
+			}
+		}
+		165 = {
+			create_unit = {
+				division = "name = \"División de Infantería\" division_template = \"Milicia Popular Revolucionaria\" start_experience_factor = 0.1"
+				owner = CNT
+				id = 16
+				count = 3
+			}
+		}
+		1313 = {
+			create_unit = {
+				division = "name = \"División de Infantería\" division_template = \"Milicia Popular Revolucionaria\" start_experience_factor = 0.2"
+				owner = CNT
+				id = 16
+				count = 1
+			}
+		}
+		add_opinion_modifier = {
+			target = SPR
+			modifier = KR_hostile
+		}
+		reverse_add_opinion_modifier = {
+			target = SPR
+			modifier = KR_hostile
+		}
+		if = {
+			limit = {
+				CAR = { exists = yes }
+			}
+			add_opinion_modifier = {
+				target = CAR
+				modifier = KR_hostile
+			}
+			reverse_add_opinion_modifier = {
+				target = CAR
+				modifier = KR_hostile
+			}
 		}
 	}
 }
@@ -1334,9 +1452,19 @@ SRR_civil_war_end_effect = {
 			remove_idea = SPR_center_kingdom_intro_idea
 		}
 	}
-	remove_ideas = SPR_left_kingdom_intro_idea
-	remove_ideas = SPR_right_kingdom_intro_idea
-	remove_ideas = SPR_civil_war_idea
+	remove_ideas = {
+		SPR_left_kingdom_intro_idea
+		SPR_right_kingdom_intro_idea
+		SPR_civil_war_idea
+	}
+	delete_units = {
+		division_template = "Guardia Carlista"
+		disband = yes
+	}
+	delete_units = {
+		division_template = "Milicia Popular Revolucionaria"
+		disband = yes
+	}
 }
 CAR_setup_effect = {
 	CAR = {
@@ -1347,23 +1475,6 @@ CAR_setup_effect = {
 			set_demilitarized_zone = no
 			CAR = {
 				transfer_state = PREV
-			}
-		}
-		load_oob = "SCW_CAR"
-		if = {
-			limit = {
-				is_ai = yes
-				OR = {
-					SPR = {
-						is_ai = no
-					}
-					CNT = {
-						is_ai = no
-					}
-				}
-			}
-			hidden_effect = {
-				load_oob = SCW_CAR_reinforce1
 			}
 		}
 		inherit_technology = SPR
@@ -1427,6 +1538,19 @@ CAR_setup_effect = {
 		}
 		add_ideas = extensive_conscription
 		set_cosmetic_tag = CAR_PROV_GOV
+		
+		for_each_scope_loop = {
+			array = CAR.owned_controlled_states
+			limit = {
+				NOT = { state = 172 }
+			}
+			create_unit = {
+				division = "name = \"División de Infantería\" division_template = \"Guardia Carlista\" start_experience_factor = 0.1"
+				owner = CAR
+				count = 2
+				id = 14
+			}
+		}
 	}
 	SPR = {
 		if = {
@@ -1502,21 +1626,6 @@ CNT_setup_effect = {
 			CNT = {
 				transfer_state = PREV
 			}
-		}
-		load_oob = "SCW_CNT"
-		if = {
-			limit = {
-				is_ai = yes
-				OR = {
-					SPR = {
-						is_ai = no
-					}
-					CAR = {
-						is_ai = no
-					}
-				}
-			}
-			load_oob = SCW_CNT_reinforce1
 		}
 		inherit_technology = SPR
 		add_equipment_to_stockpile = {
@@ -1614,6 +1723,20 @@ CNT_setup_effect = {
 		add_radsoc_to_coalition = yes
 		add_synd_to_coalition = yes
 		add_tot_to_coalition = yes
+		
+		for_each_scope_loop = {
+			array = CNT.owned_controlled_states
+			limit = {
+				NOT = { state = 165 }
+				NOT = { state = 1313 }
+			}
+			create_unit = {
+				division = "name = \"División de Infantería\" division_template = \"Milicia Popular Revolucionaria\" start_experience_factor = 0.1"
+				owner = CNT
+				id = 16
+				count = 2
+			}
+		}
 	}
 	SPR = {
 		add_popularity = {
