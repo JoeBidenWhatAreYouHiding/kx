@@ -12,12 +12,25 @@ RUS_Integration_decisions = {
 		}
 		
 		available = {
-			has_completed_focus = RUS_Form_The_USSR
+			if = {
+				limit = {
+					FROM = { 
+						OR = {
+							has_autonomy_state = kr_soviet_republic_equal
+							has_autonomy_state = kr_soviet_republic_not_equal
+						}
+					}
+					has_completed_focus = RUS_Form_The_USSR
+				}
+			}
 			NOT = { has_war_together_with = FROM }
 			if = {
 				limit = { 
 					FROM = { 
-						has_autonomy_state = kr_autonomous_soviet_republic
+						OR = {
+							has_autonomy_state = kr_autonomous_soviet_republic
+							has_autonomy_state = kr_labour_commune
+						}
 					} 
 				}
 				is_neighbor_of = FROM
@@ -129,7 +142,17 @@ political_actions = {
 		days_mission_timeout = 100
 		selectable_mission = yes
 
-		ai_will_do = { factor = 0 }
+		ai_will_do = { 
+			factor = 0 
+			modifier = {
+				add = 100
+				overlord = { is_stronger_than_ROOT_and_not_vulnerable = no }
+			}
+			modifier = {
+				add = 50
+				UKR_borotbysts_in_power = yes
+			}
+		}
 
 		cancel_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision cancel SOV_subject_integration_timer target: [From.GetName]"
@@ -1053,6 +1076,7 @@ SOV_politburo_decisions = {
 		available = {
 			hidden_trigger = { always = no }
 		}
+		cancel_trigger = { SOV_zinoviev_in_power = no }
 		cancel_if_not_visible = yes				
 		
 		highlight_states = { highlight_state_targets = { state = 219 } }
@@ -2306,6 +2330,9 @@ SOV_politburo_decisions = {
 		available = {
 			SOV_zinoviev_in_power = yes
 		}
+		visible = {
+			SOV_zinoviev_in_power = yes
+		}
 		
 		cancel_if_not_visible = yes
 		
@@ -3323,9 +3350,10 @@ RUS_Economy_decisions = {
 		allowed = { always = no } #manually activated
 
 		available = {
-			num_of_military_factories > 100
+			has_built = { type = arms_factory value > 70 }
 			num_of_civilian_factories > 200
-			num_of_naval_factories > 20			
+			num_of_naval_factories > 20
+			oil > 200
 		}
 
 		is_good = no
@@ -4417,7 +4445,14 @@ SOV_NKVD_decisions = {
 		icon = GFX_decision_generic_assassination
 		allowed = { always = no }
 		available = {
-			has_completed_focus = SOV_Red_Marshal
+			OR = {
+				has_completed_focus = SOV_Red_Marshal
+				has_completed_focus = SOV_Subjugate_The_Army
+			}
+			custom_trigger_tooltip = {
+				tooltip = nkvd_operation_ongoing_NOT
+				check_variable = { nkvd_operation_ongoing = 0 }
+			}
 		}
 		visible = {
 			any_unit_leader = {
@@ -4499,10 +4534,11 @@ SOV_NKVD_decisions = {
 			set_variable = { nkvd_operation_ongoing = 0 }
 		}
 	}
-	SOV_case_of_british_clique = {
+	SOV_case_of_french_clique = {
 		icon = GFX_decision_generic_assassination
 		allowed = { always = no }
 		available = {
+			has_completed_focus = SOV_Subjugate_The_Army
 			custom_trigger_tooltip = {
 				tooltip = nkvd_operation_ongoing_NOT
 				check_variable = { nkvd_operation_ongoing = 0 }
@@ -4510,7 +4546,7 @@ SOV_NKVD_decisions = {
 		}
 		visible = {
 			any_unit_leader = {
-				has_unit_leader_flag = SOV_british_clique
+				has_unit_leader_flag = SOV_french_clique
 			}
 		}
 		cancel_trigger = {
@@ -4535,14 +4571,14 @@ SOV_NKVD_decisions = {
 			}
 		}
 		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision SOV_case_of_british_clique target: [From.GetName]"
+			log = "[GetDateText]: [Root.GetName]: Decision SOV_case_of_french_clique target: [From.GetName]"
 			hidden_effect = { add_command_power = -50 }
 			set_variable = { nkvd_operation_ongoing = 1 }
 		}
 		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove SOV_case_of_british_clique target: [From.GetName]"
+			log = "[GetDateText]: [Root.GetName]: Decision remove SOV_case_of_french_clique target: [From.GetName]"
 			every_unit_leader = {
-				limit = { has_unit_leader_flag = SOV_british_clique }
+				limit = { has_unit_leader_flag = SOV_french_clique }
 				retire = yes
 			}
 			if = {
@@ -4579,12 +4615,11 @@ SOV_NKVD_decisions = {
 					idea = SOV_Army_Purges_1
 					days = 500
 				}
-			}
-			activate_targeted_decision = { target = ROOT decision = SOV_case_Of_national_minorities }			
+			}			
 			set_variable = { nkvd_operation_ongoing = 0 }
 		}
 		cancel_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove SOV_case_of_british_clique target: [From.GetName]"
+			log = "[GetDateText]: [Root.GetName]: Decision remove SOV_case_of_french_clique target: [From.GetName]"
 			set_variable = { nkvd_operation_ongoing = 0 }
 		}
 	}
@@ -4614,6 +4649,7 @@ SOV_NKVD_decisions = {
 			OR = {
 				has_completed_focus = SOV_A_Party_Without_Weakness
 				has_completed_focus = SOV_Expand_The_Cheka
+				has_completed_focus = SOV_Cleanse_The_Party
 			}
 		}
 		visible = {
@@ -4725,6 +4761,7 @@ SOV_NKVD_decisions = {
 			OR = {
 				has_completed_focus = SOV_Ideological_Vigilance
 				has_completed_focus = SOV_The_Politburo_Supreme
+				has_completed_focus = SOV_Cleanse_The_Party
 			}
 		}
 		visible = {
@@ -4785,12 +4822,17 @@ SOV_NKVD_decisions = {
 				}
 				has_country_flag = SOV_cleanse_gosplan_completed
 			}			
-			has_completed_focus = SOV_A_Party_Without_Weakness
+			OR = {
+				has_completed_focus = SOV_A_Party_Without_Weakness
+				has_completed_focus = SOV_Cleanse_The_Party
+				has_completed_focus = SOV_Reject_NatBol_Herecy
+			}
 		}
 		visible = {
 			has_country_flag = SOV_politburo_hardliners_exist
 		}
 		cancel_trigger = {
+			SOV_hardliners_in_power = no
 			SOV_yezhov_in_power = no
 		}
 		cancel_if_not_visible = yes
@@ -4816,6 +4858,62 @@ SOV_NKVD_decisions = {
 		}
 		cancel_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove SOV_case_of_hardliners target: [From.GetName]"
+			set_variable = { nkvd_operation_ongoing = 0 }
+		}
+	}
+	SOV_case_of_old_bolsheviks = {
+		icon = GFX_decision_generic_assassination
+		allowed = { always = no }
+		available = {
+			custom_trigger_tooltip = {
+				tooltip = nkvd_operation_ongoing_NOT
+				check_variable = { nkvd_operation_ongoing = 0 }
+			}
+			NOT = {
+				has_idea = SOV_proletkult_krupskaya
+				has_idea = SOV_proletkult_lunacharsky
+				has_idea = SOV_proletkult_bubnov
+				has_idea = SOV_proletkult_bogdanov
+				has_country_flag = SOV_secretary_zinovievite
+				has_dynamic_modifier = { modifier = SOV_mossoviet_kamenev }				
+				has_dynamic_modifier = { modifier = SOV_mossoviet_uglanov }				
+			}			
+			has_completed_focus = SOV_The_Politburo_Supreme
+		}
+		visible = {
+			has_country_flag = SOV_politburo_old_guard_exists
+		}
+		cancel_trigger = {
+			SOV_yagoda_in_power = no
+			SOV_left_communists_in_power = no			
+		}
+		cancel_if_not_visible = yes
+		cost = 50
+		days_remove = 90
+		fire_only_once = yes
+		ai_will_do = {
+			factor = 100
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision SOV_case_of_old_bolsheviks target: [From.GetName]"
+			hidden_effect = { add_command_power = -50 }
+			set_variable = { nkvd_operation_ongoing = 1 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove SOV_case_of_old_bolsheviks target: [From.GetName]"
+			set_variable = { nkvd_operation_ongoing = 0 }	
+			clr_country_flag = SOV_politburo_old_guard_exists
+			set_temp_variable = { politburo_change = Politburo_OldGuard_Faction }
+			multiply_temp_variable = { politburo_change = -1 }
+			SOV_change_politburo_old_guard = yes
+			set_variable = { nkvd_operation_ongoing = 0 }
+			if = {
+				limit = { has_idea = SOV_society_of_old_bolsheviks }
+				remove_ideas = SOV_society_of_old_bolsheviks
+			}
+		}
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove SOV_case_of_old_bolsheviks target: [From.GetName]"
 			set_variable = { nkvd_operation_ongoing = 0 }
 		}
 	}
@@ -4867,7 +4965,7 @@ SOV_NKVD_decisions = {
 			set_variable = { nkvd_operation_ongoing = 0 }
 		}
 		cancel_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove SOV_case_of_hardliners target: [From.GetName]"
+			log = "[GetDateText]: [Root.GetName]: Decision remove SOV_case_of_workers_opposition target: [From.GetName]"
 			set_variable = { nkvd_operation_ongoing = 0 }
 		}
 	}
