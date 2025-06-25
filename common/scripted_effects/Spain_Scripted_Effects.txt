@@ -14,6 +14,22 @@ SPR_general_setup = {
 		var = civil_war_countdown_length_var
 		value = 30
 	}
+	set_variable = {
+		var = SPR.SPR_Gov_Influence
+		value = 0.35
+	}
+	set_variable = {
+		var = SPR.SPR_Neither_Influence
+		value = 0.00
+	}
+	set_variable = {
+		var = SPR.SPR_Opposing_Influence
+		value = 0.325
+	}
+	set_variable = {
+		var = SPR.SPR_Ally_Influence
+		value = 0.325
+	}
 	
 	# Nerd Council #
 	
@@ -437,7 +453,24 @@ SPR_left_kingdom_intro_setup_effect = {
 		}
 		activate_mission = SPR_bop_opposing_side_does_something_mission
 		set_country_flag = SPR_left_kingdom_intro
+		set_country_flag = SPR_influence_gui_visible
 		mark_focus_tree_layout_dirty = yes
+		set_variable = {
+			var = SPR.SPR_Gov_Influence
+			value = 0.30
+		}
+		set_variable = {
+			var = SPR.SPR_Neither_Influence
+			value = 0.00
+		}
+		set_variable = {
+			var = SPR.SPR_Opposing_Influence
+			value = 0.40
+		}
+		set_variable = {
+			var = SPR.SPR_Ally_Influence
+			value = 0.30
+		}
 	}	
 	add_popularity = {
 		ideology = syndicalist
@@ -510,7 +543,24 @@ SPR_right_kingdom_intro_setup_effect = {
 		}
 		activate_mission = SPR_bop_opposing_side_does_something_mission
 		set_country_flag = SPR_right_kingdom_intro
+		set_country_flag = SPR_influence_gui_visible
 		mark_focus_tree_layout_dirty = yes
+		set_variable = {
+			var = SPR.SPR_Gov_Influence
+			value = 0.30
+		}
+		set_variable = {
+			var = SPR.SPR_Neither_Influence
+			value = 0.00
+		}
+		set_variable = {
+			var = SPR.SPR_Opposing_Influence
+			value = 0.40
+		}
+		set_variable = {
+			var = SPR.SPR_Ally_Influence
+			value = 0.30
+		}
 	}
 	add_popularity = {
 		ideology = market_liberal
@@ -555,11 +605,14 @@ SPR_right_republic_intro_setup_effect = {
 	add_ideas = SPR_Rightist_Fury
 }
 
-SPR_bop_finale_setup_allies = {
-	clr_country_flag = SPR_bop_finale_without_allies
+SPR_bop_finale_setup = {
 	clr_country_flag = SPR_all_car_states_cleared
 	clr_country_flag = SPR_all_cnt_states_cleared
-	set_country_flag = SPR_bop_finale_with_allies
+	set_country_flag = SPR_bop_finale_flag
+	set_variable = {
+		var = SPR.SPR_Neither_Influence
+		value = SPR.SPR_Opposing_Influence
+	}
 	remove_power_balance = {
 		id = SPR_burning_house_of_cards
 	}
@@ -574,24 +627,101 @@ SPR_bop_finale_setup_allies = {
 		set_demilitarized_zone = yes
 	}
 }
-
-SPR_bop_finale_setup_no_allies = {
-	clr_country_flag = SPR_bop_finale_with_allies
-	clr_country_flag = SPR_all_car_states_cleared
-	clr_country_flag = SPR_all_cnt_states_cleared
-	set_country_flag = SPR_bop_finale_without_allies
-	remove_power_balance = {
-		id = SPR_burning_house_of_cards
+SPR_allied_influence_calc_effect = {
+	clamp_variable = {
+		var = SPR.SPR_Gov_Influence
+		min = 0
+		max = 1
 	}
-	every_state = {
+	clamp_variable = {
+		var = SPR.SPR_Neither_Influence
+		min = 0
+		max = 1
+	}
+	clamp_variable = {
+		var = SPR.SPR_Ally_Influence
+		min = 0
+		max = 1
+	}
+	clamp_variable = {
+		var = SPR.SPR_Opposing_Influence
+		min = 0
+		max = 1
+	}
+	add_to_temp_variable = { combined_influence = SPR.SPR_Gov_Influence }
+	add_to_temp_variable = { combined_influence = SPR.SPR_Ally_Influence }
+	if = {
+		limit = {
+			SPR_bop_finale_trigger = yes
+		}
+		add_to_temp_variable = { combined_influence = SPR.SPR_Neither_Influence }
+	}
+	else = {
+		add_to_temp_variable = { combined_influence = SPR.SPR_Opposing_Influence }
+	}
+	log = "[?combined_influence]"
+	subtract_from_temp_variable = { combined_influence = 1 }
+	if = {
 		limit = {
 			OR = {
-				has_state_flag = is_car_state
-				has_state_flag = is_cnt_state
+				check_variable = { combined_influence < 0 }
+				check_variable = { combined_influence > 0 }
 			}
 		}
-		set_demilitarized_zone = no
-		set_demilitarized_zone = yes
+		divide_temp_variable = { combined_influence = 3 }
+		log = "[?combined_influence]"
+		subtract_from_variable = { SPR.SPR_Ally_Influence = combined_influence }
+		subtract_from_variable = { SPR.SPR_Gov_Influence = combined_influence }
+		if = {
+			limit = {
+				SPR_bop_finale_trigger = yes
+			}
+			subtract_from_variable = { SPR.SPR_Neither_Influence = combined_influence }
+		}
+		else = {
+			subtract_from_variable = { SPR.SPR_Opposing_Influence = combined_influence }
+		}
+	}
+	if = {
+		limit = {
+			SPR_bop_finale_trigger = yes
+		}
+		SPR_motion_of_no_confidence_vote_calc = yes
+	}
+}
+
+SPR_motion_of_no_confidence_vote_calc = {
+	clr_country_flag = SPR_motion_of_no_confidence_vote_will_win
+	clr_country_flag = SPR_motion_of_no_confidence_vote_will_fail
+	add_to_temp_variable = { ally_vote = SPR.SPR_Ally_Influence }
+	divide_temp_variable = { ally_vote = 4 }
+	multiply_temp_variable = { ally_vote = 3 }
+	add_to_temp_variable = { neither_vote = SPR.SPR_Neither_Influence }
+	divide_temp_variable = { neither_vote = 2 }
+	add_to_temp_variable = { gov_vote = SPR.SPR_Gov_Influence }
+	divide_temp_variable = { gov_vote = 4 }
+	multiply_temp_variable = { gov_vote = 3 }
+	add_to_temp_variable = { vote_result = gov_vote }
+	add_to_temp_variable = { vote_result = neither_vote }
+	subtract_from_variable = { vote_result = ally_vote }
+	
+	log = "SPR_motion_of_no_confidence_vote_calc effect results:"
+	log = "ally_vote: [?ally_vote]"
+	log = "neither_vote: [?neither_vote]"
+	log = "gov_vote: [?gov_vote]"
+	log = "final vote result: [?vote_result]"
+	
+	if = {
+		limit = {
+			check_variable = { vote_result > 0.65 }
+		}
+		set_country_flag = SPR_motion_of_no_confidence_vote_will_win
+	}
+	else_if = {
+		limit = {
+			check_variable = { vote_result < 0.65 }
+		}
+		set_country_flag = SPR_motion_of_no_confidence_vote_will_fail
 	}
 }
 
@@ -1068,7 +1198,6 @@ SPR_scw_black_monday_readd_old = {
 
 SPR_civil_war_kingdom_debuffs_setup = {
 	end_coalition = yes
-	
 	remove_ideas = {
 		SPR_left_kingdom_intro_idea
 		SPR_center_kingdom_intro_idea
