@@ -3,7 +3,7 @@ foreign_politics = {
 	CONST_minority_generic_borderwar = {
 		icon = GFX_decision_generic_nationalism
 		#cost = 40
-		fire_only_once = yes
+		#fire_only_once = yes
 		on_map_mode = map_and_decisions_view
 		state_target = yes
 		visible = {
@@ -27,12 +27,14 @@ foreign_politics = {
 		available = {
 			NOT = {
 				has_war_with = FROM
+				has_global_flag = AUS_collapsed_stable
+				custom_trigger_tooltip = {
+					tooltip = tt_no_doubles_raid
+					is_in_array = { THIS.CONST_state_attempt = FROM } #FROM must not have attempted po raid this state
+				}
 			}
 			has_global_flag = AUS_collapsed
 			has_border_war = no
-			NOT = {
-				has_global_flag = AUS_collapsed_stable #Or whatever flag stabilizes the post-collapse period
-			}
 		}
 		target_trigger = {
 			FROM = {
@@ -67,6 +69,10 @@ foreign_politics = {
 			FROM = {
 				save_event_target_as = BOTDE_defender_state
 				set_state_flag = BOTDE_defender_state_flag
+				add_to_array = {
+					array = ROOT.CONST_state_attempt
+					value = FROM
+				}
 			}
 			random_owned_state = {
 				limit = {
@@ -109,6 +115,7 @@ foreign_politics = {
 		activation = {
 			always = no
 		}
+		fire_only_once = yes
 		target_trigger = {
 			FROM = {
 				is_in_array = { global.AUS_all_possible_array = THIS }
@@ -160,6 +167,7 @@ foreign_politics = {
 		allowed = {
 			always = no
 		}
+		fire_only_once = yes
 		target_trigger = {
 			FROM = {
 				is_in_array = { global.AUS_all_possible_array = THIS }
@@ -197,12 +205,14 @@ foreign_politics = {
 					add_claim_by = ROOT
 				}
 			}
-			white_peace = FROM
+			
 			hidden_effect = {
 				FROM = {
 					CONST_generic_peace_post = yes
 				}
 			}
+			
+			white_peace = FROM
 		}
 	}
 	
@@ -211,6 +221,7 @@ foreign_politics = {
 		allowed = {
 			always = no
 		}
+		fire_only_once = yes
 		target_trigger = {
 			FROM = {
 				is_in_array = { global.AUS_all_possible_array = THIS }
@@ -248,12 +259,13 @@ foreign_politics = {
 					add_claim_by = ROOT
 				}
 			}
-			white_peace = FROM
 			hidden_effect = {
 				FROM = {
 					CONST_generic_peace_post = yes
 				}
 			}
+			white_peace = FROM
+			
 		}
 	}
 	
@@ -282,6 +294,12 @@ foreign_politics = {
 		}
 		ai_will_do = {
 			base = 1
+			modifier = {
+				factor = 0
+				FROM = {
+					surrender_progress > 0.8
+				}
+			}
 		}
 		available = {
 			custom_trigger_tooltip = {
@@ -325,6 +343,207 @@ foreign_politics = {
 				country_event = {
 					id = constituents.57
 				}
+			}
+		}
+	}
+	
+	CRO_restore_illyria = {
+		cost = 50
+		allowed = {
+			tag = CRO
+		}
+		visible = {
+			NOT = {
+				has_cosmetic_tag = ILL
+			}
+			has_global_flag = AUS_collapsed
+		}
+		ai_will_do = {
+			base = 1
+		}
+		available = {
+			BOS = {
+				all_core_state = {
+					is_owned_by = CRO
+				}
+			}
+			has_war = no
+		}
+		fire_only_once = yes
+		complete_effect = {
+			BOS = {
+				every_core_state = {
+					add_core_of = CRO
+				}
+			}
+			set_cosmetic_tag = ILL
+			add_political_power = 100
+		}
+	}
+	
+	CRO_karlovac_borderwar = {
+		allowed = {
+			tag = CRO
+		}
+		visible = {
+			NOT = {
+				owns_state = 1099
+			}
+		}
+		ai_will_do = {
+			base = 1
+		}
+		available = {
+			103 = {
+				is_in_home_area = yes
+				is_owned_by = CRO
+				owner = {
+					NOT = {
+						has_war_with = CRO
+					}
+				}
+			}
+			has_war = no
+		}
+		fire_only_once = yes
+		complete_effect = {
+			start_border_war = {
+				change_state_after_war = yes
+				attacker = {
+					state = 109
+					num_provinces = 5
+					on_win = constituents.61
+					modifier = 0.1
+					dig_in_factor = 0
+					terrain_factor = 0
+				}	
+				defender = {
+					state = 1099
+					num_provinces = 1
+					on_lose = constituents.61
+				}
+			}
+		}
+	}
+	
+	HUN_szekler_autonomy = {
+		allowed = {
+			tag = HUN
+		}
+		icon = GFX_decision_szekler_battle_flag
+		visible = {
+			has_global_flag = AUS_collapsed
+			owns_state = 789
+			NOT = {
+				789 = {
+					is_in_home_area = yes
+				}
+			}
+		}
+		ai_will_do = {
+			base = 1000
+		}
+		available = {
+			789 = {
+				is_in_home_area = no
+				is_owned_and_controlled_by = HUN
+			}
+			has_war = no
+		}
+		fire_only_once = yes
+		complete_effect = {
+			789 = {
+				add_core_of = SZK
+				transfer_state_to = SZK
+			}
+			SZK = {
+				get_current_government_type = yes
+				HUN = {
+					puppet = PREV
+				}
+				restore_previous_government_type = yes
+				SZK_collapse_setup = yes
+			}
+		}
+	}
+	
+	HUN_integrate_szekler = {
+		allowed = {
+			tag = HUN
+		}
+		icon = GFX_decision_hungary_flag
+		visible = {
+			SZK = {
+				is_subject_of = HUN
+				exists = yes
+			}
+			has_global_flag = AUS_collapsed
+		}
+		ai_will_do = {
+			base = 1000
+		}
+		available = {
+			SZK = {
+				is_neighbor_of = ROOT
+				is_subject_of = ROOT
+			}
+			has_war = no
+			any_owned_state = {
+				any_neighbor_state = {
+					is_owned_by = SZk
+				}
+				is_in_home_area = yes
+			}
+		}
+		fire_only_once = yes
+		complete_effect = {
+			annex_country = {
+				target = SZK
+				transfer_troops = yes
+			}
+		}
+	}
+	
+	HUN_expand_szekler = {
+		allowed = {
+			tag = HUN
+		}
+		icon = GFX_decision_szekler
+		visible = {
+			SZK = {
+				is_subject_of = HUN
+				exists = yes
+			}
+			has_global_flag = AUS_collapsed
+		}
+		ai_will_do = {
+			base = 100
+		}
+		on_map_mode = map_only
+		state_target = yes
+		target_trigger = {
+			FROM = {
+				is_core_of = TRS
+				is_owned_by = HUN
+				any_neighbor_state = {
+					is_owned_by = SZk
+				}
+			}
+		}
+		available = {
+			SZK = {
+				is_neighbor_of = ROOT
+				is_subject_of = ROOT
+				capital_scope = {
+					is_in_home_area = yes
+				}
+			}
+			has_war = no
+		}
+		fire_only_once = yes
+		complete_effect = {
+			SZK = {
+				transfer_state = FROM
 			}
 		}
 	}
@@ -1384,7 +1603,7 @@ CONST_seize_austrian_navy = { #Fiume should get its own decision to seize a very
 		}
 		complete_effect = {
 			start_border_war = {
-				change_state_after_war = yes
+				change_state_after_war = no
 				attacker = {
 					state = 1105
 					num_provinces = 4
