@@ -19698,3 +19698,266 @@ country_event = { #Ming Flag Picker
 		else = { set_cosmetic_tag = LEC_MING_MING }
 	}
 }
+
+country_event = { #Austria removed from council
+	id = lec.161
+	title = lec.161.t
+	desc = lec.161.d
+	picture = GFX_event_AUS_cabinet_republic
+	
+	fire_only_once = yes
+	is_triggered_only = yes
+	
+	option = {
+		name = lec.161.a
+		add_political_power = -25
+		remove_from_array = { global.LEC_voters = AUS }
+		clr_country_flag = legation_council_vote
+		remove_ideas = {
+			LEC_generic_open_door
+		}
+		remove_ideas = {
+			LEC_better_open_door
+		}
+		remove_opinion_modifier = { target = LEC modifier = LEC_member }
+		reverse_add_opinion_modifier = { target = LEC modifier = LEC_removed_council }
+		LEC = {
+			remove_opinion_modifier = { target = ROOT modifier = LEC_member }
+		}
+		ROOT = {
+			diplomatic_relation = {
+				country = LEC
+				relation = guarantee
+				active = no
+			}
+			diplomatic_relation = {
+				country = LEC
+				relation = military_access
+				active = no
+			}
+			diplomatic_relation = {
+				country = LEC
+				relation = non_aggression_pact
+				active = no
+			}
+		}
+		for_each_scope_loop = {
+			array = global.LEC_voters
+			THIS = {
+				country_event = {
+					id = lec.162
+					days = 5
+				}
+			}
+		}
+	}
+}
+
+country_event = { #LEC removed Austria
+	id = lec.162
+	immediate = { log = "[GetDateText]: [Root.GetName]: event lec.162" }
+	title = lec.162.t
+	desc = lec.162.d
+	picture = GFX_event_AUS_cabinet_republic
+	is_triggered_only = yes
+	trigger = {
+		NOT = {
+			tag = AUS
+		}
+	}
+	option = {	# Ok
+		name = lec.162.a
+		ai_chance = {
+			factor = 5
+		}
+	}
+}
+
+country_event = { #Kick Austria off the Council?
+	id = lec.163
+	immediate = { log = "[GetDateText]: [Root.GetName]: event lec.163" }
+	title = lec.163.t
+	desc = lec.163.d
+	fire_only_once = yes
+	picture = GFX_report_event_generic_diplomacy4
+	is_triggered_only = yes
+	option = {	#Vote away, gentlemen
+		name = lec.163.a
+		set_global_flag = legation_vote_ongoing
+		activate_mission = LEC_vote_timer
+		set_global_flag = LEC_AUS_removal
+		country_event = {
+			id = lec.164 #Check event lec.86 for Germany's removal - currently adding ability to remove Austria from the Legation Council after its collapse (or Liebenfels)
+			days = 15
+		}
+		for_each_scope_loop = {
+			array = global.LEC_voters
+			THIS = {
+				country_event = lec.166
+			}
+		}
+	}
+}
+
+country_event = { #Kick out Austria vote result
+	id = lec.164
+	immediate = { log = "[GetDateText]: [Root.GetName]: event lec.164" }
+	title = lec.164.t
+	desc = lec.164.d
+	fire_only_once = yes
+	picture = GFX_report_event_generic_diplomacy2
+	is_triggered_only = yes
+	option = {	#They're kicked out
+		name = lec.164.a
+		AUS = {
+			country_event = {
+				id = lec.161
+				days = 1
+			}
+		}
+		QIE = {
+			country_event = {
+				id = lec.165
+				days = 5
+			}
+		}
+		GXC = {
+			country_event = {
+				id = lec.165
+				days = 5
+			}
+		}
+		SZC = {
+			country_event = {
+				id = lec.165
+				days = 5
+			}
+		}
+		FNG = {
+			country_event = {
+				id = lec.165
+				days = 5
+			}
+		}
+		hidden_effect = {
+			news_event = { id = worldnews.238 days = 1 }
+			country_event = worldtension.28
+		}
+		clear_variable = global.legations_yes_votes
+		clear_variable = global.legations_no_votes
+		clear_variable = global.legations_abstain_votes
+		clr_global_flag = LEC_AUS_removal
+		clr_global_flag = legation_vote_ongoing
+		for_each_scope_loop = {
+			array = global.LEC_voters
+			THIS = {
+				if = {
+					limit = {
+						has_country_flag = LEC_we_voted_this_time
+					}
+					clr_country_flag = LEC_we_voted_this_time
+				}
+			}
+		}
+
+		for_each_scope_loop = {
+			array = global.LEC_voters
+			THIS = {
+				if = {
+					limit = {
+						NOT = { tag = AUS }
+					}
+					country_event = lec.162
+				}
+			}
+		}
+
+		trigger = {
+			AND = {
+				check_variable = { global.legations_yes_votes > global.legations_no_votes }
+				check_variable = { global.legations_yes_votes > 0 }
+			}
+		}
+	}
+	option = {	#Denied!
+		name = lec.164.b
+		clear_variable = global.legations_yes_votes
+		clear_variable = global.legations_no_votes
+		clear_variable = global.legations_abstain_votes
+		clr_global_flag = LEC_AUS_removal
+		clr_global_flag = legation_vote_ongoing
+		for_each_scope_loop = {
+			array = global.LEC_voters
+			THIS = {
+				if = {
+					limit = {
+						has_country_flag = LEC_we_voted_this_time
+					}
+					clr_country_flag = LEC_we_voted_this_time
+				}
+			}
+		}
+		for_each_scope_loop = {
+			array = global.LEC_voters
+			THIS = {
+				country_event = lec.27
+			}
+		}
+		trigger = {
+			NOT = {
+				check_variable = { global.legations_yes_votes > global.legations_no_votes }
+			}
+		}
+	}
+}
+country_event = { #Chinese leader is told that Germany's concession has been removed
+	id = lec.165
+	immediate = { log = "[GetDateText]: [Root.GetName]: event lec.88" }
+	title = lec.165.t
+	desc = lec.165.d
+	picture = GFX_report_event_LEC_shanghai_river
+	is_triggered_only = yes
+	trigger = {
+		has_country_flag = legation_council_member
+	}
+	option = {	#ok very good
+		name = lec.165.a
+		add_political_power = 5
+	}
+}
+
+country_event = { #LEC vote on removing Austria
+	id = lec.166
+	immediate = { log = "[GetDateText]: [Root.GetName]: event lec.166" }
+	title = lec.166.t
+	desc = {
+		text = lec.166.d.noaus
+		trigger = {
+			NOT = {
+				tag = AUS
+			}
+		}
+	}
+	desc = {
+		text = lec.166.d.aus
+		trigger = {
+			tag = AUS
+		}
+	}
+	picture = GFX_report_event_generic_diplomacy4
+	is_triggered_only = yes
+	option = {	#Seems a little sketch ngl
+		name = lec.166.a
+		trigger = {
+			NOT = {
+				tag = AUS
+			}
+		}
+	}
+	option = {	#This is silly
+		name = lec.166.b
+		trigger = {
+			tag = AUS
+		}
+	}
+}
