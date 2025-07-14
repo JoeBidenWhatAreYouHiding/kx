@@ -14,6 +14,10 @@ SPR_general_setup = {
 		var = civil_war_countdown_length_var
 		value = 30
 	}
+	set_variable = {
+		var = SPR.amount_of_gov_states_takeable
+		value = 0
+	}
 	
 	# Nerd Council #
 	
@@ -1154,6 +1158,23 @@ SPR_civil_war_prelude_setup = {
 	}
 }
 SPR_civil_war_CAR_prelude_setup = {
+	SPR = {
+		if = {
+			limit = {
+				has_country_flag = SPR_right_kingdom_intro
+			}
+			send_equipment_fraction = {
+				value = 0.5
+				target = CAR
+			}
+		}
+		else = {
+			send_equipment_fraction = {
+				value = 0.3
+				target = CAR
+			}
+		}
+	}
 	every_state = {
 		limit = {
 			has_state_flag = is_car_state
@@ -1282,6 +1303,23 @@ SPR_civil_war_CAR_prelude_setup = {
 	}
 }
 SPR_civil_war_CNT_prelude_setup = {
+	SPR = {
+		if = {
+			limit = {
+				has_country_flag = SPR_left_kingdom_intro
+			}
+			send_equipment_fraction = {
+				value = 0.5
+				target = CNT
+			}
+		}
+		else = {
+			send_equipment_fraction = {
+				value = 0.3
+				target = CNT
+			}
+		}
+	}
 	every_state = {
 		limit = {
 			has_state_flag = is_cnt_state
@@ -1404,6 +1442,36 @@ SPR_civil_war_CNT_prelude_setup = {
 SPR_civil_war_start_effect = {
 	set_global_flag = spanish_civil_war
 	set_global_flag = spanish_civil_war_happened
+	random_other_country = {
+		limit = {
+			is_spanish_civil_war_tag = no
+		}
+		news_event = {
+			id = worldnews.4
+			days = 1
+		}
+	}
+	random_country = {
+		limit = {
+			is_spanish_civil_war_tag = yes
+			exists = yes
+		}
+		country_event = {
+			id = worldtension.4
+			days = 1
+		}
+	}
+	every_country = {
+		limit = {
+			is_spanish_civil_war_tag = yes
+		}
+		set_stability = 0.25
+		SPR_civil_war_idea
+		SPR_black_monday_scw
+		add_ideas = extensive_conscription
+		add_ideas = closed_economy
+		add_ideas = war_economy
+	}
 	if = {
 		limit = {
 			SPR = { exists = yes }
@@ -1538,6 +1606,75 @@ SRR_civil_war_end_effect = {
 	mark_focus_tree_layout_dirty = yes
 	if = {
 		limit = {
+			NOT = {
+				tag = CNT
+			}
+		}
+		every_state = {
+			limit = {
+				is_core_of = CNT
+			}
+			CNT = {
+				remove_state_core = PREV
+			}
+		}
+		every_state = {
+			limit = {
+				is_claimed_by = CNT
+			}
+			CNT = {
+				remove_state_claim = PREV
+			}
+		}
+	}
+	if = {
+		limit = {
+			NOT = {
+				tag = CAR
+			}
+		}
+		every_state = {
+			limit = {
+				is_core_of = CAR
+			}
+			CAR = {
+				remove_state_core = PREV
+			}
+		}
+		every_state = {
+			limit = {
+				is_claimed_by = CAR
+			}
+			CAR = {
+				remove_state_claim = PREV
+			}
+		}
+	}
+	if = {
+		limit = {
+			NOT = {
+				tag = SPR
+			}
+		}
+		every_state = {
+			limit = {
+				is_core_of = SPR
+			}
+			SPR = {
+				remove_state_core = PREV
+			}
+		}
+		every_state = {
+			limit = {
+				is_claimed_by = SPR
+			}
+			SPR = {
+				remove_state_claim = PREV
+			}
+		}
+	}
+	if = {
+		limit = {
 			tag = SPR
 		}
 		set_country_flag = aftermath_of_the_civil_war
@@ -1599,6 +1736,10 @@ SRR_civil_war_end_effect = {
 		division_template = "Milicia Popular Revolucionaria"
 		disband = yes
 	}
+	add_ideas = limited_conscription
+	add_ideas = export_focus
+	add_ideas = civilian_economy
+	set_stability = 0.2
 }
 CAR_setup_effect = {
 	CAR = {
@@ -1610,31 +1751,6 @@ CAR_setup_effect = {
 			CAR = {
 				transfer_state = PREV
 			}
-		}
-		add_equipment_to_stockpile = {
-			type = infantry_equipment_1
-			amount = 2000
-			producer = ITA
-		}
-		add_opinion_modifier = {
-			target = ITA
-			modifier = supports_us_civil_war_2
-		}
-		add_opinion_modifier = {
-			target = AUS
-			modifier = supports_us_civil_war_1
-		}
-		add_opinion_modifier = {
-			target = POR
-			modifier = supports_us_civil_war_1
-		}
-		add_opinion_modifier = {
-			target = GER
-			modifier = against_us_civil_war_1
-		}
-		reverse_add_opinion_modifier = {
-			target = GER
-			modifier = against_carlist_1
 		}
 		if = {
 			limit = {
@@ -1649,24 +1765,6 @@ CAR_setup_effect = {
 					has_war_with = CNT
 				}
 			}
-			random_other_country = {
-				limit = {
-					NOT = {
-						tag = CNT
-					}
-					NOT = {
-						tag = SPR
-					}
-				}
-				news_event = {
-					id = worldnews.4
-					days = 1
-				}
-			}
-			country_event = {
-				id = worldtension.4
-				days = 1
-			}
 			country_event = { id = sprc.121 days = 15 }
 		}
 		add_ideas = extensive_conscription
@@ -1680,7 +1778,7 @@ CAR_setup_effect = {
 			create_unit = {
 				division = "name = \"División de Infantería\" division_template = \"Guardia Carlista\" start_experience_factor = 0.1"
 				owner = CAR
-				count = 2
+				count = 3
 				id = 14
 			}
 		}
@@ -1708,11 +1806,23 @@ CAR_setup_effect = {
 				remove_dynamic_modifier = { modifier = SPR_galicia_nationalists }
 			}
 		}
+		if = {
+			limit = {
+				has_country_flag = CAR_free_syndies
+			}
+			CNT = {
+				add_timed_idea = {
+					idea = SPR_free_syndies
+					days = 90
+				}
+			}
+		}
 	}
 	SPR = {
 		if = {
 			limit = {
 				NOT = { has_country_flag = SPR_SCW_Sanjurjo_Kingdom }
+				exists = yes
 			}
 			add_popularity = {
 				ideology = paternal_autocrat
@@ -1784,39 +1894,6 @@ CNT_setup_effect = {
 				transfer_state = PREV
 			}
 		}
-		add_equipment_to_stockpile = {
-			type = infantry_equipment_1
-			amount = 2000
-			producer = FRA
-		}
-		add_opinion_modifier = {
-			target = ITA
-			modifier = against_us_civil_war_2
-		}
-		reverse_add_opinion_modifier = {
-			target = ITA
-			modifier = against_cntfai_2
-		}
-		add_opinion_modifier = {
-			target = GER
-			modifier = against_us_civil_war_1
-		}
-		reverse_add_opinion_modifier = {
-			target = GER
-			modifier = against_cntfai_1
-		}
-		add_opinion_modifier = {
-			target = FRA
-			modifier = supports_us_civil_war_2
-		}
-		add_opinion_modifier = {
-			target = ENG
-			modifier = supports_us_civil_war_1
-		}
-		add_opinion_modifier = {
-			target = SRI
-			modifier = supports_us_civil_war_1
-		}
 		country_event = { id = sprc.207 days = 7 }
 		country_event = { id = sprc.208 days = 15  }
 		FRA = {
@@ -1842,23 +1919,8 @@ CNT_setup_effect = {
 					has_war_with = CAR
 				}
 			}
-			random_other_country = {
-				limit = {
-					NOT = {
-						tag = CAR
-					}
-					NOT = {
-						tag = SPR
-					}
-				}
-				news_event = {
-					id = worldnews.4
-					days = 1
-				}
-			}
 			country_event = { id = sprc.121 days = 15 random_days = 20 }
 		}
-		add_ideas = extensive_conscription
 		if = {
 			limit = {
 				has_country_flag = CNT_Add_Anarchy_Idea_On_Civil_War_Start
@@ -1890,7 +1952,7 @@ CNT_setup_effect = {
 				division = "name = \"División de Infantería\" division_template = \"Milicia Popular Revolucionaria\" start_experience_factor = 0.1"
 				owner = CNT
 				id = 16
-				count = 2
+				count = 3
 			}
 		}
 	}
@@ -2105,23 +2167,26 @@ SPR_bm_intro_latin_america_left_effect = {
 }
 
 SPR_remove_separatist_effect = {
-	every_state = {
-		limit = {
-			has_dynamic_modifier = { modifier = SPR_catalan_nationalists }
+	custom_effect_tooltip = SPR_remove_separatist_effect_tt
+	hidden_effect = {
+		every_state = {
+			limit = {
+				has_dynamic_modifier = { modifier = SPR_catalan_nationalists }
+			}
+			remove_dynamic_modifier = { modifier = SPR_catalan_nationalists }
 		}
-		remove_dynamic_modifier = { modifier = SPR_catalan_nationalists }
-	}
-	every_state = {
-		limit = {
-			has_dynamic_modifier = { modifier = SPR_basque_nationalists }
+		every_state = {
+			limit = {
+				has_dynamic_modifier = { modifier = SPR_basque_nationalists }
+			}
+			remove_dynamic_modifier = { modifier = SPR_basque_nationalists }
 		}
-		remove_dynamic_modifier = { modifier = SPR_basque_nationalists }
-	}
-	every_state = {
-		limit = {
-			has_dynamic_modifier = { modifier = SPR_galicia_nationalists }
+		every_state = {
+			limit = {
+				has_dynamic_modifier = { modifier = SPR_galicia_nationalists }
+			}
+			remove_dynamic_modifier = { modifier = SPR_galicia_nationalists }
 		}
-		remove_dynamic_modifier = { modifier = SPR_galicia_nationalists }
 	}
 	remove_ideas = SPR_Rising_Separatism
 }
