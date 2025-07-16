@@ -1,10 +1,23 @@
 on_actions = {
+	on_startup = {
+		effect = {			
+			RRF = {
+				add_radsoc_to_coalition = yes
+				add_authdem_to_coalition = yes
+				add_pataut_to_coalition = yes
+			}
+		}
+	}
+	# ROOT is capitulated country, FROM is winner
 	on_capitulation_immediate = {
 		effect = {
+			### Transfer UCH ownership
 			if = {
-				limit = {
-					tag = RVA
-				}
+				limit = { tag = UCH }
+				UCH_move_to_next_cossack_leader = yes
+			}
+			if = {
+				limit = { tag = RVA }
 				if = {
 					limit = { is_in_faction = yes }
 					faction_leader = { dismantle_faction = yes }
@@ -45,26 +58,86 @@ on_actions = {
 						days = 2
 					}
 				}
-			}			
+			}
 		}
 	}
-	
+	#ROOT is winner #FROM gets annexed - For civil wars on_civil_war_end is also fired
+	on_annex = {
+		effect = {
+			if = {
+				limit = {
+					ROOT = {
+						tag = TRM
+						has_country_flag = SOV_restored_in_transamur
+					}
+					FROM = { tag = RUS }
+				}
+				TRM = {
+					add_timed_idea = {
+						idea = TRM_Aftermath_Sib_War
+						days = 365
+					}
+					add_ideas = {
+						RUS_nationalist_resistance
+						RUS_monarchist_resistance
+						RUS_democrat_resistance
+						RUS_socialist_resistance
+					}
+					every_owned_state = {
+						limit = {
+							is_core_of = RUS
+							NOT = { is_core_of = TRM }
+							is_claimed_by = TRM
+						}
+						remove_claim_by = TRM
+						add_core_of = TRM
+					}
+					if = {
+						limit = {
+							has_cosmetic_tag = TRM_NRA
+						}
+						drop_cosmetic_tag = yes
+					}
+				}
+			}
+			if = {
+				limit = {
+					ROOT = { tag = RUS }
+					FROM = { 
+						OR = {
+							tag = RVA
+							tag = RRF
+							tag = WRA
+						}
+					}
+				}
+				if = {
+					limit = { 
+						ROOT = { 
+							has_war_with = TRM
+							NOT = { 
+								has_war_with = RVA
+								has_war_with = RRF
+								has_war_with = WRA
+							}
+						}
+					}
+					TRM = { 
+						if = {
+							limit = {
+								NOT = { has_active_mission = TRM_lose_morale_during_war }
+							}
+							activate_mission = TRM_lose_morale_during_war
+						}
+					}
+				}
+			}
+		}
+	}
 	#ROOT is new controller #FROM is old controller #FROM.FROM is state ID
 	on_state_control_changed = {
 		effect = {
 			### RUS/SOV control array
-			if = {
-				limit = {
-					FROM = { tag = RUS }
-					FROM.FROM = {
-						OR = {
-							state = 219
-							state = 252
-						}
-					}
-				}
-				FROM = { country_event = rcw.500 }
-			}
 			if = {
 				limit = {
 					tag = RUS
@@ -79,6 +152,24 @@ on_actions = {
 				}
 				set_country_flag = has_enemy_control_array
 				add_to_array = { ROOT.enemy_controlled_states = FROM.FROM }
+			}
+			if = {
+				limit = {
+					tag = RUS
+					ROOT = { controls_province = 3529 }
+					FROM.FROM = {
+						state = 217
+					}
+				}
+				if = {
+					limit = { country_exists = ALO }
+					ALO = { 
+						country_event = {
+							id = alash.391 
+							days = 4
+						}	
+					}
+				}
 			}
 		}				
 	}

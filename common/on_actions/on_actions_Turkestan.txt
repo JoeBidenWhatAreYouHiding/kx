@@ -1,0 +1,269 @@
+on_actions = {
+	on_startup = {
+		effect = {
+			for_each_scope_loop = {
+				array = ALO.owned_states
+				add_to_array = { RUS.RUS_kazakhstan_region = THIS }
+			}
+			for_each_scope_loop = {
+				array = UZB.owned_states
+				add_to_array = { RUS.RUS_bukhara_region = THIS }
+			}
+			for_each_scope_loop = {
+				array = KHI.owned_states
+				add_to_array = { RUS.RUS_khiva_region = THIS }
+			}
+			for_each_scope_loop = {
+				array = TRK.owned_states
+				add_to_array = { RUS.RUS_kokand_region = THIS }
+			}
+			TRK = {
+				add_socdem_to_coalition = yes
+				add_marlib_to_coalition = yes
+				add_soccon_to_coalition = yes
+				add_authdem_to_coalition = yes
+			}
+			UZB = {
+				add_authdem_to_coalition = yes
+				add_natpop_to_coalition = yes
+			}
+			ALO = {
+				add_soclib_to_coalition = yes
+				add_soccon_to_coalition = yes
+				add_authdem_to_coalition = yes
+			}
+			URL = {
+				add_soccon_to_coalition = yes
+				add_authdem_to_coalition = yes
+				add_natpop_to_coalition = yes
+			}
+			ORE = {
+				add_soccon_to_coalition = yes
+				add_pataut_to_coalition = yes
+				add_natpop_to_coalition = yes
+			}
+			KHI = {
+				add_natpop_to_coalition = yes
+			}			
+		}
+	}
+	#ROOT = attacking side
+	#FROM = defending side
+	#fired when two countries end up at war with each other (on_war is fired when a country goes to war against anyone and is not fired again when it enters war against another country unless it went to peace first)
+	on_war_relation_added = {
+		effect = {
+			if = {
+				limit = {
+					ROOT = { original_tag = RUS }
+					FROM = { is_turkestan_tag = yes }
+				}
+				ROOT = { country_event = turkestan_events.198 }
+				FROM = {
+					if = {
+						limit = {
+							OR = {
+								original_tag = TRK
+								original_tag = KHI
+								original_tag = UZB
+								original_tag = ALO
+							}
+						}
+						country_event = turkestan_events.199
+					}
+				}
+			}
+			if = {
+				limit = {
+					ROOT = { 
+						OR = {
+							original_tag = ETS 
+							is_central_asian_tag = yes
+						}
+					}
+					FROM = { 
+						OR = {
+							original_tag = ETS 
+							is_central_asian_tag = yes
+						}
+					}
+				}
+				set_global_flag = ETS_no_exile_government
+			}
+			if = {
+				limit = {
+					ROOT = { 
+						OR = {
+							tag = URL
+							tag = ORE
+							tag = ALO
+						}
+					}
+					FROM = { 
+						OR = {
+							tag = URL
+							tag = ORE
+							tag = ALO
+						}
+					}
+				}
+				ALO = { activate_mission = ALO_truce_with_cossacks }
+			}
+		}
+	}
+	#ROOT is winner #FROM gets annexed - For civil wars on_civil_war_end is also fired
+	on_annex = {
+		effect = {
+			if = {
+				limit = { FROM = { tag = TRK } }
+				ALO = {
+					country_event = {
+						id = alash.748
+						days = 3
+					}
+				}
+			}			
+		}
+	}
+	on_monthly_ALO = {
+		effect = {
+			if = {
+				limit = {
+					has_country_flag = ALO_elections_ongoing
+				}
+				every_owned_state = {
+					ALO_get_polls = yes
+				}
+			}
+		}
+	}
+	on_new_term_election = {
+		effect = {
+			### Turkestan ###
+			if = {
+				limit = { tag = TRK }
+				country_event = turkestan_elections.1
+			}
+			### Bukhara ###
+			if = {
+				limit = { tag = UZB }
+				country_event = bukhara.47
+			}
+			### Khiva ###
+			if = {
+				limit = { tag = KHI }
+				country_event = khiva.92
+			}
+			### Alash ###
+			if = {
+				limit = { tag = ALO }
+				country_event = alash.1000
+				country_event = alash.1001
+				country_event = alash.1002
+			}
+		}
+	}
+	# ROOT is capitulated country, FROM is winner
+	on_capitulation_immediate = {
+		effect = {
+			if = {
+				limit = {
+					original_tag = ETS
+					NOT = { has_global_flag = ETS_no_exile_government }
+				}
+				if = {
+					limit = { 
+						country_exists = KYR
+						KYR = { has_socialist_government = yes }
+					}
+					KYR = { country_event = turkestan_socialists.36 }
+				}
+				if = {
+					limit = { 
+						country_exists = TRK
+						TRK = { 
+							turkestan_is_unaligned = no
+							is_subject = no 
+						}
+					}
+					TRK = { country_event = ets.70 }
+				}
+				else_if = {
+					limit = { 
+						country_exists = UZB
+						UZB = { 
+							is_subject = no 
+							has_liberal_government = yes
+						}
+					}
+					UZB = { country_event = ets.70 }
+				}
+				else_if = {
+					limit = { 
+						country_exists = KHI
+						KHI = { 
+							is_subject = no 
+							has_liberal_government = yes
+						}
+					}
+					KHI = { country_event = ets.70 }
+				}
+				else_if = {
+					limit = { 
+						country_exists = ALO
+						ALO = { 
+							is_subject = no 
+							has_socialist_government = no
+						}
+					}
+					ALO = { country_event = ets.70 }
+				}
+			}
+		}
+	}
+	on_state_control_changed = {
+		effect = {
+			if = {
+				limit = {
+					ROOT = { tag = ALO }
+					FROM.FROM = {
+						OR = {
+							is_core_of = TRK
+							is_core_of = UZB
+							is_core_of = KYR
+							is_core_of = ETS
+							is_core_of = KHI
+							state = 1224
+							state = 236
+						}
+					}
+				}
+				FROM.FROM = {
+					ALO_generate_popularities_for_others = yes
+				}
+			}
+		}
+	}
+	on_government_change = {
+		effect = {
+			if = {
+				limit = {
+					tag = ALO
+				}
+				country_event = {
+					id = alash.1269
+					days = 2
+				}
+			}
+		}
+	}
+	#ROOT is winner #FROM gets annexed - For civil wars on_civil_war_end is also fired
+	on_civil_war_end = {
+		effect = {
+			if = {
+				limit = { original_tag = ALO }
+				country_event = alash.657
+			}
+		}
+	}
+}
+	

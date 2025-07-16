@@ -2846,7 +2846,7 @@ country_event = { #Centralised power
 	option = {
 		name = finland.45.a
 		add_ideas = FIN_centralised_power_idea
-		set_country_leader_ideology = authcom_subtype
+		set_country_leader_ideology = zinovievism_subtype
 	}
 }
 
@@ -4217,22 +4217,37 @@ country_event = { #Finland has approached us (Russia)
 
 	option = { #We will reciprocate their efforts... with a few conditions
 		name = finland.95.a
+		trigger = {
+			FROM = {
+				any_owned_state = {
+					OR = {
+						is_claim_or_core_of_ROOT = yes
+						state = 146
+						state = 1324
+						state = 1325
+						state = 1326
+					}
+				}
+			}
+		}
+		set_country_flag = RUS_demanded_karelia
 		hidden_effect = {
-			FIN = { country_event = { id = finland.96 days = 10 } }
+			FIN = { country_event = { id = finland.96 days = 5 } }
 		}
 	}
 
 	option = { #We will reciprocate their efforts
 		name = finland.95.b
+		set_country_flag = RUS_demanded_treaty
 		hidden_effect = {
-			FIN = { country_event = { id = finland.97 days = 10 } }
+			FIN = { country_event = { id = finland.96 days = 5 } }
 		}
 	}
 
 	option = { #We do not need them
 		name = finland.95.c
 		hidden_effect = {
-			FIN = { country_event = { id = finland.98 days = 10 } }
+			FIN = { country_event = { id = finland.98 days = 5 } }
 		}
 	}
 }
@@ -4241,7 +4256,14 @@ country_event = { #Russia's terms
 	id = finland.96
 	immediate = { log = "[GetDateText]: [Root.GetName]: event finland.96 FROM = [From.GetName]" }
 	title = finland.96.t
-	desc = finland.96.d
+	desc = {
+		text = finland.96.d
+		trigger = { RUS = { has_country_flag = RUS_demanded_karelia } }
+	}
+	desc = {
+		text = finland.96.d2
+		trigger = { RUS = { has_country_flag = RUS_demanded_treaty } }
+	}
 	picture = GFX_report_event_generic_sign_treaty2
 
 	fire_only_once = yes
@@ -4249,9 +4271,24 @@ country_event = { #Russia's terms
 
 	option = { #Accept
 		name = finland.96.a
+		trigger = { RUS = { has_country_flag = RUS_demanded_karelia } }
 		ai_chance = {
-			base = 15
+			base = 10
+			modifier = {
+				factor = 0
+				RUS = { has_country_flag = RUS_demanded_karelia }
+				NOT = { has_game_rule = { rule = FIN_foreign_policy option = FIN_FOREIGN_POLICY_REICHSPAKT } }
+			}
+			modifier = {
+				factor = 20
+				RUS = { has_country_flag = RUS_demanded_treaty }
+			}
+			modifier = {
+				factor = 10
+				has_war = yes
+			}
 		}
+		add_ideas = RUS_FIN_neutrality
 		ROOT = {
 			diplomatic_relation = {
 				country = FROM
@@ -4267,13 +4304,13 @@ country_event = { #Russia's terms
 				country = ROOT
 				relation = non_aggression_pact
 			}
-		}
-		every_owned_state = {
-			limit = {
-				is_core_of = RUS
-				is_claimed_by = ROOT
+			every_owned_state = {
+				limit = {
+					is_core_of = RUS
+					is_claimed_by = ROOT
+				}
+				remove_claim_by = ROOT
 			}
-			remove_claim_by = ROOT
 		}
 		every_owned_state = {
 			limit = {
@@ -4292,37 +4329,34 @@ country_event = { #Russia's terms
 
 	option = { #Decline
 		name = finland.96.b
+		trigger = { RUS = { has_country_flag = RUS_demanded_karelia } }
 		ai_chance = {
-			base = 85
+			base = 10			
 			modifier = {
-				has_war = yes
+				factor = 2
+				RUS = { has_country_flag = RUS_demanded_karelia }
+			}
+			modifier = {
 				factor = 0
+				has_war = yes
+			}
+			modifier = {
+				factor = 0
+				RUS = { has_country_flag = RUS_demanded_treaty }
+				has_game_rule = { rule = FIN_foreign_policy option = FIN_FOREIGN_POLICY_NEUTRALITY }
+			}
+			modifier = {
+				factor = 0
+				has_game_rule = { rule = FIN_foreign_policy option = FIN_FOREIGN_POLICY_REICHSPAKT }
 			}
 		}
+		FROM = { country_event = finland.97 }
 	}
-}
-
-country_event = { #Russia's terms
-	id = finland.97
-	immediate = { log = "[GetDateText]: [Root.GetName]: event finland.97 FROM = [From.GetName]" }
-	title = finland.97.t
-	desc = finland.97.d
-	picture = GFX_report_event_generic_sign_treaty2
-
-	fire_only_once = yes
-	is_triggered_only = yes
-
 	option = { #Accept
-		name = finland.97.a
-		remove_opinion_modifier = {
-			target = RUS
-			modifier = KR_hostile
-		}
+		name = finland.96.c
+		trigger = { RUS = { has_country_flag = RUS_demanded_treaty } }
+		add_ideas = RUS_FIN_neutrality
 		ROOT = {
-			diplomatic_relation = {
-				country = FROM
-				relation = non_aggression_pact
-			}
 			add_opinion_modifier = {
 				target = FROM
 				modifier = KR_pleased
@@ -4333,15 +4367,29 @@ country_event = { #Russia's terms
 				country = ROOT
 				relation = non_aggression_pact
 			}
-		}
-		every_owned_state = {
-			limit = {
-				is_core_of = RUS
-				is_claimed_by = ROOT
+			every_owned_state = {
+				limit = {
+					is_core_of = RUS
+					is_claimed_by = ROOT
+				}
+				remove_claim_by = ROOT
 			}
-			remove_claim_by = ROOT
 		}
 		activate_targeted_decision = { target = RUS decision = fin_join_russia }
+	}
+}
+
+country_event = { #Russia's terms
+	id = finland.97
+	immediate = { log = "[GetDateText]: [Root.GetName]: event finland.97 FROM = [From.GetName]" }
+	title = finland.97.t
+	desc = finland.97.d
+	
+	fire_only_once = yes
+	is_triggered_only = yes
+
+	option = { 
+		name = finland.97.a		
 	}
 }
 
@@ -4366,6 +4414,7 @@ country_event = { #Russia has declined our advances
 		}
 		hidden_effect = {
 			remove_targeted_decision = { target = RUS decision = fin_join_internationale }	
+			remove_targeted_decision = { target = RUS decision = fin_join_russia }	
 		}
 	}
 }
@@ -7046,7 +7095,7 @@ country_event = { #
 			name = "Vilho Annala"
 			picture = "gfx/leaders/FIN/Portrait_FIN_Vilho_Annala_KX.png"
 			expire = "1.1.1"
-			ideology = integralism_subtype
+			ideology = right_syndicalism_subtype
 		}
 		set_party_name = {
 			ideology = national_populist

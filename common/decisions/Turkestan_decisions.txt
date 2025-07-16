@@ -1,984 +1,7202 @@
+TRK_Economy_decisions = {
+	TRK_remove_food_shortage = {
+		allowed = { always = no }
+		icon = GFX_decision_generic_agriculture
+		available = { has_idea = KHI_shortage_of_food }
+		cost = 50
+		days_remove = 50
+		fire_only_once = yes
+		ai_will_do = {
+			factor = 100
+		}
+		
+		modifier = {
+			consumer_goods_factor = 0.1
+			political_power_cost = 0.15
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_remove_food_shortage target: [From.GetName]"
+			remove_ideas = KHI_shortage_of_food
+			add_stability = 0.05
+		}
+	}
+}
+		
 TRK_unite_central_asia = {
-	TRK_ally_kokand = {
-		visible = {
-			OR = {
-				tag = UZB
-				tag = TRK
-			}
-			country_exists = KYR
-			is_subject = no
-		}
+	KYR_unite_with_country = {
+		icon = eng_trade_unions_demand
+		allowed = { always = no }
+
 		available = {
-			if = {
-				limit = {
-					tag = UZB
-				}
-				AND = {
-					UZB = {
-						custom_trigger_tooltip = {
-							tooltip = khiva_is_autocratic
-							has_authoritarian_government = yes
-						}
-					}
-					KYR = {
-						custom_trigger_tooltip = {
-							tooltip = kokand_is_autocratic
-							has_authoritarian_government = yes
-						}
-					}
-				}
+			country_exists = FROM
+			FROM = {
+				is_subject = no
+				at_peace_or_same_enemies_as_ROOT = yes
+				turkestan_compatible_alignment_to_PREV = yes
 			}
-			else = {
-				AND = {
-					TRK = {
-						custom_trigger_tooltip = {
-							tooltip = bukhara_is_autocratic
-							has_dictatorship_government = yes
-						}
-					}
-					KYR = {
-						custom_trigger_tooltip = {
-							tooltip = kokand_is_autocratic
-							has_authoritarian_government = yes
-						}
-					}
+			is_in_faction = no
+			is_subject = no
+			turkestan_is_potential_government = no
+		}
+
+		cost = 0
+		days_remove = 14
+
+		ai_will_do = {
+			factor = 1000
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove KYR_unite_with_country target: [From.GetName]"
+			FROM = { country_event = turkestan_events.8 }
+			hidden_effect = {
+				if = {
+					limit = { FROM = { tag = TRK } }
+					remove_targeted_decision = { target = ALO decision = KYR_unite_with_country }
+				}
+				else = {
+					remove_targeted_decision = { target = TRK decision = KYR_unite_with_country }
 				}
 			}
 		}
-					
-		cost = freedec?0
-		fire_only_once = yes
+	}
+	turkestan_integrate_country = {
+		icon = eng_trade_unions_demand
+		name = RUS_Integrate_Country
+
+		available = {
+			core_compliance = {
+				occupied_country_tag = FROM
+				value > 25 
+			}
+		}
+
+		cost = 0
+		days_remove = 150
+
+		target_non_existing = yes
+		target_array = turkestan_integration_array
+		target_trigger = {
+			any_of_scopes = {
+				array = FROM.core_states
+				is_owned_by = ROOT
+				is_claimed_by = ROOT
+				NOT = { is_core_of = ROOT }
+			}
+		}
+
+		ai_will_do = {
+			factor = 1000
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove turkestan_integrate_country target: [From.GetName]"
+			every_owned_state = {
+				limit = {
+					is_claimed_by = ROOT
+					is_core_of = FROM
+				}
+				hidden_effect = { remove_claim_by = ROOT }
+				add_core_of = ROOT
+			}
+		}
+	}
+	turkestan_integrate_subjects = {
+		icon = eng_trade_unions_support
+		name = china_integrate_subjects
+
+		available = {
+			NOT = { has_war_together_with = FROM }
+			if = {
+				limit = { FROM = { has_autonomy_state = kr_governorate } }
+				is_neighbor_of = FROM
+				received_expeditionary_forces = { sender = FROM value < 1 }
+			}
+		}
+
+		cancel_trigger = {
+			OR = {
+				NOT = { has_subject = FROM }
+				if = {
+					limit = { FROM = { has_autonomy_state = kr_governorate } }
+					received_expeditionary_forces = { sender = FROM value > 0 }
+				}
+				else = {
+					hidden_trigger = { always = no }
+				}
+			}
+		}
+
+		target_array = global.central_asian_tags_array
+		target_root_trigger = { has_country_flag = TRK_turkestan_united }
+		target_trigger = {
+			has_subject = FROM
+		}
+
+		cost = 50
+		days_remove = 100
+
 		ai_will_do = {
 			factor = 100
 		}
-		targets = { KYR }
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel turkestan_integrate_subjects target: [From.GetName]"
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete turkestan_integrate_subjects target: [From.GetName]"
+		}
+
 		remove_effect = {
-			add_to_faction = FROM
+			log = "[GetDateText]: [Root.GetName]: Decision remove turkestan_integrate_subjects target: [From.GetName]"
+			set_temp_variable = { target = FROM }
+			turkestan_integrate_TARGET_effect = yes
+			custom_effect_tooltip = tooltip_white_line
+			annex_country = {
+				target = FROM
+				transfer_troops = yes
+			}
+			if = {
+				limit = { FROM = { is_ai = no } }
+				change_tag_from = FROM
+			}
 		}
 	}
-	TRK_ally_khiva = {
-		visible = {
-			OR = {
-				tag = KYR
-				tag = TRK
+	turkestan_declare_government = {
+		icon = generic_speech
+
+		available = {
+			is_subject = no
+			TRK = { TRK_civil_war_over = yes }
+			if = {
+				limit = { original_tag = KHI }
+				if = {
+					limit = { CA_is_leader = no }
+					has_army_manpower = { size > 50000 }
+					OR = {
+						owns_state = 407 #Tashkent
+						turkestan_stronger_than_existing_governments = yes
+					}					
+				}
+				else = {
+					CA_is_leader = yes
+					has_army_manpower = { size > 30000 }
+				}
 			}
-			country_exists = UZB
+			else_if = {
+				limit = { original_tag = UZB }
+				if = {
+					limit = { CA_is_leader = no }
+					has_army_manpower = { size > 50000 }
+					OR = {
+						owns_state = 407 #Tashkent
+						turkestan_stronger_than_existing_governments = yes
+					}
+				}
+				else = {
+					CA_is_leader = yes
+					has_army_manpower = { size > 30000 }
+				}
+			}
+			else_if = {
+				limit = { original_tag = ETS }
+				if = {
+					limit = { CA_is_leader = no }
+					has_army_manpower = { size > 50000 }
+					OR = {
+						owns_state = 407 #Tashkent
+						turkestan_stronger_than_existing_governments = yes
+					}
+				}
+				else = {
+					CA_is_leader = yes
+					has_army_manpower = { size > 30000 }
+				}
+				OR = {
+					has_country_flag = ETS_turkiccountry
+					has_country_flag = ETS_sabriflag
+				}
+			}
+			else_if = {
+				limit = { original_tag = KYR }
+				if = {
+					limit = { CA_is_leader = no }
+					has_army_manpower = { size > 15000 }
+					OR = {
+						owns_state = 407 #Tashkent
+						turkestan_stronger_than_existing_governments = yes
+					}
+				}
+				else = {
+					CA_is_leader = yes
+					has_army_manpower = { size > 10000 }
+				}
+				has_completed_focus = KYR_Towards_United_Turkestan_Identity
+			}
+			else_if = {
+				limit = { original_tag = ALO }
+				if = {
+					limit = { CA_is_leader = no }
+					has_army_manpower = { size > 30000 }
+					OR = {
+						owns_state = 407 #Tashkent
+						turkestan_stronger_than_existing_governments = yes
+					}
+				}
+				else = {
+					CA_is_leader = yes
+					has_army_manpower = { size > 10000 }
+				}
+			}
+		}
+
+		visible = {
+			turkestan_is_potential_government = no
+			if = {
+				limit = { original_tag = ALO }
+				ALO_has_russian_influence = no
+			}
+			if = {
+				limit = { original_tag = URL }
+				has_completed_focus = URL_The_Second_Alash_Orda
+				has_country_leader = { name = "Jahansha Dosmukhamedov" ruling_only = yes }
+			}
+			turkestan_is_unaligned = no
 			is_subject = no
 		}
-		available = {
-			if = {
-				limit = {
-					tag = KYR
-				}
-				AND = {
-					UZB = {
-						custom_trigger_tooltip = {
-							tooltip = khiva_is_democratic
-							has_authoritarian_government = no
-						}
-					}
-					KYR = {
-						custom_trigger_tooltip = {
-							tooltip = kokand_is_democratic
-							has_authoritarian_government = no
-							has_socialist_government = no
-						}
-					}
+
+		cost = 0
+		fire_only_once = yes
+
+		ai_will_do = {
+			factor = 0
+			modifier = {
+				factor = 0
+				any_of_scopes = {
+					array = global.central_asian_tags_array
+					turkestan_is_potential_government = yes
+					exists = yes
+					turkestan_compatible_alignment_to_PREV = yes
 				}
 			}
-			else = {
-				AND = {
-					TRK = {
-						custom_trigger_tooltip = {
-							tooltip = bukhara_is_autocratic
-							has_dictatorship_government = yes
-						}
-					}
-					UZB = {
-						custom_trigger_tooltip = {
-							tooltip = khiva_is_autocratic
-							has_authoritarian_government = yes
-						}
+			modifier = {
+				add = 100
+				OR = {
+					owns_state = 407 #
+					original_tag = ALO
+				}
+			}
+			modifier = {
+				add = 100
+				NOT = {
+					any_of_scopes = {
+						array = global.central_asian_tags_array
+						turkestan_is_potential_government = yes
+						exists = yes
 					}
 				}
 			}
 		}
-					
-		cost = freedec?0
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete turkestan_declare_government"
+			turkestan_set_potential_national_government = yes
+			turkestan_enable_all_demand_submission_decisions = yes
+			if = {
+				limit = { original_tag = KYR }
+				if = {
+					limit = { has_government = radical_socialist }
+					if = {
+						limit = { TRK = { TRK_erk_in_power = no } }
+						create_country_leader = {
+							name = "Toroqul Januzakov"
+							desc = "POLITICS_TOROQUL_JANUZAKOV_DESC"
+							picture = "gfx/leaders/TRK/Portrait_TRK_Torokul_Dzhanuzakov.png"
+							expire = "1.1.1"
+							ideology = agrarian_syndicalism_subtype 
+						}
+						add_tot_to_coalition = yes
+						add_synd_to_coalition = yes							
+						custom_effect_tooltip = KYR_Contact_Kazakh_Socialists_tt
+						set_country_leader_ideology = agrarian_socialism_subtype
+					}
+				}
+			}
+		}
+	}
+	turkestan_offer_alliance = {
+		name = china_offer_alliance
+		icon = eng_trade_unions_demand
+		allowed = { always = no }
+
+		available = {
+			OR = {
+				is_neighbor_of = FROM
+				any_subject_country = { is_neighbor_of = FROM }
+				FROM = { any_subject_country = { is_neighbor_of = ROOT } }
+			}
+			FROM = { has_civil_war = no }			
+			TRK = { TRK_civil_war_over = yes }
+			if = {
+				limit = { original_tag = TRK }
+				TRK_can_deal_with_east_pamir = no
+			}
+		}
+
+		visible = {
+			turkestan_is_potential_government = yes
+			FROM = { turkestan_can_ROOT_offer_alliance = yes }
+		}
+
+		cost = 15
 		fire_only_once = yes
+
+		ai_will_do = { factor = 100 }
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete turkestan_offer_alliance target: [From.GetName]"
+			FROM = { country_event = turkestan_events.7 }
+			custom_effect_tooltip = if_they_accept_tt
+			effect_tooltip = { turkestan_puppet_FROM_effect = yes }
+		}
+	}
+
+	turkestan_attack_decision = {
+		name = china_attack_decision
+		icon = generic_prepare_civil_war
+
+		allowed = { always = no } #activated by effect
+
+		available = {
+			OR = {
+				is_neighbor_of = FROM
+				any_subject_country = { is_neighbor_of = FROM }
+				FROM = { any_subject_country = { is_neighbor_of = ROOT } }
+			}
+			TRK = { TRK_civil_war_over = yes }
+			if = {
+				limit = { original_tag = TRK }
+				TRK_can_deal_with_east_pamir = no
+			}
+		}
+
+		visible = {
+			can_declare_war_on = FROM
+			if = {
+				limit = { turkestan_is_unaligned = no }
+				turkestan_same_alignment_as_FROM = no
+			}
+			if = {
+				limit = { NOT = { tag = TTR } }
+				OR = {
+					is_subject = no
+					is_subject_of = DEH 
+				}	
+			}
+			if = {
+				limit = {
+					FROM = { 
+						OR = {
+							tag = SIK
+							tag = TAN
+						}
+					}
+				}
+				FROM = {
+					NOT = { has_war_with = ETS }
+				}
+			}
+		}
+
+		cancel_trigger = {
+			OR = {
+				NOT = { can_declare_war_on = FROM }
+				AND = {
+					NOT = { tag = TTR }
+					is_subject = yes
+					NOT = { is_subject_of = DEH }
+				}
+			}
+		}
+
+		cost = 20
+		days_remove = 30
+		war_with_target_on_remove = yes
+		fire_only_once = yes
+
 		ai_will_do = {
 			factor = 100
-		}
-		targets = { UZB }
-		remove_effect = {
-			add_to_faction = FROM
-		}
-	}
-	TRK_ally_bukhara = {
-		visible = {
-			OR = {
-				tag = KYR
-				tag = UZB
+			modifier = {
+				factor = 0
+				ROOT_is_threatened_cautious = yes
 			}
-			country_exists = TRK
-			is_subject = no
+			modifier = {
+				factor = 0
+				FROM = { default_attack_AI_trigger_FROM = yes }
+			}
+			modifier = {
+				factor = 0
+				if = {
+					limit = { FROM = { tag = KHI } }
+					UZB = { 
+						does_not_exist_or_ally_of_ROOT = yes 
+						NOT = { is_subject_of = KHI }
+					}
+				}
+			}
 		}
-		available = {
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel turkestan_attack_decision target: [From.GetName]"
+			clear_decision_attack_AI = yes
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete turkestan_attack_decision target: [From.GetName]"
+			setup_decision_attack_AI = yes
 			if = {
 				limit = {
-					tag = UZB
-				}
-				OR = {
-					AND = {
-						UZB = {
-							custom_trigger_tooltip = {
-								tooltip = khiva_is_autocratic
-								has_authoritarian_government = yes
-							}
+					OR = {
+						FROM = { decryption_progress = { target = PREV value > 0.5 } }
+						FROM = { intel_level_over = { target = PREV army_intel > 0.5 } }
+						AND = {
+							NOT = { has_tech = basic_encryption }
+							FROM = { has_tech = basic_decryption }
 						}
-						TRK = {
-							custom_trigger_tooltip = {
-								tooltip = bukhara_is_autocratic
-								has_dictatorship_government = yes
-							}
+						AND = {
+							NOT = { has_tech = improved_encryption }
+							FROM = { has_tech = improved_decryption }
 						}
-					}
-					AND = {
-						UZB = {
-							custom_trigger_tooltip = {
-								tooltip = khiva_is_democratic
-								has_authoritarian_government = no
-							}
-						}
-						TRK = {
-							custom_trigger_tooltip = {
-								tooltip = bukhara_is_democratic
-								has_authoritarian_government = no
-								has_socialist_government = no
-							}
+						AND = {
+							NOT = { has_tech = advanced_encryption }
+							FROM = { has_tech = advanced_decryption }
 						}
 					}
 				}
-			}	
-			else = {	
+				FROM = { country_event = { id = kr.political.30 days = 7 } }    #warning event
+			}
+			else = {
+				FROM = { country_event = { id = kr.political.30 days = 13 } }   #warning event
+			}
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove turkestan_attack_decision target: [From.GetName]"
+			clear_decision_attack_AI = yes
+			declare_war_on = {
+				target = FROM
+				type = annex_everything
+			}
+		}
+	}
+
+	turkestan_demand_submission = {
+		name = china_demand_submission
+		icon = eng_trade_unions_demand
+		allowed = { always = no }
+
+		available = {
+			OR = {
+				is_neighbor_of = FROM
+				any_subject_country = { is_neighbor_of = FROM }
+				FROM = { any_subject_country = { is_neighbor_of = ROOT } }
+			}
+			FROM = { has_civil_war = no }
+			TRK = { TRK_civil_war_over = yes }
+			if = {
+				limit = { original_tag = TRK }
+				TRK_can_deal_with_east_pamir = no
+			}
+			can_declare_war_on = FROM
+		}
+
+		visible = {
+			if = {
+				limit = { NOT = { tag = TTR } }
+				is_subject = no
+			}
+			FROM = {
 				OR = {
-					AND = {
-						TRK = {
-							custom_trigger_tooltip = {
-								tooltip = bukhara_is_democratic
-								has_authoritarian_government = no
-								has_socialist_government = no
-							}
-						}
-						KYR = {
-							custom_trigger_tooltip = {
-								tooltip = kokand_is_democratic
-								has_authoritarian_government = no
-								has_socialist_government = no
+					is_subject = no
+					is_subject_of = DEH 
+				}
+				OR = {
+					turkestan_compatible_alignment_to_PREV = no
+					turkestan_is_potential_government = yes
+				}
+			}
+		}
+
+		cancel_trigger = {
+			OR = {
+				NOT = { can_declare_war_on = FROM }
+				FROM = { 
+					is_subject = yes
+					NOT = { is_subject_of = DEH }
+				}
+				AND = {
+					is_subject = yes
+					NOT = { is_subject_of = DEH }
+				}
+			}
+		}
+
+		cost = 25
+		days_remove = 14
+		war_with_target_on_remove = yes
+
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				OR = {
+					ROOT_is_threatened_cautious = yes
+					FROM = { is_stronger_than_ROOT_and_not_vulnerable = yes }
+					FROM = { overlord_is_stronger_than_ROOT_and_not_vulnerable = yes }
+					FROM = { faction_leader_is_stronger_than_ROOT_and_not_vulnerable = yes }
+					FROM = { guarantor_is_stronger_than_ROOT_and_not_vulnerable = yes }
+				}
+			}
+			modifier = {
+				add = 10
+				date > 1937.1.1
+			}
+			modifier = {
+				add = 100
+				date > 1938.1.1
+			}
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel turkestan_demand_submission target: [From.GetName]"
+			clear_decision_attack_AI = yes
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete turkestan_demand_submission target: [From.GetName]"
+			set_country_flag = { flag = imminent_war days = 45 value = 1 }
+			setup_decision_attack_AI = yes
+			if = {
+				limit = { 
+					original_tag = TRK
+					TRK = { 
+						TRK_erk_in_power = yes						
+						NOT = {
+							has_country_leader = {
+								name = "Nazir Toraqulov"
+								ruling_only = yes
 							}
 						}
 					}
-					AND = {
-						TRK = {
-							custom_trigger_tooltip = {
-								tooltip = bukhara_is_autocratic
-								has_dictatorship_government = yes
-							}
-						}
-						KYR = {
-							custom_trigger_tooltip = {
-								tooltip = kokand_is_autocratic
-								has_authoritarian_government = yes
-							}
-						}
+					FROM = { original_tag = ETS }
+				}
+				ETS = {
+					country_event = {
+						id = turkestan_socialists.38
+						days = 28
 					}
-				}						
+				}
+			}
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove turkestan_demand_submission target: [From.GetName]"
+			clear_decision_attack_AI = yes
+			if = {
+				limit = { FROM = { ALO_has_russian_influence = yes  } }
+				custom_effect_tooltip = TRK_alash_warning
+				activate_targeted_decision = { target = FROM decision = turkestan_attack_decision }
+			}
+			else = {
+				FROM = { country_event = turkestan_events.1 }
+			}
+			custom_effect_tooltip = if_they_accept_tt
+			effect_tooltip = { turkestan_puppet_FROM_effect = yes }
+			hidden_effect = {
+				remove_from_array = { turkestan_possible_targets_array = FROM }
+				remove_targeted_decision = { decision = turkestan_demand_submission target = FROM }
+			}
+		}
+	}
+	
+	turkestan_reclaim_our_lands = {
+		icon = GFX_decision_generic_form_nation
+		available = {
+			OR = {
+				is_neighbor_of = FROM
+				any_subject_country = { is_neighbor_of = FROM }
+				FROM = { any_subject_country = { is_neighbor_of = ROOT } }
+			}
+		}
+
+		visible = {
+			can_declare_war_on = FROM			
+		}
+
+		cancel_trigger = {
+			OR = {
+				NOT = { can_declare_war_on = FROM }
+				AND = {
+					NOT = { tag = TTR }
+					is_subject = yes
+					NOT = { is_subject_of = DEH }
+				}
+			}
+		}
+
+		cost = 20
+		days_remove = 30
+		war_with_target_on_remove = yes
+		fire_only_once = yes
+
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				ROOT_is_threatened_cautious = yes
+			}
+			modifier = {
+				factor = 0
+				FROM = { default_attack_AI_trigger_FROM = yes }
+			}
+			modifier = {
+				factor = 0
+				FROM = { dont_start_major_faction_wars = yes }
+			}
+		}
+
+		targets = { PER AFG DEH PRF BHC TIB MON RUS RVA RRF WRA TRM BKN TTR TUR }
+		target_root_trigger = {
+			has_country_flag = TRK_turkestan_united
+			is_subject = no
+		}
+		target_trigger = {
+			FROM = {
+				any_owned_state = {
+					is_claim_or_core_of_ROOT = yes					
+				}
 			}
 		}
 		
-					
-		cost = freedec?0
-		fire_only_once = yes
-		ai_will_do = {
-			factor = 100
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel turkestan_reclaim_our_lands target: [From.GetName]"
+			clear_decision_attack_AI = yes
 		}
-		targets = { TRK }
-		remove_effect = {
-			add_to_faction = FROM
-		}
-	}
-	TRK_destroy_kokand = {
-		visible = {
-			OR = {
-				tag = UZB
-				tag = TRK
-			}
-			country_exists = KYR
-			is_subject = no
-		}
-		available = {
-			if = {
-				limit = {
-					tag = UZB
-				}
-				OR = {
-					AND = {
-						UZB = {
-							custom_trigger_tooltip = {
-								tooltip = khiva_is_autocratic
-								has_authoritarian_government = yes
-							}
-						}
-						KYR = {
-							custom_trigger_tooltip = {
-								tooltip = kokand_is_not_autocratic
-								has_authoritarian_government = no
-							}
-						}
-					}
-					AND = {
-						UZB = {
-							custom_trigger_tooltip = {
-								tooltip = khiva_is_democratic
-								has_authoritarian_government = no
-							}
-						}
-						KYR = {
-							custom_trigger_tooltip = {
-								tooltip = kokand_is_not_democratic
-								NOT = { has_government = social_liberal }
-							}
-						}
-					}
-				}
-			}
-			else = {
-				OR = {
-					TRK = {
-						custom_trigger_tooltip = {
-							tooltip = bukhara_is_socialist
-							has_socialist_government = yes
-						}
-					}
-					AND = {
-						TRK = {
-							custom_trigger_tooltip = {
-								tooltip = bukhara_is_autocratic
-								has_dictatorship_government = yes
-							}
-						}
-						KYR = {
-							custom_trigger_tooltip = {
-								tooltip = kokand_is_not_autocratic
-								has_authoritarian_government = no
-							}
-						}
-					}
-					AND = {
-						TRK = {
-							custom_trigger_tooltip = {
-								tooltip = bukhara_is_democratic
-								has_authoritarian_government = no
-								has_socialist_government = no
-							}
-						}
-						KYR = {
-							custom_trigger_tooltip = {
-								tooltip = kokand_is_not_democratic
-								NOT = { has_government = social_liberal }
-							}
-						}
-					}
-				}
-			}
-		}		
-					
-		cost = 10
-		days_remove = 7
-		fire_only_once = yes
-		war_with_target_on_remove = yes
-		ai_will_do = {
-			factor = 100
-		}
-		targets = { KYR }
+
 		complete_effect = {
-			set_country_flag = { flag = imminent_war days = 20 value = 1 }
+			log = "[GetDateText]: [Root.GetName]: Decision complete turkestan_reclaim_our_lands target: [From.GetName]"
+			set_country_flag = { flag = imminent_war days = 25 value = 1 }
 			setup_decision_attack_AI = yes
+			FROM = { incoming_war_notification_effect = yes }
 		}
+
 		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove turkestan_reclaim_our_lands target: [From.GetName]"
 			clear_decision_attack_AI = yes
 			declare_war_on = {
 				target = FROM
 				type = annex_everything
 			}
-			hidden_effect = {
-				country_event = {
-					id = turkestan.23
-					days = 180
-				}
-			}
 		}
 	}
-	TRK_destroy_khiva = {
-		visible = {
-			OR = {
-				tag = KYR
-				tag = TRK
-			}
-			country_exists = UZB
-			is_subject = no
-		}
+	turkestan_proclaim_unified_turkestan = {
+		icon = GFX_decision_generic_form_nation
 		available = {
 			if = {
-				limit = {
-					tag = KYR
-				}
-				OR = {	
-					KYR = {
-						custom_trigger_tooltip = {
-							tooltip = kokand_is_socialist
-							has_socialist_government = yes
-						}
-					}
-					AND = {
-						UZB = {
-							custom_trigger_tooltip = {
-								tooltip = khiva_is_not_democratic
-								has_authoritarian_government = yes
-							}
-						}
-						KYR = {
-							custom_trigger_tooltip = {
-								tooltip = kokand_is_democratic
-								has_authoritarian_government = no
-								has_socialist_government = no
-							}
-						}
-					}
-				}
+				limit = { NOT = { tag = TTR } }
+				is_subject = no
 			}
-			else = {
-				OR = {
-					TRK = {
-						custom_trigger_tooltip = {
-							tooltip = bukhara_is_socialist
-							has_socialist_government = yes
-						}
-					}
-					AND = {
-						TRK = {
-							custom_trigger_tooltip = {
-								tooltip = bukhara_is_autocratic
-								has_dictatorship_government = yes
-							}
-						}
-						UZB = {
-							custom_trigger_tooltip = {
-								tooltip = khiva_is_not_autocratic
-								has_authoritarian_government = no
-							}
-						}
-					}
-					AND = {
-						TRK = {
-							custom_trigger_tooltip = {
-								tooltip = bukhara_is_democratic
-								has_authoritarian_government = no
-								has_socialist_government = no
-							}
-						}
-						UZB = {
-							custom_trigger_tooltip = {
-								tooltip = khiva_is_not_democratic
-								has_authoritarian_government = yes
-							}
-						}
-					}
-				}
-			}
-		}		
-					
-		cost = 10
-		days_remove = 7
-		fire_only_once = yes
-		war_with_target_on_remove = yes
-		ai_will_do = {
-			factor = 100
-		}
-		targets = { UZB }
-		complete_effect = {
-			set_country_flag = { flag = imminent_war days = 20 value = 1 }
-			setup_decision_attack_AI = yes
-		}
-		remove_effect = {
-			clear_decision_attack_AI = yes
-			declare_war_on = {
-				target = FROM
-				type = annex_everything
-			}
-			hidden_effect = {
-				country_event = {
-					id = turkestan.23
-					days = 180
-				}
-			}
-		}
-	}
-	TRK_destroy_bukhara = {
-		visible = {
-			OR = {
-				tag = UZB
-				tag = KYR
-			}
-			country_exists = TRK
-			is_subject = no
-		}
-		available = {
-			if = {
-				limit = {
-					tag = UZB
-				}
-				OR = {
-					AND = {
-						UZB = {
-							custom_trigger_tooltip = {
-								tooltip = khiva_is_autocratic
-								has_authoritarian_government = yes
-							}
-						}
-						TRK = {
-							custom_trigger_tooltip = {
-								tooltip = bukhara_is_not_autocratic
-								has_dictatorship_government = no
-							}
-						}
-					}
-					AND = {
-						UZB = {
-							custom_trigger_tooltip = {
-								tooltip = khiva_is_democratic
-								has_authoritarian_government = no
-							}
-						}
-						TRK = {
-							custom_trigger_tooltip = {
-								tooltip = bukhara_is_not_democratic
-								OR = {
-									has_dictatorship_government = yes
-									has_socialist_government = yes
-								}
-							}
-						}
-					}
-				}
-			}
-			else = {
-				OR = {
-					KYR = {
-						custom_trigger_tooltip = {
-							tooltip = kokand_is_socialist
-							has_socialist_government = yes
-						}
-					}
-					AND = {
-						TRK = {
-							custom_trigger_tooltip = {
-								tooltip = bukhara_is_not_autocratic
-								has_dictatorship_government = no
-							}
-						}
-						KYR = {
-							custom_trigger_tooltip = {
-								tooltip = kokand_is_autocratic
-								has_authoritarian_government = yes
-							}
-						}
-					}
-					AND = {
-						TRK = {
-							custom_trigger_tooltip = {
-								tooltip = bukhara_is_not_democratic
-								OR = {
-									has_dictatorship_government = yes
-									has_socialist_government = yes
-								}
-							}
-						}
-						KYR = {
-							custom_trigger_tooltip = {
-								tooltip = kokand_is_democratic
-								has_authoritarian_government = no
-								has_socialist_government = no
-							}
-						}
-					}
-				}
-			}
-		}		
-					
-		cost = 10
-		days_remove = 7
-		fire_only_once = yes
-		war_with_target_on_remove = yes
-		ai_will_do = {
-			factor = 100
-		}
-		targets = { TRK }
-		complete_effect = {
-			set_country_flag = { flag = imminent_war days = 20 value = 1 }
-			setup_decision_attack_AI = yes
-		}
-		remove_effect = {
-			clear_decision_attack_AI = yes
-			declare_war_on = {
-				target = FROM
-				type = annex_everything
-			}
-			hidden_effect = {
-				country_event = {
-					id = turkestan.23
-					days = 180
-				}
-			}
-		}
-	}	
-	
-	TRK_proclaim_unified_turkestan = {
-		visible = {
-			OR = {
-				tag = UZB
-				tag = KYR
-				tag = TRK
-			}
-			is_subject = no
-		}
-		available = {
 			405 = {
 				is_owned_by_ROOT_or_ally  = yes
 			}
-			586 = {
+			407 = {
 				is_owned_by_ROOT_or_ally  = yes
 			}
 			861 = {
 				is_owned_by_ROOT_or_ally  = yes
+			}
+			586 = {
+				is_owned_by_ROOT_or_ally  = yes
 			}			
+			NOT = {
+				any_home_area_neighbor_country = {
+					OR = {
+						AND = {
+							has_war_with = ROOT
+							has_capitulated = no
+						}
+						AND = {
+							has_wargoal_against = ROOT
+							can_declare_war_on = ROOT
+						}
+					}
+				}
+			}
+			if = {
+				limit = { has_country_flag = ALO_should_be_independent }
+				ALO_has_russian_influence = no
+			}
 		}
-		cost = freedec?0
+
+		visible = {
+			turkestan_is_potential_government = yes
+		}
+		cost = 0
 		fire_only_once = yes
-		ai_will_do = {
-			factor = 100
-		}
-		remove_effect = {
+
+		ai_will_do = { factor = 1000 }
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision turkestan_proclaim_unified_turkestan target: [From.GetName]"
+			save_global_event_target_as = turkestan_unifier
+			set_global_flag = global_turkestan_united
+			set_country_flag = TRK_turkestan_united	
 			if = {
 				limit = {
-					tag = UZB
+					NOT = { original_tag = TRK }
 				}
-				annex_country = {
-					target = KYR
-					transfer_troops = yes
+				if = {
+					limit = { country_exists = TRK }
+					set_temp_variable = { target = TRK }
+					turkestan_integrate_TARGET_effect = yes
+					custom_effect_tooltip = tooltip_white_line
+					annex_country = {
+						target = TRK
+						transfer_troops = yes
+					}
+					if = {
+						limit = { TRK = { is_ai = no } }
+						change_tag_from = TRK
+					}
 				}
-				annex_country = {
-					target = TRK
-					transfer_troops = yes
+			}
+			if = {
+				limit = {
+					NOT = { original_tag = UZB }
 				}
-				dismantle_faction = yes
-				set_cosmetic_tag = UZB_united
-				set_country_flag = TRK_turkestan_united
-				set_global_flag = global_turkestan_united
-				UZB = { save_global_event_target_as = turkestan_unifier }
-				load_focus_tree = TRK_TURKESTAN_FOCUS_TREE
+				if = {
+					limit = { country_exists = UZB }
+					set_temp_variable = { target = UZB }
+					turkestan_integrate_TARGET_effect = yes
+					custom_effect_tooltip = tooltip_white_line
+					annex_country = {
+						target = UZB
+						transfer_troops = yes
+					}
+					if = {
+						limit = { UZB = { is_ai = no } }
+						change_tag_from = UZB
+					}
+				}
+			}
+			if = {
+				limit = {
+					NOT = { original_tag = KHI }
+				}
+				if = {
+					limit = { country_exists = KHI }
+					set_temp_variable = { target = KHI }
+					turkestan_integrate_TARGET_effect = yes
+					custom_effect_tooltip = tooltip_white_line
+					annex_country = {
+						target = KHI
+						transfer_troops = yes
+					}
+					if = {
+						limit = { KHI = { is_ai = no } }
+						change_tag_from = KHI
+					}
+				}
+			}
+			if = {
+				limit = {
+					NOT = { original_tag = KYR }
+				}
+				if = {
+					limit = { country_exists = KYR }
+					set_temp_variable = { target = KYR }
+					turkestan_integrate_TARGET_effect = yes
+					custom_effect_tooltip = tooltip_white_line
+					annex_country = {
+						target = KYR
+						transfer_troops = yes
+					}
+					if = {
+						limit = { KYR = { is_ai = no } }
+						change_tag_from = KYR
+					}
+				}
+			}
+			if = {
+				limit = { original_tag = TTR }
+				set_cosmetic_tag = TTR_turan					
+				if = {
+					limit = { 
+						NOT = { has_country_flag = TTR_russians_can_be_removed }
+					}
+					activate_targeted_decision = { target = FROM decision = TTR_remove_russians }
+					set_country_flag = TTR_russians_can_be_removed
+				}
 			}
 			else_if = {
-				limit = {
-					tag = KYR
-				}
-				annex_country = {
-					target = UZB
-					transfer_troops = yes
-				}
-				annex_country = {
-					target = TRK
-					transfer_troops = yes
-				}
-				dismantle_faction = yes
-				set_cosmetic_tag = KYR_united
-				set_country_flag = TRK_turkestan_united
-				set_global_flag = global_turkestan_united
-				KYR = { save_global_event_target_as = turkestan_unifier }
-				load_focus_tree = TRK_TURKESTAN_FOCUS_TREE
+				limit = { original_tag = BKN }
+				set_cosmetic_tag = TRK_socialist
 			}
-			else = {
-				annex_country = {
-					target = UZB
-					transfer_troops = yes
+			else_if = {
+				limit = { original_tag = ETS }
+				set_cosmetic_tag = ETS_turkestan
+				hidden_effect = {
+					every_other_country = {
+						limit = { 
+							is_central_asian_tag = yes 
+							is_turkestan_tag = no
+						}
+						ROOT = { 
+							activate_targeted_decision = { decision = turkestan_demand_submission target = PREV }
+							activate_targeted_decision = { decision = turkestan_offer_alliance target = PREV }
+						}
+					}
 				}
-				annex_country = {
-					target = KYR
-					transfer_troops = yes
+				if = {
+					limit = { can_declare_war_on = ORE }
+					activate_targeted_decision = { decision = turkestan_attack_decision target = ORE }
 				}
-				dismantle_faction = yes
-				set_cosmetic_tag = TRK_united
-				set_country_flag = TRK_turkestan_united
-				set_global_flag = global_turkestan_united
-				TRK = { save_global_event_target_as = turkestan_unifier }
-				load_focus_tree = TRK_TURKESTAN_FOCUS_TREE
+				if = {
+					limit = { can_declare_war_on = URL }
+					activate_targeted_decision = { decision = turkestan_attack_decision target = URL }
+				}
+				if = {
+					limit = { can_declare_war_on = SMR }
+					activate_targeted_decision = { decision = turkestan_attack_decision target = SMR }
+				}
+				if = {
+					limit = { can_declare_war_on = SIK }
+					activate_targeted_decision = { decision = turkestan_attack_decision target = SIK }
+				}
 			}
+			else_if = {
+				limit = { original_tag = ALO }
+				if = {
+					limit = { ALO_is_monarchy = yes }
+					set_cosmetic_tag = TRK_khanate
+				}
+				else_if = {
+					limit = { ALO_ush_juz_in_power = yes }
+					set_cosmetic_tag = ALO_turkotatar
+				}
+				else = {
+					set_cosmetic_tag = ALO_turkestan
+				}
+			}
+			mark_focus_tree_layout_dirty = yes
+			CA_recruit_leaders = yes
 			if = {
-				limit = {
-					has_idea = TRK_fraternization
+				limit = { 
+					NOT = { original_tag = ETS }
 				}
-				remove_ideas = TRK_fraternization
+				TRK_setup_united_turkestan = yes				
 			}
-			TRK_setup_united_turkestan = yes
 		}
 	}
-	#TRK_call_in_Alash = {
-	#	visible = {
-	#		OR = {
-	#			tag = UZB
-	#			tag = KYR
-	#			tag = TRK
-	#		}
-	#		NOT = { has_country_flag = TRK_turkestan_united }
-	#		is_subject = no
-	#	}
-	#	available = {
-	#		has_war = yes
-	#		country_exists = ALO
-	#		ALO = { is_subject = no }
-	#		ALO = { has_government = social_liberal }
-	#	}
-	#	cost = 10
-	#	days_remove = 7
-	#	fire_only_once = yes
-	#	ai_will_do = {
-	#		factor = 100
-	#	}
-	#	targets = { ALO } 
-	#	remove_effect = {
-	#		every_country = {
-	#			limit = {
-	#				has_war_with = ROOT
-	#			}
-	#			FROM = {
-	#				declare_war_on = {
-	#					target = PREV
-	#					type = annex_everything
-	#				}
-	#			}
-	#		}
-	#	}
-	#}
-}
-TRK_foreign_policy = {
-	#TRK_ally_alash = {
-	#	visible = {
-	#		has_completed_focus = TRK_Finish_Central_Asian_Unification
-	#		country_exists = ALO
-	#		is_subject = no
-	#	}
-	#	available = {
-	#		AND = {
-	#			ROOT = { has_democratic_government = yes }
-	#			ALO = { has_government = social_liberal }
-	#		}
-	#	}
-	#	cost = 25
-	#	days_remove = 14
-	#	fire_only_once = yes
-	#	ai_will_do = {
-	#		factor = 100
-	#	}
-	#	targets = { ALO }
-	#	complete_effect = {
-	#		FROM = {
-	#			country_event = {
-	#				id = turkestan.14
-	#				days = 2
-	#			}
-	#		}
-	#	}
-	#}
-	#TRK_destroy_alash = {
-	#	visible = {
-	#		has_completed_focus = TRK_Finish_Central_Asian_Unification
-	#		country_exists = ALO
-	#		is_subject = no
-	#	}
-	#	available = {
-	#		OR = {
-	#			ROOT = { has_democratic_government = no }
-	#			has_country_flag = ALO_declined_alliance
-	#		}
-	#	}
-	#	cost = 25
-	#	days_remove = 14
-	#	fire_only_once = yes
-	#	ai_will_do = {
-	#		factor = 100
-	#	}
-	#	targets = { ALO }
-	#	complete_effect = {
-	#		set_country_flag = { flag = imminent_war days = 20 value = 1 }
-	#		setup_decision_attack_AI = yes
-	#		ALO = {
-	#			every_owned_state = {
-	#				limit = { is_core_of = ALO }
-	#				add_core_of = TRK
-	#			}
-	#		}
-	#		if = {
-	#			limit = {
-	#				FROM = { is_subject = yes }
-	#			}
-	#			custom_effect_tooltip = RUS_may_lead_to_war_with_FROM_overlord
-	#		}
-	#	}
-	#	remove_effect = {
-	#		clear_decision_attack_AI = yes
-	#		declare_war_on = {
-	#			target = FROM
-	#			type = annex_everything
-	#		}
-	#		country_event = {
-	#			id = turkestan.1
-	#			days = 5
-	#		}
-	#	}
-	#}
-	TRK_ally_xinjiang = {
-		visible = {
-			has_completed_focus = TRK_East_Turkestan_Is_Turkestan
-			country_exists = ETS
-			is_subject = no
-		}
+	turkestan_move_capital = {
+		icon = generic_political_rally
+
+		allowed = { always = no }
+
 		available = {
-			country_exists = ETS
-			ETS = { 
-				same_government_type_as_ROOT = yes
-				has_war = no
-			}
+			407 = { is_owned_and_controlled_by = ROOT } #Guangzhou
 		}
-		cost = 25
-		days_remove = 14
+
+		cost = 0
 		fire_only_once = yes
-		ai_will_do = {
-			factor = 100
-		}
-		targets = { ETS }
+
+		ai_will_do = { factor = 60 }
+
 		complete_effect = {
-			FROM = {
-				country_event = {
-					id = turkestan.14
-					days = 2
-				}
-			}
+			log = "[GetDateText]: [Root.GetName]: Decision complete turkestan_move_capital"
+			country_event = turkestan_events.50
 		}
 	}
-	TRK_destroy_xinjiang = {
-		visible = {
-			has_completed_focus = TRK_East_Turkestan_Is_Turkestan
-			is_subject = no
-		}
-		available = {
-			OR = {
-				NOT = { country_exists = ETS}
-				has_country_flag = ETS_declined_alliance
-			}
-			has_war = no
-		}
-		cost = 25
-		days_remove = 14
-		fire_only_once = yes
-		ai_will_do = {
-			factor = 100
-		}
-		targets = { ETS SIK TAN }
-		complete_effect = {
-			set_country_flag = { flag = imminent_war days = 20 value = 1 }
-			setup_decision_attack_AI = yes
-			if = {
-				limit = {
-					FROM = { is_subject = yes }
-				}
-				custom_effect_tooltip = RUS_may_lead_to_war_with_FROM_overlord
-			}
-		}
-		remove_effect = {
-			clear_decision_attack_AI = yes
-			declare_war_on = {
-				target = FROM
-				type = annex_everything
-			}
-		}
-	}
-	TRK_ally_persia = {
-		visible = {
-			has_completed_focus = TRK_Deal_With_Persia
-			is_subject = no
-		}
-		available = {
-			country_exists = PER
-			PER = {
-				has_war = no
-				is_subject = no
-				same_government_type_as_ROOT = yes
-			}
-		}
-		cost = 25
-		days_remove = 14
-		fire_only_once = yes
-		ai_will_do = {
-			factor = 100
-		}
-		targets = { PER }
-		complete_effect = {
-			FROM = {
-				country_event = {
-					id = turkestan.14
-					days = 2
-				}
-			}
-		}
-	}
-	TRK_ally_afghanistan = {
+	
+	ALO_abolish_biy_courts = {
+		icon = eng_trade_unions_demand
 		
 		visible = {
-			has_completed_focus = TRK_Our_Southern_Neighbour
-			country_exists = AFG
-			is_subject = no
-		}
-		available = {
-			AFG = { same_government_type_as_ROOT = yes }
-			AFG = {
-				is_subject = no
+			any_owned_state = {
+				is_core_of = FROM
+				has_resistance = yes
+				NOT = { is_core_of = ROOT }
+				is_demilitarized_zone = no
+				is_claimed_by = ROOT
 			}
 		}
-		cost = 25
-		days_remove = 14
+
+		cost = 20
+		days_remove = 90
 		fire_only_once = yes
-		ai_will_do = {
-			factor = 100
-		}
-		targets = { AFG }
-		complete_effect = {
-			FROM = {
-				country_event = {
-					id = turkestan.14
-					days = 2
-				}
-			}
-		}
-	}
-	TRK_destroy_afghanistan = {
-		visible = {
-			has_completed_focus = TRK_Our_Southern_Neighbour
-			country_exists = AFG
-			is_subject = no
-		}
-		available = {
-			OR = {
-				AFG = { same_government_type_as_ROOT = no }
-				has_country_flag = AFG_declined_alliance
-			}
-			AFG = {
-				is_subject = no
-			}
-			has_war = no
-		}
-		cost = 25
-		days_remove = 14
-		fire_only_once = yes
-		ai_will_do = {
-			factor = 100
-		}
-		targets = { AFG }
-		complete_effect = {
-			set_country_flag = { flag = imminent_war days = 20 value = 1 }
-			setup_decision_attack_AI = yes
-			if = {
-				limit = {
-					FROM = { is_subject = yes }
-				}
-				custom_effect_tooltip = RUS_may_lead_to_war_with_FROM_overlord
-			}
-		}
-		remove_effect = {
-			clear_decision_attack_AI = yes
-			declare_war_on = {
-				target = FROM
-				type = annex_everything
-			}
-		}
-	}
-	TRK_ally_india = {
-		visible = {
-			has_completed_focus = TRK_Join_Eastern_Syndicalist_Union
-			is_subject = no
-		}
-		available = {
-			country_exists = BHC
-			BHC = {
-				is_faction_leader = yes
-			}
-			is_ai = no
-		}
-		cost = 25
-		days_remove = 14
-		fire_only_once = yes
-		ai_will_do = {
-			factor = 100
-		}
-		targets = { BHC }
-		complete_effect = {
-			FROM = {
-				country_event = {
-					id = turkestan.20
-					days = 2
-				}
-			}
-		}
-	}
-	TRK_Attack_Russia = {
-		available = {
-			652 = {
-				owner = {
-					tag = FROM
-					is_neighbor_of = ROOT
-				}
-			}
-			is_subject = no
-		}
-		cost = 25
-		days_remove = 14
-		fire_only_once = yes
-		ai_will_do = {
-			factor = 30
-			modifier = {
-				factor = 2
-				FROM = { has_war = yes }
-			}
-		}
-		targets = { RUS TRM }
+
+		target_non_existing = yes
+		targets = { ALO }
 		target_root_trigger = {
-			has_completed_focus = TRK_Expand_Into_Russia
+			OR = {
+				CA_is_ruled_by_any_socialist = yes
+				CA_is_ruled_by_any_democrat = yes
+			}
+			turkestan_is_potential_government = yes
+		}
+		target_trigger = {
+			any_of_scopes = {
+				array = FROM.core_states
+				is_owned_by = ROOT
+				has_resistance = yes
+			}
+		}
+		
+		modifier = {
+			political_power_cost = 0.05
+			compliance_growth = 0.05
+		}
+
+		ai_will_do = {
+			factor = 60
 		}
 		complete_effect = {
-			set_country_flag = { flag = imminent_war days = 20 value = 1 }
-			setup_decision_attack_AI = yes
-			if = {
-				limit = {
-					FROM = { is_subject = yes }
+			log = "[GetDateText]: [Root.GetName]: Decision ALO_abolish_biy_courts target: [From.GetName]"
+			every_owned_state = {
+				limit = { 
+					is_core_of = FROM
+					has_resistance = yes
+					NOT = { is_core_of = ROOT }
+					is_claimed_by = ROOT
 				}
-				custom_effect_tooltip = RUS_may_lead_to_war_with_FROM_overlord
+				add_resistance = 3
 			}
 		}
 		remove_effect = {
-			clear_decision_attack_AI = yes
-			declare_war_on = {
-				target = FROM
-				type = annex_everything
+			log = "[GetDateText]: [Root.GetName]: Decision remove ALO_abolish_biy_courts target: [From.GetName]"
+			every_owned_state = {
+				limit = { 
+					is_core_of = FROM
+					has_resistance = yes
+					NOT = { is_core_of = ROOT }
+					is_claimed_by = ROOT
+				}
+				add_compliance = 10
 			}
 		}
 	}	
+	ALO_preserve_nomadic_traditions = {
+		icon = eng_trade_unions_demand
+		
+		visible = {
+			any_owned_state = {
+				is_core_of = FROM
+				has_resistance = yes
+				NOT = { is_core_of = ROOT }
+				is_demilitarized_zone = no
+				is_claimed_by = ROOT
+			}
+		}
+
+		cost = 20
+		days_remove = 90
+		fire_only_once = yes
+
+		target_non_existing = yes
+		targets = { ALO }
+		target_root_trigger = {
+			CA_is_ruled_by_any_socialist = no
+			CA_is_ruled_by_any_democrat = no
+			turkestan_is_potential_government = yes
+		}
+		target_trigger = {
+			any_of_scopes = {
+				array = FROM.core_states
+				is_owned_by = ROOT
+				has_resistance = yes
+			}
+		}
+		
+		modifier = {
+			stability_factor = -0.05
+			compliance_growth = 0.05
+		}
+
+		ai_will_do = {
+			factor = 60
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision ALO_preserve_nomadic_traditions target: [From.GetName]"
+			every_owned_state = {
+				limit = { 
+					is_core_of = FROM
+					has_resistance = yes
+					NOT = { is_core_of = ROOT }
+					is_claimed_by = ROOT
+				}
+				add_resistance = 3
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove ALO_preserve_nomadic_traditions target: [From.GetName]"
+			every_owned_state = {
+				limit = { 
+					is_core_of = FROM
+					has_resistance = yes
+					NOT = { is_core_of = ROOT }
+					is_claimed_by = ROOT
+				}
+				add_compliance = 10
+			}
+		}
+	}
+	TRK_replace_local_clerics = {
+		icon = eng_trade_unions_demand
+		
+		visible = {
+			any_owned_state = {
+				is_core_of = FROM
+				has_resistance = yes
+				NOT = { is_core_of = ROOT }
+				is_demilitarized_zone = no
+				is_claimed_by = ROOT
+			}
+		}
+
+		cost = 20
+		days_remove = 90
+		fire_only_once = yes
+
+		target_non_existing = yes
+		targets = { TRK }
+		target_root_trigger = {
+			OR = {
+				CA_is_ruled_by_any_socialist = yes
+				CA_is_ruled_by_any_democrat = yes
+			}
+			turkestan_is_potential_government = yes
+		}
+		target_trigger = {
+			any_of_scopes = {
+				array = FROM.core_states
+				is_owned_by = ROOT
+				has_resistance = yes
+			}
+		}
+		
+		modifier = {
+			stability_factor = -0.05
+			compliance_growth = 0.05
+		}
+
+		ai_will_do = {
+			factor = 60
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_replace_local_clerics target: [From.GetName]"
+			every_owned_state = {
+				limit = { 
+					is_core_of = FROM
+					has_resistance = yes
+					NOT = { is_core_of = ROOT }
+					is_claimed_by = ROOT
+				}
+				add_resistance = 3
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_replace_local_clerics target: [From.GetName]"
+			every_owned_state = {
+				limit = { 
+					is_core_of = FROM
+					has_resistance = yes
+					NOT = { is_core_of = ROOT }
+					is_claimed_by = ROOT
+				}
+				add_compliance = 10
+			}
+		}
+	}
+	TRK_disband_mirshabs = {
+		icon = eng_trade_unions_demand
+		
+		visible = {
+			any_owned_state = {
+				is_core_of = FROM
+				has_resistance = yes
+				NOT = { is_core_of = ROOT }
+				is_demilitarized_zone = no
+				is_claimed_by = ROOT
+			}
+		}
+
+		cost = 20
+		days_remove = 90
+		fire_only_once = yes
+
+		target_non_existing = yes
+		targets = { TRK }
+		target_root_trigger = {
+			CA_is_ruled_by_qadhimists = no
+			turkestan_is_potential_government = yes
+		}
+		target_trigger = {
+			any_of_scopes = {
+				array = FROM.core_states
+				is_owned_by = ROOT
+				has_resistance = yes
+			}
+		}
+		
+		modifier = {
+			experience_gain_army_factor = -0.15
+			compliance_growth = 0.05
+		}
+
+		ai_will_do = {
+			factor = 60
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_disband_mirshabs target: [From.GetName]"
+			every_owned_state = {
+				limit = { 
+					is_core_of = FROM
+					has_resistance = yes
+					NOT = { is_core_of = ROOT }
+					is_claimed_by = ROOT
+				}
+				add_resistance = 3
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_disband_mirshabs target: [From.GetName]"
+			every_owned_state = {
+				limit = { 
+					is_core_of = FROM
+					has_resistance = yes
+					NOT = { is_core_of = ROOT }
+					is_claimed_by = ROOT
+				}
+				add_compliance = 10
+			}
+		}
+	}
+	UZB_confiscate_waqf_lands = {
+		icon = eng_trade_unions_demand
+		
+		visible = {
+			any_owned_state = {
+				is_core_of = FROM
+				has_resistance = yes
+				NOT = { is_core_of = ROOT }
+				is_demilitarized_zone = no
+				is_claimed_by = ROOT
+			}
+		}
+
+		cost = 20
+		days_remove = 90
+		fire_only_once = yes
+
+		target_non_existing = yes
+		targets = { UZB }
+		target_root_trigger = {
+			CA_is_ruled_by_any_socialist = yes
+			turkestan_is_potential_government = yes
+		}
+		target_trigger = {
+			any_of_scopes = {
+				array = FROM.core_states
+				is_owned_by = ROOT
+				has_resistance = yes
+			}
+		}
+		
+		modifier = {
+			stability_factor = -0.05
+			production_factory_efficiency_gain_factor = 0.05
+			compliance_growth = 0.05
+		}
+
+		ai_will_do = {
+			factor = 60
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UZB_confiscate_waqf_lands target: [From.GetName]"
+			every_owned_state = {
+				limit = { 
+					is_core_of = FROM
+					has_resistance = yes
+					NOT = { is_core_of = ROOT }
+					is_claimed_by = ROOT
+				}
+				add_resistance = 3
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UZB_confiscate_waqf_lands target: [From.GetName]"
+			every_owned_state = {
+				limit = { 
+					is_core_of = FROM
+					has_resistance = yes
+					NOT = { is_core_of = ROOT }
+					is_claimed_by = ROOT
+				}
+				add_compliance = 10
+			}
+		}
+	}
+	UZB_end_emirate_loyalists = {
+		icon = eng_trade_unions_demand
+		
+		visible = {
+			any_owned_state = {
+				is_core_of = FROM
+				has_resistance = yes
+				NOT = { is_core_of = ROOT }
+				is_demilitarized_zone = no
+				is_claimed_by = ROOT
+			}
+		}
+
+		cost = 20
+		days_remove = 90
+		fire_only_once = yes
+
+		target_non_existing = yes
+		targets = { UZB }
+		target_root_trigger = {
+			CA_is_ruled_by_qadhimists = no
+			turkestan_is_potential_government = yes
+		}
+		target_trigger = {
+			any_of_scopes = {
+				array = FROM.core_states
+				is_owned_by = ROOT
+				has_resistance = yes
+			}
+		}
+		
+		modifier = {
+			stability_factor = -0.05
+			compliance_growth = 0.05
+		}
+
+		ai_will_do = {
+			factor = 60
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UZB_end_emirate_loyalists target: [From.GetName]"
+			every_owned_state = {
+				limit = { 
+					is_core_of = FROM
+					has_resistance = yes
+					NOT = { is_core_of = ROOT }
+					is_claimed_by = ROOT
+				}
+				add_resistance = 3
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UZB_end_emirate_loyalists target: [From.GetName]"
+			every_owned_state = {
+				limit = { 
+					is_core_of = FROM
+					has_resistance = yes
+					NOT = { is_core_of = ROOT }
+					is_claimed_by = ROOT
+				}
+				add_compliance = 10
+			}
+		}
+	}	
+	KHI_curtail_ulema = {
+		icon = eng_trade_unions_demand
+		
+		visible = {
+			any_owned_state = {
+				is_core_of = FROM
+				has_resistance = yes
+				NOT = { is_core_of = ROOT }
+				is_demilitarized_zone = no
+				is_claimed_by = ROOT
+			}
+		}
+
+		cost = 20
+		days_remove = 90
+		fire_only_once = yes
+
+		target_non_existing = yes
+		targets = { KHI }
+		target_root_trigger = {
+			OR = {
+				CA_is_ruled_by_any_socialist = yes
+				CA_is_ruled_by_any_democrat = yes
+			}
+			turkestan_is_potential_government = yes
+		}
+		target_trigger = {
+			any_of_scopes = {
+				array = FROM.core_states
+				is_owned_by = ROOT
+				has_resistance = yes
+			}
+		}
+		
+		modifier = {
+			stability_factor = -0.05
+			compliance_growth = 0.05
+		}
+
+		ai_will_do = {
+			factor = 60
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision KHI_curtail_ulema target: [From.GetName]"
+			every_owned_state = {
+				limit = { 
+					is_core_of = FROM
+					has_resistance = yes
+					NOT = { is_core_of = ROOT }
+					is_claimed_by = ROOT
+				}
+				add_resistance = 3
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove KHI_curtail_ulema target: [From.GetName]"
+			every_owned_state = {
+				limit = { 
+					is_core_of = FROM
+					has_resistance = yes
+					NOT = { is_core_of = ROOT }
+					is_claimed_by = ROOT
+				}
+				add_compliance = 10
+			}
+		}
+	}
+	KHI_eliminate_corruption = {
+		icon = eng_trade_unions_demand
+		
+		visible = {
+			any_owned_state = {
+				is_core_of = FROM
+				has_resistance = yes
+				NOT = { is_core_of = ROOT }
+				is_demilitarized_zone = no
+				is_claimed_by = ROOT
+			}
+		}
+
+		cost = 20
+		days_remove = 90
+		fire_only_once = yes
+
+		target_non_existing = yes
+		targets = { KHI }
+		target_root_trigger = {
+			CA_is_ruled_by_mujahideen = no
+			turkestan_is_potential_government = yes
+		}
+		target_trigger = {
+			any_of_scopes = {
+				array = FROM.core_states
+				is_owned_by = ROOT
+				has_resistance = yes
+			}
+		}
+		
+		modifier = {
+			political_power_cost = 0.05
+			compliance_growth = 0.05
+		}
+
+		ai_will_do = {
+			factor = 60
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision KHI_eliminate_corruption target: [From.GetName]"
+			every_owned_state = {
+				limit = { 
+					is_core_of = FROM
+					has_resistance = yes
+					NOT = { is_core_of = ROOT }
+					is_claimed_by = ROOT
+				}
+				add_resistance = 3
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove KHI_eliminate_corruption target: [From.GetName]"
+			every_owned_state = {
+				limit = { 
+					is_core_of = FROM
+					has_resistance = yes
+					NOT = { is_core_of = ROOT }
+					is_claimed_by = ROOT
+				}
+				add_compliance = 10
+			}
+		}
+	}
+	CA_nationalize_land = {
+		icon = eng_trade_unions_demand
+		
+		visible = {
+			CA_is_ruled_by_socialist = yes
+			any_owned_state = {
+				is_central_asia = yes
+				has_resistance = yes
+				NOT = { is_core_of = ROOT }
+				is_demilitarized_zone = no
+				is_claimed_by = ROOT
+			}
+			turkestan_is_potential_government = yes
+		}
+
+		cost = 20
+		days_remove = 60
+		days_re_enable = 180		
+		
+		modifier = {
+			production_factory_efficiency_gain_factor = -0.10
+			compliance_growth = 0.05
+		}
+
+		ai_will_do = {
+			factor = 60
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CA_nationalize_land target: [From.GetName]"
+			every_owned_state = {
+				limit = { 
+					is_central_asia = yes
+					has_resistance = yes
+					NOT = { is_core_of = ROOT }
+					is_claimed_by = ROOT
+				}
+				add_resistance = 3
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CA_nationalize_land target: [From.GetName]"
+			every_owned_state = {
+				limit = { 
+					is_central_asia = yes
+					has_resistance = yes
+					NOT = { is_core_of = ROOT }
+					is_claimed_by = ROOT
+				}
+				add_compliance = 5
+			}
+		}
+	}
+	CA_destroy_feudalism = {
+		icon = eng_trade_unions_demand
+		
+		visible = {
+			CA_is_ruled_by_socialist = yes
+			any_owned_state = {
+				is_central_asia = yes
+				has_resistance = yes
+				NOT = { is_core_of = ROOT }
+				is_demilitarized_zone = no
+				is_claimed_by = ROOT
+			}
+			turkestan_is_potential_government = yes
+		}
+
+		cost = 20
+		days_remove = 60
+		days_re_enable = 180		
+		
+		modifier = {
+			stability_factor = -0.05
+			compliance_growth = 0.05
+		}
+
+		ai_will_do = {
+			factor = 60
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CA_destroy_feudalism target: [From.GetName]"
+			every_owned_state = {
+				limit = { 
+					is_central_asia = yes
+					has_resistance = yes
+					NOT = { is_core_of = ROOT }
+					is_claimed_by = ROOT
+				}
+				add_resistance = 3
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CA_destroy_feudalism target: [From.GetName]"
+			TRK_increase_political_modernisation = yes
+			every_owned_state = {
+				limit = { 
+					is_central_asia = yes
+					has_resistance = yes
+					NOT = { is_core_of = ROOT }
+					is_claimed_by = ROOT
+				}
+				add_compliance = 5
+			}
+		}
+	}	
+	CA_education_campaign = {
+		icon = eng_trade_unions_demand
+		
+		visible = {
+			OR = {
+				CA_is_ruled_by_socialist = yes
+				CA_is_ruled_by_jadidists = yes
+			}
+			any_owned_state = {
+				is_central_asia = yes
+				has_resistance = yes
+				NOT = { is_core_of = ROOT }
+				is_demilitarized_zone = no
+				is_claimed_by = ROOT
+			}
+			turkestan_is_potential_government = yes
+		}
+
+		cost = 20
+		days_remove = 60
+		days_re_enable = 180		
+		
+		modifier = {
+			research_speed_factor = 0.05
+			compliance_growth = 0.05
+		}
+
+		ai_will_do = {
+			factor = 60
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CA_education_campaign target: [From.GetName]"
+			every_owned_state = {
+				limit = { 
+					is_central_asia = yes
+					has_resistance = yes
+					NOT = { is_core_of = ROOT }
+					is_claimed_by = ROOT
+				}
+				add_resistance = 3
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CA_education_campaign target: [From.GetName]"
+			TRK_increase_social_modernisation = yes
+			every_owned_state = {
+				limit = { 
+					is_central_asia = yes
+					has_resistance = yes
+					NOT = { is_core_of = ROOT }
+					is_claimed_by = ROOT
+				}
+				add_compliance = 5
+			}
+		}
+	}
+	CA_ensure_minority_rights = {
+		icon = eng_trade_unions_demand
+		
+		visible = {
+			OR = {
+				CA_is_ruled_by_socialist = yes
+				CA_is_ruled_by_jadidists = yes
+			}
+			any_owned_state = {
+				is_central_asia = yes
+				has_resistance = yes
+				NOT = { is_core_of = ROOT }
+				is_demilitarized_zone = no
+				is_claimed_by = ROOT
+			}
+			turkestan_is_potential_government = yes
+			if = {
+				limit = { KHI_is_turkmen = no }
+				if = {
+					limit = { owns_state = 584 }
+					584 = { NOT = { has_dynamic_modifier = { modifier = CA_turkmen_autonomy } } }
+				}
+			}
+			if = {
+				limit = { NOT = { original_tag = UZB } }
+				if = {
+					limit = { owns_state = 732 }
+					732 = { NOT = { has_dynamic_modifier = { modifier = CA_tajik_autonomy } } }
+				}
+			}
+			if = {
+				limit = { 
+					NOT = { 
+						original_tag = UZB
+						original_tag = TRK 
+					} 
+				}				
+				if = {
+					limit = { owns_state = 407 }
+					407 = { NOT = { has_dynamic_modifier = { modifier = CA_turkestan_autonomy } } }
+				}
+			}
+			if = {
+				limit = { 
+					NOT = { original_tag = ALO } 
+				}				
+				any_owned_state = {
+					is_alash = yes
+					NOT = { has_dynamic_modifier = { modifier = CA_kazakh_autonomy } }
+				}
+			}
+		}
+
+		cost = 40
+		days_remove = 30
+		days_re_enable = 180		
+		
+		modifier = {
+			war_support_factor = -0.05
+			compliance_growth = 0.05
+		}
+
+		ai_will_do = {
+			factor = 60
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CA_ensure_minority_rights target: [From.GetName]"
+			if = {
+				limit = {				 
+					NOT = { 
+						original_tag = UZB
+						original_tag = TRK 
+					} 
+				}
+				every_owned_state = {
+					limit = { 
+						OR = {
+							is_bukhara = yes
+							is_kokand = yes
+							state = 861
+						}
+						NOT = { 
+							state = 586 
+							state = 1210 
+							state = 732
+							has_dynamic_modifier = { modifier = CA_turkestan_autonomy }
+						}
+					}
+					add_dynamic_modifier = { modifier = CA_turkestan_autonomy }
+				}
+			}
+			if = {
+				limit = { NOT = { original_tag = UZB } }
+				every_owned_state = {
+					limit = { 
+						OR = {
+							state = 1210 
+							state = 732
+						}
+						NOT = { 
+							has_dynamic_modifier = { modifier = CA_tajik_autonomy }
+						}
+					}
+					add_dynamic_modifier = { modifier = CA_tajik_autonomy }
+				}
+			}
+			if = {
+				limit = { NOT = { original_tag = ALO } }
+				every_owned_state = {
+					limit = { 
+						is_alash = yes
+						NOT = { 
+							has_dynamic_modifier = { modifier = CA_kazakh_autonomy }
+						}
+					}
+					add_dynamic_modifier = { modifier = CA_kazakh_autonomy }
+				}
+			}
+			if = {
+				limit = { KHI_is_turkmen = no }
+				every_owned_state = {
+					limit = { 
+						OR = {
+							state = 1281
+							state = 584
+							state = 1275
+						}
+						NOT = { 
+							has_dynamic_modifier = { modifier = CA_turkmen_autonomy }
+						}
+					}
+					add_dynamic_modifier = { modifier = CA_turkmen_autonomy }
+				}
+			}
+		}
+	}
+	CA_expand_constitutional_order = {
+		icon = eng_trade_unions_demand
+		
+		visible = {
+			CA_is_ruled_by_jadidists = yes
+			any_owned_state = {
+				is_central_asia = yes
+				has_resistance = yes
+				NOT = { is_core_of = ROOT }
+				is_demilitarized_zone = no
+				is_claimed_by = ROOT
+			}
+			turkestan_is_potential_government = yes
+		}
+
+		cost = 20
+		days_remove = 60
+		days_re_enable = 180		
+		
+		modifier = {
+			compliance_growth = 0.05
+		}
+
+		ai_will_do = {
+			factor = 60
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CA_expand_constitutional_order target: [From.GetName]"
+			TRK_increase_political_modernisation = yes
+			every_owned_state = {
+				limit = { 
+					is_central_asia = yes
+					has_resistance = yes
+					NOT = { is_core_of = ROOT }
+					is_claimed_by = ROOT
+				}
+				add_compliance = 5
+			}
+		}
+	}
+	CA_empower_local_democracy = {
+		icon = eng_trade_unions_demand
+		
+		visible = {
+			CA_is_ruled_by_jadidists = yes
+			any_owned_state = {
+				is_central_asia = yes
+				has_resistance = yes
+				NOT = { is_core_of = ROOT }
+				is_demilitarized_zone = no
+				is_claimed_by = ROOT
+			}
+			turkestan_is_potential_government = yes
+		}
+
+		cost = 35
+		days_remove = 60
+		days_re_enable = 180		
+		
+		modifier = {
+			compliance_growth = 0.05
+		}
+
+		ai_will_do = {
+			factor = 60
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CA_empower_local_democracy target: [From.GetName]"
+			every_owned_state = {
+				limit = { 
+					is_central_asia = yes
+					has_resistance = yes
+					NOT = { is_core_of = ROOT }
+					is_claimed_by = ROOT
+				}
+				add_compliance = 5
+			}
+		}
+	}
+	CA_reinforce_sharia_law = {
+		icon = eng_trade_unions_demand
+		
+		visible = {
+			OR = {
+				CA_is_ruled_by_qadhimists = yes
+				CA_is_ruled_by_mujahideen = yes
+			}
+			any_owned_state = {
+				is_central_asia = yes
+				has_resistance = yes
+				NOT = { is_core_of = ROOT }
+				is_demilitarized_zone = no
+				is_claimed_by = ROOT
+			}
+			turkestan_is_potential_government = yes
+		}
+
+		cost = 35
+		days_remove = 60
+		days_re_enable = 180		
+		
+		modifier = {
+			research_speed_factor = -0.05
+			compliance_growth = 0.05
+		}
+
+		ai_will_do = {
+			factor = 60
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CA_reinforce_sharia_law target: [From.GetName]"
+			every_owned_state = {
+				limit = { 
+					is_central_asia = yes
+					has_resistance = yes
+					NOT = { is_core_of = ROOT }
+					is_claimed_by = ROOT
+				}
+				add_resistance = 3
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CA_reinforce_sharia_law target: [From.GetName]"
+			every_owned_state = {
+				limit = { 
+					is_central_asia = yes
+					has_resistance = yes
+					NOT = { is_core_of = ROOT }
+					is_claimed_by = ROOT
+				}
+				add_compliance = 5
+			}
+		}
+	}
+	CA_support_local_ulema = {
+		icon = eng_trade_unions_demand
+		
+		visible = {
+			OR = {
+				CA_is_ruled_by_qadhimists = yes
+				CA_is_ruled_by_mujahideen = yes
+			}
+			any_owned_state = {
+				is_central_asia = yes
+				has_resistance = yes
+				NOT = { is_core_of = ROOT }
+				is_demilitarized_zone = no
+				is_claimed_by = ROOT
+			}
+			turkestan_is_potential_government = yes
+		}
+
+		cost = 20
+		days_remove = 60
+		days_re_enable = 180		
+		
+		modifier = {
+			industrial_capacity_factory = -0.05
+			compliance_growth = 0.05
+		}
+
+		ai_will_do = {
+			factor = 60
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CA_support_local_ulema target: [From.GetName]"
+			every_owned_state = {
+				limit = { 
+					is_central_asia = yes
+					has_resistance = yes
+					NOT = { is_core_of = ROOT }
+					is_claimed_by = ROOT
+				}
+				add_resistance = 3
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CA_support_local_ulema target: [From.GetName]"
+			every_owned_state = {
+				limit = { 
+					is_central_asia = yes
+					has_resistance = yes
+					NOT = { is_core_of = ROOT }
+					is_claimed_by = ROOT
+				}
+				add_compliance = 5
+			}
+		}
+	}	
+	CA_expand_khans_bureaucracy = {
+		icon = eng_trade_unions_demand
+		
+		visible = {
+			OR = {
+				KHI_has_monarchy = yes
+				UZB_has_monarchy = yes
+				ALO_is_monarchy = yes
+				has_cosmetic_tag = TRK_sultanate
+				has_cosmetic_tag = TRK_khanate
+			}
+			any_owned_state = {
+				is_central_asia = yes
+				has_resistance = yes
+				NOT = { is_core_of = ROOT }
+				is_demilitarized_zone = no
+				is_claimed_by = ROOT
+			}
+			turkestan_is_potential_government = yes
+		}
+
+		cost = 20
+		days_remove = 60
+		days_re_enable = 180		
+		
+		modifier = {
+			industrial_capacity_factory = -0.05
+			political_power_gain = 0.05
+			compliance_growth = 0.05
+		}
+
+		ai_will_do = {
+			factor = 60
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CA_expand_khans_bureaucracy target: [From.GetName]"
+			every_owned_state = {
+				limit = { 
+					is_central_asia = yes
+					has_resistance = yes
+					NOT = { is_core_of = ROOT }
+					is_claimed_by = ROOT
+				}
+				add_resistance = 3
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CA_expand_khans_bureaucracy target: [From.GetName]"
+			every_owned_state = {
+				limit = { 
+					is_central_asia = yes
+					has_resistance = yes
+					NOT = { is_core_of = ROOT }
+					is_claimed_by = ROOT
+				}
+				add_compliance = 5
+			}
+		}
+	}
+	
+	CA_enforce_conscription = {
+		icon = eng_trade_unions_demand
+		
+		visible = {
+			OR = {
+				CA_is_ruled_by_military = yes
+				CA_is_ruled_by_mujahideen = yes
+			}
+			any_owned_state = {
+				is_central_asia = yes
+				has_resistance = yes
+				NOT = { is_core_of = ROOT }
+				is_demilitarized_zone = no
+				is_claimed_by = ROOT
+			}
+			turkestan_is_potential_government = yes
+		}
+
+		cost = 20
+		days_remove = 60
+		days_re_enable = 180		
+		
+		modifier = {
+			production_factory_efficiency_gain_factor = -0.03
+			weekly_manpower = 1000
+			compliance_growth = 0.05
+		}
+
+		ai_will_do = {
+			factor = 60
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CA_enforce_conscription target: [From.GetName]"
+			every_owned_state = {
+				limit = { 
+					is_central_asia = yes
+					has_resistance = yes
+					NOT = { is_core_of = ROOT }
+					is_claimed_by = ROOT
+				}
+				add_resistance = 3
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CA_enforce_conscription target: [From.GetName]"
+			every_owned_state = {
+				limit = { 
+					is_central_asia = yes
+					has_resistance = yes
+					NOT = { is_core_of = ROOT }
+					is_claimed_by = ROOT
+				}
+				add_compliance = 5
+			}
+		}
+	}	
+	CA_disarm_local_militias = {
+		icon = eng_trade_unions_demand
+		
+		visible = {
+			CA_is_ruled_by_military = yes
+			any_owned_state = {
+				is_central_asia = yes
+				has_resistance = yes
+				NOT = { is_core_of = ROOT }
+				is_demilitarized_zone = no
+				is_claimed_by = ROOT
+			}
+			turkestan_is_potential_government = yes
+		}
+
+		cost = 20
+		days_remove = 60
+		days_re_enable = 180		
+		
+		modifier = {
+			stability_factor = -0.05
+			compliance_growth = 0.05
+		}
+
+		ai_will_do = {
+			factor = 60
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CA_disarm_local_militias target: [From.GetName]"
+			every_owned_state = {
+				limit = { 
+					is_central_asia = yes
+					has_resistance = yes
+					NOT = { is_core_of = ROOT }
+					is_claimed_by = ROOT
+				}
+				add_resistance = -5
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CA_disarm_local_militias target: [From.GetName]"
+			every_owned_state = {
+				limit = { 
+					is_central_asia = yes
+					has_resistance = yes
+					NOT = { is_core_of = ROOT }
+					is_claimed_by = ROOT
+				}
+				add_compliance = 5
+			}
+		}
+	}	
+	CA_purge_dissidents = {
+		icon = eng_trade_unions_demand
+		
+		visible = {
+			CA_is_ruled_by_any_democrat = no
+			CA_is_ruled_by_any_socialist = no
+			any_owned_state = {
+				is_central_asia = yes
+				has_resistance = yes
+				NOT = { is_core_of = ROOT }
+				is_demilitarized_zone = no
+				is_claimed_by = ROOT
+			}
+			turkestan_is_potential_government = yes
+		}
+
+		cost = 20
+		days_remove = 60
+		days_re_enable = 180		
+		
+		modifier = {
+			war_support_factor = -0.07
+			compliance_growth = 0.05
+		}
+
+		ai_will_do = {
+			factor = 60
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CA_purge_dissidents target: [From.GetName]"
+			every_owned_state = {
+				limit = { 
+					is_central_asia = yes
+					has_resistance = yes
+					NOT = { is_core_of = ROOT }
+					is_claimed_by = ROOT
+				}
+				add_resistance = 5
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CA_purge_dissidents target: [From.GetName]"
+			every_owned_state = {
+				limit = { 
+					is_central_asia = yes
+					has_resistance = yes
+					NOT = { is_core_of = ROOT }
+					is_claimed_by = ROOT
+				}
+				add_compliance = 5
+			}
+		}
+	}	
+	CA_appoint_loyal_amirs = {
+		icon = eng_trade_unions_demand
+		
+		visible = {
+			CA_is_ruled_by_mujahideen = yes
+			any_owned_state = {
+				is_central_asia = yes
+				has_resistance = yes
+				NOT = { is_core_of = ROOT }
+				is_demilitarized_zone = no
+				is_claimed_by = ROOT
+			}
+			turkestan_is_potential_government = yes
+		}
+
+		cost = 20
+		days_remove = 60
+		days_re_enable = 180		
+		
+		modifier = {
+			stability_factor = -0.05
+			compliance_growth = 0.05
+		}
+
+		ai_will_do = {
+			factor = 60
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision CA_appoint_loyal_amirs target: [From.GetName]"
+			every_owned_state = {
+				limit = { 
+					is_central_asia = yes
+					has_resistance = yes
+					NOT = { is_core_of = ROOT }
+					is_claimed_by = ROOT
+				}
+				add_resistance = 5
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove CA_appoint_loyal_amirs target: [From.GetName]"
+			every_owned_state = {
+				limit = { 
+					is_central_asia = yes
+					has_resistance = yes
+					NOT = { is_core_of = ROOT }
+					is_claimed_by = ROOT
+				}
+				add_compliance = 5
+			}
+		}
+	}	
+}
+TRK_revolution_in_the_east_cat = {	### Revolution in the East ####
+	
+	### Panturkist Revolution ###
+	TRK_liberate_idel_ural = {
+		icon = generic_prepare_civil_war
+		allowed = { always = no }
+		available = {
+			is_subject = no
+			OR = {
+                is_owner_neighbor_of = 1195.owner
+                any_allied_country = {
+                    is_owner_neighbor_of = 1195.owner
+                }
+            }
+		}
+		visible = {
+			can_declare_war_on = 1195.owner
+		}
+		target_non_existing = yes
+		
+		cost = 0
+		days_remove = 25
+		fire_only_once = yes
+		war_with_target_on_remove = yes
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				OR = {
+					var:1195.owner = { dont_start_major_faction_wars = yes }
+					ROOT_is_threatened_cautious = yes
+					var:1195.owner = { default_attack_AI_trigger_FROM = yes }
+				}
+			}
+		}
+		cost = 25
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_liberate_idel_ural target: [From.GetName]"
+			var:1195.owner = { incoming_war_notification_effect = yes }
+			setup_decision_attack_AI = yes			
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_liberate_idel_ural target: [From.GetName]"
+			clear_decision_attack_AI = yes
+			declare_war_on = {
+				target = var:1195.owner
+				type = annex_everything
+			}
+		}
+	}
+	TRK_liberate_panturkist = {
+		icon = generic_prepare_civil_war
+		name = RUS_Attack_Region
+		
+		available = {
+			OR = {
+                is_owner_neighbor_of = FROM
+                any_allied_country = {
+                    is_owner_neighbor_of = FROM
+                }
+            }
+		}
+		target_array = TRK_liberate_panturkist_array
+		target_root_trigger = {
+			is_faction_leader = yes
+			is_subject = no
+			has_completed_focus = TRK_Anti_Imperialist_Internationale
+		}
+		target_trigger = {
+			if = {
+				limit = { 
+					FROM = { has_socialist_government = yes }
+				}
+				has_country_flag = @FROM_refused_alliance
+			}
+			else = {
+				FROM = { has_socialist_government = no }
+			}			
+			can_declare_war_on = FROM
+		}
+		
+		cost = 0
+		days_remove = 25
+		fire_only_once = yes
+		war_with_target_on_remove = yes
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				OR = {
+					FROM = { dont_start_major_faction_wars = yes }
+					ROOT_is_threatened_cautious = yes
+					FROM = { default_attack_AI_trigger_FROM = yes }
+				}
+			}
+		}
+		cost = 25
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_liberate_panturkist target: [From.GetName]"
+			FROM = { incoming_war_notification_effect = yes }
+			setup_decision_attack_AI = yes			
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_liberate_panturkist target: [From.GetName]"
+			clear_decision_attack_AI = yes
+			declare_war_on = {
+				target = FROM
+				type = annex_everything
+			}
+		}
+	}
+	TRK_ally_panturkist = {
+		name = RUS_Invite_Country
+		icon = generic_agreement
+		priority = 100
+		
+		available = {
+			at_peace_or_same_enemies_as_FROM = yes
+			OR = {
+                is_owner_neighbor_of = FROM
+                any_allied_country = {
+                    is_owner_neighbor_of = FROM
+                }
+            }
+			NOT = { has_country_flag = RUS_invited_country }
+		}
+		
+		target_array = TRK_liberate_panturkist_array
+		target_root_trigger = {
+			is_subject = no
+			has_completed_focus = TRK_Anti_Imperialist_Internationale
+			is_faction_leader = yes
+		}
+		target_trigger = {
+			FROM = { 
+				is_subject = no
+				has_socialist_government = yes
+			}
+		}
+
+		cost = 25
+		days_remove = 15
+		fire_only_once = yes
+
+		ai_will_do = {
+			factor = 1000
+			modifier = {
+				factor = 0
+				FROM = { is_ai = no }
+			}
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel TRK_ally_panturkist target: [From.GetName]"
+			clr_country_flag = RUS_invited_country
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_ally_panturkist target: [From.GetName]"
+			set_country_flag = { flag = RUS_invited_country days = 10 value = 1 }
+			FROM = { country_event = turkestan.22 }
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_ally_panturkist target: [From.GetName]"
+			clr_country_flag = RUS_invited_country
+		}
+	}
+	TRK_liberate_asia = {
+		icon = generic_prepare_civil_war
+		name = RUS_Attack_Region
+		
+		available = {
+			OR = {
+				is_neighbor_of = FROM
+				any_allied_country = { is_neighbor_of = FROM }
+				any_subject_country = { is_neighbor_of = FROM }
+			}
+		}
+
+		visible = {
+			is_subject = no
+			can_declare_war_on = FROM
+		}
+
+		target_array = global.asian_tags_array
+		target_root_trigger = {
+			OR = {
+				has_completed_focus = TRK_Revolution_In_The_East
+				has_completed_focus = UZB_Revolution_In_The_East
+				has_completed_focus = KYR_Revolution_In_The_East
+				has_completed_focus = ALO_Lead_Emancipation_of_East
+				has_completed_focus = TTR_Support_Anti_Colonial_Movements
+			}
+			is_faction_leader = yes
+		}
+		target_trigger = {
+			can_declare_war_on = FROM
+			FROM = { has_socialist_government = no }
+		}
+
+		cost = 10
+		days_remove = 20
+		fire_only_once = yes
+		cancel_if_not_visible = yes
+		war_with_target_on_remove = yes
+
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				OR = {
+					FROM = { dont_start_major_faction_wars = yes }
+					ROOT_is_threatened_cautious = yes
+					FROM = { default_attack_AI_trigger_FROM = yes }
+				}
+			}
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel TRK_liberate_asia target: [From.GetName]"
+			clear_decision_attack_AI = yes
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete TRK_liberate_asia target: [From.GetName]"
+			FROM = { incoming_war_notification_effect = yes }
+			setup_decision_attack_AI = yes
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_liberate_asia target: [From.GetName]"
+			clear_decision_attack_AI = yes
+			declare_war_on = {
+				target = FROM
+				type = annex_everything
+			}
+		}
+	}
+	TRK_ally_asia = {
+		icon = generic_prepare_civil_war
+		name = RUS_Invite_Country
+		
+		available = {
+			OR = {
+				is_neighbor_of = FROM
+				any_allied_country = { is_neighbor_of = FROM }
+				any_subject_country = { is_neighbor_of = FROM }
+			}
+		}
+
+		visible = {
+			is_subject = no
+			can_declare_war_on = FROM
+		}
+
+		target_array = global.asian_tags_array
+		target_root_trigger = {
+			OR = {
+				has_completed_focus = TRK_Revolution_In_The_East
+				has_completed_focus = UZB_Revolution_In_The_East
+				has_completed_focus = KYR_Revolution_In_The_East
+				has_completed_focus = ALO_Lead_Emancipation_of_East
+				has_completed_focus = TTR_Support_Anti_Colonial_Movements
+			}
+			is_faction_leader = yes
+		}
+		target_trigger = {
+			can_declare_war_on = FROM
+			FROM = { has_socialist_government = yes }
+		}
+
+		cost = 10
+		days_remove = 20
+		fire_only_once = yes
+		cancel_if_not_visible = yes
+		war_with_target_on_remove = yes
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel TRK_ally_asia target: [From.GetName]"
+			clr_country_flag = RUS_invited_country
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_ally_asia target: [From.GetName]"
+			set_country_flag = { flag = RUS_invited_country days = 10 value = 1 }
+			FROM = { country_event = turkestan.22 }			
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_ally_asia target: [From.GetName]"
+			clr_country_flag = RUS_invited_country
+		}
+	}	
+}
+TRK_foreign_policy = {
+	TRK_join_internationale = { # join the Third Internationale
+		icon = generic_agreement
+		available = {
+			is_faction_leader = no
+			is_in_faction = no
+			at_peace_or_same_enemies_as_FROM = yes
+			if = {
+				limit = { 
+					FROM = { 
+						NOT = { tag = RUS }
+					}
+				}
+				has_global_flag = CA_turkestan_victorious
+			}
+			hidden_trigger = {
+				NOT = { has_country_flag = TRK_dont_join_other_alliance }
+			}
+			if = {
+				limit = { 
+					FROM = { tag = RUS } 
+					ROOT = { has_completed_focus = TRK_Revolution_In_The_East }
+				}
+				has_completed_focus = TRK_Narodnik_Outreach
+			}
+		}
+		targets = { INT RUS BHC SKM CHI }
+		target_root_trigger = {
+			is_subject = no
+			OR = {
+				has_completed_focus = TRK_Revolution_In_The_East
+				has_completed_focus = TRK_Osipov_Socialist_Reconstruction
+				has_completed_focus = UZB_Join_Internationale
+				has_completed_focus = UZB_Revolution_In_The_East
+				has_completed_focus = ALO_Join_The_Russian_Revolution 
+				has_completed_focus = ALO_Lead_Emancipation_of_East 
+				has_completed_focus = ALO_Develop_Qazaq_Democracy
+				AND = {
+					has_completed_focus = KHI_Communist_Faction				
+					turkestan_is_united_or_all_unaligned = yes
+				}
+			}
+		}
+		target_trigger = {
+			FROM = { 
+				is_faction_leader = yes 
+				has_socialist_government = yes
+				if = {
+					limit = { tag = RUS }
+					has_country_flag = soviet_russia_restored
+				}
+				if = {
+					limit = { 
+						ROOT = { TRK_osipov_in_power = yes }
+					}
+					OR = {
+						lpsr_in_power = yes
+						plsr_in_power = yes
+					}
+					ROOT = { 
+						NOT = { has_country_flag = TRK_russia_refused_alliance }
+					}
+				}
+				if = {
+					limit = { 
+						ROOT = { 
+							OR = {
+								has_completed_focus = ALO_Join_The_Russian_Revolution 
+								has_completed_focus = ALO_Lead_Emancipation_of_East 
+							}
+						}
+					}
+					OR = {
+						tag = RUS 
+						tag = INT
+					}
+				}
+				if = {
+					limit = { 
+						ROOT = { 
+							OR = {
+								has_completed_focus = UZB_Join_Internationale 
+								has_completed_focus = KHI_Communist_Faction 
+								has_completed_focus = KYR_Ask_For_Soviet_Aid 
+							} 
+						}
+					}
+					tag = RUS 
+				}
+				else_if = {
+					limit = { 
+						ROOT = { 
+							OR = {
+								has_completed_focus = UZB_Revolution_In_The_East 
+								has_completed_focus = ALO_Revive_Turko_Tatar_Dream 
+							}
+						}
+					}
+					NOT = { tag = RUS }
+				}
+			}
+		}
+		
+		fire_only_once = yes
+		cost = 30
+		days_remove = 15
+		
+		ai_will_do = { 
+			factor = 100
+			modifier = {
+				factor = 0
+				OR = {
+					AND = {
+						tag = TRK
+						OR = {
+							has_game_rule = { rule = TRK_foreign option = TRK_FOREIGN_LEADER }
+							has_game_rule = { rule = TRK_foreign option = TRK_FOREIGN_NEUTRAL }
+						}
+					}
+					AND = {
+						tag = UZB
+						OR = {
+							has_game_rule = { rule = UZB_foreign option = UZB_FOREIGN_LEADER }
+							has_game_rule = { rule = UZB_foreign option = UZB_FOREIGN_NEUTRAL }
+						}
+					}
+					AND = {
+						tag = KHI
+						has_game_rule = { rule = KHI_foreign option = KHI_FOREIGN_NEUTRAL }
+					}
+				}
+			}
+			modifier = {
+				factor = 0
+				OR = {
+					AND = {
+						FROM = { NOT = { tag = RUS } }
+						OR = {
+							AND = {
+								tag = TRK
+								has_game_rule = { rule = TRK_foreign option = TRK_FOREIGN_RUS }
+							}
+							AND = {
+								tag = KHI
+								has_game_rule = { rule = KHI_foreign option = KHI_FOREIGN_SOV }
+							}
+							AND = {
+								tag = UZB
+								has_game_rule = { rule = UZB_foreign option = UZB_FOREIGN_SOV }
+							}
+						}
+					}
+					AND = {
+						FROM = { NOT = { tag = INT } }
+						OR = {
+							AND = {
+								tag = TRK
+								has_game_rule = { rule = TRK_foreign option = TRK_FOREIGN_FRA }
+							}
+							AND = {
+								tag = KHI
+								has_game_rule = { rule = KHI_foreign option = KHI_FOREIGN_FRA }
+							}
+							AND = {
+								tag = UZB
+								has_game_rule = { rule = UZB_foreign option = UZB_FOREIGN_FRA }
+							}
+						}
+					}
+					AND = {
+						FROM = { NOT = { tag = BHC } }
+						OR = {
+							AND = {
+								tag = TRK
+								has_game_rule = { rule = TRK_foreign option = TRK_FOREIGN_BHC }
+							}
+							AND = {
+								tag = KHI
+								has_game_rule = { rule = KHI_foreign option = KHI_FOREIGN_BHC }
+							}
+							AND = {
+								tag = UZB
+								has_game_rule = { rule = UZB_foreign option = UZB_FOREIGN_BHC }
+							}
+						}
+					}
+					AND = {
+						FROM = { NOT = { tag = SKM } }
+						OR = {
+							AND = {
+								tag = TRK
+								has_game_rule = { rule = TRK_foreign option = TRK_FOREIGN_SKM }
+							}
+							AND = {
+								tag = KHI
+								has_game_rule = { rule = KHI_foreign option = KHI_FOREIGN_SKM }
+							}
+							AND = {
+								tag = UZB
+								has_game_rule = { rule = UZB_foreign option = UZB_FOREIGN_SKM }
+							}
+						}
+					}
+					AND = {
+						FROM = { NOT = { tag = CHI } }
+						OR = {
+							AND = {
+								tag = TRK
+								has_game_rule = { rule = TRK_foreign option = TRK_FOREIGN_CHI }
+							}
+							AND = {
+								tag = KHI
+								has_game_rule = { rule = KHI_foreign option = KHI_FOREIGN_CHI }
+							}
+							AND = {
+								tag = UZB
+								has_game_rule = { rule = UZB_foreign option = UZB_FOREIGN_CHI }
+							}
+						}
+					}
+				}
+			}
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete TRK_join_internationale target: [From.GetName]"			
+			set_country_flag = { flag = TRK_dont_join_other_alliance value = 1 days = 20 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_join_internationale target: [From.GetName]"			
+			FROM = { country_event = turkestan.20 }
+			if = {
+				limit = { FROM = { tag = RUS } }
+				custom_effect_tooltip = if_they_accept_tt
+				effect_tooltip = { RUS = { SOV_puppet_ROOT_effect = yes } }
+			}
+		}
+	}	
+	TRK_join_reichspakt = {
+		name = GEO_join_reichspakt_decision
+		icon = generic_agreement
+
+		allowed = { always = no }
+
+		available = {
+			NOT = { has_global_flag = GER_withdrew_from_caucasus }
+			OR = {
+				has_global_flag = CA_turkestan_victorious
+				NOT = { country_exists = RUS }
+			}
+			OR = {
+				NOT = { country_exists = TUR }
+				has_global_flag = AXIS_VICTORY
+			}
+			FROM = {
+				NOT = { is_in_faction_with = TUR }
+			}
+			OR = {
+				NOT = { country_exists = PER }
+				PER = { is_subject_of = ROOT }
+			}
+			at_peace_or_same_enemies_as_FROM = yes
+			#if = {
+			#	limit = { FROM = { is_in_faction_with = TUR } }
+			#	at_peace_or_same_enemies_as_FROM = yes
+			#}
+			#else = {
+			#	has_war = yes
+			#	all_enemy_country = { has_war_with = FROM }
+			#}
+		}
+
+		visible = {
+			is_subject = no
+			is_in_faction = no
+			FROM = {
+				is_faction_leader = yes
+				NOT = { has_war_with = ROOT }
+			}
+		}
+
+		fire_only_once = yes
+		cost = 0
+
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				OR = {
+					AND = {
+						tag = TRK
+						OR = {
+							has_game_rule = { rule = TRK_foreign option = TRK_FOREIGN_NEUTRAL }
+							has_game_rule = { rule = TRK_foreign option = TRK_FOREIGN_OTT }
+						}
+					}
+					AND = {
+						tag = UZB
+						has_game_rule = { rule = UZB_foreign option = UZB_FOREIGN_NEUTRAL }
+					}
+					AND = {
+						tag = KHI
+						OR = {
+							has_game_rule = { rule = KHI_foreign option = KHI_FOREIGN_NEUTRAL }
+							has_game_rule = { rule = KHI_foreign option = KHI_FOREIGN_MON }
+						}
+					}
+				}
+			}	
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_join_reichspakt target: [From.GetName]"
+			set_country_flag = { flag = TRK_dont_join_other_alliance value = 1 days = 10 }
+			FROM = { country_event = sic.34 }
+			set_country_flag = @ROOT_equipment_@FROM
+		}
+	}	
+	TRK_join_ottomans = { # join the Ottomans
+		icon = generic_agreement
+		allowed = { always = no }
+		available = {
+			is_faction_leader = no
+			is_in_faction = no
+			at_peace_or_same_enemies_as_FROM = yes
+			OR = {
+				has_global_flag = CA_turkestan_victorious
+				NOT = { country_exists = RUS }
+			}
+			hidden_trigger = {
+				NOT = { has_country_flag = TRK_dont_join_other_alliance }
+			}
+			FROM = {
+				is_faction_leader = yes
+				if = {
+					limit = { ROOT = { TRK_kurshirmat_in_power = yes } }
+					has_democratic_government = no
+				}
+			}
+		}
+		
+		fire_only_once = yes
+		cost = 0
+		days_remove = 15
+		
+		ai_will_do = { 
+			factor = 100
+			modifier = {
+				factor = 0
+				OR = {
+					AND = {
+						tag = TRK
+						OR = {
+							has_game_rule = { rule = TRK_foreign option = TRK_FOREIGN_LEADER }
+							has_game_rule = { rule = TRK_foreign option = TRK_FOREIGN_NEUTRAL }
+							has_game_rule = { rule = TRK_foreign option = TRK_FOREIGN_GER }
+						}
+					}
+					AND = {
+						tag = KHI
+						OR = {
+							has_game_rule = { rule = KHI_foreign option = KHI_FOREIGN_RUS }
+							has_game_rule = { rule = KHI_foreign option = KHI_FOREIGN_ENT }
+							has_game_rule = { rule = KHI_foreign option = KHI_FOREIGN_NEUTRAL }
+						}
+					}
+				}
+			}			
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete TRK_join_ottomans target: [From.GetName]"			
+			set_country_flag = { flag = TRK_dont_join_other_alliance value = 1 days = 20 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_join_ottomans target: [From.GetName]"			
+			FROM = { country_event = turkestan.20 }
+		}
+	}
+	TRK_join_entente = { # join the Entente
+		icon = generic_agreement
+		allowed = { always = no }
+		available = {
+			is_faction_leader = no
+			is_in_faction = no
+			at_peace_or_same_enemies_as_FROM = yes
+			has_country_flag = UZB_british_military_mission
+			OR = {
+				has_global_flag = CA_turkestan_victorious
+				NOT = { country_exists = RUS }
+			}
+			hidden_trigger = {
+				NOT = { has_country_flag = TRK_dont_join_other_alliance }
+			}
+			FROM = {
+				is_faction_leader = yes
+			}
+		}
+		
+		fire_only_once = yes
+		cost = 30
+		days_remove = 15
+		
+		ai_will_do = { 
+			factor = 100
+			modifier = {
+				factor = 0
+				tag = KHI
+				OR = {
+					has_game_rule = { rule = KHI_foreign option = KHI_FOREIGN_RUS }
+					has_game_rule = { rule = KHI_foreign option = KHI_FOREIGN_OTT }
+					has_game_rule = { rule = KHI_foreign option = KHI_FOREIGN_NEUTRAL }
+				}
+			}
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete TRK_join_entente target: [From.GetName]"			
+			set_country_flag = { flag = TRK_dont_join_other_alliance value = 1 days = 20 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_join_entente target: [From.GetName]"			
+			FROM = { country_event = turkestan.20 }
+		}
+	}
+	TRK_join_co_prosperity = { # join the Co-Prosperity
+		icon = generic_agreement
+		allowed = { always = no }
+		available = {
+			is_faction_leader = no
+			is_in_faction = no
+			at_peace_or_same_enemies_as_FROM = yes
+			OR = {
+				has_global_flag = CA_turkestan_victorious
+				NOT = { country_exists = RUS }
+			}
+			hidden_trigger = {
+				NOT = { has_country_flag = TRK_dont_join_other_alliance }
+			}
+			FROM = { is_faction_leader = yes }
+		}
+		
+		fire_only_once = yes
+		cost = 30
+		days_remove = 15
+		
+		ai_will_do = { 
+			factor = 100
+			modifier = {
+				factor = 0
+				tag = TRK
+				has_game_rule = { rule = TRK_foreign option = TRK_FOREIGN_NEUTRAL }
+			}			
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete TRK_join_co_prosperity target: [From.GetName]"			
+			set_country_flag = { flag = TRK_dont_join_other_alliance value = 1 days = 20 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_join_co_prosperity target: [From.GetName]"			
+			FROM = { country_event = turkestan.20 }
+		}
+	}
+	TRK_join_russia = {
+		icon = generic_agreement
+		name = TRK_join_russia
+
+		available = {
+			is_faction_leader = no
+			is_in_faction = no
+			at_peace_or_same_enemies_as_FROM = yes
+			hidden_trigger = {
+				NOT = { has_country_flag = TRK_dont_join_other_alliance }
+			}
+		}
+		targets = { RUS TRM UKR DKB MON }
+		target_root_trigger = {
+			is_subject = no
+			OR = {
+				#has_completed_focus = TRK_Revolution_In_The_East
+				AND = {
+					TRK_monstrov_in_power = yes
+					OR = {
+						has_completed_focus = TRK_Restore_The_General_Governorate	
+						AND = {
+							NOT = { has_completed_focus = TRK_Restore_The_General_Governorate }
+							is_owner_neighbor_of = FROM
+						}
+					}
+				}
+				AND = {
+					TRK_tvo_in_power = yes
+					NOT = { has_completed_focus = TRK_Platform_Osipov }
+					OR = {
+						has_completed_focus = TRK_Zaitsev_Autocratic_Consolidation
+						AND = {
+							NOT = { has_completed_focus = TRK_Zaitsev_Autocratic_Consolidation }
+							is_owner_neighbor_of = FROM
+						}
+					}
+				}
+			}
+			NOT = { has_country_flag = @FROM_refused_alliance }
+		}
+		target_trigger = {
+			FROM = { 
+				is_faction_leader = yes 
+				owns_state = 219
+				has_socialist_government = no
+				has_left_democratic_government = no
+				NOT = { has_country_flag = soviet_russia_restored }
+			}
+		}
+
+		fire_only_once = yes
+		cost = 0
+
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				tag = TRK
+				OR = {
+					has_game_rule = { rule = TRK_foreign option = TRK_FOREIGN_LEADER }
+					has_game_rule = { rule = TRK_foreign option = TRK_FOREIGN_NEUTRAL }
+				}
+			}			
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_join_russia target: [From.GetName]"
+			set_country_flag = { flag = TRK_dont_join_other_alliance value = 1 days = 10 }
+			if = {
+				limit = { has_completed_focus = KHI_Status_Quo }
+				FROM = { country_event = khiva.82 }
+			}
+			else_if = {
+				limit = { has_completed_focus = UZB_Bogchai_Olam }
+				FROM = { country_event = bukhara.82 }
+			}
+			else = {
+				FROM = { country_event = turkestan.20 }
+			}
+			set_country_flag = @ROOT_equipment_@FROM
+		}
+	}
+	TRK_join_russia_khiva_bukhara = {
+		icon = generic_agreement
+		name = TRK_join_internationale
+		allowed = { always = no }
+		
+		available = {
+			is_faction_leader = no
+			is_in_faction = no
+			at_peace_or_same_enemies_as_FROM = yes
+			hidden_trigger = {
+				NOT = { has_country_flag = TRK_dont_join_other_alliance }
+			}
+			if = {
+				limit = { has_completed_focus = KHI_Status_Quo }
+				FROM = {
+					has_socialist_government = no
+					has_liberal_government = no
+					RUS_russian_monarch = yes
+				}
+			}
+			else_if = {
+				limit = { has_completed_focus = UZB_Bogchai_Olam }
+				UZB = { UZB_has_russian_hegemony = yes }					
+				FROM = {
+					has_socialist_government = no
+					has_liberal_government = no
+					RUS_russian_monarch = yes
+				}
+			}
+		}
+		visible = {
+			NOT = { has_country_flag = @FROM_refused_alliance }
+		}
+		
+		fire_only_once = yes
+		cost = 0
+
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				tag = KHI
+				OR = {
+					has_game_rule = { rule = KHI_foreign option = KHI_FOREIGN_OTT }
+					has_game_rule = { rule = KHI_foreign option = KHI_FOREIGN_NEUTRAL }
+				}
+			}
+			modifier = {
+				factor = 0
+				tag = UZB
+				OR = {
+					has_game_rule = { rule = UZB_foreign option = UZB_FOREIGN_OTT }
+					has_game_rule = { rule = UZB_foreign option = UZB_FOREIGN_NEUTRAL }
+				}
+			}			
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_join_russia_khiva_bukhara target: [From.GetName]"
+			set_country_flag = { flag = TRK_dont_join_other_alliance value = 1 days = 10 }
+			if = {
+				limit = { has_completed_focus = KHI_Status_Quo }
+				FROM = { country_event = khiva.82 }
+			}
+			else_if = {
+				limit = { has_completed_focus = UZB_Bogchai_Olam }
+				FROM = { country_event = bukhara.82 }
+			}
+			else = {
+				FROM = { country_event = turkestan.20 }
+			}
+			set_country_flag = @ROOT_equipment_@FROM
+		}
+	}
+	TRK_join_afghanistan = {
+		icon = generic_agreement
+
+		available = {
+			is_in_faction = no
+			at_peace_or_same_enemies_as_FROM = yes
+			hidden_trigger = {
+				NOT = { has_country_flag = TRK_dont_join_other_alliance }
+			}
+			405 = { is_owned_by_ROOT_or_ally = yes }
+		}
+		targets = { AFG }
+		target_root_trigger = {
+			is_subject = no
+			OR = {
+				TRK_madamin_bek_in_power = yes
+				TRK_kurshirmat_in_power = yes
+			}
+			NOT = { has_idea = TRK_lasting_political_crisis }
+			TRK_civil_war_over = yes
+			TRK_can_deal_with_east_pamir = no
+		}
+		target_trigger = {
+			FROM = { 
+				OR = {
+					is_faction_leader = yes 
+					is_in_faction = no
+				}
+				has_authoritarian_government = yes
+				is_subject = no
+			}
+		}
+
+		fire_only_once = yes
+		cost = 0
+
+		ai_will_do = {
+			factor = 100			
+			modifier = {
+				factor = 0
+				tag = TRK
+				OR = {
+					has_game_rule = { rule = TRK_foreign option = TRK_FOREIGN_LEADER }
+					has_game_rule = { rule = TRK_foreign option = TRK_FOREIGN_NEUTRAL }
+					has_game_rule = { rule = TRK_foreign option = TRK_FOREIGN_OTT }
+				}
+			}	
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_join_afghanistan target: [From.GetName]"
+			set_country_flag = { flag = TRK_dont_join_other_alliance value = 1 days = 10 }
+			if = {
+				limit = { is_faction_leader = yes }
+				FROM = { country_event = turkestan.22 }
+			}
+			else_if = {
+				limit = { 
+					FROM = { is_faction_leader = yes }
+				}
+				FROM = { country_event = turkestan.20 }
+			}
+			else = {
+				FROM = { country_event = turkestan.24 }
+				custom_effect_tooltip = if_they_accept_tt
+				effect_tooltip = {
+					create_faction = "Tashkent-Kabul Pact"
+					add_to_faction = ROOT
+				}
+			}
+		}
+	}
+	TRK_join_mongolia = {
+		icon = generic_agreement
+
+		allowed = { tag = KHI }
+
+		available = {
+			at_peace_or_same_enemies_as_FROM = yes
+		}
+
+		visible = {
+			is_subject = no
+			is_in_faction = no
+		}
+
+		fire_only_once = yes
+		cost = 0
+
+		targets = { MON }
+		target_root_trigger = {
+			has_completed_focus = KHI_The_New_Seljuk_Empire
+		}
+		target_trigger = {
+			FROM = {
+				is_faction_leader = yes
+				NOT = { has_war_with = ROOT }
+				OR = {
+					has_country_leader = {
+						name = "Genghis Khan II"
+						ruling_only = yes
+					}
+					has_country_leader = {
+						name = "Regency Council"
+						ruling_only = yes
+					}
+					has_country_leader = {
+						name = "Rolf von Ungern Sternberg"
+						ruling_only = yes
+					}
+					has_country_leader = {
+						name = "Genghis Khan III"
+						ruling_only = yes
+					}
+				}
+			}
+		}
+
+		ai_will_do = {
+			factor = 100			
+			modifier = {
+				factor = 0
+				tag = KHI
+				OR = {
+					has_game_rule = { rule = KHI_foreign option = KHI_FOREIGN_NEUTRAL }
+					has_game_rule = { rule = KHI_foreign option = KHI_FOREIGN_GER }
+				}
+			}	
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_join_mongolia target: [From.GetName]"
+			set_country_flag = { flag = TRK_dont_join_other_alliance value = 1 days = 10 }
+			FROM = { country_event = turkestan.20 }
+		}
+	}
+	TRK_our_faction = { #
+		icon = generic_agreement
+		allowed = { always = no }
+		
+		available = {
+			OR = {
+				has_global_flag = CA_turkestan_victorious
+				NOT = { country_exists = RUS }
+			}
+			is_faction_leader = no
+			is_in_faction = no
+			hidden_trigger = {
+				NOT = { has_country_flag = TRK_dont_join_other_alliance }
+			}
+		}
+		
+		fire_only_once = yes
+		cost = 0
+		
+		ai_will_do = { 
+			factor = 100
+			modifier = {
+				factor = 0
+				OR = {
+					AND = {
+						tag = TRK
+						has_game_rule = { rule = TRK_foreign option = TRK_FOREIGN_BHC }
+						has_game_rule = { rule = TRK_foreign option = TRK_FOREIGN_CHI }
+						has_game_rule = { rule = TRK_foreign option = TRK_FOREIGN_FRA }
+						has_game_rule = { rule = TRK_foreign option = TRK_FOREIGN_GER }
+						has_game_rule = { rule = TRK_foreign option = TRK_FOREIGN_NEUTRAL }
+						has_game_rule = { rule = TRK_foreign option = TRK_FOREIGN_OTT }
+						has_game_rule = { rule = TRK_foreign option = TRK_FOREIGN_RUS }
+						has_game_rule = { rule = TRK_foreign option = TRK_FOREIGN_SKM }
+					}
+					AND = {
+						tag = KHI
+						has_game_rule = { rule = KHI_foreign option = KHI_FOREIGN_BHC }
+						has_game_rule = { rule = KHI_foreign option = KHI_FOREIGN_CHI }
+						has_game_rule = { rule = KHI_foreign option = KHI_FOREIGN_ENT }
+						has_game_rule = { rule = KHI_foreign option = KHI_FOREIGN_FRA }
+						has_game_rule = { rule = KHI_foreign option = KHI_FOREIGN_GER }
+						has_game_rule = { rule = KHI_foreign option = KHI_FOREIGN_MON }
+						has_game_rule = { rule = KHI_foreign option = KHI_FOREIGN_NEUTRAL }
+						has_game_rule = { rule = KHI_foreign option = KHI_FOREIGN_OTT }
+						has_game_rule = { rule = KHI_foreign option = KHI_FOREIGN_RUS }
+						has_game_rule = { rule = KHI_foreign option = KHI_FOREIGN_SKM }
+						has_game_rule = { rule = KHI_foreign option = KHI_FOREIGN_SOV }
+					}
+					AND = {
+						tag = UZB
+						has_game_rule = { rule = UZB_foreign option = UZB_FOREIGN_BHC }
+						has_game_rule = { rule = UZB_foreign option = UZB_FOREIGN_CHI }
+						has_game_rule = { rule = UZB_foreign option = UZB_FOREIGN_FRA }
+						has_game_rule = { rule = UZB_foreign option = UZB_FOREIGN_NEUTRAL }
+						has_game_rule = { rule = UZB_foreign option = UZB_FOREIGN_SKM }
+						has_game_rule = { rule = UZB_foreign option = UZB_FOREIGN_SOV }
+					}
+				}
+			}	
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete TRK_our_faction target: [From.GetName]"			
+			set_country_flag = { flag = TRK_dont_join_other_alliance value = 1 days = 20 }
+			if = {
+				limit = { 
+					OR = {
+						TRK_erk_in_power = yes 
+						UZB_has_socialist_government_postwar = yes 
+						has_socialist_government = yes
+						ALO_dosmukhamedov_in_power = no
+					}
+				}
+				create_faction = "Central Asian Internationale"
+			}
+			else = {
+				create_faction = "Turkestan Democratic Alliance"
+			}
+		}
+	}
+	TRK_liberate_panislamist = {
+		icon = generic_prepare_civil_war
+		name = RUS_Attack_Region
+		
+		available = {
+			OR = {
+                is_owner_neighbor_of = FROM
+                any_allied_country = {
+                    is_owner_neighbor_of = FROM
+                }
+            }
+		}
+		target_array = TRK_liberate_panislamist_array
+		target_root_trigger = {
+			is_subject = no
+			has_completed_focus = TRK_Question_Of_Calif
+		}
+		target_trigger = {
+			can_declare_war_on = FROM
+			if = {
+				limit = { 
+					FROM = { has_dictatorship_government = yes }
+				}
+				has_country_flag = @FROM_refused_alliance
+			}
+			else = {
+				FROM = { has_dictatorship_government = no }
+			}
+		}
+		
+		cost = 0
+		days_remove = 25
+		fire_only_once = yes
+		war_with_target_on_remove = yes
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				OR = {
+					FROM = { dont_start_major_faction_wars = yes }
+					ROOT_is_threatened_cautious = yes
+					FROM = { default_attack_AI_trigger_FROM = yes }
+				}
+			}
+		}
+		cost = 25
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_liberate_panturkist target: [From.GetName]"
+			FROM = { incoming_war_notification_effect = yes }
+			setup_decision_attack_AI = yes			
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_liberate_panturkist target: [From.GetName]"
+			clear_decision_attack_AI = yes
+			declare_war_on = {
+				target = FROM
+				type = annex_everything
+			}
+		}
+	}
+	TRK_ally_panislamist = {
+		name = RUS_Invite_Country
+		icon = generic_agreement
+		priority = 100
+		
+		available = {
+			at_peace_or_same_enemies_as_FROM = yes
+			OR = {
+                is_owner_neighbor_of = FROM
+                any_allied_country = {
+                    is_owner_neighbor_of = FROM
+                }
+            }
+			NOT = { has_country_flag = RUS_invited_country }
+		}
+		
+		target_array = TRK_liberate_panislamist_array
+		target_root_trigger = {
+			is_subject = no
+			has_completed_focus = TRK_Question_Of_Calif
+			is_faction_leader = yes
+		}
+		target_trigger = {
+			FROM = { 
+				is_subject = no
+				has_socialist_government = yes
+				is_in_faction = no
+			}
+		}
+
+		cost = 25
+		days_remove = 15
+		fire_only_once = yes
+
+		ai_will_do = {
+			factor = 1000
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel TRK_ally_panislamist target: [From.GetName]"
+			clr_country_flag = RUS_invited_country
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_ally_panislamist target: [From.GetName]"
+			set_country_flag = { flag = RUS_invited_country days = 10 value = 1 }
+			FROM = { country_event = turkestan.22 }			
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_ally_panislamist target: [From.GetName]"
+			clr_country_flag = RUS_invited_country
+		}
+	}
+	TRK_liberate_panturkist_liberal = {
+		icon = generic_prepare_civil_war
+		name = RUS_Attack_Region
+		
+		available = {
+			OR = {
+                is_owner_neighbor_of = FROM
+                any_allied_country = {
+                    is_owner_neighbor_of = FROM
+                }
+            }
+		}
+		target_array = TRK_liberate_panturkist_array
+		target_root_trigger = {
+			is_subject = no
+			OR = {
+				has_completed_focus = TRK_Pan-Turkist_Liberalism
+				has_completed_focus = KHI_Pan-Turkist_Liberalism
+				has_completed_focus = UZB_Pan-Turkist_Liberalism
+				has_completed_focus = ALO_Unity_Of_Turkic_State
+				has_completed_focus = URL_Consolidation_Of_Turkic_Peoples
+			}
+		}
+		target_trigger = {
+			if = {
+				limit = { 
+					FROM = { has_liberal_government = yes }
+				}
+				has_country_flag = @FROM_refused_alliance
+			}
+			else = {
+				FROM = { has_liberal_government = no }
+			}
+			can_declare_war_on = FROM
+		}
+		
+		cost = 0
+		days_remove = 25
+		fire_only_once = yes
+		war_with_target_on_remove = yes
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				OR = {
+					FROM = { dont_start_major_faction_wars = yes }
+					ROOT_is_threatened_cautious = yes
+					FROM = { default_attack_AI_trigger_FROM = yes }
+				}
+			}
+		}
+		cost = 25
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_liberate_panturkist target: [From.GetName]"
+			FROM = { incoming_war_notification_effect = yes }
+			setup_decision_attack_AI = yes			
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_liberate_panturkist target: [From.GetName]"
+			clear_decision_attack_AI = yes
+			declare_war_on = {
+				target = FROM
+				type = annex_everything
+			}
+		}
+	}
+	TRK_ally_panturkist_liberal = {
+		name = RUS_Invite_Country
+		icon = generic_agreement
+		priority = 100
+		
+		available = {
+			at_peace_or_same_enemies_as_FROM = yes
+			OR = {
+                is_owner_neighbor_of = FROM
+                any_allied_country = {
+                    is_owner_neighbor_of = FROM
+                }
+            }
+			NOT = { has_country_flag = RUS_invited_country }
+		}
+		
+		target_array = TRK_liberate_panturkist_array
+		target_root_trigger = {
+			is_subject = no
+			OR = {
+				has_completed_focus = TRK_Pan-Turkist_Liberalism
+				has_completed_focus = KHI_Pan-Turkist_Liberalism
+				has_completed_focus = UZB_Pan-Turkist_Liberalism
+				has_completed_focus = ALO_Unity_Of_Turkic_State
+				has_completed_focus = URL_Consolidation_Of_Turkic_Peoples
+			}
+			is_faction_leader = yes
+		}
+		target_trigger = {
+			FROM = { 
+				is_subject = no
+				has_liberal_government = yes
+			}
+		}
+
+		cost = 25
+		days_remove = 15
+		fire_only_once = yes
+
+		ai_will_do = {
+			factor = 1000
+			modifier = {
+				factor = 0
+				FROM = { is_ai = no }
+			}
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel TRK_ally_panturkist_liberal target: [From.GetName]"
+			clr_country_flag = RUS_invited_country
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_ally_panturkist_liberal target: [From.GetName]"
+			set_country_flag = { flag = RUS_invited_country days = 10 value = 1 }
+			FROM = { country_event = turkestan.22 }
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_ally_panturkist_liberal target: [From.GetName]"
+			clr_country_flag = RUS_invited_country
+		}
+	}
+	ALO_liberate_panturkist = {
+		icon = generic_prepare_civil_war
+		name = RUS_Attack_Region
+		
+		available = {
+			OR = {
+                is_owner_neighbor_of = FROM
+                any_allied_country = {
+                    is_owner_neighbor_of = FROM
+                }
+            }
+		}
+		target_array = TRK_liberate_panturkist_array
+		target_root_trigger = {
+			is_subject = no
+			has_completed_focus = ALO_Nation_For_Turks
+		}
+		target_trigger = {
+			if = {
+				limit = { 
+					FROM = { has_conservative_government = yes }
+				}
+				has_country_flag = @FROM_refused_alliance
+			}
+			else = {
+				FROM = { has_conservative_government = no }
+			}
+			can_declare_war_on = FROM
+		}
+		
+		cost = 0
+		days_remove = 25
+		fire_only_once = yes
+		war_with_target_on_remove = yes
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				OR = {
+					FROM = { dont_start_major_faction_wars = yes }
+					ROOT_is_threatened_cautious = yes
+					FROM = { default_attack_AI_trigger_FROM = yes }
+				}
+			}
+		}
+		cost = 25
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision ALO_liberate_panturkist target: [From.GetName]"
+			FROM = { incoming_war_notification_effect = yes }
+			setup_decision_attack_AI = yes			
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove ALO_liberate_panturkist target: [From.GetName]"
+			clear_decision_attack_AI = yes
+			declare_war_on = {
+				target = FROM
+				type = annex_everything
+			}
+		}
+	}
+	ALO_ally_panturkist = {
+		name = RUS_Invite_Country
+		icon = generic_agreement
+		priority = 100
+		
+		available = {
+			at_peace_or_same_enemies_as_FROM = yes
+			OR = {
+                is_owner_neighbor_of = FROM
+                any_allied_country = {
+                    is_owner_neighbor_of = FROM
+                }
+            }
+			NOT = { has_country_flag = RUS_invited_country }
+		}
+		
+		target_array = TRK_liberate_panturkist_array
+		target_root_trigger = {
+			is_subject = no
+			has_completed_focus = ALO_Nation_For_Turks
+			is_faction_leader = yes
+		}
+		target_trigger = {
+			FROM = { 
+				is_subject = no
+				has_conservative_government = yes
+			}
+		}
+
+		cost = 25
+		days_remove = 15
+		fire_only_once = yes
+
+		ai_will_do = {
+			factor = 1000
+			modifier = {
+				factor = 0
+				FROM = { is_ai = no }
+			}
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel ALO_ally_panturkist target: [From.GetName]"
+			clr_country_flag = RUS_invited_country
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision ALO_ally_panturkist target: [From.GetName]"
+			set_country_flag = { flag = RUS_invited_country days = 10 value = 1 }
+			FROM = { country_event = turkestan.22 }
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove ALO_ally_panturkist target: [From.GetName]"
+			clr_country_flag = RUS_invited_country
+		}
+	}
+	TRK_all_russian_ambitions = {
+		icon = generic_civil_support
+		allowed = { always = no }
+		visible = {
+			OR = {
+				TRK_monstrov_in_power = yes
+				TRK_tvo_in_power = yes
+			}
+		}
+		
+		cost = 0
+		days_remove = 30
+		fire_only_once = yes
+		war_with_target_on_remove = yes
+		
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 3
+				FROM = {
+					is_in_faction = no 
+					has_war = yes
+				}				
+			}
+			modifier = {
+				factor = 0
+				OR = {
+					enemies_strength_ratio > 0.8
+					surrender_progress > 0
+					strength_ratio = { tag = FROM ratio < 1.0 }
+					FROM = {
+						is_subject = yes
+						overlord = {
+							strength_ratio = { tag = ROOT ratio > 0.8 }
+						}
+					}
+					FROM = {
+						is_in_faction = yes
+						faction_leader = {
+							strength_ratio = { tag = ROOT ratio > 0.8 }
+						}
+					}
+					has_country_flag = imminent_war
+				}	
+			}
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_all_russian_ambitions"
+			set_country_flag = { flag = imminent_war days = 35 value = 1 }
+			if = {
+				limit = { is_ai = yes } #XD fanservice give a nice attack
+				setup_decision_attack_AI = yes
+				FROM = { incoming_war_notification_effect = yes }
+			}
+			effect_tooltip = {
+				every_state = { 
+					limit = { is_core_of = RUS }
+					add_claim_by = ROOT
+				}
+			}
+			for_each_scope_loop = {
+				array = RUS.RUS_starting_states_array
+				add_claim_by = ROOT
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_all_russian_ambitions"
+			clear_decision_attack_AI = yes
+			hidden_effect = {
+				every_state = {
+					limit = {
+						NOT = {
+							is_owned_by = ROOT
+							is_controlled_by = ROOT
+						}
+						ROOT = { divisions_in_state = { state = PREV size > 0 } }
+					}
+					teleport_armies = {
+						limit = { tag = ROOT }
+						to_state_array = owned_controlled_states
+					}
+				}
+				every_owned_state = {
+					teleport_armies = {
+						limit = {
+							NOT = {
+								tag = ROOT
+								has_war_with = ROOT
+							}
+						}
+						to_state_array = owned_controlled_states
+					}
+				}
+			}
+			declare_war_on = {
+				target = FROM
+				type = annex_everything
+			}
+		}
+	}
+	TRK_restore_russia = {
+		icon = generic_prepare_civil_war
+		allowed = { always = no }
+
+		available = {
+			219 = { is_owned_and_controlled_by = ROOT }
+			is_subject = no
+			has_war = no
+		}
+
+		visible = {
+			OR = {
+				TRK_monstrov_in_power = yes
+				TRK_tvo_in_power = yes
+			}
+			NOT = { country_exists = RUS }
+		}
+
+		cost = 25
+		fire_only_once = yes
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_restore_russia"
+			add_stability = 0.1
+			set_country_flag = TRK_is_russia
+			RUS_enable_integration = yes
+			ROOT = { save_global_event_target_as = russia }
+			if = {
+				limit = { TRK_monstrov_in_power = yes }
+				set_cosmetic_tag = RUS_vozhdct_2
+			}
+			else_if = {
+				limit = { 
+					TRK_osipov_in_power = yes 
+					has_socialist_government = yes
+				}
+				set_cosmetic_tag = SOV
+				hidden_effect = {
+					set_party_name = {
+						ideology = totalist
+						name = RUS_syndicalist_party
+						long_name = RUS_syndicalist_party_long
+					}
+				}
+			}
+			else = {
+				set_cosmetic_tag = RUS_empire
+				country_event = {
+					id = uch.32
+					days = 14
+				}
+			}
+			increase_ruling_party_popularity_by_15 = yes
+			custom_effect_tooltip = LAT_SOV_Attack_Europe_tt
+			custom_effect_tooltip = LAT_SOV_Attack_Asia_tt
+			hidden_effect = {
+				for_each_scope_loop = {
+					array = RUS.RUS_starting_states_array
+					add_core_of = RUS
+					remove_claim_by = ROOT
+					add_core_of = ROOT
+				}
+				every_state = {
+					limit = {
+						is_core_rrf_state = yes
+					}
+					add_core_of = RUS
+					remove_core_of = RRF
+					if = {
+						limit = { has_resistance = yes }
+						cancel_resistance = yes
+					}
+					force_disable_resistance = { clear = yes }
+				}
+				every_state = {
+					clr_state_flag = renamed_petrodvorets
+					clr_state_flag = renamed_state_apraksin
+					clr_state_flag = renamed_state_dmitri
+					clr_state_flag = renamed_state_imperial
+					clr_state_flag = renamed_state_leningrad
+					clr_state_flag = renamed_state_molotov
+					clr_state_flag = renamed_state_rykov
+					clr_state_flag = renamed_state_tsentrograd
+					clr_state_flag = renamed_state_zhdanovgrad
+					clr_state_flag = renamed_state_elizavetburg
+					clr_state_flag = renamed_state_frunzensk
+					clr_state_flag = renamed_state_kornilovsk
+					clr_state_flag = renamed_state_novooktyabrsk
+					clr_state_flag = renamed_state_rykov
+					clr_state_flag = renamed_state_saltykov
+					clr_state_flag = renamed_state_savinkovsk
+					clr_state_flag = renamed_state_tukhachevsk
+					clr_state_flag = renamed_state_vladimir
+					clr_state_flag = renamed_state_wrangelburg
+					clr_state_flag = renamed_state_zhukov
+					clr_state_flag = zhdanov_renamed
+				}
+			}
+			set_capital = { state = 219 }			
+		}
+	}
+	TRK_Attack_Europe = {
+		name = LAT_SOV_Attack_Europe
+		icon = hol_draw_up_staff_plans
+
+		allowed = { original_tag = UKR }
+
+		available = {
+			OR = {
+				is_neighbor_of = FROM
+				any_allied_country = { is_neighbor_of = FROM }
+				any_subject_country = { is_neighbor_of = FROM }
+			}
+		}
+
+		visible = {
+			is_subject = no
+			can_declare_war_on = FROM
+		}
+
+		target_array = global.european_tags_array
+		target_root_trigger = {
+			has_country_flag = TRK_is_russia
+		}
+		target_trigger = {
+			can_declare_war_on = FROM
+		}
+
+		cost = 10
+		days_remove = 20
+		fire_only_once = yes
+		cancel_if_not_visible = yes
+		war_with_target_on_remove = yes
+
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				ROOT_is_threatened_cautious = yes
+			}
+			modifier = {
+				factor = 0
+				FROM = { default_attack_AI_trigger_FROM = yes }
+			}
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancelled TRK_Attack_Europe target: [From.GetName]"
+			clear_decision_attack_AI = yes
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_Attack_Europe target: [From.GetName]"
+			FROM = { country_event = kr.political.30 } #warning event
+			setup_decision_attack_AI = yes
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_Attack_Europe target: [From.GetName]"
+			clear_decision_attack_AI = yes
+			declare_war_on = {
+				target = FROM
+				type = annex_everything
+			}
+		}
+	}
+	TRK_Attack_Asia = {
+		name = LAT_SOV_Attack_Asia
+		icon = hol_draw_up_staff_plans
+
+		allowed = {
+			original_tag = UKR
+		}
+
+		available = {
+			OR = {
+				is_neighbor_of = FROM
+				any_allied_country = { is_neighbor_of = FROM }
+				any_subject_country = { is_neighbor_of = FROM }
+			}
+		}
+
+		visible = {
+			is_subject = no
+			can_declare_war_on = FROM
+		}
+
+		target_array = global.asian_tags_array
+		target_root_trigger = {
+			has_country_flag = TRK_is_russia
+		}
+		target_trigger = {
+			can_declare_war_on = FROM
+		}
+
+		cost = 10
+		days_remove = 20
+		fire_only_once = yes
+		cancel_if_not_visible = yes
+		war_with_target_on_remove = yes
+
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				ROOT_is_threatened_cautious = yes
+			}
+			modifier = {
+				factor = 0
+				FROM = { default_attack_AI_trigger_FROM = yes }
+			}
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancelled TRK_Attack_Asia target: [From.GetName]"
+			clear_decision_attack_AI = yes
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_Attack_Asia target: [From.GetName]"
+			FROM = { country_event = kr.political.30 } #warning event
+			setup_decision_attack_AI = yes
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_Attack_Asia target: [From.GetName]"
+			clear_decision_attack_AI = yes
+			declare_war_on = {
+				target = FROM
+				type = annex_everything
+			}
+		}
+	}
+	
+	TRK_peace_with_russia = {
+		icon = oppression
+		allowed = {
+			OR = {
+				tag = ALO
+				tag = UZB
+				tag = TAJ 
+				tag = TRK
+				tag = KHI
+			}
+		}
+		activation = { #triggered by event
+			always = no 
+		}
+		ai_will_do = {
+			factor = 1000
+		}
+		
+		is_good = yes
+		selectable_mission = no
+		fire_only_once = yes
+		days_mission_timeout = 180
+		
+		timeout_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision timeout TRK_peace_with_russia"
+			if = {
+				limit = {
+					surrender_progress < 0.1
+					405 = {
+						is_fully_controlled_by = ROOT
+					}
+					407 = {
+						is_fully_controlled_by = ROOT
+					}
+					861 = {
+						is_fully_controlled_by = ROOT
+					}
+				}
+				652 = {
+					owner = {
+						country_event = rusfor.1464
+					}
+				}
+			}
+			else = {
+				custom_effect_tooltip = TRK_peace_with_russia_tt
+				add_war_support = -0.5
+				add_stability = -0.5
+				force_capitulate = yes
+			}
+		}
+	}	
+}
+
+political_actions = {
+	KHI_Demand_State = {
+		name = KHI_Demand_State
+		icon = eng_trade_unions_demand
+		
+		allowed = { tag = KHI }
+		
+		available = {
+			FROM = {
+				NOT = { is_owned_by = ROOT }
+				is_claimed_by = ROOT
+			}
+		}
+		
+		cost = 25
+		days_remove = 30
+		fire_only_once = yes
+		
+		ai_will_do = {
+			factor = 50
+		}
+		state_target = yes
+		target_trigger = {
+			FROM = {
+				NOT = { is_owned_by = ROOT }
+				is_claimed_by = ROOT
+			}
+		}
+		target_root_trigger = {
+			has_completed_focus = KHI_Status_Quo
+		}
+
+		ai_will_do = {
+			factor = 50
+			modifier = {
+				factor = 0
+				RUS_dont_attack_if_vulnerable_or_preparing = yes
+			}
+			modifier = {
+				factor = 0
+				FROM = { RUS_dont_attack_if_target_is_stronger = yes }
+			}
+			modifier = {
+				factor = 0
+				FROM = { RUS_dont_attack_if_faction_is_stronger = yes }
+			}
+			modifier = {
+				factor = 0
+				FROM = { RUS_dont_attack_if_overlord_is_stronger = yes }
+			}
+		}
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel KHI_Demand_State"
+			clear_decision_attack_AI = yes
+			add_political_power = 25
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete KHI_Demand_State"
+			set_country_flag = { flag = imminent_war days = 20 value = 1 }
+			setup_decision_attack_AI = yes
+		}
+		remove_effect = {
+			clear_decision_attack_AI = yes
+			log = "[GetDateText]: [Root.GetName]: Decision remove KHI_Demand_State"
+			declare_war_on = {
+				target = FROM.OWNER
+				type = annex_everything
+			}
+		}
+	}
+	
+	ALO_integrate_state_easy = {
+		name = integrate_state
+		icon = eng_trade_unions_demand
+
+		allowed = { tag = ALO }
+
+		available = {
+			FROM = {
+				is_controlled_by = ROOT
+				if = {
+					limit = { has_resistance = yes }
+					compliance > 30
+				}
+			}
+		}
+
+		visible = {
+			FROM = {
+				is_controlled_by = ROOT
+				NOT = { is_core_of = ROOT }
+			}
+		}
+
+		cost = 50
+		days_remove = 50
+		cancel_if_not_visible = yes
+
+		state_target = yes
+		targets = { 236 }
+		target_trigger = {
+			FROM = {
+				is_controlled_by = ROOT
+				NOT = { is_core_of = ROOT }
+			}
+		}
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel ALO_integrate_state_easy target: [From.GetName]"
+			add_political_power = 50
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove ALO_integrate_state_easy target: [From.GetName]"
+			hidden_effect = { remove_state_claim = FROM }
+			add_state_core = FROM
+			if = {
+				limit = {
+					FROM = { NOT = { has_state_flag = renamed_state_kazakh } }
+				}
+				FROM = {
+					set_state_flag = renamed_state_kazakh
+					set_state_name = "Orda"
+					set_province_name = {
+						id = 7708
+						name = "Orda"
+					}
+				}
+			}			
+		}
+	}
+	ALO_integrate_state_medium = {
+		name = integrate_state
+		icon = eng_trade_unions_demand
+
+		allowed = { tag = ALO }
+
+		available = {
+			FROM = {
+				is_controlled_by = ROOT
+				if = {
+					limit = { has_resistance = yes }
+					compliance > 30
+				}
+			}
+		}
+
+		visible = {
+			FROM = {
+				is_controlled_by = ROOT
+				NOT = { is_core_of = ROOT }
+			}
+		}
+
+		cost = 75
+		days_remove = 90
+		cancel_if_not_visible = yes
+
+		state_target = yes
+		targets = { 582 583 590 588 }
+		target_trigger = {
+			FROM = {
+				is_controlled_by = ROOT
+				NOT = { is_core_of = ROOT }
+			}
+		}
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel ALO_integrate_state_medium target: [From.GetName]"
+			add_political_power = 75
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove ALO_integrate_state_medium target: [From.GetName]"
+			hidden_effect = { remove_state_claim = FROM }
+			add_state_core = FROM
+			if = {
+				limit = {
+					FROM = { state = 582 }
+					FROM = { NOT = { has_state_flag = renamed_state_kazakh } }
+				}
+				FROM = {
+					set_state_flag = renamed_state_kazakh
+					set_state_name = "Zhamanqala"
+					set_province_name = {
+						id = 4261
+						name = "Zhamanqala"
+					}
+				}
+			}
+			if = {
+				limit = {
+					FROM = { state = 583 }
+					FROM = { NOT = { has_state_flag = renamed_state_kazakh } }
+				}
+				FROM = {
+					set_state_flag = renamed_state_kazakh
+					set_state_name = "Qostanai"
+					set_province_name = {
+						id = 10284
+						name = "Qostanai"
+					}
+				}
+			}
+			if = {
+				limit = {
+					FROM = { state = 590 }
+					FROM = { NOT = { has_state_flag = renamed_state_kazakh } }
+				}
+				FROM = {
+					set_state_flag = renamed_state_kazakh
+					set_state_name = "Aqmola"
+					set_province_name = {
+						id = 7874
+						name = "Kyzylzhar"
+					}
+					set_province_name = {
+						id = 1375
+						name = "Aqmola"
+					}
+					set_province_name = {
+						id = 1418
+						name = "Kokşetau"
+					}
+				}
+			}
+			if = {
+				limit = {
+					FROM = { state = 588 }
+					FROM = { NOT = { has_state_flag = renamed_state_kazakh } }
+				}
+				FROM = {
+					set_state_flag = renamed_state_kazakh
+					set_state_name = "Kereku"
+					set_province_name = {
+						id = 7708
+						name = "Kereku"
+					}
+				}
+			}			
+		}
+	}
+}
+TRK_executive_empowerment_act_category = {
+	TRK_executive_empowerment_mission = {
+		icon = GFX_decision_generic_political_discourse
+		activation = {
+			always = no
+		}
+		available = {
+			set_temp_variable = { TRK_bill_support = TRK_erk_support }
+			add_to_temp_variable = { TRK_bill_support = TRK_independent_support }
+			add_to_temp_variable = { TRK_bill_support = TRK_ittifoqi_muslimin_support }
+			add_to_temp_variable = { TRK_bill_support = TRK_milliy_ittihod_support }
+			check_variable = { TRK_bill_support > 40 }	
+		}
+		cancel_trigger = {
+			OR = {
+				TRK_shokai_in_power = no
+				is_subject = yes
+				has_capitulated = yes
+			}
+		}
+		allowed = { always = no } # manually activated
+		visible = { has_country_flag = TRK_negotiations_in_progress }
+		cancel_if_not_visible = yes
+		fire_only_once = yes
+		selectable_mission = no
+		is_good = yes
+		days_mission_timeout = 220
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_executive_empowerment_mission"
+			country_event = turkestan_jadidist.10
+			clr_country_flag = TRK_negotiations_in_progress
+		}
+		timeout_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision timeout TRK_executive_empowerment_mission"
+			if = {
+				limit = {
+					is_ai = yes
+					OR = {
+						has_game_rule = { rule = TRK_path option = TRK_PATH_SHOKAY }
+						has_game_rule = { rule = TRK_path option = TRK_PATH_SHOKAY_AUTHDEM }
+					}
+				}
+				country_event = turkestan_jadidist.10
+				clr_country_flag = TRK_negotiations_in_progress
+			}
+			else = {
+				country_event = turkestan_jadidist.9
+				clr_country_flag = TRK_negotiations_in_progress
+			}
+		}
+	}
+	TRK_negotiate_with_ERK = {
+		icon = GFX_decision_generic_agreement
+		fire_only_once = no
+		cost = 25
+		allowed = { always = no } 
+		available = { has_country_flag = TRK_negotiations_in_progress }
+		visible = { has_active_mission = TRK_executive_empowerment_mission }
+		cancel_if_not_visible = yes
+		days_remove = 14
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				has_game_rule = { rule = TRK_path option = TRK_PATH_SOCLIB }
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_negotiate_with_ERK"
+			custom_effect_tooltip = TRK_ERK_support_increase_great
+			custom_effect_tooltip = TRK_Ittifoqi_Muslimin_support_decrease_slight
+			add_to_variable = { TRK_erk_support = 2 }
+			add_to_variable = { TRK_ittifoqi_muslimin_support = -2 }
+			add_to_variable = { TRK_muslim_support = -2 }
+			TRK_clamp_bill_variables = yes
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete TRK_negotiate_with_ERK"
+			TRK_erk_pop_medium_effect = yes
+		}
+	}
+	TRK_negotiate_with_milliy_ittihod = {
+		icon = GFX_decision_generic_agreement
+		fire_only_once = yes
+		cost = 30
+		allowed = { always = no } 
+		available = { has_country_flag = TRK_negotiations_in_progress }
+		visible = { has_active_mission = TRK_executive_empowerment_mission }
+		cancel_if_not_visible = yes
+		days_remove = 14
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				has_game_rule = { rule = TRK_path option = TRK_PATH_SOCLIB }
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_negotiate_with_milliy_ittihod"
+			country_event = turkestan_jadidist.7
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete TRK_negotiate_with_milliy_ittihod"
+			TRK_shokai_pop_small_effect = yes
+		}
+	}
+	TRK_negotiate_with_ittifoqi_muslimin = {
+		icon = GFX_decision_generic_agreement
+		fire_only_once = yes
+		cost = 40
+		allowed = { always = no } 
+		available = { has_country_flag = TRK_negotiations_in_progress }
+		visible = { has_active_mission = TRK_executive_empowerment_mission }
+		cancel_if_not_visible = yes
+		days_remove = 14
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				has_game_rule = { rule = TRK_path option = TRK_PATH_SOCLIB }
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_negotiate_with_ittifoqi_muslimin"
+			country_event = turkestan_jadidist.3
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete TRK_negotiate_with_ittifoqi_muslimin"
+			add_popularity = {
+				ideology = social_conservative
+				popularity = 0.04
+			}
+		}
+	}
+	TRK_negotiate_with_non_partisans = {
+		icon = GFX_decision_generic_agreement
+		fire_only_once = no
+		cost = 35
+		allowed = { always = no } 
+		available = { has_country_flag = TRK_negotiations_in_progress }
+		visible = { has_active_mission = TRK_executive_empowerment_mission }
+		cancel_if_not_visible = yes
+		days_remove = 14
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				has_game_rule = { rule = TRK_path option = TRK_PATH_SOCLIB }
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_negotiate_with_non_partisans"
+			custom_effect_tooltip = TRK_Non_Partisans_support_increase_great
+			add_to_variable = { TRK_independent_support = 3 }
+			add_to_variable = { TRK_non_muslim_support = 3 }
+			custom_effect_tooltip = TRK_Ittifoqi_Muslimin_support_decrease_slight
+			add_to_variable = { TRK_ittifoqi_muslimin_support = -2 }
+			add_to_variable = { TRK_muslim_support = -2 }
+			TRK_clamp_bill_variables = yes
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete TRK_negotiate_with_non_partisans"
+			TRK_shokai_pop_small_decrease_effect = yes
+		}
+	}
+	TRK_negotiate_with_russians = {
+		icon = GFX_decision_generic_agreement
+		fire_only_once = no
+		cost = 35
+		allowed = { always = no } 
+		available = { has_country_flag = TRK_negotiations_in_progress }
+		visible = { has_active_mission = TRK_executive_empowerment_mission }
+		cancel_if_not_visible = yes
+		days_remove = 14
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				has_game_rule = { rule = TRK_path option = TRK_PATH_SOCLIB }
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_negotiate_with_russians"
+			custom_effect_tooltip = TRK_non_muslim_support_increase_great
+			custom_effect_tooltip = TRK_muslim_support_decrease_slight
+			add_to_variable = { TRK_non_muslim_support = 4 }
+			add_to_variable = { TRK_muslim_support = -2 }
+			TRK_clamp_bill_variables = yes
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete TRK_negotiate_with_russians"
+			TRK_shokai_pop_small_decrease_effect = yes
+		}
+	}	
+}
+TRK_Equipment_decisions = {
+	TRK_buy_infantry = {
+		icon = generic_prepare_civil_war
+		available = {			
+			check_variable = { can_buy_equipment = 0 }
+		}
+		targets = { RUS TUR ENT INT GER }
+		target_root_trigger = {
+			OR = {
+				has_completed_focus = UZB_New_Equipment
+				has_completed_focus = KHI_New_Equipment
+				has_completed_focus = ALO_Prefer_Traditional_Methods
+				has_completed_focus = ALO_Modernize_The_Army
+				has_completed_focus = TRK_Army_Rearmament
+				has_completed_focus = KYR_Rely_On_Equipment_Supplies
+			}
+			is_subject = no
+			is_faction_leader = no
+			if = {
+				limit = {
+					FROM = { tag = GER }
+					ROOT = { tag = KHI }
+				}
+				NOT = { has_completed_focus = KHI_Khans_Army }
+			}
+		}
+		target_trigger = {
+			NOT = { 
+				has_war_with = FROM
+				is_embargoed_by = FROM
+				is_embargoing = FROM
+				has_country_flag = TRK_equipment_refused_@FROM
+			}
+			FROM = {
+				is_subject = no
+			}
+			TRK_equipment_decisions_target_check = yes
+		}
+		cancel_if_not_visible = yes
+		fire_only_once = no
+		days_remove = 20
+		days_re_enable = 180
+		
+		ai_will_do = {
+			factor = 0
+			modifier = {
+				# avoid division by zero
+				check_variable = { num_target_equipment_in_armies@infantry_equipment > 0 }
+
+				set_temp_variable = { TRK_infantry_equipment_ratio = num_equipment_in_armies@infantry_equipment }
+				divide_temp_variable = { TRK_infantry_equipment_ratio = num_target_equipment_in_armies@infantry_equipment }
+
+				set_temp_variable = { TRK_purchase_infantry_equipment_factor = 1 }
+				subtract_from_temp_variable = { TRK_purchase_infantry_equipment_factor = TRK_infantry_equipment_ratio }
+				multiply_temp_variable = { TRK_purchase_infantry_equipment_factor = 20 }
+
+				add = TRK_purchase_infantry_equipment_factor
+			}			
+		}
+		cost = 40
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel TRK_buy_infantry"
+			set_variable = { can_buy_equipment = 0 }
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_buy_infantry"
+			if = {
+				limit = {
+					ROOT = { tag = ALO }
+					FROM = { tag = RUS }
+				}
+				ALO_increase_russian_dependence = yes
+			}
+			set_variable = { can_buy_equipment = 1 }
+			FROM = { give_market_access = ROOT }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_buy_infantry"
+			set_variable = { can_buy_equipment = 0 }
+			add_equipment_to_stockpile = {
+				type = infantry_equipment_1
+				amount = 2500
+				producer = FROM
+			}
+			FROM = { 
+				set_variable = { TRK_equipment_cost = 40 }
+				country_event = turkestan_misc.215 
+			}
+		}
+	}
+	TRK_buy_support = { #purchase support equipment
+		icon = GFX_decision_support_equipment
+		available = {			
+			check_variable = { can_buy_equipment = 0 }
+		}
+		targets = { RUS TUR ENT INT GER }
+		target_root_trigger = {
+			OR = {
+				has_completed_focus = UZB_New_Equipment
+				has_completed_focus = KHI_New_Equipment
+				has_completed_focus = ALO_Prefer_Traditional_Methods
+				has_completed_focus = ALO_Modernize_The_Army
+				has_completed_focus = TRK_Army_Rearmament
+				has_completed_focus = KYR_Rely_On_Equipment_Supplies
+			}
+			is_subject = no
+			is_faction_leader = no
+		}
+		target_trigger = {
+			NOT = { 
+				has_war_with = FROM
+				is_embargoed_by = FROM
+				is_embargoing = FROM
+				has_country_flag = TRK_equipment_refused_@FROM
+			}
+			FROM = {
+				is_subject = no
+			}
+			TRK_equipment_decisions_target_check = yes
+		}
+		cancel_if_not_visible = yes
+		fire_only_once = no
+		days_remove = 30
+		days_re_enable = 180
+
+		ai_will_do = {
+			factor = 0
+			modifier = {
+				# avoid division by zero
+				check_variable = { num_target_equipment_in_armies@support_equipment > 0 }
+
+				set_temp_variable = { TRK_support_ratio = num_equipment_in_armies@support_equipment }
+				divide_temp_variable = { TRK_support_ratio = num_target_equipment_in_armies@support_equipment }
+
+				set_temp_variable = { TRK_purchase_support_factor = 1 }
+				subtract_from_temp_variable = { TRK_purchase_support_factor = TRK_support_ratio }
+				multiply_temp_variable = { TRK_purchase_support_factor = 20 }
+
+				add = TRK_purchase_support_factor
+			}
+		}
+
+		cost = 30
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel TRK_buy_support"
+			set_variable = { can_buy_equipment = 0 }
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_buy_support"
+			if = {
+				limit = {
+					ROOT = { tag = ALO }
+					FROM = { tag = RUS }
+				}
+				ALO_increase_russian_dependence = yes
+			}
+			set_variable = { can_buy_equipment = 1 }
+			FROM = { give_market_access = ROOT }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_buy_support"
+			set_variable = { can_buy_equipment = 0 }
+			add_equipment_to_stockpile = {
+				type = support_equipment_1
+				amount = 400
+				producer = FROM
+			}			
+			FROM = { 
+				set_variable = { TRK_equipment_cost = 30 }
+				country_event = turkestan_misc.215 
+			}
+		}
+	}
+	TRK_buy_artillery = { #purchase artillery
+		icon = GFX_decision_artillery
+		available = {			
+			check_variable = { can_buy_equipment = 0 }
+		}
+		targets = { RUS TUR ENT INT GER }
+		target_root_trigger = {
+			OR = {
+				has_completed_focus = UZB_New_Equipment
+				has_completed_focus = KHI_Artillery_Integration
+				has_completed_focus = KHI_20th_Century_Army
+				has_completed_focus = ALO_Modernize_Artillery
+				has_completed_focus = ALO_Against_Tank
+				has_completed_focus = TRK_Army_Rearmament
+				has_completed_focus = KYR_Import_Artillery
+			}
+			is_subject = no
+			is_faction_leader = no
+		}
+		target_trigger = {
+			NOT = { 
+				has_war_with = FROM
+				is_embargoed_by = FROM
+				is_embargoing = FROM
+				has_country_flag = TRK_equipment_refused_@FROM
+			}
+			FROM = {
+				is_subject = no
+			}
+			TRK_equipment_decisions_target_check = yes
+		}
+		cancel_if_not_visible = yes
+		fire_only_once = no
+		days_remove = 30
+		days_re_enable = 220
+
+		ai_will_do = {
+			factor = 0
+			modifier = {
+				# avoid division by zero
+				check_variable = { num_target_equipment_in_armies@artillery_equipment > 0 }
+
+				set_temp_variable = { TRK_artillery_ratio = num_equipment_in_armies@artillery_equipment }
+				divide_temp_variable = { TRK_artillery_ratio = num_target_equipment_in_armies@artillery_equipment }
+
+				set_temp_variable = { TRK_purchase_artillery_factor = 1 }
+				subtract_from_temp_variable = { TRK_purchase_artillery_factor = TRK_artillery_ratio }
+				multiply_temp_variable = { TRK_purchase_artillery_factor = 20 }
+
+				add = TRK_purchase_artillery_factor
+			}
+		}
+
+		cost = 60
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel TRK_buy_artillery"
+			set_variable = { can_buy_equipment = 0 }
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_buy_artillery"
+			if = {
+				limit = {
+					ROOT = { tag = ALO }
+					FROM = { tag = RUS }
+				}
+				ALO_increase_russian_dependence = yes
+			}
+			set_variable = { can_buy_equipment = 1 }
+			FROM = { give_market_access = ROOT }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_buy_artillery"
+			set_variable = { can_buy_equipment = 0 }
+			add_equipment_to_stockpile = {
+				type = artillery_equipment_1
+				amount = 400
+				producer = FROM
+			}
+			FROM = { 
+				set_variable = { TRK_equipment_cost = 60 }
+				country_event = turkestan_misc.215 
+			}
+		}
+	}
+	TRK_buy_at = { #purchase artillery
+		icon = GFX_decision_artillery
+		available = {			
+			check_variable = { can_buy_equipment = 0 }
+		}
+		targets = { RUS TUR ENT INT GER }
+		target_root_trigger = {
+			OR = {
+				has_completed_focus = UZB_Tupchi_Expansion
+				has_completed_focus = ALO_Against_Tank
+			}
+			is_subject = no
+			is_faction_leader = no
+		}
+		target_trigger = {
+			NOT = { 
+				has_war_with = FROM
+				is_embargoed_by = FROM
+				is_embargoing = FROM
+				has_country_flag = TRK_equipment_refused_@FROM
+			}
+			FROM = {
+				is_subject = no
+			}
+			TRK_equipment_decisions_target_check = yes
+		}
+		cancel_if_not_visible = yes
+		fire_only_once = no
+		days_remove = 30
+		days_re_enable = 220
+
+		ai_will_do = {
+			factor = 0
+			modifier = {
+				# avoid division by zero
+				check_variable = { num_target_equipment_in_armies@anti_tank_equipment > 0 }
+
+				set_temp_variable = { TRK_anti_tank_ratio = num_equipment_in_armies@anti_tank_equipment }
+				divide_temp_variable = { TRK_anti_tank_ratio = num_target_equipment_in_armies@anti_tank_equipment }
+
+				set_temp_variable = { TRK_purchase_anti_tank_factor = 1 }
+				subtract_from_temp_variable = { TRK_purchase_anti_tank_factor = TRK_artillery_ratio }
+				multiply_temp_variable = { TRK_purchase_anti_tank_factor = 20 }
+
+				add = TRK_purchase_artillery_factor
+			}
+		}
+
+		cost = 60
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel TRK_buy_at"
+			set_variable = { can_buy_equipment = 0 }
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_buy_at"
+			if = {
+				limit = {
+					ROOT = { tag = ALO }
+					FROM = { tag = RUS }
+				}
+				ALO_increase_russian_dependence = yes
+			}
+			set_variable = { can_buy_equipment = 1 }
+			FROM = { give_market_access = ROOT }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_buy_at"
+			set_variable = { can_buy_equipment = 0 }
+			add_equipment_to_stockpile = {
+				type = artillery_equipment_1
+				amount = 400
+				producer = FROM
+			}			
+			FROM = { 
+				set_variable = { TRK_equipment_cost = 60 }
+				country_event = turkestan_misc.215 
+			}
+		}
+	}
+	TRK_buy_aa = { #purchase artillery
+		icon = GFX_decision_AA_small
+		available = {			
+			check_variable = { can_buy_equipment = 0 }
+		}
+		targets = { RUS TUR ENT INT GER }
+		target_root_trigger = {
+			has_completed_focus = UZB_Tupchi_Expansion
+			is_subject = no
+			is_faction_leader = no
+		}
+		target_trigger = {
+			NOT = { 
+				has_war_with = FROM
+				is_embargoed_by = FROM
+				is_embargoing = FROM
+				has_country_flag = TRK_equipment_refused_@FROM
+			}
+			FROM = {
+				is_subject = no
+			}
+			TRK_equipment_decisions_target_check = yes
+		}
+		cancel_if_not_visible = yes
+		fire_only_once = no
+		days_remove = 30
+		days_re_enable = 220
+
+		ai_will_do = {
+			factor = 0
+			modifier = {
+				# avoid division by zero
+				check_variable = { num_target_equipment_in_armies@anti_air_equipment > 0 }
+
+				set_temp_variable = { TRK_anti_air_ratio = num_equipment_in_armies@anti_air_equipment }
+				divide_temp_variable = { TRK_anti_air_ratio = num_target_equipment_in_armies@anti_air_equipment }
+
+				set_temp_variable = { TRK_purchase_anti_air_factor = 1 }
+				subtract_from_temp_variable = { TRK_purchase_anti_air_factor = TRK_artillery_ratio }
+				multiply_temp_variable = { TRK_purchase_anti_air_factor = 20 }
+
+				add = TRK_purchase_artillery_factor
+			}
+		}
+
+		cost = 60
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel TRK_buy_aa"
+			set_variable = { can_buy_equipment = 0 }
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_buy_aa"
+			if = {
+				limit = {
+					ROOT = { tag = ALO }
+					FROM = { tag = RUS }
+				}
+				ALO_increase_russian_dependence = yes
+			}
+			set_variable = { can_buy_equipment = 1 }
+			FROM = { give_market_access = ROOT }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_buy_aa"
+			set_variable = { can_buy_equipment = 0 }
+			add_equipment_to_stockpile = {
+				type = artillery_equipment_1
+				amount = 400
+				producer = FROM
+			}
+			FROM = { 
+				set_variable = { TRK_equipment_cost = 60 }
+				country_event = turkestan_misc.215 
+			}
+		}
+	}
+	TRK_buy_tank = { 
+		icon = GFX_decision_tank
+		available = {			
+			check_variable = { can_buy_equipment = 0 }
+		}
+		targets = { RUS TUR ENT INT GER }
+		target_root_trigger = {
+			OR = {
+				has_completed_focus = KHI_20th_Century_Army
+				has_completed_focus = TRK_Tank_Division
+				has_completed_focus = ALO_Tank_Division
+			}
+			is_subject = no
+			is_faction_leader = no
+		}
+		target_trigger = {
+			NOT = { 
+				has_war_with = FROM
+				is_embargoed_by = FROM
+				is_embargoing = FROM
+				has_country_flag = TRK_equipment_refused_@FROM
+			}
+			FROM = {
+				is_subject = no
+			}
+			TRK_equipment_decisions_target_check = yes
+		}
+		cancel_if_not_visible = yes
+		fire_only_once = no
+		days_remove = 30
+		days_re_enable = 220
+
+		ai_will_do = {
+			factor = 0
+			modifier = {
+				# avoid division by zero
+				
+				check_variable = { num_target_equipment_in_armies@light_tank_equipment_1 > 0 }
+				
+				set_temp_variable = { TRK_light_tank_ratio = num_equipment_in_armies@light_tank_equipment_1 }
+				divide_temp_variable = { TRK_light_tank_ratio = num_target_equipment_in_armies@light_tank_equipment_1 }
+
+				set_temp_variable = { TRK_purchase_light_tank_factor = 1 }
+				subtract_from_temp_variable = { TRK_purchase_light_tank_factor = TRK_light_tank_ratio }
+				multiply_temp_variable = { TRK_purchase_light_tank_factor = 20 }
+
+				add = TRK_purchase_light_tank_factor
+			}
+		}
+
+		cost = 80
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel TRK_buy_tank"
+			set_variable = { can_buy_equipment = 0 }
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_buy_tank"
+			if = {
+				limit = {
+					ROOT = { tag = ALO }
+					FROM = { tag = RUS }
+				}
+				ALO_increase_russian_dependence = yes
+			}
+			set_variable = { can_buy_equipment = 1 }
+			FROM = { give_market_access = ROOT }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_buy_tank"
+			set_variable = { can_buy_equipment = 0 }
+			if = {
+				limit = {
+					NOT = { has_dlc = "No Step Back" }
+				}
+				add_equipment_to_stockpile = {
+					type = light_tank_equipment_1
+					amount = 250
+					producer = FROM
+				}
+			}
+			if = {
+				limit = {
+					has_dlc = "No Step Back"
+				}
+				add_equipment_to_stockpile = {
+					type = light_tank_chassis_1
+					amount = 250
+					producer = FROM
+				}
+			}
+			FROM = { 
+				set_variable = { TRK_equipment_cost = 80 }
+				country_event = turkestan_misc.215 
+			}
+		}
+	}
+	TRK_buy_motorized = { #purchase German motorized
+		icon = GFX_decision_generic_motorized
+		available = {			
+			check_variable = { can_buy_equipment = 0 }
+		}
+		targets = { RUS TUR ENT INT GER }
+		target_root_trigger = {
+			OR = {
+				has_completed_focus = UZB_New_Equipment
+				has_completed_focus = KHI_New_Equipment
+				has_completed_focus = ALO_Intoduce_Motorization
+				has_completed_focus = ALO_Introduce_Motorization_sov
+				has_completed_focus = ALO_expand_the_supply_corps
+				has_completed_focus = TRK_Modern_Equipment_Purchase
+			}
+			is_subject = no
+			is_faction_leader = no
+		}
+		target_trigger = {
+			NOT = { 
+				has_war_with = FROM
+				is_embargoed_by = FROM
+				is_embargoing = FROM
+				has_country_flag = TRK_equipment_refused_@FROM
+			}
+			FROM = {
+				is_subject = no
+			}
+			TRK_equipment_decisions_target_check = yes
+		}
+		cancel_if_not_visible = yes
+		fire_only_once = no
+		days_remove = 40
+		days_re_enable = 300
+
+		ai_will_do = {
+			factor = 0
+			modifier = {
+				# avoid division by zero
+				check_variable = { num_target_equipment_in_armies@motorized_equipment > 0 }
+
+				set_temp_variable = { TRK_motorised_ratio = num_equipment_in_armies@motorized_equipment }
+				divide_temp_variable = { TRK_motorised_ratio = num_target_equipment_in_armies@motorized_equipment }
+
+				set_temp_variable = { TRK_purchase_motorised_factor = 1 }
+				subtract_from_temp_variable = { TRK_purchase_motorised_factor = TRK_motorised_ratio }
+				multiply_temp_variable = { TRK_purchase_motorised_factor = 20 }
+
+				add = TRK_purchase_motorised_factor
+			}
+		}
+
+		cost = 80
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel TRK_buy_motorized"
+			set_variable = { can_buy_equipment = 0 }
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_buy_motorized"
+			if = {
+				limit = {
+					ROOT = { tag = ALO }
+					FROM = { tag = RUS }
+				}
+				ALO_increase_russian_dependence = yes
+			}
+			set_variable = { can_buy_equipment = 1 }
+			FROM = { give_market_access = ROOT }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_buy_motorized"
+			set_variable = { can_buy_equipment = 0 }
+			add_equipment_to_stockpile = {
+				type = motorized_equipment_1
+				amount = 100
+				producer = FROM
+			}
+			FROM = { 
+				set_variable = { TRK_equipment_cost = 80 }
+				country_event = turkestan_misc.215 
+			}
+		}
+	}
+	TRK_buy_armored_cars = {
+		icon = GFX_decision_give_cash
+		available = {			
+			check_variable = { can_buy_equipment = 0 }
+		}
+		targets = { RUS TUR }
+		target_root_trigger = {
+			has_completed_focus = ALO_Master_The_Machine
+			is_subject = no
+			is_faction_leader = no
+		}
+		target_trigger = {
+			NOT = { 
+				has_war_with = FROM
+				is_embargoed_by = FROM
+				is_embargoing = FROM
+				has_country_flag = TRK_equipment_refused_@FROM
+			}
+			FROM = {
+				is_subject = no
+			}
+			TRK_equipment_decisions_target_check = yes
+		}
+		cancel_if_not_visible = yes
+		fire_only_once = no
+		days_remove = 20
+		days_re_enable = 250
+
+		ai_will_do = {
+			factor = 0
+			modifier = {
+				# avoid division by zero
+				check_variable = { num_target_equipment_in_armies@armored_car_equipment > 0 }
+
+				set_temp_variable = { TRK_armoured_car_ratio = num_equipment_in_armies@armored_car_equipment }
+				divide_temp_variable = { TRK_armoured_car_ratio = num_target_equipment_in_armies@armored_car_equipment }
+
+				set_temp_variable = { TRK_purchase_armoured_car_factor = 1 }
+				subtract_from_temp_variable = { TRK_purchase_armoured_car_factor = TRK_armoured_car_ratio }
+				multiply_temp_variable = { TRK_purchase_armoured_car_factor = 20 }
+
+				add = TRK_purchase_armoured_car_factor
+			}
+		}
+
+		cost = 50
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel TRK_buy_armored_cars"
+			set_variable = { can_buy_equipment = 0 }
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_buy_armored_cars"
+			if = {
+				limit = {
+					ROOT = { tag = ALO }
+					FROM = { tag = RUS }
+				}
+				ALO_increase_russian_dependence = yes
+			}
+			set_variable = { can_buy_equipment = 1 }
+			FROM = { give_market_access = ROOT }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_buy_armored_cars"
+			set_variable = { can_buy_equipment = 0 }
+			add_equipment_to_stockpile = {
+				type = gw_armored_car_equipment
+				amount = 100
+				producer = FROM
+			}
+			FROM = { 
+				set_variable = { TRK_equipment_cost = 50 }
+				country_event = turkestan_misc.215 
+			}
+		}
+	}
+
+	TRK_buy_fighters = { #purchase german fighters
+		icon = GFX_decision_generic_air
+		
+		available = {			
+			check_variable = { can_buy_equipment = 0 }			
+			has_design_based_on = small_plane_airframe
+		}
+		targets = { RUS TUR ENT INT GER }
+		target_root_trigger = {
+			OR = {
+				has_completed_focus = UZB_Airforce
+				has_completed_focus = KHI_Airforce
+				has_completed_focus = TRK_Acquire_Training_Aircraft
+				has_completed_focus = ALO_Kazakh_Airforce
+			}			
+			is_subject = no
+			is_faction_leader = no
+		}
+		target_trigger = {
+			NOT = { 
+				has_war_with = FROM
+				is_embargoed_by = FROM
+				is_embargoing = FROM
+				has_country_flag = TRK_equipment_refused_@FROM
+			}
+			FROM = {
+				is_subject = no
+			}
+			TRK_equipment_decisions_target_check = yes
+		}
+		cancel_if_not_visible = yes
+		fire_only_once = no
+		days_remove = 60
+		days_re_enable = 360
+
+		ai_will_do = {
+			factor = 0
+			modifier = {
+				add = 80
+				stockpile_ratio = {
+					archetype = small_plane_airframe
+					ratio < 0.75
+				}
+			}
+		}
+
+		cost = 60
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel TRK_buy_fighters"
+			set_variable = { can_buy_equipment = 0 }
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_buy_fighters"
+			if = {
+				limit = {
+					ROOT = { tag = ALO }
+					FROM = { tag = RUS }
+				}
+				ALO_increase_russian_dependence = yes
+			}
+			set_variable = { can_buy_equipment = 1 }
+			FROM = { give_market_access = ROOT }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_buy_fighters"
+			set_variable = { can_buy_equipment = 0 }
+			add_equipment_to_stockpile = {
+				type = small_plane_airframe
+				amount = 150
+				producer = FROM
+			}
+			FROM = { 
+				set_variable = { TRK_equipment_cost = 60 }
+				country_event = turkestan_misc.215 
+			}
+		}
+	}
+	TRK_buy_bombers = { #purchase german tactical bombers
+		icon = GFX_decision_bomber
+		allowed = { always = no }
+		
+		available = {			
+			check_variable = { can_buy_equipment = 0 }
+			has_design_based_on = medium_plane_airframe
+		}
+		targets = { RUS TUR ENT INT GER }
+		target_root_trigger = {
+			OR = {
+				has_completed_focus = UZB_Airforce
+				has_completed_focus = KHI_Airforce
+				has_completed_focus = TRK_Acquire_Training_Aircraft
+				has_completed_focus = ALO_Kazakh_Airforce
+			}
+			is_subject = no
+			is_faction_leader = no
+		}
+		target_trigger = {
+			NOT = { 
+				has_war_with = FROM
+				is_embargoed_by = FROM
+				is_embargoing = FROM
+				has_country_flag = TRK_equipment_refused_@FROM
+			}
+			FROM = {
+				is_subject = no
+			}
+			TRK_equipment_decisions_target_check = yes
+		}
+		cancel_if_not_visible = yes
+		days_remove = 60
+		days_re_enable = 360
+		fire_only_once = no
+
+		ai_will_do = {
+			factor = 0
+			modifier = {
+				add = 80
+				stockpile_ratio = {
+					archetype = medium_plane_airframe
+					ratio < 0.75
+				}
+			}
+		}
+
+		cost = 60 
+		
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel TRK_buy_bombers"
+			set_variable = { can_buy_equipment = 0 }
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_buy_bombers"
+			if = {
+				limit = {
+					ROOT = { tag = ALO }
+					FROM = { tag = RUS }
+				}
+				ALO_increase_russian_dependence = yes
+			}
+			set_variable = { can_buy_equipment = 1 }
+			FROM = { give_market_access = ROOT }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_buy_bombers"
+			set_variable = { can_buy_equipment = 0 }
+			add_equipment_to_stockpile = {
+				type = medium_plane_airframe
+				amount = 150
+				producer = FROM
+			}
+			FROM = { 
+				set_variable = { TRK_equipment_cost = 60 }
+				country_event = turkestan_misc.215 
+			}
+		}
+	}		
+}
+TRK_silk_road_decision_category = {
+	TRK_trade_with_country = {
+		icon = GFX_decision_global_trade
+		allowed = { always = no }		
+		available = {
+			if = {
+				limit = { 
+					FROM = { 
+						OR = {
+							tag = TUR
+							tag = AZE
+							tag = PER
+							tag = JBS
+							tag = SAU
+							tag = IRQ
+						}
+					} 
+				}
+				584 = { is_controlled_by_ROOT_or_ally = yes }
+			}
+			else_if = {
+				limit = { 
+					FROM = { 
+						OR = {
+							tag = ETS
+							tag = MON
+							tag = QIE
+						}
+					} 
+				}
+				586 = { is_controlled_by_ROOT_or_ally = yes }
+				country_exists = ETS
+			}
+			FROM = {
+				is_subject = no
+				NOT = { has_war_with = ROOT }
+			}
+		}
+		cost = 75
+		fire_only_once = yes
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete TRK_trade_with_country target: [From.GetName]"
+			custom_effect_tooltip = TRK_trade_with_country_tt
+			FROM = {
+				add_opinion_modifier = {
+					modifier = KR_trade_agreement
+					target = ROOT
+				}
+			}
+			add_to_variable = { TRK_silk_road_pp = 0.03 }
+			add_to_variable = { TRK_silk_road_production_speed_buildings_factor = 0.03 }
+			add_to_variable = { TRK_silk_road_consumer_goods = -0.01 }
+			add_to_variable = { TRK_silk_road_trade_opinion = 0.03 }
+		}
+
+		ai_will_do = { 
+			factor = 20 
+		}
+	}
+}
+TRK_east_pamir_revolt_category = {
+	TRK_deal_with_basmachi = {
+		icon = GFX_decision_revolt
+		activation = {
+			always = no
+		}
+		available = {
+			hidden_trigger = { always = no }
+		}
+		cancel_trigger = {
+			OR = {
+				is_subject = yes
+				has_war = yes
+				TRK_tvo_in_power = yes
+				NOT = { has_idea = TRK_east_pamir_revolt }
+			}
+		}
+		allowed = { always = no } # manually activated
+		visible = { check_variable = { TRK_mujahideen_civ_war_var > 0 } }
+		cancel_if_not_visible = yes
+		fire_only_once = yes
+		selectable_mission = no
+		is_good = no
+		days_mission_timeout = 250
+		
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision timeout TRK_deal_with_basmachi"
+			country_event = turkestan.65
+		}
+		timeout_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision timeout TRK_deal_with_basmachi"
+			if = {
+				limit = { 
+					OR = {
+						has_idea = TRK_mirshab_revolt 
+						AND = {
+							is_ai = yes
+							has_game_rule = { rule = TRK_path option = TRK_PATH_AUTHDEM }
+						}
+					}
+				}
+				country_event = turkestan.67
+			}
+			else = {
+				country_event = turkestan.71
+			}
+		}
+	}
+	TRK_retake_samarqand = {
+		icon = GFX_decision_infiltrate_state
+		allowed = { always = no }		
+		available = {
+			has_completed_focus = TRK_Army_Rearmament
+		}
+		visible = { 
+			FROM = { is_demilitarized_zone = yes }
+		}
+		custom_cost_text = CP_50
+		custom_cost_trigger = {
+			command_power > 49.99
+		}
+		state_target = yes
+		fire_only_once = yes
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				OR = {
+					AND = {
+						TRK_erk_in_power = yes
+						check_variable = { TRK_erk_civ_war_var > TRK_mujahideen_civ_war_var }
+					}
+					AND = {
+						TRK_has_jadidist_government = yes
+						check_variable = { TRK_shokai_civ_war_var > TRK_mujahideen_civ_war_var }
+					}
+					AND = {
+						TRK_ferghana_government_in_power = yes
+						check_variable = { TRK_ferghana_civ_war_var > TRK_mujahideen_civ_war_var }
+					}
+				}
+			} 
+			modifier = {
+				factor = 0
+				has_game_rule = { rule = TRK_path option = TRK_PATH_NATPOP }
+			}
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_retake_samarqand"
+			hidden_effect = {
+				add_command_power = -50
+			}
+			custom_effect_tooltip = TRK_retake_samarqand_tt
+			if = {
+				limit = { TRK_erk_in_power = yes }
+				custom_effect_tooltip = TRK_retake_samarqand_erk_tt
+			}
+			else_if = {
+				limit = { TRK_has_jadidist_government = yes }
+				custom_effect_tooltip = TRK_retake_samarqand_shokai_tt
+			}
+			else_if = {
+				limit = { TRK_ferghana_government_in_power = yes }
+				custom_effect_tooltip = TRK_retake_samarqand_ferghana_tt
+			}
+			set_temp_variable = { civ_war_var_change = -10 }
+			TRK_mujahideen_civ_war_change = yes
+		}
+	}
+	TRK_direct_military_offensive = {
+		icon = GFX_decision_generic_prepare_civil_war
+		allowed = { always = no }				
+		custom_cost_trigger = {
+			command_power > 39.99
+		}
+		custom_cost_text = CP_40
+		target_non_existing = yes
+		fire_only_once = no
+		days_remove = 60
+		
+		ai_will_do = { 
+			factor = 100  
+			modifier = {
+				factor = 0
+				has_game_rule = { rule = TRK_path option = TRK_PATH_NATPOP }
+			}
+		}
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_direct_military_offensive"
+			hidden_effect = {
+				add_command_power = -40
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_direct_military_offensive"
+			set_temp_variable_to_random = { 
+				var = civ_war_var_change
+				min = -18
+				max = -10
+			}
+			TRK_mujahideen_civ_war_change = yes
+			set_temp_variable_to_random = {
+				var = TRK_manpower_lost
+				min = -2200
+				max = -400
+			}
+			add_manpower = TRK_manpower_lost
+			set_temp_variable_to_random = {
+				var = TRK_infantry_equipment_lost
+				min = -1000
+				max = -500
+			}
+			set_temp_variable_to_random = {
+				var = TRK_support_equipment_lost
+				min = -20
+				max = -10
+			}
+			add_equipment_to_stockpile = {
+				type = infantry_equipment
+				amount = var:TRK_infantry_equipment_lost
+			}
+			add_equipment_to_stockpile = {
+				type = support_equipment
+				amount = var:TRK_support_equipment_lost
+			}
+			add_to_variable = {
+				TRK_prep = 7
+				tooltip = CA_prep_tooltip
+			}
+		}
+	}
+	TRK_counter_insurgency_tactics = {
+		icon = GFX_decision_ETH_chitet
+		allowed = { always = no }				
+		custom_cost_trigger = {
+			command_power > 29.99
+		}
+		custom_cost_text = CP_30
+		target_non_existing = yes
+		fire_only_once = no
+		days_remove = 35
+		
+		ai_will_do = { 
+			factor = 100 
+			modifier = {
+				factor = 0
+				has_game_rule = { rule = TRK_path option = TRK_PATH_NATPOP }
+			}
+		}
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_counter_insurgency_tactics"
+			hidden_effect = {
+				add_command_power = -30
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_counter_insurgency_tactics"
+			set_temp_variable_to_random = { 
+				var = civ_war_var_change
+				min = -14
+				max = -7
+			}
+			TRK_mujahideen_civ_war_change = yes
+			set_temp_variable_to_random = {
+				var = TRK_manpower_lost
+				min = -600
+				max = -100
+			}
+			add_manpower = TRK_manpower_lost
+			set_temp_variable_to_random = {
+				var = TRK_infantry_equipment_lost
+				min = -500
+				max = -200
+			}
+			set_temp_variable_to_random = {
+				var = TRK_support_equipment_lost
+				min = -50
+				max = -30
+			}
+			add_equipment_to_stockpile = {
+				type = infantry_equipment
+				amount = var:TRK_infantry_equipment_lost
+			}
+			add_equipment_to_stockpile = {
+				type = support_equipment
+				amount = var:TRK_support_equipment_lost
+			}
+			add_to_variable = {
+				TRK_prep = 3
+				tooltip = CA_prep_tooltip
+			}
+		}
+	}
+	TRK_aerial_bombardment = {
+		icon = GFX_decision_generic_ignite_civil_war
+		allowed = { always = no }				
+		
+		custom_cost_text = CP_25
+		custom_cost_trigger = { command_power > 24.99 }
+		target_non_existing = yes
+		fire_only_once = yes
+		
+		ai_will_do = { 
+			factor = 100  
+			modifier = {
+				factor = 0
+				has_game_rule = { rule = TRK_path option = TRK_PATH_NATPOP }
+			}
+		}
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_aerial_bombardment"
+			set_temp_variable_to_random = { 
+				var = civ_war_var_change
+				min = -17
+				max = -9
+			}
+			TRK_mujahideen_civ_war_change = yes			
+			hidden_effect = {
+				if = {
+					limit = { is_ai = no }
+					random_list = {
+						10 = { country_event = { id = turkestan.64 days = 2 random = 12 } }
+						10 = { }
+					}
+				}
+			}
+		}
+	}
+	TRK_psychological_warfare = {
+		icon = GFX_decision_eng_propaganda_campaigns
+		allowed = { always = no }				
+		
+		cost = 35
+		target_non_existing = yes
+		fire_only_once = yes
+		
+		ai_will_do = { 
+			factor = 100 
+			modifier = {
+				factor = 0
+				has_game_rule = { rule = TRK_path option = TRK_PATH_NATPOP }
+			}
+		}
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_psychological_warfare"
+			set_temp_variable_to_random = { 
+				var = civ_war_var_change
+				min = -7
+				max = -5
+			}
+			TRK_mujahideen_civ_war_change = yes
+			add_war_support = 0.15
+		}
+	}
+	TRK_train_the_troops = {
+		icon = GFX_decision_soldierly_discipline
+		allowed = { always = no }				
+		
+		cost = 0
+		
+		fire_only_once = no
+		
+		days_re_enable = 20
+		days_remove = 45
+		
+		ai_will_do = { factor = 100 }
+		
+		modifier = {
+			command_power_gain_mult = 1
+			political_power_gain = 0.15
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_train_the_troops"
+			TRK_pop_ruling_small_effect = yes
+			add_to_variable = {
+				TRK_prep = 4
+				tooltip = CA_prep_tooltip
+			}
+		}
+	}
+	
+	TRK_fortify_fergana = {
+		icon = GFX_decision_fortress
+		allowed = { always = no }				
+		
+		available = {
+			FROM = { 
+				is_owned_and_controlled_by = ROOT 
+				is_demilitarized_zone = no
+			}
+		}
+		custom_cost_trigger = {
+			command_power > 14.99
+		}
+		custom_cost_text = CP_15
+		
+		fire_only_once = yes
+		days_remove = 45
+		state_target = yes
+		
+		ai_will_do = { 
+			factor = 100  
+			modifier = {
+				factor = 0
+				has_game_rule = { rule = TRK_path option = TRK_PATH_NATPOP }
+			}
+		}
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_fortify_fergana"			
+			hidden_effect = { add_command_power = -15 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_fortify_fergana"
+			set_temp_variable_to_random = { 
+				var = civ_war_var_change
+				min = -4
+				max = -1
+			}
+			TRK_mujahideen_civ_war_change = yes			
+			FROM = {
+				add_building_construction = {
+					type = bunker
+					level = 2
+					instant_build = yes
+					province = 14732
+				}
+				add_building_construction = {
+					type = bunker
+					level = 1
+					instant_build = yes
+					province = 14731
+				}
+				add_building_construction = {
+					type = bunker
+					level = 1
+					instant_build = yes
+					province = 14740
+				}
+			}	
+			add_to_variable = {
+				TRK_prep = 5
+				tooltip = CA_prep_tooltip
+			}
+		}
+	}
+}
+special_projects = {
+	
+	TRK_import_azeri_knowhow = {
+		icon = GFX_decision_generic_operation
+		allowed = { always = no } #manually activated
+		fire_only_once = yes
+		cost = 10
+		days_remove = 25
+		priority = 1
+
+		available = {
+			OR = {
+				has_idea = TRK_syr_darya_gold_1
+				has_idea = TRK_syr_darya_gold_2
+				has_idea = TRK_syr_darya_gold_3
+				has_idea = TRK_syr_darya_gold_4
+				has_idea = TRK_syr_darya_gold_5
+			}
+		}
+
+		ai_will_do = {
+			factor = 25
+			modifier = {
+				factor = 0
+				OR = {
+					has_idea = TRK_syr_darya_gold_1
+					has_idea = TRK_syr_darya_gold_2
+					has_idea = TRK_syr_darya_gold_3
+					has_idea = TRK_syr_darya_gold_4
+				}
+			}
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete TRK_import_azeri_knowhow"
+			TRK_decrease_gold = yes
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_import_azeri_knowhow"
+			add_tech_bonus = {
+				name = TRK_import_azeri_knowhow
+				bonus = 0.5
+				uses = 1
+				category = synth_resources
+			}
+		}
+	}
+
+	TRK_import_ottoman_material = {
+		icon = GFX_decision_oil
+		allowed = { always = no } #manually activated
+		fire_only_once = yes
+		cost = 10
+		days_remove = 50
+		priority = 1
+
+		available = {
+			OR = {
+				has_idea = TRK_syr_darya_gold_1
+				has_idea = TRK_syr_darya_gold_2
+				has_idea = TRK_syr_darya_gold_3
+				has_idea = TRK_syr_darya_gold_4
+				has_idea = TRK_syr_darya_gold_5
+			}
+			1279 = { is_owned_and_controlled_by = TRK }
+		}
+
+		ai_will_do = {
+			factor = 25
+			modifier = {
+				factor = 0
+				OR = {
+					has_idea = TRK_syr_darya_gold_1
+					has_idea = TRK_syr_darya_gold_2
+					has_idea = TRK_syr_darya_gold_3
+					has_idea = TRK_syr_darya_gold_4
+				}
+			}
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete TRK_import_ottoman_material"
+			TRK_decrease_gold = yes
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_import_ottoman_material"
+			1279 = {
+				add_extra_state_shared_building_slots = 1
+				add_building_construction = {
+					type = fuel_silo
+					level = 1
+					instant_build = yes
+				}
+			}
+		}
+	}
+	TRK_jumpstart_tashkent_arms_trade = {
+		icon = GFX_decision_generic_merge_plant_tank
+		allowed = { always = no } #manually activated
+		fire_only_once = yes
+		cost = 35
+		days_remove = 75
+		priority = 10
+
+		available = {
+			has_country_flag = TRK_rebuilt_market_connections
+			num_of_civilian_factories_available_for_projects > 1
+			407 = { is_owned_and_controlled_by = TRK }
+		}
+
+		ai_will_do = { factor = 150 }
+
+		modifier = { civilian_factory_use = 2 }
+
+		state_target = yes
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_jumpstart_tashkent_arms_trade target: [From.GetName]"
+			407 = {
+				add_extra_state_shared_building_slots = 1
+				add_building_construction = {
+					type = arms_factory
+					level = 1
+					instant_build = yes
+				}
+			}
+		}
+	}
+	TRK_rural_electrification = {
+		icon = GFX_decision_electrify
+		allowed = { always = no }				
+		
+		cost = 20
+		fire_only_once = yes
+		days_remove = 35
+		state_target = yes
+		
+		ai_will_do = { factor = 200 }
+		
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_rural_electrification"			
+			add_to_variable = { TRK_reconstruction_var = 1 }
+			add_tech_bonus = {
+				name = TRK_rural_electrification
+				bonus = 0.5
+				uses = 2
+				category = electronics
+			}
+		}
+	}
+	TRK_rebuild_ferghana_valley = {
+		icon = GFX_decision_oasis
+		allowed = { always = no }				
+		available = { 1279 = { is_demilitarized_zone = no } }
+		cost = TRK_rebuild_ferghana_valley_var?35
+		fire_only_once = yes
+		days_remove = 40
+		state_target = yes
+		
+		ai_will_do = { factor = 200 }
+		
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_rebuild_ferghana_valley"			
+			TRK_increase_gold = yes
+			add_to_variable = { TRK_reconstruction_var = 1 }
+			1279 = { increase_state_category_by_one_level = yes }
+		}
+	}
+	TRK_restart_agricultural_exports = {
+		icon = GFX_decision_generic_agriculture
+		allowed = { always = no }				
+		available = { 1279 = { is_demilitarized_zone = no } }
+		cost = 20
+		fire_only_once = yes
+		days_remove = 20
+		state_target = yes
+		
+		ai_will_do = { factor = 200 }
+		
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_restart_agricultural_exports"			
+			add_to_variable = { TRK_reconstruction_var = 1 }
+			add_timed_idea = {
+				idea = TRK_rebuilding_market_connections
+				days = 125
+			}
+			custom_effect_tooltip = after_idea_expires
+			effect_tooltip = {
+				add_ideas = TRK_export_idea_0
+				activate_targeted_decision = { target = 407 decision = TRK_iron_steel_works }
+				activate_targeted_decision = { target = 1279 decision = TRK_cotton_gin_plant }
+			}			
+		}
+	}
+	TRK_subsidize_samarqand_region = {
+		icon = GFX_decision_give_cash
+		allowed = { always = no }				
+		available = { 1209 = { is_demilitarized_zone = no } }
+		cost = TRK_develop_other_regions?50
+		fire_only_once = yes
+		days_remove = 30
+		state_target = yes
+		
+		ai_will_do = { factor = 200 }
+		
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_subsidize_samarqand_region"			
+			add_to_variable = { TRK_reconstruction_var = 1 }
+			1209 = { increase_state_category_by_one_level = yes }
+		}
+	}
+	TRK_central_asian_railroad_expansion = {
+		icon = GFX_decision_train
+		allowed = { always = no }				
+		available = { 
+			num_of_civilian_factories_available_for_projects > 0
+			1209 = {
+				is_demilitarized_zone = no
+				is_controlled_by = ROOT
+			}
+			407 = {
+				is_demilitarized_zone = no
+				is_controlled_by = ROOT
+			}
+			1279 = {
+				is_demilitarized_zone = no
+				is_controlled_by = ROOT
+			}
+			1042 = {
+				is_demilitarized_zone = no
+				is_controlled_by = ROOT
+			}
+		}
+		cost = 10
+		fire_only_once = yes
+		days_remove = 30
+		modifier = { civilian_factory_use = 1 }
+		state_target = yes
+		
+		ai_will_do = { factor = 200 }
+		
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_central_asian_railroad_expansion"			
+			add_to_variable = { TRK_reconstruction_var = 1 }
+			add_equipment_to_stockpile = {
+				type = train_equipment
+				amount = 20
+				producer = GER
+			}
+			build_railway = {
+				level = 1
+				fallback = yes
+				start_province = 1459
+  				target_province = 10671
+				build_only_on_allied = yes
+			}
+			build_railway = {
+				level = 1
+				fallback = yes
+				start_province = 10671
+  				target_province = 14731
+				build_only_on_allied = yes
+			}
+			build_railway = {
+				level = 2
+				fallback = yes
+				start_province = 14731
+  				target_province = 2058
+				build_only_on_allied = yes
+			}
+			activate_targeted_decision = { target = 407 decision = TRK_expand_tashkent_workshops }
+			activate_targeted_decision = { target = 1278 decision = TRK_trans_qyzylqum_rail_line }
+		}
+	}
+	TRK_trans_qyzylqum_rail_line = {
+		icon = GFX_decision_train
+		allowed = { always = no }				
+		available = { 
+			num_of_civilian_factories_available_for_projects > 0
+			585 = {
+				is_demilitarized_zone = no
+				is_controlled_by = ROOT
+			}
+			407 = {
+				is_demilitarized_zone = no
+				is_controlled_by = ROOT
+			}
+			FROM = {
+				is_demilitarized_zone = no
+				is_controlled_by = ROOT
+			}
+		}
+		cost = 10
+		fire_only_once = yes
+		days_remove = 30
+		modifier = { civilian_factory_use = 1 }
+		state_target = yes
+		
+		ai_will_do = { factor = 100 }
+		
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_central_asian_railroad_expansion"			
+			build_railway = {
+				level = 1
+				fallback = yes
+				start_state = 407
+  				target_state = 1278
+				build_only_on_allied = yes
+			}
+		}
+	}
+	TRK_expand_tashkent_workshops = {
+		icon = GFX_decision_gre_investment_decisions
+		allowed = { always = no }				
+		available = { 
+			num_of_civilian_factories_available_for_projects > 0
+			FROM = {
+				is_demilitarized_zone = no
+				is_controlled_by = ROOT
+			}
+		}
+		cost = 15
+		fire_only_once = yes
+		days_remove = 30
+		modifier = { civilian_factory_use = 1 }
+		state_target = yes
+		
+		ai_will_do = { factor = 75 }
+		
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_expand_tashkent_workshops"			
+			407 = { 
+				add_extra_state_shared_building_slots = 1
+				add_building_construction = {
+					type = industrial_complex
+					level = 1
+					instant_build = yes
+				}
+			}
+		}
+	}
+	TRK_iron_steel_works = {
+		icon = GFX_decision_steel
+		allowed = { always = no }				
+		available = { 
+			num_of_civilian_factories_available_for_projects > 0
+			FROM = {
+				is_demilitarized_zone = no
+				is_controlled_by = ROOT
+			}
+		}
+		cost = 30
+		fire_only_once = yes
+		days_remove = 30
+		modifier = { civilian_factory_use = 1 }
+		state_target = yes
+		
+		ai_will_do = { factor = 75 }
+		
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_iron_steel_works"			
+			add_resource = {
+				type = steel
+				amount = 13
+				state = FROM
+			}
+		}
+	}
+	TRK_cotton_gin_plant = {
+		icon = GFX_decision_cotton
+		allowed = { always = no }				
+		available = { 
+			num_of_civilian_factories_available_for_projects > 0
+			FROM = {
+				is_demilitarized_zone = no
+				is_controlled_by = ROOT
+			}
+		}
+		cost = 20
+		fire_only_once = yes
+		days_remove = 30
+		modifier = { civilian_factory_use = 1 }
+		state_target = yes
+		
+		ai_will_do = { factor = 75 }
+		
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_iron_steel_works"			
+			1279 = {
+				add_extra_state_shared_building_slots = 2
+				add_building_construction = {
+					type = industrial_complex
+					level = 1
+					instant_build = yes
+				}
+			}
+		}
+	}
+}
+operations = {
+	TRK_deal_with_russian_settler_unrest = {
+		icon = GFX_decision_revolt
+		allowed = { always = no } # manually activated
+		activation = {
+			always = no
+		}
+		cancel_trigger = {
+			OR = {
+				TRK_ferghana_government_in_power = yes
+				is_subject = yes
+			}
+		}
+		cost = 50
+		
+		ai_will_do = { 
+			factor = 100
+			modifier = {
+				factor = 0
+				has_game_rule = { rule = TRK_path option = TRK_PATH_MONSTROV }
+			}
+		}
+		
+		fire_only_once = yes
+		selectable_mission = yes
+		is_good = no
+		days_mission_timeout = 150
+		
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel TRK_deal_with_russian_settler_unrest"
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete TRK_deal_with_russian_settler_unrest"
+			remove_ideas = TRK_russian_settler_unrest
+			if = {
+				limit = { TRK_madamin_bek_in_power = no }
+				set_country_flag = TRK_konstantin_monstrov_arrested
+				if = {
+					limit = {
+						NOT = { has_country_flag = TRK_expel_settlers }
+					}
+					set_country_flag = TRK_expel_settlers
+					add_stability = -0.1
+					1279 = { add_extra_state_shared_building_slots = 2 }
+					add_timed_idea = {
+						idea = TRK_russian_settler_repatriation
+						days = 200
+					}		
+					RUS = { country_event = turkestan_jadidist.27 }
+				}
+			}
+		}
+		timeout_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision timeout TRK_deal_with_russian_settler_unrest"
+			if = {
+				limit = { 
+					AND = {
+						is_ai = yes 
+						OR = {
+							has_game_rule = { rule = TRK_path option = TRK_PATH_SYNDIE }
+							has_game_rule = { rule = TRK_path option = TRK_PATH_RADSOC }
+							has_game_rule = { rule = TRK_path option = TRK_PATH_RADSOC_TORAQULOV }
+							has_game_rule = { rule = TRK_path option = TRK_PATH_SOCLIB }
+							has_game_rule = { rule = TRK_path option = TRK_PATH_SHOKAY }
+							has_game_rule = { rule = TRK_path option = TRK_PATH_SHOKAY_AUTHDEM }
+							has_game_rule = { rule = TRK_path option = TRK_PATH_SOCCON }
+							has_game_rule = { rule = TRK_path option = TRK_PATH_AUTHDEM }
+							has_game_rule = { rule = TRK_path option = TRK_PATH_FERGHANA }
+							has_game_rule = { rule = TRK_path option = TRK_PATH_TVO }
+							has_game_rule = { rule = TRK_path option = TRK_PATH_NATPOP }
+						}
+					}
+				}
+				remove_ideas = TRK_russian_settler_unrest
+				if = {
+					limit = { TRK_madamin_bek_in_power = no }
+					set_country_flag = TRK_konstantin_monstrov_arrested
+					if = {
+						limit = {
+							NOT = { has_country_flag = TRK_expel_settlers }
+						}
+						set_country_flag = TRK_expel_settlers
+						add_stability = -0.1
+						1279 = { add_extra_state_shared_building_slots = 2 }
+						add_timed_idea = {
+							idea = TRK_russian_settler_repatriation
+							days = 200
+						}		
+						RUS = { country_event = turkestan_jadidist.27 }
+					}
+				}
+			}
+			else = {
+				country_event = turkestan.72
+			}
+		}
+	}
+	TRK_deal_with_mirshab_revolt = {
+		icon = GFX_decision_revolt
+		allowed = { always = no } # manually activated
+		activation = {
+			always = no
+		}
+		cancel_trigger = {
+			OR = {
+				TRK_ulema_in_power = yes
+				TRK_katta_ergash_in_power = yes 
+				is_subject = yes
+			}
+		}
+		cost = 50
+		
+		ai_will_do = { 
+			factor = 100
+			modifier = {
+				factor = 0
+				has_game_rule = { rule = TRK_path option = TRK_PATH_AUTHDEM }
+			}
+		}
+		
+		fire_only_once = yes
+		selectable_mission = yes
+		is_good = no
+		days_mission_timeout = 150
+		
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel TRK_deal_with_mirshab_revolt"
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete TRK_deal_with_mirshab_revolt"
+			remove_ideas = TRK_mirshab_revolt
+		}
+		timeout_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision timeout TRK_deal_with_mirshab_revolt"
+			if = {
+				limit = { 
+					AND = {
+						is_ai = yes 
+						OR = {
+							has_game_rule = { rule = TRK_path option = TRK_PATH_SYNDIE }
+							has_game_rule = { rule = TRK_path option = TRK_PATH_RADSOC }
+							has_game_rule = { rule = TRK_path option = TRK_PATH_RADSOC_TORAQULOV }
+							has_game_rule = { rule = TRK_path option = TRK_PATH_SOCLIB }
+							has_game_rule = { rule = TRK_path option = TRK_PATH_SHOKAY }
+							has_game_rule = { rule = TRK_path option = TRK_PATH_SHOKAY_AUTHDEM }
+							has_game_rule = { rule = TRK_path option = TRK_PATH_SOCCON }
+							has_game_rule = { rule = TRK_path option = TRK_PATH_MONSTROV }
+							has_game_rule = { rule = TRK_path option = TRK_PATH_FERGHANA }
+							has_game_rule = { rule = TRK_path option = TRK_PATH_TVO }
+							has_game_rule = { rule = TRK_path option = TRK_PATH_NATPOP }
+						}
+					}
+				}
+				remove_ideas = TRK_mirshab_revolt
+			}
+			else = { country_event = turkestan.73 }
+		}
+	}
+	TRK_deal_with_tvo_mutiny = {
+		icon = GFX_decision_revolt
+		allowed = { always = no } # manually activated
+		activation = {
+			always = no
+		}
+		cancel_trigger = {
+			if = {
+				limit = { TRK_osipov_in_power = yes }
+				has_completed_focus	= TRK_Zaitsevs_Folly
+			}
+			else = {
+				has_completed_focus = TRK_Suppress_Osipov
+			}
+		}
+		available = { hidden_trigger = { always = no } }
+		
+		ai_will_do = { 
+			factor = 100
+		}
+		
+		fire_only_once = yes
+		is_good = no
+		days_mission_timeout = 50
+		
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel TRK_deal_with_tvo_mutiny"
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete TRK_deal_with_tvo_mutiny"
+		}
+		timeout_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision timeout TRK_deal_with_tvo_mutiny"
+			if = {
+				limit = { TRK_osipov_in_power = yes }
+				country_event = turkestan.256
+			}
+			else = {
+				country_event = turkestan.259
+			}
+		}
+	}
+	TRK_deal_with_tvo_mutiny_2 = {
+		icon = GFX_decision_revolt
+		allowed = { always = no } # manually activated
+		activation = {
+			always = no
+		}
+		cancel_trigger = {
+			OR = {
+				TRK_has_tvo_influence = no
+				TRK_tvo_in_power = yes 
+				TRK_monstrov_in_power = yes
+				is_subject = yes
+			}
+		}
+		
+		ai_will_do = { 
+			factor = 100
+			modifier = {
+				factor = 0
+				is_ai = yes
+				OR = {
+					has_game_rule = { rule = TRK_path option = TRK_PATH_TVO }
+					has_game_rule = { rule = TRK_path option = TRK_PATH_OSIPOV }
+				}
+			}
+		}
+		cost = 50
+		
+		fire_only_once = yes
+		is_good = no
+		days_mission_timeout = 50
+		selectable_mission = yes
+		
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel TRK_deal_with_tvo_mutiny_2"
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete TRK_deal_with_tvo_mutiny_2"
+			TRK_remove_tvo_influence_complete = yes
+		}
+		timeout_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision timeout TRK_deal_with_tvo_mutiny_2"
+			if = {
+				limit = { 
+					AND = {
+						is_ai = yes 
+						OR = {
+							has_game_rule = { rule = TRK_path option = TRK_PATH_SYNDIE }
+							has_game_rule = { rule = TRK_path option = TRK_PATH_RADSOC }
+							has_game_rule = { rule = TRK_path option = TRK_PATH_RADSOC_TORAQULOV }
+							has_game_rule = { rule = TRK_path option = TRK_PATH_SOCLIB }
+							has_game_rule = { rule = TRK_path option = TRK_PATH_SHOKAY }
+							has_game_rule = { rule = TRK_path option = TRK_PATH_SHOKAY_AUTHDEM }
+							has_game_rule = { rule = TRK_path option = TRK_PATH_SOCCON }
+							has_game_rule = { rule = TRK_path option = TRK_PATH_AUTHDEM }
+							has_game_rule = { rule = TRK_path option = TRK_PATH_FERGHANA }
+							has_game_rule = { rule = TRK_path option = TRK_PATH_MONSTROV }
+							has_game_rule = { rule = TRK_path option = TRK_PATH_NATPOP }
+						}
+					}
+				}
+				TRK_remove_tvo_influence_complete = yes
+			}
+			else = {
+				country_event = turkestan.66
+			}
+		}
+	}
+	TRK_remove_tvo_influence = {
+		icon = GFX_decision_revolt
+		allowed = { original_tag = TRK }		
+		available = { 
+			TRK_civil_war_over = yes
+			OR = {
+				has_completed_focus = TRK_Counter_TVO 
+				has_completed_focus = TRK_Suppress_Russophilic_Organisations
+				has_completed_focus = TRK_Suppress_TVO 
+				AND = {
+					has_completed_focus = TRK_Align_TVO 
+					NOT = { has_country_flag = TRK_accepted_tvo_help }
+				}
+				has_completed_focus = TRK_Eradicate_Russophiles 
+				has_completed_focus = TRK_Deal_With_Russophils 
+			}
+		}
+		visible = {
+			OR = {
+				has_idea = TRK_tvo_influence_1
+				has_idea = TRK_tvo_influence_2
+				has_idea = TRK_tvo_influence_3
+				has_idea = TRK_tvo_influence_4
+			}
+		}
+		cancel_if_not_visible = yes
+		
+		ai_will_do = { 
+			factor = 100
+			modifier = {
+				factor = 0
+				is_ai = yes
+				OR = {
+					has_game_rule = { rule = TRK_path option = TRK_PATH_TVO }
+					has_game_rule = { rule = TRK_path option = TRK_PATH_OSIPOV }
+				}
+			}
+		}
+		custom_cost_text = CP_50
+		custom_cost_trigger = { command_power > 49.99 }
+		fire_only_once = yes
+		days_remove = 14
+		
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel TRK_remove_tvo_influence"
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_remove_tvo_influence"
+			hidden_effect = { add_command_power = -50 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_remove_tvo_influence"
+			TRK_remove_tvo_influence_complete = yes
+		}
+	}
+}
+TRK_elections_race = {
+	TRK_campaign_erk = {
+		icon = GFX_decision_generic_flags
+		available = { 
+			custom_trigger_tooltip = {
+				tooltip = TRK_not_campaign_ongoing
+				check_variable = { TRK_campaign_ongoing = 0 }
+			}
+		}
+		visible = {
+			hidden_trigger = {
+				NOT = { 
+					has_event_target = tashkent 
+					has_country_flag = TRK_erk_destroyed
+				}		
+			}
+		}
+		cancel_if_not_visible = yes
+		cost = 50
+		fire_only_once = no
+		days_remove = 25
+		days_re_enable = 25
+		
+		ai_will_do = { factor = 0 }
+		
+		cancel_effect= {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel TRK_campaign_erk"
+			set_variable = { TRK_campaign_ongoing = 0 }
+			TRK_recalc_pop_before_election = yes
+		}
+		complete_effect= {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_campaign_erk"
+			set_variable = { TRK_campaign_ongoing = 1 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_campaign_erk"			
+			set_variable = { TRK_campaign_ongoing = 0 }
+			TRK_erk_pop_large_effect = yes
+			TRK_recalc_pop_before_election = yes
+		}
+	}
+	TRK_campaign_milliy = {
+		icon = GFX_decision_generic_flags
+		available = { 
+			custom_trigger_tooltip = {
+				tooltip = TRK_not_campaign_ongoing
+				check_variable = { TRK_campaign_ongoing = 0 }
+			}
+		}
+		visible = {
+			hidden_trigger = {
+				NOT = { 
+					has_country_flag = TRK_milliy_ittihod_banned
+				}
+			}
+		}
+		cost = 50
+		fire_only_once = no
+		days_remove = 25
+		days_re_enable = 25
+		
+		ai_will_do = { factor = 0 }
+		
+		cancel_effect= {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel TRK_campaign_milliy"
+			set_variable = { TRK_campaign_ongoing = 0 }
+			TRK_recalc_pop_before_election = yes
+		}
+		complete_effect= {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_campaign_milliy"
+			set_variable = { TRK_campaign_ongoing = 1 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_campaign_milliy"			
+			set_variable = { TRK_campaign_ongoing = 0 }
+			if = {
+				limit = { 
+					TRK_shokai_in_power = yes 
+					NOT = {
+						has_country_flag = TRK_yosh_turkiston_authdem
+						has_country_flag = TRK_yosh_turkiston_marlib
+						has_country_flag = TRK_yosh_turkiston_soclib
+					}
+				}
+				TRK_shokai_pop_large_effect = yes
+			}
+			else = {
+				add_popularity = {
+					ideology = social_liberal
+					popularity = 0.05
+				}
+			}
+			TRK_recalc_pop_before_election = yes
+		}
+	}
+	TRK_campaign_yosh = {
+		icon = GFX_decision_generic_flags
+		available = { 
+			custom_trigger_tooltip = {
+				tooltip = TRK_not_campaign_ongoing
+				check_variable = { TRK_campaign_ongoing = 0 }
+			}
+		}
+		visible = {
+			OR = {
+				has_country_flag = TRK_yosh_turkiston_authdem
+				has_country_flag = TRK_yosh_turkiston_marlib
+				has_country_flag = TRK_yosh_turkiston_soclib
+			}			
+		}
+		cost = 50
+		fire_only_once = no
+		days_remove = 25
+		days_re_enable = 25
+		
+		ai_will_do = { factor = 0 }
+		
+		cancel_effect= {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel TRK_campaign_yosh"
+			set_variable = { TRK_campaign_ongoing = 0 }
+			TRK_recalc_pop_before_election = yes
+		}
+		complete_effect= {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_campaign_yosh"
+			set_variable = { TRK_campaign_ongoing = 1 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_campaign_yosh"			
+			set_variable = { TRK_campaign_ongoing = 0 }
+			if = {
+				limit = { TRK_shokai_in_power = yes }
+				TRK_shokai_pop_medium_effect = yes
+			}
+			else_if = {
+				limit = { has_country_flag = TRK_yosh_turkiston_authdem }
+				add_popularity = {
+					ideology = authoritarian_democrat
+					popularity = 0.05
+				}
+			}
+			else_if = {
+				limit = { has_country_flag = TRK_yosh_turkiston_marlib }
+				add_popularity = {
+					ideology = market_liberal
+					popularity = 0.05
+				}
+			}
+			else = {
+				add_popularity = {
+					ideology = social_liberal
+					popularity = 0.05
+				}
+			}
+			TRK_recalc_pop_before_election = yes
+		}
+	}
+	TRK_campaign_ittifoqi = {
+		icon = GFX_decision_generic_flags
+		available = { 
+			custom_trigger_tooltip = {
+				tooltip = TRK_not_campaign_ongoing
+				check_variable = { TRK_campaign_ongoing = 0 }
+			}
+		}
+		visible = {
+			hidden_trigger = {
+				NOT = { 
+					has_country_flag = TRK_ittifoqi_muslimin_banned
+				}
+			}
+		}
+		cost = 50
+		fire_only_once = no
+		days_remove = 25
+		days_re_enable = 25
+		
+		ai_will_do = { factor = 0 }
+		
+		cancel_effect= {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel TRK_campaign_ittifoqi"
+			set_variable = { TRK_campaign_ongoing = 0 }
+			TRK_recalc_pop_before_election = yes
+		}
+		complete_effect= {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_campaign_ittifoqi"
+			set_variable = { TRK_campaign_ongoing = 1 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_campaign_ittifoqi"			
+			set_variable = { TRK_campaign_ongoing = 0 }
+			TRK_ulema_pop_large_effect = yes
+			TRK_recalc_pop_before_election = yes
+		}
+	}
+}
+TRK_erk_factionalism = {
+	TRK_enforce_party_orthodoxy_decision = {
+		icon = GFX_decision_eng_propaganda_campaigns
+		
+		cancel_if_not_visible = yes
+		ai_will_do = { factor = 0 }
+		
+		fire_only_once = no
+		days_re_enable = 180
+		
+		cost = 50
+		fixed_random_seed = no
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete TRK_enforce_party_orthodoxy_decision"
+			random_list = {
+				50 = {
+					set_temp_variable = { influence_change = 2 }
+					TRK_erk_change_tude = yes 
+				}
+				50 = {
+					modifier = {
+						set_temp_variable = { temp = TRK_erk_influence_syn }
+						divide_temp_variable = { temp = 15 }
+						factor = var:temp
+					}
+					set_temp_variable = { influence_change = 1 }
+					TRK_erk_change_tude = yes 
+				}
+			}
+			TRK_erk_pop_small_effect = yes
+		}
+	}
+	TRK_undermine_the_tude_grip_decision = {
+		icon = GFX_decision_generic_speech
+		
+		ai_will_do = { factor = 0 }
+		fire_only_once = no
+		days_re_enable = 180
+		
+		custom_cost_trigger = {
+			has_stability > 0.10
+		}
+		custom_cost_text = CHI_decision_cost_stb_10
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete TRK_undermine_the_tude_grip_decision"
+			set_temp_variable_to_random = { 
+				var = influence_change
+				min = 1
+				max = 3
+			}
+			TRK_erk_change_revcom = yes 
+			TRK_erk_pop_medium_decrease_effect = yes
+			hidden_effect = {
+				add_stability = -0.10
+			}
+		}
+	}
+	TRK_opposition_rally = {
+		icon = GFX_decision_generic_flags
+		allowed = { always = no } # manually activated
+		cancel_trigger = {
+			hidden_trigger = {  
+				NOT = { has_country_flag = TRK_erk_power_struggle }
+			}
+		}
+		
+		cost = 35
+		
+		ai_will_do = { 
+			factor = 100
+			modifier = {
+				factor = 0
+				has_game_rule = { rule = TRK_path option = TRK_PATH_RADSOC_TORAQULOV }
+			}
+		}
+		
+		fire_only_once = yes
+		selectable_mission = yes
+		is_good = no
+		days_mission_timeout = 45
+		days_remove = 15
+		
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel TRK_opposition_rally"
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete TRK_opposition_rally"
+			hidden_effect = {
+				activate_mission = TRK_opposition_rally
+			}
+		}
+		timeout_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision timeout TRK_opposition_rally"
+			set_temp_variable_to_random = { 
+				var = influence_change
+				min = 1
+				max = 3
+			}
+			TRK_erk_change_revcom = yes 
+			TRK_erk_pop_small_decrease_effect = yes
+			hidden_effect = {
+				activate_mission = TRK_opposition_rally
+			}
+		}
+	}
+	TRK_erk_chairman_elections = {
+		icon = GFX_decision_generic_flags
+		allowed = { always = no } # manually activated
+		available = {
+			hidden_trigger = { 
+				always = no
+			}
+		}
+		cancel_trigger = {
+			hidden_trigger = {  
+				NOT = { has_country_flag = TRK_erk_power_struggle }
+			}
+		}
+		
+		fire_only_once = yes
+		selectable_mission = no
+		is_good = no
+		days_mission_timeout = 50
+		
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel TRK_erk_chairman_elections"
+		}
+		timeout_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision timeout TRK_erk_chairman_elections"
+			country_event = turkestan_socialists.18
+		}
+	}
+}
+
+TRK_war_preparation = {
+
+	TRK_prep_stockpile_equipment = {
+		icon = GFX_decision_FIN_weapon_caches
+		allowed = { always = no } #manually activated
+
+		visible = {
+			NOT = { has_global_flag = CA_russia_war_started }
+			OR = {
+				check_variable = {
+					var = TRK_prep
+					value = 100
+					compare = less_than
+				}
+			}
+		}
+
+		custom_cost_text = 250_guns
+		custom_cost_trigger = {
+			has_equipment = { infantry_equipment > 249 }
+		}
+
+		days_re_enable = 3
+
+		ai_will_do = {
+			factor = 25
+			modifier = {
+				factor = 0
+				has_equipment = { infantry_equipment < 500 }
+			}
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete TRK_prep_stockpile_equipment"
+			hidden_effect = {
+				add_equipment_to_stockpile = {
+					type = infantry_equipment
+					amount = -250
+				}
+			}
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_prep_stockpile_equipment"
+			add_to_variable = {
+				TRK_prep = 7
+				tooltip = CA_prep_tooltip
+			}
+		}
+	}
+
+	TRK_prep_sell_supplies = {
+		icon = hol_attract_foreign_investors
+		allowed = { always = no } #manually activated
+
+		days_remove = 30
+		days_re_enable = 3
+
+		custom_cost_text = CA_prep_5_tooltip
+		custom_cost_trigger = {
+			check_variable = { TRK_prep > 4.99 }
+		}
+
+		visible = {
+			NOT = { has_global_flag = CA_russia_war_started }
+		}
+
+		ai_will_do = { factor = 0 }
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete TRK_prep_sell_supplies"
+			subtract_from_variable = { TRK_prep = 5 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_prep_sell_supplies"
+			add_political_power = 75
+		}
+	}
+
+	TRK_streamline_supply_lines = {
+		icon = GFX_decision_generic_motorized
+		allowed = { always = no } #manually activated
+		fire_only_once = yes
+		available = {
+			check_variable = {
+				var = TRK_prep
+				value = 100
+				compare = less_than
+			}
+		}
+
+		visible = {
+			NOT = { has_global_flag = CA_russia_war_started }
+		}
+
+		modifier = {
+			industrial_capacity_factory = -0.25
+			production_factory_efficiency_gain_factor = -0.25
+		}
+
+		cost = 0
+		days_remove = 50
+
+		ai_will_do = { factor = 100 }
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_streamline_supply_lines"
+			add_to_variable = {
+				TRK_prep = 7
+				tooltip = CA_prep_tooltip
+			}
+		}
+	}
+	TRK_train_auxiliary_units = {
+		icon = GFX_decision_generic_disband_irregulars
+		allowed = { always = no } #manually activated
+		fire_only_once = yes
+		custom_cost_text = army_xp_15
+		custom_cost_trigger = {
+			has_army_experience > 14.99
+		}
+		available = {
+			NOT = { has_idea = TRK_training_the_core }
+		}
+		days_remove = 75
+
+		ai_will_do = { factor = 75 }
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_train_auxiliary_units"
+			add_popularity = {
+				ideology = authoritarian_democrat
+				popularity = 0.04
+			}
+			add_popularity = {
+				ideology = paternal_autocrat
+				popularity = -0.02
+			}
+			add_popularity = {
+				ideology = national_populist
+				popularity = -0.01
+			}
+			add_popularity = {
+				ideology = radical_socialist
+				popularity = -0.01
+			}
+			if = {
+				limit = { has_global_flag = CA_russia_war_started }
+				add_doctrine_cost_reduction = {
+					name = TRK_train_auxiliary_units
+					cost_reduction = 0.2
+					uses = 1
+					category = land_doctrine
+				}
+			}
+			else = {
+				add_to_variable = {
+					TRK_prep = 7
+					tooltip = CA_prep_tooltip
+				}
+			}
+			hidden_effect = { army_experience = -15 }
+		}
+	}
+
+	TRK_equip_auxiliary_units = {
+		icon = GFX_decision_generic_reorganize_irregulars
+		allowed = { always = no } #manually activated
+		fire_only_once = yes
+		custom_cost_text = 200_guns
+		custom_cost_trigger = {
+			has_equipment = { infantry_equipment > 199 }
+		}
+		available = {
+			not = { has_idea = TRK_training_the_core }
+		}
+		days_remove = 25
+
+		ai_will_do = {
+			factor = 75
+			modifier = {
+				factor = 0
+				has_equipment = { infantry_equipment < 350 }
+			}
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete TRK_equip_auxiliary_units"
+			hidden_effect = {
+				add_equipment_to_stockpile = {
+					type = infantry_equipment
+					amount = -200
+				}
+			}
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_equip_auxiliary_units"
+			if = {
+				limit = { has_global_flag = CA_russia_war_started }
+				army_experience = 15
+			}
+			else = {
+				add_to_variable = {
+					TRK_prep = 7
+					tooltip = CA_prep_tooltip
+				}
+			}
+		}
+	}
+
+	TRK_village_kurbashi_decision = {
+		icon = GFX_decision_ITA_reorganize_ascari
+		allowed = { always = no } #manually activated
+		fire_only_once = yes
+		custom_cost_text = 150_guns
+		custom_cost_trigger = {
+			check_variable = {
+				var = TRK_prep
+				value = 100
+				compare = less_than
+			}
+			has_equipment = { infantry_equipment > 149 }
+		}
+
+		days_remove = 15
+
+		visible = {
+			NOT = { has_country_flag = CA_war_victor }
+		}
+
+		ai_will_do = {
+			factor = 50
+			modifier = {
+				factor = 0
+				has_equipment = { infantry_equipment < 250 }
+			}
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete TRK_village_kurbashi_decision"
+			hidden_effect = {
+				add_equipment_to_stockpile = {
+					type = infantry_equipment
+					amount = -150
+				}
+			}
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_village_kurbashi_decision"
+			add_stability = 0.03
+			if = {
+				limit = { has_global_flag = CA_russia_war_started }
+				army_experience = 10
+			}
+			else = {
+				add_to_variable = {
+					TRK_prep = 5
+					tooltip = CA_prep_tooltip
+				}
+			}
+		}
+	}
+	TRK_city_kurbashi_decision = {
+		icon = GFX_decision_ITA_reorganize_ascari
+		allowed = { always = no } #manually activated
+		fire_only_once = yes
+		custom_cost_text = 200_guns
+		custom_cost_trigger = {
+			check_variable = {
+				var = TRK_prep
+				value = 100
+				compare = less_than
+			}
+			has_equipment = { infantry_equipment > 199 }
+		}
+
+		days_remove = 20
+
+		visible = {
+			NOT = { has_country_flag = CA_war_victor }
+		}
+
+		ai_will_do = {
+			factor = 50
+			modifier = {
+				factor = 0
+				has_equipment = { infantry_equipment < 300 }
+			}
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete TRK_city_kurbashi_decision"
+			hidden_effect = {
+				add_equipment_to_stockpile = {
+					type = infantry_equipment
+					amount = -200
+				}
+			}
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_city_kurbashi_decision"
+			if = {
+				limit = { has_global_flag = CA_russia_war_started }
+				army_experience = 15
+			}
+			else = {
+				add_to_variable = {
+					TRK_prep = 7
+					tooltip = CA_prep_tooltip
+				}
+			}
+		}
+	}
 }
