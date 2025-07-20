@@ -1459,12 +1459,15 @@ SOV_politburo_decisions = {
 	}
 	### Missions ###
 	SOV_deal_with_red_thermidor = {
-		icon = GFX_decision_generic_confiscation
+		icon = GFX_decision_generic_assassination
 		allowed = { always = no }
 		cancel_if_not_visible = yes
 		priority = 100
 		available = {
-			hidden_trigger = { always = no }
+			custom_trigger_tooltip = {
+				tooltip = nkvd_operation_ongoing_NOT
+				check_variable = { nkvd_operation_ongoing = 0 }
+			}
 		}
 		cancel_trigger = {
 			OR = {
@@ -1483,15 +1486,92 @@ SOV_politburo_decisions = {
 		}
 		
 		days_mission_timeout = 220
-		selectable_mission = no
+		selectable_mission = yes
 		is_good = no
+		days_remove = 60
 		fire_only_once = yes
+		
+		cancel_if_not_visible = yes
+		custom_cost_text = CP_30
+		custom_cost_trigger = {
+			if = {
+				limit = { 
+					is_ai = yes 
+					has_war = yes
+				}
+			}
+			else = {
+				command_power > 29.99
+			}
+		}
+		
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				OR = { 
+					has_game_rule = { rule = SOV_path option = RULE_OPTION_SOV_PATH_TUKHA }
+					has_game_rule = { rule = SOV_path option = RULE_OPTION_SOV_PATH_FRUNZE }
+					has_game_rule = { rule = SOV_path option = RULE_OPTION_SOV_PATH_ZHUKOV }
+				}
+			}
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision SOV_deal_with_red_thermidor target: [From.GetName]"
+			hidden_effect = { add_command_power = -30 }
+			set_variable = { nkvd_operation_ongoing = 1 }
+		}
 		timeout_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove SOV_deal_with_red_thermidor target: [From.GetName]"
+			log = "[GetDateText]: [Root.GetName]: Decision timeout SOV_deal_with_red_thermidor target: [From.GetName]"
 			country_event = russoc.61
 		}
 		cancel_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove SOV_deal_with_red_thermidor target: [From.GetName]"			
+			log = "[GetDateText]: [Root.GetName]: Decision cancel SOV_deal_with_red_thermidor target: [From.GetName]"			
+			if = {
+				limit = {
+					NOT = { has_unit_leader = 447 }
+				}
+				if = {
+					limit = { has_idea = SOV_specter_of_red_thermidor }
+					remove_ideas = SOV_specter_of_red_thermidor
+				}
+				set_country_flag = Aleksandr_I_Yegorov_dead
+			}
+			set_variable = { nkvd_operation_ongoing = 0 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove SOV_deal_with_left_sr_generals target: [From.GetName]"
+			if = {
+				limit = { has_idea = SOV_specter_of_red_thermidor }
+				remove_ideas = SOV_specter_of_red_thermidor
+			}
+			set_country_flag = Aleksandr_I_Yegorov_dead
+			random_unit_leader = {
+				limit = { has_id = 447 }
+				retire = yes
+			}
+			random_unit_leader = {
+				limit = { has_id = 430 }
+				retire = yes
+			}
+			random_unit_leader = {
+				limit = { has_id = 431 }
+				retire = yes
+			}
+			random_unit_leader = {
+				limit = { has_id = 432 }
+				retire = yes
+			}
+			random_unit_leader = {
+				limit = { has_id = 50003 }
+				retire = yes
+			}
+			set_variable = { nkvd_operation_ongoing = 0 }
+			if = {
+				limit = { SOV_zinoviev_in_power = no }
+				activate_targeted_decision = { target = ROOT decision = SOV_deal_with_mensheviks }
+				activate_targeted_decision = { target = ROOT decision = SOV_deal_with_left_srs }
+			}
 		}
 	}
 	SOV_battle_for_moscow = {
@@ -2064,6 +2144,7 @@ SOV_politburo_decisions = {
 				limit = { has_country_flag = SOV_vtsik_smirnov }
 				SOV_hardliners_more_50 = no
 				SOV_left_communists_more_50 = no
+				NOT = { has_country_flag = SOV_zinovievite_bukharinist_bloc_exists }
 			}
 			else = {
 				SOV_hardliners_more_50 = yes
@@ -2080,7 +2161,10 @@ SOV_politburo_decisions = {
 		}
 		visible = { 
 			OR = {
-				has_country_flag = SOV_vtsik_smirnov
+				AND = {
+					has_country_flag = SOV_vtsik_smirnov
+					NOT = { has_country_flag = SOV_zinovievite_bukharinist_bloc_exists }
+				}
 				AND = {
 					has_idea = SOV_council_of_labor_and_defense_1
 					OR = {
@@ -4592,273 +4676,6 @@ RUS_dealing_with_opposition = {
 	}
 }
 SOV_NKVD_decisions = {
-	SOV_deal_with_left_sr_generals = {
-		icon = GFX_decision_generic_assassination
-		allowed = { always = no }
-		available = {
-			custom_trigger_tooltip = {
-				tooltip = nkvd_operation_ongoing_NOT
-				check_variable = { nkvd_operation_ongoing = 0 }
-			}
-		}
-		cancel_trigger = {
-			hidden_trigger = {
-				OR = {
-					has_country_leader = {
-						name = "Aleksandr Yegorov"
-						ruling_only = yes
-					}
-					NOT = { has_unit_leader = 447 }
-				}
-			}
-		}
-		cancel_if_not_visible = yes
-		custom_cost_text = CP_30
-		custom_cost_trigger = {
-			if = {
-				limit = { 
-					is_ai = yes 
-					has_war = yes
-				}
-			}
-			else = {
-				command_power > 29.99
-			}
-		}
-		days_remove = 60
-		fire_only_once = yes
-		ai_will_do = {
-			factor = 100
-			modifier = {
-				factor = 0
-				OR = { 
-					has_game_rule = { rule = SOV_path option = RULE_OPTION_SOV_PATH_TUKHA }
-					has_game_rule = { rule = SOV_path option = RULE_OPTION_SOV_PATH_FRUNZE }
-					has_game_rule = { rule = SOV_path option = RULE_OPTION_SOV_PATH_ZHUKOV }
-				}
-			}
-		}
-		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision SOV_deal_with_left_sr_generals target: [From.GetName]"
-			hidden_effect = { add_command_power = -30 }
-			set_variable = { nkvd_operation_ongoing = 1 }
-		}
-		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove SOV_deal_with_left_sr_generals target: [From.GetName]"
-			if = {
-				limit = { has_idea = SOV_specter_of_red_thermidor }
-				remove_ideas = SOV_specter_of_red_thermidor
-			}
-			set_country_flag = Aleksandr_I_Yegorov_dead
-			random_unit_leader = {
-				limit = { has_id = 447 }
-				retire = yes
-			}
-			random_unit_leader = {
-				limit = { has_id = 430 }
-				retire = yes
-			}
-			random_unit_leader = {
-				limit = { has_id = 431 }
-				retire = yes
-			}
-			random_unit_leader = {
-				limit = { has_id = 432 }
-				retire = yes
-			}
-			random_unit_leader = {
-				limit = { has_id = 50003 }
-				retire = yes
-			}
-			set_variable = { nkvd_operation_ongoing = 0 }
-		}
-		cancel_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove SOV_deal_with_left_sr_generals target: [From.GetName]"
-			if = {
-				limit = {
-					NOT = { has_unit_leader = 447 }
-				}
-				if = {
-					limit = { has_idea = SOV_specter_of_red_thermidor }
-					remove_ideas = SOV_specter_of_red_thermidor
-				}
-				set_country_flag = Aleksandr_I_Yegorov_dead
-			}
-			set_variable = { nkvd_operation_ongoing = 0 }
-		}
-	}
-	SOV_deal_with_left_sr_generals_gpu = {
-		name = SOV_deal_with_left_sr_generals
-		icon = GFX_decision_generic_assassination
-		allowed = { always = no }
-		available = {
-			custom_trigger_tooltip = {
-				tooltip = nkvd_operation_ongoing_NOT
-				check_variable = { nkvd_operation_ongoing = 0 }
-			}
-		}
-		cancel_trigger = {
-			hidden_trigger = {
-				OR = {
-					has_country_leader = {
-						name = "Aleksandr Yegorov"
-						ruling_only = yes
-					}
-					NOT = { has_unit_leader = 447 }
-				}
-			}
-		}
-		ai_hint_pp_cost = 30
-		cancel_if_not_visible = yes
-		custom_cost_text = CP_30_PP_30
-		custom_cost_trigger = {
-			if = {
-				limit = { 
-					is_ai = yes 
-					has_war = yes
-				}
-				has_political_power > 29.99
-			}
-			else = {
-				command_power > 29.99
-				has_political_power > 29.99
-			}
-		}
-		days_remove = 90
-		fire_only_once = yes
-		ai_will_do = {
-			factor = 100
-			modifier = {
-				factor = 0
-				OR = { 
-					has_game_rule = { rule = SOV_path option = RULE_OPTION_SOV_PATH_TUKHA }
-					has_game_rule = { rule = SOV_path option = RULE_OPTION_SOV_PATH_FRUNZE }
-					has_game_rule = { rule = SOV_path option = RULE_OPTION_SOV_PATH_ZHUKOV }
-				}
-			}
-		}
-		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision SOV_deal_with_left_sr_generals_gpu target: [From.GetName]"
-			hidden_effect = { 
-				add_command_power = -30 
-				add_political_power = -30
-			}
-			set_variable = { nkvd_operation_ongoing = 1 }
-		}
-		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove SOV_deal_with_left_sr_generals_gpu target: [From.GetName]"
-			if = {
-				limit = { has_idea = SOV_specter_of_red_thermidor }
-				remove_ideas = SOV_specter_of_red_thermidor
-			}
-			set_country_flag = Aleksandr_I_Yegorov_dead
-			random_unit_leader = {
-				limit = { has_id = 447 }
-				retire = yes
-			}
-			random_unit_leader = {
-				limit = { has_id = 430 }
-				retire = yes
-			}
-			random_unit_leader = {
-				limit = { has_id = 431 }
-				retire = yes
-			}
-			random_unit_leader = {
-				limit = { has_id = 432 }
-				retire = yes
-			}
-			random_unit_leader = {
-				limit = { has_id = 50003 }
-				retire = yes
-			}
-			set_variable = { nkvd_operation_ongoing = 0 }
-		}
-		cancel_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove SOV_deal_with_left_sr_generals_gpu target: [From.GetName]"
-			set_variable = { nkvd_operation_ongoing = 0 }
-		}
-	}
-	SOV_deal_with_bukharinist_generals = {
-		name = SOV_deal_with_left_sr_generals
-		icon = GFX_decision_generic_assassination
-		allowed = { always = no }
-		available = {
-			custom_trigger_tooltip = {
-				tooltip = nkvd_operation_ongoing_NOT
-				check_variable = { nkvd_operation_ongoing = 0 }
-			}
-		}
-		cancel_trigger = {
-			hidden_trigger = {
-				OR = {
-					has_country_leader = {
-						name = "Aleksandr Vasilevsky"
-						ruling_only = yes
-					}
-					NOT = { has_unit_leader = 607 }
-				}
-			}
-		}
-		ai_hint_pp_cost = 30
-		cancel_if_not_visible = yes
-		custom_cost_text = CP_30_PP_30
-		custom_cost_trigger = {
-			if = {
-				limit = { 
-					is_ai = yes 
-					has_war = yes
-				}
-				has_political_power > 29.99
-			}
-			else = {
-				command_power > 29.99
-				has_political_power > 29.99
-			}
-		}
-		days_remove = 90
-		fire_only_once = yes
-		ai_will_do = {
-			factor = 100
-			modifier = {
-				factor = 0
-				OR = { 
-					has_game_rule = { rule = SOV_path option = RULE_OPTION_SOV_PATH_TUKHA }
-					has_game_rule = { rule = SOV_path option = RULE_OPTION_SOV_PATH_FRUNZE }
-					has_game_rule = { rule = SOV_path option = RULE_OPTION_SOV_PATH_ZHUKOV }
-				}
-			}
-		}
-		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision SOV_deal_with_bukharinist_generals target: [From.GetName]"
-			hidden_effect = { 
-				add_command_power = -30 
-				add_political_power = -30
-			}
-			set_variable = { nkvd_operation_ongoing = 1 }
-		}
-		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove SOV_deal_with_bukharinist_generals target: [From.GetName]"
-			if = {
-				limit = { has_idea = SOV_specter_of_red_thermidor }
-				remove_ideas = SOV_specter_of_red_thermidor
-			}
-			set_country_flag = Aleksandr_Vasilevsky_dead
-			random_unit_leader = {
-				limit = { has_id = 607 }
-				retire = yes
-			}
-			random_unit_leader = {
-				limit = { has_id = 449 }
-				retire = yes
-			}
-			set_variable = { nkvd_operation_ongoing = 0 }
-		}
-		cancel_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove SOV_deal_with_bukharinist_generals target: [From.GetName]"
-			set_variable = { nkvd_operation_ongoing = 0 }
-		}
-	}
 	SOV_deal_with_left_srs = {
 		icon = GFX_decision_generic_assassination
 		allowed = { always = no }
@@ -5676,7 +5493,10 @@ operations = {
 		cancel_if_not_visible = yes
 		priority = 100
 		available = {
-			hidden_trigger = { always = no }
+			custom_trigger_tooltip = {
+				tooltip = nkvd_operation_ongoing_NOT
+				check_variable = { nkvd_operation_ongoing = 0 }
+			}
 		}
 		cancel_trigger = {
 			OR = {
@@ -5690,20 +5510,77 @@ operations = {
 					tooltip = RUS_Frunze_Is_General_NOT
 					NOT = { has_unit_leader = 1955 }
 				}
+				NOT = { has_unit_leader = 607 }
 			}
 			NOT = { has_idea = SOV_specter_of_red_thermidor }
 		}
 		
 		days_mission_timeout = 220
-		selectable_mission = no
+		selectable_mission = yes
 		is_good = no
 		fire_only_once = yes
+		
+		ai_hint_pp_cost = 30
+		cancel_if_not_visible = yes
+		custom_cost_text = CP_30_PP_30
+		custom_cost_trigger = {
+			if = {
+				limit = { 
+					is_ai = yes 
+					has_war = yes
+				}
+				has_political_power > 29.99
+			}
+			else = {
+				command_power > 29.99
+				has_political_power > 29.99
+			}
+		}
+		days_remove = 60
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				OR = { 
+					has_game_rule = { rule = SOV_path option = RULE_OPTION_SOV_PATH_TUKHA }
+					has_game_rule = { rule = SOV_path option = RULE_OPTION_SOV_PATH_FRUNZE }
+					has_game_rule = { rule = SOV_path option = RULE_OPTION_SOV_PATH_ZHUKOV }
+				}
+			}
+		}
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision SOV_deal_with_red_thermidor_left_sr target: [From.GetName]"
+			hidden_effect = { 
+				add_command_power = -30 
+				add_political_power = -30
+			}
+			set_variable = { nkvd_operation_ongoing = 1 }
+		}
 		timeout_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove SOV_deal_with_red_thermidor_left_sr target: [From.GetName]"
+			log = "[GetDateText]: [Root.GetName]: Decision timeout SOV_deal_with_red_thermidor_left_sr target: [From.GetName]"
 			country_event = russoc.66
 		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove SOV_deal_with_red_thermidor_left_sr target: [From.GetName]"
+			if = {
+				limit = { has_idea = SOV_specter_of_red_thermidor }
+				remove_ideas = SOV_specter_of_red_thermidor
+			}
+			set_country_flag = Aleksandr_Vasilevsky_dead
+			random_unit_leader = {
+				limit = { has_id = 607 }
+				retire = yes
+			}
+			random_unit_leader = {
+				limit = { has_id = 449 }
+				retire = yes
+			}
+			set_variable = { nkvd_operation_ongoing = 0 }
+		}
 		cancel_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove SOV_deal_with_red_thermidor_left_sr target: [From.GetName]"			
+			log = "[GetDateText]: [Root.GetName]: Decision cancel SOV_deal_with_red_thermidor_left_sr target: [From.GetName]"
+			set_variable = { nkvd_operation_ongoing = 0 }
 		}
 	}
 }
