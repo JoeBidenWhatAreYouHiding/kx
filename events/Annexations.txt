@@ -2328,6 +2328,13 @@ country_event = { #Fate of Karelia
 	
 	option = { #liberate
 		name = annex.13.a
+		trigger = {
+			if = {
+				limit = { is_russian_tag_that_can_integrate = yes }
+				has_country_flag = soviet_russia_restored
+				NOT = { has_global_flag = SOV_unitary_state }
+			}
+		}
 		ai_chance = {
 			base = 10
 			modifier = {
@@ -2355,6 +2362,7 @@ country_event = { #Fate of Karelia
 	option = { #Give it to Finland
 		name = annex.13.b
 		trigger = {
+			is_russian_tag_that_can_integrate = no
 			NOT = {
 				tag = FIN
 				tag = SCA
@@ -2397,6 +2405,7 @@ country_event = { #Fate of Karelia
 	option = { #Give it to the Russians
 		name = annex.13.c
 		trigger = {
+			is_russian_tag_that_can_integrate = no
 			NOT = {
 				tag = FIN
 				tag = SCA
@@ -2451,6 +2460,7 @@ country_event = { #Fate of Karelia
 	option = { #Split (give Petrozavodsk to Russia)
 		name = annex.13.e
 		trigger = {
+			is_russian_tag_that_can_integrate = no
 			NOT = {
 				tag = FIN
 				tag = SCA
@@ -2494,6 +2504,7 @@ country_event = { #Fate of Karelia
 		name = annex.integration
 		trigger = {
 			OR = {
+				is_russian_tag_that_can_integrate = yes
 				tag = FIN
 				tag = SCA
 			}
@@ -2513,9 +2524,13 @@ country_event = { #Fate of Karelia
 			}			
 			if = {
 				limit = {
+					PREV = { is_russian_tag_that_can_integrate = no }
 					is_claim_or_core_of_ROOT = no
 				}
 				add_core_of = ROOT
+			}
+			else = {
+				add_claim_of_ROOT = yes
 			}
 		}
 		custom_effect_tooltip = tooltip_white_line
@@ -2526,9 +2541,16 @@ country_event = { #Fate of Karelia
 					state = 216 #Petrozavodsk
 					state = 1327 #Petrozavodsk
 				}
-				is_claim_or_core_of_ROOT = no
 			}
-			add_claim_by = ROOT
+			if = {
+				limit = { 
+					is_claim_or_core_of_ROOT = no
+				}
+				add_claim_by = ROOT
+			}
+			else = {
+				add_core_of = ROOT
+			}
 		}
 		recheck_annexations = yes
 	}
@@ -4375,6 +4397,18 @@ country_event = { #Fate of Poland
 			}
 			set_temp_variable = { target = POL }
 			SOV_puppet_TARGET_effect = yes
+			if = {
+				limit = { SOV_left_communists_in_power = yes }
+				POL = {
+					set_politics = { ruling_party = totalist }
+					create_country_leader = {
+						name = "Józef Unszlicht"
+						picture = "gfx/leaders/POL/Portrait_POL_Jozef_Unszlicht.png"
+						expire = "1965.1.1"
+						ideology = zinovievism_subtype
+					}
+				}
+			}
 		}	
 	}
 
@@ -11029,7 +11063,7 @@ country_event = { #Fate of Latvia
 				}
 				if = {
 					limit = {
-						is_russian_tag_that_can_integrate = no
+						ROOT = { RUS_savinkov_in_power = no }
 					}
 					set_party_name = {
 						ideology = national_populist
@@ -11065,6 +11099,24 @@ country_event = { #Fate of Latvia
 				}
 				set_temp_variable = { target = LAT }
 				SOV_puppet_TARGET_effect = yes
+				if = {
+					limit = { SOV_left_communists_in_power = yes }
+					create_country_leader = {	
+						name = "Ivars Smilga"
+						picture = "gfx/leaders/LAT/Portrait_LAT_Ivar_Smilga.png"
+						expire = "1.1.1"
+						ideology = zinovievism_subtype
+					}
+				}
+				else = {
+					create_country_leader = {	
+						name = "Jēkabs Peterss"
+						desc = "POLITICS_JEKABS_PETERSS_DESC"
+						picture = "gfx/leaders/LAT/Portrait_LAT_Jekabs_Peterss.png"
+						expire = "1.1.1"
+						ideology = socialist_security_state_subtype
+					}
+				}
 			}	
 		}
 	}
@@ -17640,7 +17692,25 @@ country_event = { #Fate of Ukraine
 				}
 			}
 			add_claim_by = ROOT
-		}		
+		}	
+		if = {
+			limit = { 
+				has_country_flag = soviet_russia_restored 
+				220 = { has_dynamic_modifier = { modifier = SOV_ukrainian_government } }
+			}
+			220 = {
+				remove_dynamic_modifier = { modifier = SOV_ukrainian_government }
+			}
+			every_owned_state = {
+				limit = {
+					OR = {
+						region = 130 #Western Ukraine
+						region = 165 #Eastern Ukraine
+					}
+				}
+				add_dynamic_modifier = { modifier = SOV_ukrainian_government }
+			}	
+		}
 		occupy_large_country = yes
 		recheck_annexations = yes
 	}
@@ -31896,8 +31966,14 @@ country_event = { #Fate of Transamur
 				limit = {
 					ROOT = { tag = JAP }
 				}
-				add_state_claim = 637
-				add_state_claim = 562
+				if = {
+					limit = { owns_state = 637 }
+					add_state_claim = 637
+				}
+				if = {
+					limit = { owns_state = 562 }
+					add_state_claim = 562
+				}
 			}
 			537 = { retain_state = yes } #Sakhalin
 			555 = { retain_state = yes } #Kuril Islands
@@ -31941,7 +32017,13 @@ country_event = { #Fate of Transamur
 		set_temp_variable = { tag_to_release = TRM }
 		release_targeted_tag = yes
 		var:tag_to_release = { set_cosmetic_tag = TRM_FE }
-		hidden_effect = { RUS_puppet_setup = yes }
+		hidden_effect = { 
+			RUS_puppet_setup = yes 
+			if = { 
+				limit = { tag = JAP }
+				country_event = { id = tram.10000 days = 4 }
+			}
+		}
 	}
 	option = { #liberate Green Ukraine
 		name = annex.226.d
@@ -32008,7 +32090,8 @@ country_event = { #Fate of Transamur
 		name = annex.226.b
 		trigger = {
 			var:566.owner = { #Irkutsk
-				original_tag = RUS
+				is_russian_tag_that_can_integrate = yes
+				is_ally_of_ROOT = yes
 				ROOT_can_grant_land = yes
 			}
 		}
@@ -53142,7 +53225,6 @@ country_event = { #Fate of Don
 				add_state_core = 1263
 				drop_cosmetic_tag = yes
 			}			
-			1231 = { retain_state = yes }
 		}
 	}
 	title = annexation_DKB_CONQ
@@ -54465,6 +54547,16 @@ country_event = { #Fate of the East Galicia
 				is_claim_or_core_of_ROOT = no
 			}
 			add_claim_by = ROOT
+		}
+		if = {
+			limit = { 
+				has_country_flag = soviet_russia_restored 
+				202 = { has_dynamic_modifier = { modifier = SOV_ukrainian_government } }
+			}
+			every_state = {
+				limit = { is_core_of = WSU }
+				add_dynamic_modifier = { modifier = SOV_ukrainian_government }
+			}	
 		}
 		occupy_medium_country = yes
 		recheck_annexations = yes
