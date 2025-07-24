@@ -39,6 +39,21 @@ RUS_civil_war_decisions = {
 					NOT = { country_exists = TTR }
 				}
 			}
+			if = {
+				limit = { 
+					country_exists = KAR 
+					KAR = { 
+						NOT = { 
+							is_ally_with = FIN 
+							is_guaranteed_by = FIN
+						}
+					}
+				}
+				OR = {
+					KAR = { is_ally_of_ROOT = yes }
+					NOT = { country_exists = KAR }
+				}
+			}
 			NOT = { 
 				country_exists = SIB 
 			}
@@ -100,6 +115,7 @@ RUS_civil_war_decisions = {
 				tag = ALO
 				tag = KLY
 				tag = DKB
+				tag = KUB
 			}
 		}
 		available = {
@@ -173,11 +189,49 @@ RUS_civil_war_decisions = {
 					flag = RCW_begun
 					days > 15
 				}
+			}			
+			if = {
+				limit = {
+					tag = KUB
+				}
+				RUS = {
+					OR = {
+						is_owner_neighbor_of = ROOT
+						any_allied_country = { is_owner_neighbor_of = ROOT }
+						has_war_with = DKB
+					}
+				}
+				OR = {
+					has_war_with = DKB
+					has_war = no
+				}
+				if = {
+					limit = { country_exists = DKB }
+					DKB = { 
+						has_socialist_government = no
+						is_subject = no
+						is_in_faction = no
+					}
+				}
+				has_global_flag = {
+					flag = RCW_begun
+					days > 30
+				}
 			}
 			russian_civil_war = yes
 		}
 		visible = {
 			if = {
+				limit = {
+					tag = KUB
+				}
+				OR = {
+					has_idea = KUB_Aleksey_Avtonomov_hog_tot
+					has_idea = KUB_Karl_Kalnin_sec_tot
+				}
+				is_subject = no
+			}
+			else_if = {
 				limit = {
 					tag = ALO
 				}
@@ -298,7 +352,13 @@ RUS_civil_war_decisions = {
 				limit = {
 					tag = KLY
 				}
-				country_event = rcw.32
+				country_event = rcw.267
+			}
+			else_if = {
+				limit = {
+					tag = KUB
+				}
+				country_event = rcw.272
 			}
 		}
 	}
@@ -387,7 +447,7 @@ RUS_civil_war_decisions = {
 			has_global_flag = RCW_begun
 			NOT = { has_global_flag = RCW_over }			
 		}
-		targets = { ALO DKB TRM URL }
+		targets = { ALO DKB TRM URL KUB }
 		target_root_trigger = { is_faction_leader = yes }
 		target_trigger = {
 			FROM = {
@@ -400,6 +460,14 @@ RUS_civil_war_decisions = {
 				else_if = {
 					limit = { tag = URL }
 					URL = { has_country_flag = URL_can_be_called_by_RVA }
+				}
+				else_if = {
+					limit = { tag = KUB }
+					OR = {
+						has_war_with = DKB
+						DKB = { is_ally_of_ROOT = yes }
+					}
+					KUB = { KUB_has_lineytsy = yes }
 				}
 				else = {
 					has_war_with = var:219:owner
@@ -714,7 +782,7 @@ RUS_civil_war_decisions = {
 				}
 			}
 		}
-		targets = { SIB TTR BKN ORE }
+		targets = { SIB TTR BKN ORE KAR ALO }
 		target_root_trigger = {
 			owns_state = 219
 		}
@@ -731,6 +799,29 @@ RUS_civil_war_decisions = {
 					FROM = { tag = BKN }
 				}
 				FROM = { NOT = { is_ally_with = TRK } }
+			}
+			if = {
+				limit = {
+					FROM = { tag = KAR }
+				}
+				FROM = { 
+					NOT = { 
+						is_ally_with = FIN 
+						is_guaranteed_by = FIN
+					}
+				}
+			}
+			if = {
+				limit = {
+					FROM = { tag = ALO }
+				}
+				FROM = { 
+					NOT = { 
+						is_ally_with = ROOT 
+						is_subject = yes
+					}					
+					has_war_with = KAZ
+				}
 			}
 		}
 		cost = 0
@@ -1429,6 +1520,234 @@ RUS_civil_war_decisions = {
 			}
 		}
 	}
+	RUS_control_state_1 = {
+		icon = GFX_decision_oppression
+		allowed = { always = no }
+		name = RUS_control_state
+		
+		visible = {
+			FROM = {
+				is_demilitarized_zone = yes
+				is_owned_by = ROOT
+			}
+		}
+		available = {
+			RUS_siberian_insurgency_can_control_state = yes
+		}
+		cost = 20
+		days_remove = 3
+		fire_only_once = yes
+		state_target = yes
+		targets = { 580 403 571 }
+		target_trigger = {
+			FROM = {
+				is_demilitarized_zone = yes
+			}
+		}
+		
+		
+		ai_will_do = {
+			factor = 250
+		}
+		highlight_states = { 
+			highlight_state_targets = {
+				state = FROM 
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_control_state_1 target: [From.GetName]"
+			FROM = {
+				set_demilitarized_zone = no
+				add_core_of = ROOT
+				remove_core_of = SIB
+				if = {
+					limit = { has_resistance = yes }
+					cancel_resistance = yes
+				}
+				force_disable_resistance = { clear = yes }
+			}
+			if = {
+				limit = { 
+					FROM = { state = 580 }
+				}
+				1200 = {
+					set_demilitarized_zone = no
+					add_core_of = ROOT
+					if = {
+						limit = { has_resistance = yes }
+						cancel_resistance = yes
+					}
+					force_disable_resistance = { clear = yes }
+				}
+			}
+		}
+	}
+	RUS_control_state_2 = {
+		icon = GFX_decision_oppression
+		allowed = { always = no }
+		name = RUS_control_state
+		
+		visible = {
+			FROM = {
+				is_demilitarized_zone = yes
+				is_owned_by = ROOT
+			}
+		}
+		available = {
+			RUS_siberian_insurgency_can_control_state = yes
+		}
+		cost = 50
+		days_remove = 5
+		fire_only_once = yes
+		state_target = yes
+		targets = { 570 568 567 }
+		target_trigger = {
+			FROM = {
+				is_demilitarized_zone = yes
+			}
+		}
+		
+		
+		ai_will_do = {
+			factor = 150
+		}
+		highlight_states = { 
+			highlight_state_targets = {
+				state = FROM 
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_control_state_1 target: [From.GetName]"
+			FROM = {
+				set_demilitarized_zone = no
+				add_core_of = ROOT
+				remove_core_of = SIB
+				if = {
+					limit = { has_resistance = yes }
+					cancel_resistance = yes
+				}
+				force_disable_resistance = { clear = yes }
+			}
+			if = {
+				limit = {
+					FROM = { state = 570 }
+				}
+				every_owned_state = {
+					limit = {
+						OR = {
+							state = 40
+							state = 1292
+							state = 569
+							state = 578
+							state = 577
+							state = 1201
+						}
+					}
+					set_demilitarized_zone = no
+					add_core_of = ROOT
+					if = {
+						limit = { has_resistance = yes }
+						cancel_resistance = yes
+					}
+					force_disable_resistance = { clear = yes }
+				}
+			}			
+			else_if = {
+				limit = { 
+					FROM = { state = 566 }
+				}
+				567 = {
+					set_demilitarized_zone = no
+					add_core_of = ROOT
+					if = {
+						limit = { has_resistance = yes }
+						cancel_resistance = yes
+					}
+					force_disable_resistance = { clear = yes }
+				}
+				644 = {
+					set_demilitarized_zone = no
+					add_core_of = ROOT
+					if = {
+						limit = { has_resistance = yes }
+						cancel_resistance = yes
+					}
+					force_disable_resistance = { clear = yes }
+				}
+				1202 = {
+					set_demilitarized_zone = no
+					add_core_of = ROOT
+					if = {
+						limit = { has_resistance = yes }
+						cancel_resistance = yes
+					}
+					force_disable_resistance = { clear = yes }
+				}
+				random_list = {
+					15 = { 
+						564 = { TRM_Increase_NRA_Resistance = yes }
+					}
+					15 = { 
+						563 = { TRM_Increase_NRA_Resistance = yes }
+					}
+					15 = { 
+						657 = { TRM_Increase_NRA_Resistance = yes }
+					}
+					13 = { 
+						409 = { TRM_Increase_NRA_Resistance = yes }
+					}
+					10 = { 
+						561 = { TRM_Increase_NRA_Resistance = yes }
+					}
+					8 = { 
+						560 = { TRM_Increase_NRA_Resistance = yes }
+					}
+					7 = { 
+						574 = { TRM_Increase_NRA_Resistance = yes }
+					}
+					7 = { 
+						565 = { TRM_Increase_NRA_Resistance = yes }
+					}
+					5 = { 
+						637 = { TRM_Increase_NRA_Resistance = yes }
+					}
+					5 = { 
+						562 = { TRM_Increase_NRA_Resistance = yes }
+					}
+				}
+				TRM = {
+					every_owned_state = {
+						limit = {
+							NOT = {
+								state = 408
+							}
+						}
+						TRM_Increase_NRA_Resistance_Slightly = yes
+					}		
+					TRM_clamp_spheres_of_influence = yes
+					TRM_recalculate_kolchak_variables = yes
+				}
+			}
+			else = {				
+				every_owned_state = {
+					limit = {
+						OR = {
+							state = 575
+							state = 576
+							state = 516
+						}
+					}
+					set_demilitarized_zone = no
+					add_core_of = ROOT
+					if = {
+						limit = { has_resistance = yes }
+						cancel_resistance = yes
+					}
+					force_disable_resistance = { clear = yes }
+				}
+			}
+		}
+	}
 	SOV_bolsheviks_make_their_move = {
 		icon = GFX_decision_eng_propaganda_campaigns
 		allowed = { always = no } # manually activated
@@ -1483,6 +1802,9 @@ RUS_civil_war_decisions = {
 	RCW_deal_with_savinkovists = {
 		icon = GFX_decision_eng_blackshirt_march
 		allowed = { always = no } # manually activated
+		available = {
+			NOT = { country_exists = RVA }
+		}
 		cancel_trigger = {
 			OR = {
 				country_exists = RRF				
@@ -1490,7 +1812,10 @@ RUS_civil_war_decisions = {
 			}
 		}
 		
-		cost = 0
+		custom_cost_text = CP_50
+		custom_cost_trigger = {
+			command_power > 49.99
+		}
 		fire_only_once = yes
 		selectable_mission = yes
 		is_good = no
@@ -1507,6 +1832,7 @@ RUS_civil_war_decisions = {
 		cancel_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision cancel RCW_deal_with_savinkovists"
 			add_ideas = RUS_nationalist_resistance
+			add_popularity = { ideology = national_populist popularity = -0.10 }
 			effect_tooltip = {
 				every_unit_leader = {
 					limit = { has_trait = RUS_savinkov_officer }
@@ -1522,8 +1848,11 @@ RUS_civil_war_decisions = {
 		}
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision cancel RCW_deal_with_savinkovists"
-			add_ideas = RUS_nationalist_resistance_2
-			RUS_decrease_nrpr_pop = yes
+			hidden_effect = { add_command_power = -50 }
+			set_country_flag = nrpr_banned
+			remove_natpop_from_coalition = yes
+			add_ideas = RUS_nationalist_resistance_1
+			add_popularity = { ideology = national_populist popularity = -0.15 }
 			random_unit_leader = {
 				limit = { has_id = 78819 }
 				remove_unit_leader_trait = RUS_savinkov_officer
@@ -1544,6 +1873,7 @@ RUS_civil_war_decisions = {
 		timeout_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision timeout RCW_deal_with_savinkovists"
 			add_ideas = RUS_nationalist_resistance
+			add_popularity = { ideology = national_populist popularity = -0.10 }
 			effect_tooltip = {
 				every_unit_leader = {
 					limit = { has_trait = RUS_savinkov_officer }
@@ -1554,165 +1884,6 @@ RUS_civil_war_decisions = {
 				every_unit_leader = {
 					limit = { has_trait = RUS_savinkov_officer }
 					set_nationality = RRF
-				}
-			}
-		}
-	}
-	
-}
-RUS_Siberian_Insurgency_decisions = {
-	RUS_control_state_1 = {
-		icon = GFX_decision_oppression
-		name = RUS_control_state
-		
-		visible = {
-			FROM = {
-				is_demilitarized_zone = yes
-				is_owned_by = ROOT
-			}
-		}
-		available = {
-			RUS_siberian_insurgency_can_control_state = yes
-		}
-		cost = 20
-		days_remove = 5
-		fire_only_once = yes
-		state_target = yes
-		targets = { 580 403 571 567 566 }
-		target_root_trigger = {
-			has_country_flag = RCW_should_deal_with_siberian_revolt
-		}
-		target_trigger = {
-			FROM = {
-				is_demilitarized_zone = yes
-			}
-		}
-		
-		
-		ai_will_do = {
-			factor = 250
-		}
-		highlight_states = { 
-			highlight_state_targets = {
-				state = FROM 
-			}
-		}
-		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_control_state_1 target: [From.GetName]"
-			FROM = {
-				set_demilitarized_zone = no
-				add_core_of = ROOT
-				remove_core_of = SIB
-				if = {
-					limit = { has_resistance = yes }
-					cancel_resistance = yes
-				}
-				force_disable_resistance = { clear = yes }
-			}
-			if = {
-				limit = { 
-					FROM = { state = 580 }
-				}
-				1200 = {
-					set_demilitarized_zone = no
-					add_core_of = ROOT
-					if = {
-						limit = { has_resistance = yes }
-						cancel_resistance = yes
-					}
-					force_disable_resistance = { clear = yes }
-				}
-			}
-		}
-	}
-	RUS_control_state_2 = {
-		icon = GFX_decision_oppression
-		name = RUS_control_state
-		
-		visible = {
-			FROM = {
-				is_demilitarized_zone = yes
-				is_owned_by = ROOT
-			}
-		}
-		available = {
-			RUS_siberian_insurgency_can_control_state = yes
-		}
-		cost = 50
-		days_remove = 5
-		fire_only_once = yes
-		state_target = yes
-		targets = { 570 568 }
-		target_root_trigger = {
-			has_country_flag = RCW_should_deal_with_siberian_revolt
-		}
-		target_trigger = {
-			FROM = {
-				is_demilitarized_zone = yes
-			}
-		}
-		
-		
-		ai_will_do = {
-			factor = 150
-		}
-		highlight_states = { 
-			highlight_state_targets = {
-				state = FROM 
-			}
-		}
-		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_control_state_1 target: [From.GetName]"
-			FROM = {
-				set_demilitarized_zone = no
-				add_core_of = ROOT
-				remove_core_of = SIB
-				if = {
-					limit = { has_resistance = yes }
-					cancel_resistance = yes
-				}
-				force_disable_resistance = { clear = yes }
-			}
-			if = {
-				limit = {
-					FROM = { state = 570 }
-				}
-				every_owned_state = {
-					limit = {
-						OR = {
-							state = 40
-							state = 1292
-							state = 569
-							state = 578
-							state = 577
-							state = 1201
-						}
-					}
-					set_demilitarized_zone = no
-					add_core_of = ROOT
-					if = {
-						limit = { has_resistance = yes }
-						cancel_resistance = yes
-					}
-					force_disable_resistance = { clear = yes }
-				}
-			}
-			else = {				
-				every_owned_state = {
-					limit = {
-						OR = {
-							state = 575
-							state = 576
-							state = 516
-						}
-					}
-					set_demilitarized_zone = no
-					add_core_of = ROOT
-					if = {
-						limit = { has_resistance = yes }
-						cancel_resistance = yes
-					}
-					force_disable_resistance = { clear = yes }
 				}
 			}
 		}
@@ -1814,6 +1985,11 @@ RUS_dealing_with_opposition = {
 			}
 			else = {
 				remove_ideas = RUS_socialist_resistance_2
+			}
+			if = {
+				limit = { SOV_has_counter_rev_sabotage = yes }
+				custom_effect_tooltip = tooltip_white_line
+				SOV_remove_counter_rev_sabotage = yes
 			}
 		}
 	}
