@@ -2351,6 +2351,7 @@ SPR_civil_war_decisions = {
 				NOT = { has_state_flag = is_car_state }
 				NOT = { has_state_flag = is_cnt_state }
 				NOT = { state = 41 }
+				NOT = { state = 1342 }
 				is_on_continent = europe
 				any_neighbor_state = {
 					if = {
@@ -2382,8 +2383,10 @@ SPR_civil_war_decisions = {
 				custom_override_tooltip = {
 					tooltip = is_gov_state
 					any_neighbor_state = {
-						NOT = { has_state_flag = is_car_state }
-						NOT = { has_state_flag = is_cnt_state }
+						OR = {
+							has_state_flag = is_car_state
+							has_state_flag = is_cnt_state
+						}
 						is_owned_by = SPR
 					}
 				}
@@ -2420,6 +2423,7 @@ SPR_civil_war_decisions = {
 				NOT = { has_state_flag = is_car_state }
 				NOT = { has_state_flag = is_cnt_state }
 				NOT = { state = 41 }
+				NOT = { state = 1342 }
 				is_on_continent = europe
 				any_neighbor_state = {
 					if = {
@@ -2942,7 +2946,7 @@ SPR_foreign_decisions = {
 		target_trigger = {
 			FROM = {
 				has_idea = SPR_Protect_Latin_America_Idea
-				has_war = yes
+				has_defensive_war = yes
 				NOT = {
 					has_war_with = ROOT
 				}
@@ -2953,6 +2957,8 @@ SPR_foreign_decisions = {
 				FROM = {
 					OR = {
 						has_socialist_government = yes
+						has_government = paternal_autocrat
+						has_government = national_populist
 						has_war_with = ROOT
 						exists = no
 					}
@@ -2963,20 +2969,76 @@ SPR_foreign_decisions = {
 		fire_only_once = yes
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision SPR_protect_south_american_nation"
-			every_country = {
-				limit = {
-					has_war_with = FROM
-				}
-				ROOT = {
-					declare_war_on = {
-						target = PREV
-						type = annex_everything
+			FROM = {
+				every_enemy_country = {
+					limit = {
+						has_offensive_war_with = FROM
+						NOT = { has_war_with = ROOT }
+					}
+					ROOT = {
+						add_to_war = {
+							targeted_alliance = FROM
+							enemy = PREV
+						}
 					}
 				}
 			}
-			hidden_effect = {
-				give_military_access = FROM
-				FROM = { give_military_access = ROOT }
+		}
+	}
+	SPR_kill_natpop_and_pataut_south_americans = {
+		target_root_trigger = {
+			tag = SPR
+		}
+		visible = {
+			has_country_flag = SPR_radical_entente_protect_south_america
+			is_subject = no
+			FROM = {
+				NOT = {
+					has_war_with = ROOT
+				}
+			}
+		}
+		targets_dynamic = yes
+		target_trigger = {
+			FROM = {
+				OR = {
+					has_government = paternal_autocrat
+					has_government = national_populist
+					any_subject_country = {
+						OR = {
+							limit = {
+								has_government = paternal_autocrat
+								has_government = national_populist
+							}
+						}
+					}
+				}
+				NOT = {
+					has_idea = SPR_Protect_Latin_America_Idea
+				}
+				NOT = { is_subject = yes }
+			}
+		}
+		cancel_trigger = {
+			hidden_trigger = {
+				FROM = {
+					OR = {
+						NOT = { has_government = paternal_autocrat }
+						NOT = { has_government = national_populist }
+						has_war_with = ROOT
+						exists = no
+					}
+				}
+			}
+		}
+		cost = 25
+		days_remove = 14
+		fire_only_once = yes
+		will_lead_to_war_with = FROM
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove SPR_kill_natpop_and_pataut_south_americans"
+			ROOT = {
+				declare_war_on = FROM
 			}
 		}
 	}
