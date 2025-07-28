@@ -8450,16 +8450,16 @@ RUS_Siberian_War = {
 					RUS = { 
 						OR = {
 							RUS_russian_monarch = yes
-							RUS_wrangel_in_power = yes
+							AND = {
+								RUS_wrangel_in_power = yes
+								has_completed_focus = RUS_Church_And_Saber
+							}
 						}
 					}
 					TRM = { 
 						OR = {
 							RUS_russian_monarch = yes
-							has_country_leader = {
-								ruling_only = yes
-								name = "Mikhail Diterikhs"
-							}
+							TRM_do_rovs_in_power = yes
 						}
 					}
 				}
@@ -11475,6 +11475,49 @@ RUS_dealing_with_revolution_cat = {
 			country_event = rusd.3119
 		}
 	}
+	RUS_anti_socialist_legislation_rrdp = {
+		icon = GFX_decision_government_down
+		priority = 10
+		allowed = { always = no }
+		
+		available = {
+			custom_trigger_tooltip = {
+				set_temp_variable = { pop_to_check = party_popularity@ruling_party }
+				if = {
+					limit = { is_in_coalition_with_market_liberal = yes }
+					add_to_temp_variable = { pop_to_check = party_popularity@market_liberal }
+				}
+				if = {
+					limit = { is_in_coalition_with_social_conservative = yes }
+					add_to_temp_variable = { pop_to_check = party_popularity@social_conservative }
+				}
+				if = {
+					limit = { is_in_coalition_with_authoritarian_democrat = yes }
+					add_to_temp_variable = { pop_to_check = party_popularity@authoritarian_democrat }
+				}
+				if = {
+					limit = { is_in_coalition_with_national_populist = yes }
+					add_to_temp_variable = { pop_to_check = party_popularity@national_populist }
+				}
+				check_variable = { pop_to_check > 0.40 }
+				tooltip = RUS_ruling_party_popularity_higher_40
+			}
+			RUS_rev_ferment_lower_35 = yes
+		}
+		
+		cost = 40
+		days_remove = 20
+		fire_only_once = yes
+		
+		ai_will_do = {
+			factor = 100
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_anti_socialist_legislation_rrdp"					
+			
+		}
+	}
 }
 RUS_rovs_internal_faction = {
 	RUS_monarchists_rally = {
@@ -11528,6 +11571,7 @@ RUS_rovs_internal_faction = {
 
 		cancel_trigger = {
 			OR = {
+				RUS_wrangel_in_power = yes
 				RUS_denikin_in_power = no
 				NOT = {
 					has_power_balance = { id = RUS_rovs_balance }
@@ -11641,11 +11685,19 @@ RUS_rovs_internal_faction = {
 					limit = { has_trait = RUS_avalov_officer }
 					retire = yes
 				}
+				every_unit_leader = {
+					limit = { has_trait = MON_rvk_member_trait }
+					retire = yes
+				}
 			}
 			RUS_bop_increase_republicans_large = yes
 			hidden_effect = {
 				every_unit_leader = {
 					limit = { has_trait = RUS_avalov_officer }
+					set_nationality = WRA
+				}
+				every_unit_leader = {
+					limit = { has_trait = MON_rvk_member_trait }
 					set_nationality = WRA
 				}
 				random_unit_leader = {
@@ -11657,6 +11709,48 @@ RUS_rovs_internal_faction = {
 					}
 				}
 			}
+		}
+	}
+	RUS_sideline_republican_officers = {
+		icon = GFX_decision_generic_army_support
+				
+		visible = {
+			OR = {
+				has_active_mission = RUS_constitutional_drafting_mission
+				has_completed_focus = RUS_Neutralize_The_Monarchist_Threat
+			}
+			any_unit_leader = { has_trait = RUS_drozdovsky_officer }
+		}
+		
+		cancel_if_not_visible = yes
+		
+		custom_cost_text = CP_50
+		custom_cost_trigger = {
+			command_power > 49.99
+		}
+		fire_only_once = yes
+		days_remove = 15
+		
+		
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel RUS_sideline_republican_officers"			
+			hidden_effect = { 
+				add_command_power = 50
+			}
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision RUS_sideline_republican_officers"			
+			hidden_effect = { 
+				add_command_power = -50
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_sideline_republican_officers"			
+			every_unit_leader = {
+				limit = { has_trait = RUS_denikin_officer }
+				add_unit_leader_trait = RUS_sidelined
+			}
+			RUS_bop_increase_monarchists_large = yes
 		}
 	}
 	RUS_maintain_apolitical_status = {
