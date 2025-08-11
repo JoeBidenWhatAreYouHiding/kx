@@ -3036,6 +3036,10 @@ country_event = { #Civil War Prelude Starting Event
 		hidden_effect = {
 			SPR_civil_war_prelude_setup = yes
 			country_event = {
+				id = sprc.12
+				days = 4
+			}
+			country_event = {
 				id = sprc.8
 				days = 7
 			}
@@ -3181,6 +3185,60 @@ country_event = { #Rif Revolts Mid Civil War
 		name = sprc.11.a
 		ai_chance = { base = 100 }
 		SPR_RIF_Revolt_Effect = yes
+	}
+}
+
+country_event = { #Rif Garrison Spawns
+	id = sprc.12
+	immediate = { log = "[GetDateText]: [Root.GetName]: event sprc.12" }
+	title = sprc.12.t
+	desc = sprc.12.d
+	picture = GFX_report_event_SPR_rif_republic_map
+	
+	is_triggered_only = yes
+	fire_only_once = yes
+	timeout_days = 7
+	
+	option = {
+		name = sprc.12.a
+		ai_chance = { base = 100 }
+		SPR_civil_war_rif_garrison_spawn = yes
+	}
+	option = {
+		name = sprc.12.b
+		ai_chance = { base = 0 }
+		SPR_civil_war_rif_garrison_spawn = yes
+		RIF = {
+			change_tag_from = ROOT
+		}
+	}
+}
+
+country_event = { #Rif Garrison Returns
+	id = sprc.13
+	immediate = { log = "[GetDateText]: [Root.GetName]: event sprc.13" }
+	title = sprc.13.t
+	desc = sprc.13.d
+	picture = GFX_report_event_SPR_rif_republic_map
+	
+	is_triggered_only = yes
+	fire_only_once = yes
+	timeout_days = 14
+	
+	option = {
+		name = sprc.13.a
+		ai_chance = { base = 100 }
+		every_state = {
+			limit = {
+				is_core_of = RIF
+				NOT = { state = 290 }
+			}
+			remove_core_of = RIF
+		}
+		annex_country = {
+			target = RIF
+			transfer_troops = yes
+		}
 	}
 }
 
@@ -4105,31 +4163,13 @@ country_event = { #Congress of Iberian Socialists
 }
 country_event = { #Constitutional monarchy?
 	id = sprd.99
-	immediate = { log = "[GetDateText]: [Root.GetName]: event sprd.100" }
+	immediate = { log = "[GetDateText]: [Root.GetName]: event sprd.99" }
 	title = sprd.99.t
 	desc = sprd.99.d
 	picture = GFX_report_event_SPR_madrid2
 	fire_only_once = yes
 	is_triggered_only = yes
-	timeout_days = 14
-	
-	after = {
-		hidden_effect = {
-			if = {
-				limit = {
-					any_owned_state = {
-						limit = {
-							has_dynamic_modifier = { modifier = SPR_rif_is_going_to_shit_modifier }
-						}
-					}
-				}
-				country_event = {
-					id = sprd.380
-					days = 21
-				}
-			}
-		}
-	}
+	timeout_days = 14 
 
 	option = { #Yes.
 		name = sprd.99.a
@@ -4256,6 +4296,21 @@ country_event = { #Constitutional monarchy?
 			
 			complete_national_focus = SPR_constitutionalism
 			country_event = { id = sprd.101 days = 7 }
+			hidden_effect = {
+				if = {
+					limit = {
+						any_owned_state = {
+							limit = {
+								has_dynamic_modifier = { modifier = SPR_rif_is_going_to_shit_modifier }
+							}
+						}
+					}
+					country_event = {
+						id = sprd.380
+						days = 21
+					}
+				}
+			}
 		}
 	}
 	option = { #No.
@@ -5290,6 +5345,8 @@ country_event = {
 			factor = 100
 		}
 		set_country_flag = SPR_separatist_war_ended_or_prevented
+		clr_country_flag = SPR_separatist_revolt_flag
+		set_global_flag = SPR_separatist_war_spanish_loss
 		if = {
 			limit = {
 				has_idea = SPR_struggle_for_castilian_survival
@@ -5348,6 +5405,40 @@ country_event = {
 				SPR = { remove_core_and_add_claim = yes }
 			}
 		}
+	}
+}
+country_event = { #Separatist Revolt War Victory
+	id = sprd.115
+	immediate = { log = "[GetDateText]: [Root.GetName]: event sprd.115" }
+	title = sprd.115.t
+	desc = sprd.115.d
+	picture = GFX_report_event_SPR_cortes_generales
+
+	fire_only_once = yes
+	
+	trigger = {
+		tag = SPR
+		has_country_flag = SPR_separatist_revolt_flag
+		NOT = { has_global_flag = SPR_separatist_war_spanish_loss }
+		GLC = { exists = no }
+		CAT = { exists = no }
+		BAS = { exists = no }
+		RIF = { exists = no }
+	}
+			
+	option = {
+		name = sprd.115.a
+		ai_chance = {
+			factor = 1
+		}
+		if = {
+			limit = {
+				has_idea = SPR_struggle_for_castilian_survival
+			}
+			remove_ideas = SPR_struggle_for_castilian_survival
+		}
+		set_country_flag = SPR_separatist_war_ended_or_prevented
+		clr_country_flag = SPR_separatist_revolt_flag
 	}
 }
 country_event = { #Separatist Revolt War Starts
@@ -5868,7 +5959,7 @@ country_event = { #shit I forgor to delete
 		add_political_power = 35
 	}
 }
-country_event = { #Kill Portugal or nah
+country_event = { #Kill Portugal or nah - PS event
 	id = sprd.142
 	immediate = { log = "[GetDateText]: [Root.GetName]: event sprd.142" }
 	title = sprd.142.t
@@ -5880,35 +5971,19 @@ country_event = { #Kill Portugal or nah
 	option = { #Nah.
 		name = sprd.142.a
 		ai_chance = {
-			factor = 33
+			factor = 30
 		}
 		increase_ruling_party_popularity_by_5 = yes
 		add_political_power = 35
 	}
-	option = { #Yes but no Iberism.
-		name = sprd.142.b
+	option = { #Yes.
+		name = sprd.142.c
 		ai_chance = {
-			factor = 33
+			factor = 70
 		}
-		declare_war_on = {
+		create_wargoal = {
 			target = POR
 			type = annex_everything
-		}
-	}
-	option = { #Yes but no Iberism.
-		name = sprd.142.b
-		ai_chance = {
-			factor = 33
-		}
-		declare_war_on = {
-			target = POR
-			type = annex_everything
-		}
-		every_state = {
-			limit = { 
-				is_core_of = POR 
-			}
-			add_core_of = SPR
 		}
 	}
 }
@@ -5921,10 +5996,12 @@ country_event = { #Anti-Clericalism part 423
 	fire_only_once = yes
 	is_triggered_only = yes
 
-	option = { #Yes.
+	option = { #Hating the pope in a very catholic country is a great idea!
 		name = sprd.143.a
 		add_political_power = -75
 		add_manpower = -1500
+		add_stability = -0.07
+		decrease_ruling_party_popularity_by_10 = yes
 	}
 }
 country_event = { #Girlbossism
@@ -5937,26 +6014,26 @@ country_event = { #Girlbossism
 	fire_only_once = yes
 	is_triggered_only = yes
 
-	option = { #Yes.
+	option = { #Support them
 		name = sprd.144.a
 		ai_chance = {
-			factor = 33
+			factor = 60
 		}
 		add_political_power = -20
 		add_manpower = 5000
 	}
-	option = { #Yes.
+	option = { #Intergrate them into PS
 		name = sprd.144.b
 		ai_chance = {
-			factor = 33
+			factor = 30
 		}
 		add_political_power = -100
 		add_manpower = 5000
 	}
-	option = { #Yes.
+	option = { #We have better things to do
 		name = sprd.144.c
 		ai_chance = {
-			factor = 33
+			factor = 10
 		}
 		add_political_power = 20
 	}
@@ -5971,7 +6048,7 @@ country_event = { #Education shite
 	fire_only_once = yes
 	is_triggered_only = yes
 
-	option = { #Yes.
+	option = {
 		name = sprd.145.a
 		ai_chance = {
 			factor = 1
@@ -10608,6 +10685,7 @@ country_event = {# Dealing with the Rif
 	title = sprd.380.t
 	desc = sprd.380.d
 	picture = GFX_report_event_SPR_rif_republic_map
+	fire_only_once = yes
 	is_triggered_only = yes
 	timeout_days = 14
 
