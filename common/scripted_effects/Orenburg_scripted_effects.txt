@@ -1,0 +1,191 @@
+UCH_add_to_uch = {
+	if = {
+		limit = { NOT = { has_country_flag = UCH_council_member } }
+		set_country_flag = UCH_council_member
+		add_to_array = { global.UCH_members = THIS }
+		if = {
+			limit = { NOT = { tag = UCH } }
+			diplomatic_relation = {
+				country = UCH
+				relation = non_aggression_pact
+			}
+		}
+		add_ideas = UCH_union_of_cossack_hosts
+	}
+}
+UCH_remove_from_uch = {
+	set_temp_variable = { target = UCH }
+	clear_all_relations_with_TARGET = yes
+	if = {
+		limit = { has_country_flag = UCH_council_member }
+		clr_country_flag = UCH_council_member
+		subtract_from_variable = { global.uch_council_votes = ROOT.uch_council_votes }
+		remove_from_array = { global.UCH_members = THIS }
+	}
+	if = {
+		limit = { is_in_tech_sharing_group = uch_cossack_research }
+		remove_from_tech_sharing_group = uch_cossack_research
+	}
+}
+UCH_calculate_manpower_to_add = {
+	set_temp_variable = { manpower_to_add = 0 }
+	hidden_effect = {
+		every_owned_state = {
+			limit = { is_controlled_by = ROOT }
+			add_to_temp_variable = { PREV.manpower_to_add = state_population_k }
+		}
+	}
+	multiply_temp_variable = { manpower_to_add = 6 }
+	add_manpower = manpower_to_add		
+}
+UCH_organize_admin = {
+	if = {
+		limit = { has_idea = UCH_disorganized_administrations }
+		swap_ideas = {
+			remove_idea = UCH_disorganized_administrations
+			add_idea = UCH_disorganized_administrations_2
+		}
+	}
+	else_if = {
+		limit = { has_idea = UCH_disorganized_administrations_2 }
+		swap_ideas = {
+			remove_idea = UCH_disorganized_administrations_2
+			add_idea = UCH_disorganized_administrations_3
+		}
+	}
+	else_if = {
+		limit = { has_idea = UCH_disorganized_administrations_3 }
+		swap_ideas = {
+			remove_idea = UCH_disorganized_administrations_3
+			add_idea = UCH_disorganized_administrations_4
+		}
+	}
+	else_if = {
+		limit = { has_idea = UCH_disorganized_administrations_4 }
+		remove_ideas = UCH_disorganized_administrations_4
+	}
+}
+UCH_move_to_next_cossack_leader = {
+	if = {
+		limit = { has_global_flag = UCH_exists }
+		get_highest_scored_country_temp = {
+			scorer = next_cossack_leader_scorer
+			var = next_cossack_leader
+		}
+		if = {
+			limit = {
+				has_variable = next_cossack_leader
+				NOT = { check_variable = { next_cossack_leader = 0 } }
+			}
+			if = {
+				limit = { has_event_target = UCH_leader }
+				clear_global_event_target = UCH_leader
+			}
+			var:next_cossack_leader = {
+				save_global_event_target_as = UCH_leader
+			}
+		}
+		else = {
+			UCH_disbands = yes
+		}
+	}
+}
+UCH_disbands = {
+	if = {
+		limit = { has_global_flag = UCH_exists }
+		every_country = {
+			limit = { has_country_flag = UCH_council_member }
+			UCH_remove_from_uch = yes
+		}
+		clear_global_event_target = UCH_leader
+		clr_global_flag = UCH_exists
+	}
+}
+#temp_var UCH_support_change
+UCH_change_support = {
+	add_to_variable = { uch_approval = UCH_support_change }
+	custom_effect_tooltip = UCH_change_support
+	clamp_variable = { var = uch_approval min = 0 max = 1 }
+	hidden_effect = {
+		if = {
+			limit = { original_tag = TRB }
+			set_variable = { TRM.uch_approval = uch_approval }
+		}
+	}	
+}
+
+ORE_disband_all_units = {
+	custom_effect_tooltip = ORE_disband_all_units
+	hidden_effect = {
+		disband_units_setup = yes
+		transfer_units_fraction = {
+			target = var:debug_tag_instance
+			target_organization = 1
+			source_organization = 1
+			size = 0
+			army_ratio = 1
+			keep_unit_leaders_trigger = { always = yes }
+		}
+		var:debug_tag_instance = {
+			disband_units_transfer_manpower = yes
+			send_equipment_fraction = { target = var:disband_country value = 0 }
+		}
+		disband_units_finalise = yes
+	}
+}
+
+determine_where_orenburg_cossacks_should_go = {
+	if = {
+		limit = {
+			ROOT = {
+				NOT = { tag = SMR }
+			}
+			country_exists = SMR
+			NOT = { has_global_flag = SMR_cossack_dissolved }
+			FROM = { 
+				NOT = { tag = SMR }
+			}
+		}
+		set_temp_variable = { target = SMR }
+	}
+	else_if = {
+		limit = {
+			country_exists = TRK
+			TRK = {
+				OR = {
+					TRK_has_tvo_influence = yes
+					TRK_tvo_in_power = yes 
+					TRK_monstrov_in_power = yes
+				}
+			}
+		}
+		set_temp_variable = { target = TRK }
+	}
+	else_if = {
+		limit = {
+			country_exists = SIK
+			FROM = { 
+				NOT = { tag = SIK }
+			}
+		}
+		set_temp_variable = { target = SIK }
+	}
+	else_if = {
+		limit = {
+			country_exists = ETS
+			FROM = { 
+				NOT = { tag = ETS }
+			}
+		}
+		set_temp_variable = { target = ETS }
+	}
+	else_if = {
+		limit = {
+			country_exists = TAN
+			FROM = { 
+				NOT = { tag = TAN }
+			}
+		}
+		set_temp_variable = { target = TAN }
+	}
+}
