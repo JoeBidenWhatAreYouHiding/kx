@@ -13,6 +13,7 @@ focus_tree = {
 		}
 	}
 	default = no
+	shared_focus = SCW_Joint_the_final_fall
 	continuous_focus_position = { x = 625 y = 1000 }
 
 	### Rise to Power
@@ -21,64 +22,77 @@ focus_tree = {
 		id = CNT_election_success
 		icon = GFX_goal_KIV_socialist_democracy
 		available = {
-			OR = {
-				custom_trigger_tooltip = {
-					tooltip = CNT_won_election
-					has_country_flag = election_success
-				}
-				custom_trigger_tooltip = {
-					tooltip = CNT_released_after_annexation
-					has_country_flag = released_after_annexation
+			custom_trigger_tooltip = {
+				tooltip = CNT_victory_in_spain_tt
+				OR = {
+					AND = {
+						OR = {
+							has_country_flag = election_success
+							has_country_flag = released_after_annexation
+							has_country_flag = CNT_coup_after_scw_avoided
+						}
+					}
+					AND = {
+						has_global_flag = spanish_civil_war
+						NOT = { country_exists = SPR }
+						NOT = { country_exists = CAR }
+					}
+					AND = {
+						has_global_flag = spanish_civil_war_happened
+						NOT = { has_global_flag = spanish_civil_war }
+					}
 				}
 			}
 		}
-		mutually_exclusive = { focus = CNT_aftermath_of_civil_war }
-		x = 7
+		x = 0
 		y = 0
-		cost = 2
+		cost = 0
 
 		ai_will_do = {
 			factor = 100
 		}
 
 		bypass = {
-			has_country_flag = released_after_annexation
+			hidden_trigger = {
+				OR = {
+					AND = {
+						OR = {
+							has_country_flag = election_success
+							has_country_flag = released_after_annexation
+							has_country_flag = CNT_coup_after_scw_avoided
+						}
+					}
+					AND = {
+						has_global_flag = spanish_civil_war
+						NOT = { country_exists = SPR }
+						NOT = { country_exists = CAR }
+					}
+					AND = {
+						has_global_flag = spanish_civil_war_happened
+						NOT = { has_global_flag = spanish_civil_war }
+					}
+				}
+			}
+		}
+		
+		completion_reward = {
+			custom_effect_tooltip = unlock_focuses
+			hidden_effect = {
+				country_event = sprc.220
+				mark_focus_tree_layout_dirty = yes
+				SRR_civil_war_end_effect = yes
+			}
 		}
 
-		completion_reward = {
-			log = "[GetDateText]: [Root.GetName]: Focus CNT_election_success"
-			add_political_power = 200
-			country_event = sprc.220
+		bypass_effect = {
+			log = "[GetDateText]: [Root.GetName]: Focus Bypassed CNT_election_success"
+			hidden_effect = {
+				country_event = sprc.220
+				mark_focus_tree_layout_dirty = yes
+				SRR_civil_war_end_effect = yes
+			}
 		}
 		search_filters = { FOCUS_FILTER_POLITICAL }
-	}
-
-	focus = {
-		id = CNT_aftermath_of_civil_war
-		icon = GFX_goal_generic_socialist_revolution
-		available = {
-			custom_trigger_tooltip = {
-				tooltip = SPR_civil_war_happened
-				has_global_flag = spanish_civil_war
-			}
-			NOT = { country_exists = SPR }
-			NOT = { country_exists = CAR }
-		}
-		cancel_if_invalid = yes
-		mutually_exclusive = { focus = CNT_election_success }
-		relative_position_id = CNT_election_success
-		x = 2
-		y = 0
-		cost = 2
-
-		ai_will_do = {
-			factor = 100
-		}
-
-		completion_reward = {
-			log = "[GetDateText]: [Root.GetName]: Focus CNT_aftermath_of_civil_war"
-			country_event = sprc.220
-		}
 	}
 
 	focus = {
@@ -86,18 +100,25 @@ focus_tree = {
 		icon = GFX_goal_CSA_iberian_revolution
 		prerequisite = {
 			focus = CNT_election_success
-			focus = CNT_aftermath_of_civil_war
 		}
 		relative_position_id = CNT_election_success
-		x = 1
+		x = 0
 		y = 1
 		cost = 10
 		ai_will_do = {
 			factor = 100
 		}
+		select_effect = {
+			end_coalition = yes
+			hidden_effect = {
+				country_event = {
+					id = sprc.221
+					days = 14
+				}
+			}
+		}
 		completion_reward = {
 			log = "[GetDateText]: [Root.GetName]: Focus SWF_party_congress"
-			
 			country_event = sprc.602
 		}
 		search_filters = { FOCUS_FILTER_ANNEXATION }
@@ -261,36 +282,8 @@ focus_tree = {
 			log = "[GetDateText]: [Root.GetName]: Focus SWF_consolidating_spain"
 			SPA_societal_recovery = yes
 			add_stability = 0.05
-			custom_effect_tooltip = CAR_remove_cores_SPR
-			custom_effect_tooltip = CAR_remove_cores_CAR
 			hidden_effect = {
-				every_state = {
-					limit = { is_core_of = SPR }
-					add_core_of = CNT
-					remove_core_of = SPR
-				}
-				every_state = {
-					limit = { is_core_of = CAR }
-					add_core_of = CNT
-					remove_core_of = CAR
-				}
-				every_state = {
-					limit = {
-						is_claimed_by = SPR
-						NOT = { is_core_of = CNT }
-						NOT = { is_claimed_by = CNT }
-					}
-					add_claim_by = CNT
-				}
-				every_state = {
-					limit = { is_claimed_by = SPR }
-					remove_claim_by = SPR
-				}
-				every_state = {
-					limit = { is_claimed_by = CAR }
-					remove_claim_by = CAR
-				}
-				country_event = sprc.326
+				SRR_civil_war_end_effect = yes
 			}
 		}
 		search_filters = { FOCUS_FILTER_ANNEXATION }
@@ -562,7 +555,10 @@ focus_tree = {
 
 		completion_reward = {
 			log = "[GetDateText]: [Root.GetName]: Focus CNT_industrial_focus"
-			add_ideas = CNT_industrial_focus
+			swap_ideas = {
+				remove_idea = SPR_no_food_mierda
+				add_idea = CNT_industrial_focus
+			}
 		}
 		search_filters = { FOCUS_FILTER_INDUSTRY }
 	}
@@ -793,7 +789,33 @@ focus_tree = {
 
 		completion_reward = {
 			log = "[GetDateText]: [Root.GetName]: Focus CNT_helping_hand_focus"
-			remove_ideas = SPR_black_monday
+			if = {
+				limit = {
+					has_idea = SPR_black_monday
+				}
+				remove_ideas = SPR_black_monday
+			}
+			else_if = {
+				limit = {
+					has_idea = SPR_black_monday_2
+				}
+				remove_ideas = SPR_black_monday_2
+			}
+			else_if = {
+				limit = {
+					has_idea = SPR_black_monday_3
+				}
+				remove_ideas = SPR_black_monday_3
+			}
+			else_if = {
+				limit = {
+					has_idea = SPR_black_monday_4
+				}
+				remove_ideas = SPR_black_monday_4
+			}
+			else = {
+				add_political_power = 100
+			}
 		}
 		search_filters = { FOCUS_FILTER_POLITICAL }
 	}
@@ -1490,6 +1512,12 @@ focus_tree = {
 				has_socialist_government = no
 			}
 		}
+		bypass = {
+			OR = {
+				has_country_flag = CNT_iberian_union
+				has_cosmetic_tag = CNT_IBERIA
+			}
+		}
 		prerequisite = { focus = CNT_foreign_focus }
 		relative_position_id = CNT_election_success
 		x = 13
@@ -1560,6 +1588,12 @@ focus_tree = {
 		prerequisite = {
 			focus = CNT_portugal
 		}
+		bypass = {
+			OR = {
+				has_country_flag = CNT_iberian_union
+				has_cosmetic_tag = CNT_IBERIA
+			}
+		}
 		available = {
 			is_subject = no
 			controls_state = 112 #Lisbon
@@ -1572,7 +1606,8 @@ focus_tree = {
 
 		completion_reward = {
 			log = "[GetDateText]: [Root.GetName]: Focus CNT_united_iberia"
-			set_cosmetic_tag = CNT_iberia
+			set_cosmetic_tag = CNT_IBERIA
+			set_country_flag = CNT_iberian_union
 			every_state = {
 				limit = { is_core_of = POR }
 				add_core_of = CNT
