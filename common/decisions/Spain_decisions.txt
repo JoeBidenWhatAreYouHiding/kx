@@ -3152,6 +3152,10 @@ SPR_civil_war_decisions = {
 				is_spanish_civil_war_tag = yes
 				is_ally_of_ROOT = no
 				NOT = { tag = ROOT }
+				OR = {
+					num_of_civilian_factories > 0
+					num_of_military_factories > 0
+				}
 			}
 		}
 		visible = {
@@ -3167,32 +3171,35 @@ SPR_civil_war_decisions = {
 				add_manpower = -500
 			}
 		}
+		cancel_if_not_visible = yes
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove SCW_attack_opposing_side_buildings"
 			FROM = {
-				random_owned_state = {
+				if = {
 					limit = {
-						arms_factory > 0
-						is_owned_by = FROM
+						num_of_civilian_factories > 0
 					}
-					random_list = {
-						33 = {
-							damage_building = {
-								type = arms_factory
-								damage = 0.5
-							}
+					random_owned_state = {
+						limit = {
+							industrial_complex > 0
 						}
-						33 = {
-							damage_building = {
-								type = arms_factory
-								damage = 0.75
-							}
+						damage_building = {
+							type = industrial_complex
+							damage = 0.8
 						}
-						33 = {
-							damage_building = {
-								type = arms_factory
-								damage = 1
-							}
+					}
+				}
+				if = {
+					limit = {
+						num_of_military_factories > 0
+					}
+					random_owned_state = {
+						limit = {
+							arms_factory > 0
+						}
+						damage_building = {
+							type = arms_factory
+							damage = 0.8
 						}
 					}
 				}
@@ -3207,6 +3214,7 @@ SPR_civil_war_decisions = {
 		fire_only_once = yes
 		priority = 15
 		cost = 10
+		days_remove = 7
 		available = {
 			surrender_progress > 0.35
 		}
@@ -3215,7 +3223,14 @@ SPR_civil_war_decisions = {
 			has_country_flag = SCW_can_ask_POR_to_join_flag
 			has_war = yes
 		}
+		cancel_if_not_visible = yes
 		complete_effect = {
+			every_other_country = {
+				limit = { is_spanish_civil_war_tag = yes }
+				country_event = sprc.20
+			}
+		}
+		remove_effect = {
 			POR = { country_event = sprc.14 }
 		}
 		ai_will_do = {
@@ -3270,6 +3285,7 @@ SPR_civil_war_decisions = {
 			is_spanish_civil_war_tag = yes
 			has_war = yes
 		}
+		cancel_if_not_visible = yes
 		complete_effect = {
 			add_timed_idea = {
 				idea = SPR_desperate_measures_idea
@@ -3324,11 +3340,26 @@ SCW_military_decisions = {
 		}
 		remove_effect = {
 			FROM = {
-				create_unit = {
-					division = "name = \"Milicia de Emergencia\" division_template = \"Milicia de Emergencia\" start_experience_factor = 0.1"
-					owner = ROOT
-					id = 15
-					count = 2
+				if = {
+					limit = {
+						ROOT = { NOT = { tag = RIF } }
+					}
+					create_unit = {
+						division = "name = \"Milicia de Emergencia\" division_template = \"Milicia de Emergencia\" start_experience_factor = 0.1"
+						owner = ROOT
+						id = 15
+						count = 2
+					}
+				}
+				else_if = {
+					limit = {
+						ROOT = { tag = RIF }
+					}
+					create_unit = {
+						division = "division_template = \"Regulares\" start_experience_factor = 0.4"
+						owner = RIF
+						count = 1
+					}
 				}
 			}
 		}
