@@ -891,36 +891,6 @@ SCW_prelude_setup = {
 				modifier = KR_hostile
 			}
 		}
-		for_each_scope_loop = {
-			array = ROOT.owned_controlled_states
-			if = {
-				limit = { arms_factory > 0 }
-				set_temp_variable = { ROOT.TempBuildingAmount = building_level@arms_factory }
-				remove_building = {
-					type = arms_factory
-					level = building_level@arms_factory
-				}
-			}
-		}
-		add_to_temp_variable = { SCW_TempBuildingAmount = ROOT.TempBuildingAmount }
-	}
-	divide_temp_variable = { SCW_TempBuildingAmount = 3 }
-	round_temp_variable = SCW_TempBuildingAmount
-	every_country = {
-		limit = {
-			is_spanish_civil_war_tag_regardless_of_war = yes
-		}
-		for_loop_effect = {
-			end = SCW_TempBuildingAmount
-			random_owned_controlled_state = {
-				add_extra_state_shared_building_slots = 1
-				add_building_construction = {
-					type = arms_factory
-					level = 1
-					instant_build = yes
-				}
-			}
-		}
 	}
 }
 SCW_CAR_prelude_setup = {
@@ -970,7 +940,10 @@ SCW_CAR_prelude_setup = {
 			limit = {
 				owns_state = 1344
 			}
-			set_capital = { state = 1344 }
+			set_capital = {
+				state = 1344
+				remember_old_capital = no
+			}
 		}
 		division_template = {
 			name = "Guardia Carlista"
@@ -1207,8 +1180,24 @@ SCW_CNT_prelude_setup = {
 			limit = {
 				owns_state = 165
 			}
-			set_capital = { state = 165 }
+			set_capital = {
+				state = 165
+				remember_old_capital = no
+			}
 		}
+		end_coalition = yes
+		if = {
+			limit = {
+				has_country_flag = popular_front_on_start_flag
+			}
+			add_soccon_to_coalition = yes
+			add_marlib_to_coalition = yes
+			add_soclib_to_coalition = yes
+			add_socdem_to_coalition = yes
+		}
+		add_radsoc_to_coalition = yes
+		add_synd_to_coalition = yes
+		add_tot_to_coalition = yes
 		division_template = {
 			name = "Milicia Popular Revolucionaria"
 			priority = 1
@@ -1256,11 +1245,12 @@ SCW_CNT_prelude_setup = {
 			}
 			army_experience = 50
 			every_unit_leader = {
-				limit = { has_id = 47590 }
-				set_nationality = CNT
-			}
-			every_unit_leader = {
-				limit = { has_id = 47591 }
+				limit = {
+					OR = {
+						has_id = 47590
+						has_id = 47591
+					}
+				}
 				set_nationality = CNT
 			}
 			add_opinion_modifier = {
@@ -1281,19 +1271,19 @@ SCW_CNT_prelude_setup = {
 	}
 }
 CNT_setup_effect = {
+	FRA = {
+		country_event = {
+			id = comfrance.22
+			days = 7
+		}
+		country_event = {
+			id = sprf.17
+			days = 14
+		}
+	}
 	CNT = {
 		country_event = { id = sprc.207 days = 7 }
 		country_event = { id = sprc.208 days = 15  }
-		FRA = {
-			country_event = {
-				id = comfrance.22
-				days = 7
-			}
-			country_event = {
-				id = sprf.17
-				days = 14
-			}
-		}
 		if = {
 			limit = {
 				has_country_flag = CNT_Add_Anarchy_Idea_On_Civil_War_Start
@@ -1301,19 +1291,6 @@ CNT_setup_effect = {
 			add_ideas = CNT_SCW_we_love_anarchy
 		}
 		set_cosmetic_tag = CNT_PROV_GOV
-		end_coalition = yes
-		if = {
-			limit = {
-				has_country_flag = popular_front_on_start_flag
-			}
-			add_soccon_to_coalition = yes
-			add_marlib_to_coalition = yes
-			add_soclib_to_coalition = yes
-			add_socdem_to_coalition = yes
-		}
-		add_radsoc_to_coalition = yes
-		add_synd_to_coalition = yes
-		add_tot_to_coalition = yes
 	}
 	SPR = {
 		add_popularity = {
@@ -1354,24 +1331,14 @@ SCW_start_effect = {
 	}
 	every_country = {
 		limit = {
-			is_spanish_civil_war_tag = yes
+			is_spanish_civil_war_tag_regardless_of_war = yes
 		}
 		set_stability = 0.25
 		set_war_support = 0.5
 		set_political_power = 0
 		country_lock_all_division_template = no
-		if = {
-			limit = {
-				has_idea = SPR_social_breakdown_civil_war_unavoidable
-			}
-			swap_ideas = {
-				remove_idea = SPR_social_breakdown_civil_war_unavoidable
-				add_idea = SPR_civil_war_idea
-			}
-		}
-		else = {
-			add_ideas = SPR_civil_war_idea
-		}
+		remove_ideas = SPR_social_breakdown_civil_war_unavoidable
+		add_ideas = SPR_civil_war_idea
 		add_ideas = {
 			SPR_black_monday_scw
 			extensive_conscription
@@ -1381,7 +1348,7 @@ SCW_start_effect = {
 	}
 	random_country = {
 		limit = {
-			is_spanish_civil_war_tag = yes
+			is_spanish_civil_war_tag_regardless_of_war = yes
 		}
 		unlock_national_focus = SCW_Joint_the_final_fall
 	}
@@ -1506,33 +1473,6 @@ SCW_start_effect = {
 					NOT = { is_core_of = CAR }
 				}
 				CAR = { add_state_claim = PREV }
-			}
-		}
-	}
-}
-SPR_civil_war_rif_garrison_spawn = {
-	every_owned_state = {
-		limit = {
-			is_core_of = MOR
-		}
-		transfer_state_to = RIF
-		add_core_of = RIF
-	}
-	hidden_effect = {
-		RIF = {
-			transfer_technology = yes
-			get_current_government_type = yes
-			set_politics = {
-				ruling_party = national_populist
-			}
-			set_cosmetic_tag = RIF_LEGION
-			add_ideas = {
-				RIF_legion_idea
-				RIF_kingdom_or_carlists
-			}
-			country_event = {
-				id = sprc.18
-				days = 3
 			}
 		}
 	}
@@ -1749,18 +1689,14 @@ SRR_civil_war_end_effect = {
 		limit = {
 			tag = CNT
 		}
-		if = {
+		every_unit_leader = {
 			limit = {
-				has_country_flag = CNT_French_Support
+				OR = {
+					has_id = 47590
+					has_id = 47591
+				}
 			}
-			every_unit_leader = {
-				limit = { has_id = 47590 }
-				set_nationality = FRA
-			}
-			every_unit_leader = {
-				limit = { has_id = 47591 }
-				set_nationality = FRA
-			}
+			set_nationality = FRA
 		}
 		drop_cosmetic_tag = yes
 		create_country_leader = {
@@ -1895,7 +1831,7 @@ SPR_switch_to_CNT_effect = { #For if the left wins the power struggle after stab
 			target = SPR
 			transfer_troops = yes
 		}
-		set_capital = { state = 41 }
+		set_capital = { state = 41 remember_old_capital = no }
 		set_cosmetic_tag = CNT_PROV_GOV
 		set_country_flag = CNT_coup_after_scw_avoided
 		set_popularities = {
@@ -1937,7 +1873,7 @@ SPR_switch_to_CAR_effect = { #For if the right wins the power struggle after sta
 			target = SPR
 			transfer_troops = yes
 		}
-		set_capital = { state = 41 }
+		set_capital = { state = 41 remember_old_capital = no }
 		set_cosmetic_tag = CAR_PROV_GOV
 		set_country_flag = CAR_coup_after_scw_avoided
 		set_popularities = {
@@ -1955,7 +1891,33 @@ SPR_switch_to_CAR_effect = { #For if the right wins the power struggle after sta
 		change_tag_from = SPR
 	}
 }
-
+SCW_rif_garrison_spawn = {
+	every_owned_state = {
+		limit = {
+			is_core_of = MOR
+		}
+		transfer_state_to = RIF
+		add_core_of = RIF
+	}
+	hidden_effect = {
+		RIF = {
+			transfer_technology = yes
+			get_current_government_type = yes
+			set_politics = {
+				ruling_party = national_populist
+			}
+			set_cosmetic_tag = RIF_LEGION
+			add_ideas = {
+				RIF_legion_idea
+				RIF_kingdom_or_carlists
+			}
+			country_event = {
+				id = sprc.18
+				days = 3
+			}
+		}
+	}
+}
 SPR_equatorial_guinea_stolen_effect = {
 	var:539.owner = {
 		add_to_temp_array = { temp_countries = THIS }
