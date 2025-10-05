@@ -1,0 +1,1549 @@
+foreign_support = {
+	ORE_deal_for_weapons = {
+		icon = generic_prepare_civil_war
+		allowed = { always = no }
+		visible = {
+			is_subject = no			
+			FROM = {
+				is_subject = no
+				if = {
+					limit = { tag = TRM }
+					has_dictatorship_government = yes
+				}
+			}
+			NOT = { 
+				has_war_with = FROM
+				is_embargoed_by = FROM
+				is_embargoing = FROM
+			}
+		}
+		cancel_if_not_visible = yes
+		
+		cost = 20		
+		fire_only_once = no
+		days_remove = 20
+		days_re_enable = 130
+		
+		ai_will_do = {
+			factor = 0
+			modifier = {
+				# avoid division by zero
+				check_variable = { num_target_equipment_in_armies@infantry_equipment > 0 }
+
+				set_temp_variable = { ORE_infantry_equipment_ratio = num_equipment_in_armies@infantry_equipment }
+				divide_temp_variable = { ORE_infantry_equipment_ratio = num_target_equipment_in_armies@infantry_equipment }
+
+				set_temp_variable = { ORE_purchase_infantry_equipment_factor = 1 }
+				subtract_from_temp_variable = { ORE_purchase_infantry_equipment_factor = ORE_infantry_equipment_ratio }
+				multiply_temp_variable = { ORE_purchase_infantry_equipment_factor = 20 }
+
+				add = ORE_purchase_infantry_equipment_factor
+			}			
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel ORE_deal_for_weapons"
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision ORE_deal_for_weapons"
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove ORE_deal_for_weapons"
+			add_equipment_to_stockpile = {
+				type = infantry_equipment_1
+				amount = 1000
+				producer = FROM
+			}
+		}
+	}
+}
+political_actions = {
+	ORE_restore_steppe_general_governorate = {
+		icon = GFX_decision_rus_flag
+		allowed = { always = no }
+		priority = 100
+		
+		available = {
+			at_peace_or_same_enemies_as_FROM = yes
+			OR = {
+				ALO = { 
+					is_subject_of = ROOT
+					has_civil_war = no
+				}
+				NOT = { country_exists = ALO }
+			}
+			NOT = {
+				country_exists = KAZ
+			}
+		}
+		
+		cost = 0
+		fire_only_once = yes
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision ORE_restore_steppe_general_governorate target: [From.GetName]"
+			set_cosmetic_tag = ORE_TRK
+			every_state = {
+				limit = { is_core_of = ALO }
+				add_core_of = ORE
+			}
+			if = {
+				limit = { country_exists = ALO }
+				annex_country = { target = ALO }
+			}
+		}
+	}
+	
+	ORE_join_french_faction = {
+		icon = generic_agreement
+		
+		available = {
+			at_peace_or_same_enemies_as_FROM = yes
+			owns_state = 195
+			OR = {
+                is_owner_neighbor_of = FROM
+                any_allied_country = {
+                    is_owner_neighbor_of = FROM
+                }
+            }
+		}
+		visible = {
+			russian_civil_war = no
+			FROM = {
+				is_faction_leader = yes
+				NOT = { is_in_faction_with = ROOT }
+				NFA_has_napoleon = no
+			}
+		}
+		
+		fire_only_once = yes
+		cost = 0
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision ORE_join_french_faction target: [From.GetName]"
+			FROM = { country_event = tram.1002 }
+		}
+	}
+	ORE_attack_country = {
+		name = RUS_Attack_Region
+		icon = hol_draw_up_staff_plans
+		allowed = { always = no }  #activated manually 
+		available = {
+			can_declare_war_on = FROM
+			OR = {
+				is_owner_neighbor_of = FROM
+				any_allied_country = { is_owner_neighbor_of = FROM }
+			}
+		}
+		visible = {
+			if = {
+				limit = { FROM = { tag = NFA } }
+				FROM = {
+					NFA_has_napoleon = yes
+				}
+			}
+		}
+
+		cost = 0
+		days_remove = 14
+		fire_only_once = yes
+		cancel_if_not_visible = yes
+		war_with_target_on_remove = yes
+
+		ai_will_do = {
+			factor = 100			
+			modifier = {
+				factor = 0
+				FROM = { default_attack_AI_trigger_FROM = yes }
+			}
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel ORE_attack_country target: [From.GetName]"
+			clear_decision_attack_AI = yes
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete ORE_attack_country target: [From.GetName]"
+			FROM = { incoming_war_notification_effect = yes }
+			setup_decision_attack_AI = yes
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove ORE_attack_country target: [From.GetName]"
+			clear_decision_attack_AI = yes
+			declare_war_on = {
+				target = FROM
+				type = annex_everything
+			}
+		}
+	}
+}
+ORE_managing_the_host = {
+#	ORE_exile_march = {
+#		icon = GFX_decision_generic_cavalry
+#		
+#		available = {
+#			has_war = yes
+#			surrender_progress > 0.20
+#		}
+#		visible = {
+#			NOT = { 
+#				owns_state = 195
+#				owns_state = 219
+#			}
+#		}
+#			
+#		fire_only_once = yes
+#		cost = 0
+#
+#		ai_will_do = {
+#			factor = 1000
+#		}
+#
+	#	complete_effect = {
+	#		log = "[GetDateText]: [Root.GetName]: Decision ORE_exile_march target: [From.GetName]"
+	#		determine_where_orenburg_cossacks_should_go = yes
+	#		effect_tooltip = {
+	#			every_unit_leader = {
+	#				limit = { RUS_is_cossack_leader = yes }
+	#				set_nationality = var:target
+	#			}
+	#			var:target = { country_event = orenburg.40 }
+	#		}
+	#		hidden_effect = {
+	#			var:target = {
+	#				country_event = {
+	#					id = orenburg.40
+	#					days = 14
+	#				}
+	#			}
+	#			every_unit_leader = {
+	#				limit = { RUS_is_cossack_leader = yes }
+	#				set_nationality = XXA
+	#			}
+	#		}			
+	#		ORE_disband_all_units = yes
+	#		force_capitulate = yes
+	#		
+	#	}
+	#}
+	ORE_join_russia = {
+		name = URL_join_russia
+		icon = generic_agreement
+		
+		available = {
+			at_peace_or_same_enemies_as_FROM = yes
+			russian_civil_war = no
+			OR = {
+                is_owner_neighbor_of = FROM
+                any_allied_country = {
+                    is_owner_neighbor_of = FROM
+                }
+            }
+			FROM = {
+				NOT = { has_country_flag = RUS_cossack_hosts_dissolved }
+			}
+		}
+		targets = { RUS RVA TRM UKR DKB MON }
+		target_root_trigger = {
+			OR = {
+				is_subject = no
+				is_subject_of = FROM
+			}
+			NOT = { tag = UCH }
+		}
+		target_trigger = {
+			FROM = {
+				if = {
+					limit = {
+						ROOT = { has_country_leader = { name = "Timofey Sedelnikov" ruling_only = yes } }				
+					}
+					OR = {
+						has_socialist_government = yes
+						has_government = social_democrat
+					}
+				}
+				else = {
+					has_socialist_government = no
+					NOT = { has_government = social_democrat }
+				}
+				if = {
+					limit = { 
+						NOT = {
+							tag = RUS
+							tag = TRM
+							tag = RVA
+						}
+					}
+					owns_state = 219
+				}
+			}
+		}
+		
+		days_remove = 14
+		fire_only_once = yes
+		cost = 0
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove ORE_join_russia target: [From.GetName]"
+			FROM = { country_event = url.14 }
+		}
+	}
+	ORE_ally_country = {
+		icon = generic_agreement
+		allowed = { always = no }
+		priority = 100
+		
+		available = {
+			NOT = { has_country_flag = ORE_seeking_alliance }			
+			at_peace_or_same_enemies_as_FROM = yes
+		}
+		
+		target_root_trigger = {
+			is_subject = no
+			is_in_faction = no			
+		}
+		target_trigger = {
+			OR = {
+				at_peace_or_same_enemies_as_FROM = yes
+				russian_civil_war = yes
+			}
+			if = {
+				limit = {
+					FROM = { tag = RVA }
+				}
+				FROM = { 
+					OR = {
+						RUS_kornilov_in_power = yes
+						RUS_denikin_in_power = yes
+					}
+					is_faction_leader = yes
+				}
+			}
+			else_if = {
+				limit = {
+					FROM = { tag = TRM }
+				}
+				FROM = { 
+					TRM_kolchak_in_power = yes
+					NOT = { has_country_leader_with_trait = TRM_shaky_rule }
+					is_subject = no
+				}
+			}
+			else_if = {
+				limit = {
+					FROM = { tag = RRF }
+				}
+				FROM = { 
+					NOT = { is_in_faction_with = RVA }
+				}
+			}
+		}
+
+		cost = 0
+		days_remove = 14
+		fire_only_once = yes
+
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				OR = {
+					AND = {
+						has_game_rule = { rule = ORE_foreign option = ORE_FOREIGN_RVA }
+						FROM = { 
+							NOT = { tag = RVA }
+						}
+					}
+					AND = {
+						has_game_rule = { rule = ORE_foreign option = ORE_FOREIGN_RRF }
+						FROM = { 
+							NOT = { tag = RRF }
+						}
+					}
+					AND = {
+						has_game_rule = { rule = ORE_foreign option = ORE_FOREIGN_TRM }
+						FROM = { 
+							NOT = { tag = TRM }
+						}
+					}
+				}
+			}
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel ORE_ally_country target: [From.GetName]"
+			clr_country_flag = ORE_seeking_alliance
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision ORE_ally_country target: [From.GetName]"
+			set_country_flag = { flag = ORE_seeking_alliance days = 15 value = 1 }
+			if = {
+				limit = { FROM = { tag = TRM }}
+				FROM = { country_event = orenburg.11 }
+				custom_effect_tooltip = if_FROM_agrees	
+				effect_tooltip = {
+					add_popularity = { ideology = radical_socialist popularity = -0.05 }
+					add_popularity = { ideology = social_democrat popularity = -0.05 }
+					add_political_power = 50
+					FROM = { 
+						give_guarantee = ROOT
+						give_military_access = ROOT
+					}
+					give_military_access = FROM
+					add_opinion_modifier = { target = FROM modifier = KR_close_allies }
+					reverse_add_opinion_modifier = { target = FROM modifier = KR_close_allies }
+				}
+				custom_effect_tooltip = ORE_declare_war_on_RUS_when_siberian_war
+			}
+			else_if = {
+				limit = { FROM = { tag = RVA }}
+				FROM = {
+					country_event = {
+						id = rcw.2520
+						days = 3
+					}
+				}
+				custom_effect_tooltip = if_FROM_agrees
+				effect_tooltip = {
+					add_popularity = { ideology = radical_socialist popularity = -0.05 }
+					add_popularity = { ideology = social_democrat popularity = -0.05 }
+					add_political_power = 50
+					FROM = {
+						every_owned_state = {
+							limit = { is_fully_controlled_by = ROOT }
+							transfer_state_to = ROOT
+						}
+						white_peace_with_ROOT = yes 
+					}
+					add_ideas = RCW_joint_front_idea
+					hidden_effect = { set_major = no }
+					FROM = { 
+						add_to_war = {
+							targeted_alliance = ROOT
+							enemy = RUS
+						}			
+						add_to_faction = ROOT 
+					}
+				}
+			}
+			else_if = {
+				limit = { FROM = { tag = RRF }}
+				FROM = {
+					country_event = {
+						id = rcw.2640
+						days = 3
+					}
+				}
+				custom_effect_tooltip = if_FROM_agrees
+				effect_tooltip = {
+					add_popularity = { ideology = national_populist popularity = 0.05 }
+					add_popularity = { ideology = social_democrat popularity = 0.05 }
+					add_political_power = 50
+					every_state = {
+						limit = { 
+							is_fully_controlled_by = FROM 
+							is_claim_or_core_of_ROOT = yes
+						}
+						transfer_state_to = ROOT
+					}
+					every_state = {
+						limit = { 
+							is_claim_or_core_of_ROOT = yes
+							is_claim_or_core_of_FROM = yes
+						}
+						remove_claim_by = FROM
+						set_variable = { ambition_area_@FROM = 0 }
+						set_variable = { ambition_area_@ROOT = 1 }
+					}
+					hidden_effect = { set_major = no }
+					get_current_government_type = yes
+					FROM = { 
+						white_peace_with_ROOT = yes
+						set_autonomy = {
+							target = FROM
+							autonomous_state = kr_cossack_host
+						}
+					}
+					restore_previous_government_type = yes 
+					if = {
+						limit = { has_government = authoritarian_democrat }
+						set_country_leader_ideology = authdem_savinkovism_subtype
+					}
+					else_if = {
+						limit = { has_government = paternal_autocrat }
+						set_country_leader_ideology = pataut_savinkovism_subtype
+					}
+					else_if = {
+						limit = { has_government = national_populist }
+						set_country_leader_ideology = savinkovism_subtype
+					}
+				}
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove ORE_ally_country target: [From.GetName]"
+			clr_country_flag = ORE_seeking_alliance
+		}
+	}
+	ORE_call_up_reserves = {
+		icon = GFX_decision_SWE_set_army_budget
+		visible = {
+			has_completed_focus = ORE_Mass_Mobilization
+		}
+		cancel_if_not_visible = yes
+		
+		custom_cost_text = CP_15
+		custom_cost_trigger = {
+			command_power > 14.99
+		}
+		
+		fire_only_once = no
+		days_remove = 20
+		days_re_enable = 130
+		
+		ai_will_do = {
+			base = 100
+			modifier = {
+				factor = 0
+				OR = {
+					has_war = no
+					has_manpower > 15000
+				}
+			}
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel ORE_call_up_reserves"
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision ORE_call_up_reserves"
+			hidden_effect = { add_command_power = -15 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove ORE_call_up_reserves"
+			add_manpower = 8000
+			add_popularity = { ideology = social_democrat popularity = 0.03 }
+		}
+	}
+	ORE_train_cossack_officers = {
+		icon = GFX_decision_generic_cavalry
+		visible = {
+			has_completed_focus = ORE_Develop_Orenburg_Junker_School
+		}
+		cancel_if_not_visible = yes
+		
+		modifier = {
+			experience_gain_army = 0.05
+			paternal_autocrat_drift = 0.08
+		}
+		
+		custom_cost_text = CP_15
+		custom_cost_trigger = {
+			command_power > 14.99
+		}
+		
+		fire_only_once = no
+		days_remove = 45
+		days_re_enable = 150
+		
+		ai_will_do = {
+			base = 100
+			modifier = {
+				factor = 0
+				NOT = {
+					check_variable = { ORE_burdened_by_the_steppe_training_time_army_factor > 0 }
+				}
+			}
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel ORE_train_cossack_officers"
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision ORE_train_cossack_officers"
+			hidden_effect = { add_command_power = -15 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove ORE_train_cossack_officers"
+			add_manpower = 300
+			random_country_division = {
+				limit = { division_has_battalion_in_template = irregular_cavalry }
+				add_divisional_commander_xp = 10
+			}
+			if = {
+				limit = { 
+					check_variable = { ORE_burdened_by_the_steppe_training_time_army_factor > 0 }
+				}
+				custom_effect_tooltip = ORE_modify_burdened_by_the_steppe
+				add_to_variable = {
+					ORE_burdened_by_the_steppe_training_time_army_factor = -0.01
+					tooltip = training_time_army_factor_tooltip
+				}
+			}
+		}
+	}
+	ORE_uprising_of_semirechye = {
+		icon = GFX_decision_generic_civil_support
+		allowed = { always = no }
+		available = {
+			1208 = { is_fully_controlled_by = ROOT }
+			has_war_with = 589.owner
+		}
+		
+		visible = {
+			is_subject = no
+		}
+		
+		cancel_if_not_visible = yes
+		
+		target_non_existing = yes
+		
+		ai_hint_pp_cost = 25
+		custom_cost_text = 500_infantry_equipment_1_pol_pow_25
+		custom_cost_trigger = {
+			has_equipment = { infantry_equipment > 499 }
+			has_political_power > 24.99
+		}
+		
+		fire_only_once = yes
+		days_remove = 14
+		
+		ai_will_do = {
+			base = 100
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel ORE_uprising_of_semirechye"
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision ORE_uprising_of_semirechye"
+			send_equipment = { target = SMR type = infantry_equipment amount = 500 }
+			hidden_effect = {
+				add_political_power = -25
+			}
+			SMR = {
+				become_exiled_in = {
+					target = ROOT
+				}
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove ORE_uprising_of_semirechye"
+			var:589.owner = { country_event = alash.591 }
+		}
+	}
+	ORE_recognize_government = {
+		icon = GFX_decision_eng_trade_unions_support
+		allowed = { always = no }
+		available = {
+			country_exists = FROM
+			FROM = { 
+				NOT = {
+					has_government = totalist
+					has_government = radical_socialist
+					has_war_with = ROOT
+				}
+				is_subject = no
+				is_in_faction = no
+			}
+		}
+		
+		visible = {
+			is_subject = no
+		}
+		
+		cancel_if_not_visible = yes
+		
+		fire_only_once = yes
+		days_remove = 7
+		
+		ai_will_do = {
+			base = 100
+			modifier = {
+				factor = 0
+				is_in_faction_with = RVA
+			}
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel ORE_recognize_government"
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision ORE_recognize_government"			
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove ORE_recognize_government"
+			FROM = { country_event = orenburg.8 }
+			custom_effect_tooltip = if_FROM_agrees
+			effect_tooltip = {
+				send_equipment = { target = FROM type = infantry_equipment amount = 1000 }
+				add_opinion_modifier = { target = FROM modifier = KR_trade_agreement }
+				reverse_add_opinion_modifier = { target = FROM modifier = KR_trade_agreement }
+				give_military_access = FROM
+				FROM = { give_military_access = ROOT }
+				diplomatic_relation = {
+					country = FROM
+					relation = non_aggression_pact
+					active = yes
+				}
+			}
+		}
+	}
+}
+ORE_the_cossack_circle = {
+	ORE_appeal_to_leader_for_support = {
+		icon = GFX_decision_generic_nationalism
+		
+		cancel_if_not_visible = yes
+		
+		cost = 50
+		
+		targets = { RVA TRM }
+		target_root_trigger = {			
+			has_country_leader = { name = "Aleksandr Dutov" ruling_only = yes }
+		}
+		target_trigger = {
+			OR = { 
+				is_in_faction_with = FROM 
+				is_guaranteed_by = FROM
+			}
+		}
+		
+		fire_only_once = no
+		days_remove = 20
+		days_re_enable = 150
+		
+		ai_will_do = {
+			base = 100
+			modifier = {
+				factor = 0
+				has_stability < 0.3
+			}
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel ORE_appeal_to_leader_for_support"
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision ORE_appeal_to_leader_for_support"
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove ORE_appeal_to_leader_for_support"
+			add_stability = -0.05
+			add_popularity = { ideology = paternal_autocrat popularity = 0.08 }
+		}
+	}
+	ORE_expand_the_atamans_guard = {
+		icon = GFX_decision_generic_military
+		
+		visible = { has_completed_focus = ORE_Consolidate_Power }
+		
+		cancel_if_not_visible = yes
+		
+		custom_cost_text = MP_100
+		custom_cost_trigger = { has_manpower > 99 }
+				
+		fire_only_once = yes
+		days_remove = 40
+		
+		ai_will_do = {
+			base = 100
+			modifier = {
+				factor = 0
+				OR = {
+					has_war = no
+					has_manpower < 5000
+				}
+			}
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel ORE_expand_the_atamans_guard"
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision ORE_expand_the_atamans_guard"
+			hidden_effect = { add_manpower = -100 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove ORE_expand_the_atamans_guard"
+			add_popularity = { ideology = paternal_autocrat popularity = 0.11 }
+		}
+	}
+	ORE_reinstall_small_circle = {
+		icon = GFX_decision_generic_political_discourse
+		
+		visible = { has_completed_focus = ORE_Veterans_Of_Turgai_March }
+		available = {
+			custom_trigger_tooltip = {
+				ORE_dutov_more_70 = yes
+				tooltip = ORE_dutov_more_70
+			}
+		}
+		
+		cancel_if_not_visible = yes
+		
+		cost = 100
+		
+		fire_only_once = yes
+		
+		ai_will_do = {
+			base = 100			
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel ORE_reinstall_small_circle"
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision ORE_reinstall_small_circle"
+			country_event = orenburg.26
+		}
+	}
+	ORE_crackdown_on_kdp = {
+		icon = GFX_decision_oppression
+		
+		available = {
+			custom_trigger_tooltip = {
+				ORE_dutov_more_80 = yes
+				tooltip = ORE_dutov_more_80
+			}
+		}
+		
+		visible = { has_completed_focus = ORE_Veterans_Of_Turgai_March }
+		cancel_if_not_visible = yes
+		
+		cost = 60
+		
+		fire_only_once = yes
+		
+		ai_will_do = {
+			base = 100			
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel ORE_crackdown_on_kdp"
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision ORE_crackdown_on_kdp"
+			#event
+			remove_ideas = ORE_influence_of_the_left
+		}
+	}
+}
+UCH_union_of_cossack_hosts_cat = {
+	UCH_show_member_approvals = {
+		priority = 101
+		visible = {
+			NOT = { has_country_flag = UCH_show_approvals }
+		}
+		cost = 0
+		days_re_enable = 30
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UCH_show_member_approvals target: [From.GetName]"
+			custom_effect_tooltip = UCH_show_approvals_tt
+			set_country_flag = { flag = UCH_show_approvals value = 1 days = 30 }
+		}
+	}
+	UCH_invite_country_to_union = {
+		icon = generic_agreement
+		priority = 100
+		
+		available = {
+			at_peace_or_same_enemies_as_FROM = yes
+		}
+		
+		fire_only_once = yes
+		targets = { DKB KUB KLY URL BRY TRB TRM SMR BKN TRK ORE }
+		target_root_trigger = {
+			is_subject = no
+			tag = UCH
+		}
+		target_trigger = {
+			FROM = { 
+				OR = {
+					is_subject = no
+					overlord = { has_idea = UCH_union_of_cossack_hosts }
+				}				
+				NOT = { has_completed_focus = KUB_Sign_The_Federative_Treaty }
+				OR = {
+					# Don
+					has_country_leader = { name = "Pyotr Krasnov" ruling_only = yes }
+					has_country_leader = { name = "Afrikan Bogaewsky" ruling_only = yes }
+					has_country_leader = { name = "Adrian Guselschikov" ruling_only = yes }
+					# Orenburg
+					has_country_leader = { name = "Aleksandr Dutov" ruling_only = yes }
+					has_country_leader = { name = "Timofey Sedelnikov" ruling_only = yes }
+					AND = {
+						TRK_tvo_in_power = yes 
+						TRK_osipov_in_power = no
+						has_completed_focus = TRK_Zaitsev_Autocratic_Consolidation
+					}
+					# Astrakhan
+					has_completed_focus = KLY_Ties_With_Cossacks
+					# Semirechye
+					has_country_leader = { name = "Aleksandr Ionov" ruling_only = yes }
+					# Uralsk
+					has_country_leader = { name = "Vladimir Tolstov" ruling_only = yes }
+					has_country_leader = { name = "Mikhail Borodin" ruling_only = yes }
+					# Kalmykia
+					has_cosmetic_tag = KLY_cossack
+					# Buryatia
+					has_idea = BRY_Buryat_Cossack_Host
+					# Far-Eastern (Transbaikal, Ussuri, Amur)
+					TRM_semyenov_in_power = yes
+					# Kuban
+					KUB_has_lineytsy = yes
+					KUB_has_chernomortsy = yes
+					# Bashkir
+					has_idea = BKN_Bashkir_Cossack_Host
+					# Ukraine
+					has_cosmetic_tag = UKR_cossack_state
+					has_cosmetic_tag = UKR_cossack_hetmanate
+				}
+			}
+		}
+
+		cost = 10
+		days_remove = 14
+		fire_only_once = yes
+
+		ai_will_do = {
+			factor = 1000
+			modifier = {
+				factor = 0
+				FROM = { is_ai = no }
+			}
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel UCH_invite_country_to_union target: [From.GetName]"
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UCH_invite_country_to_union target: [From.GetName]"
+			FROM = { 
+				country_event = {
+					id = uch.2
+					days = 3
+					random_days = 4
+				}
+			}
+			custom_effect_tooltip = if_FROM_agrees
+			effect_tooltip = { UCH_add_to_uch = yes }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UCH_invite_country_to_union target: [From.GetName]"
+		}
+	}
+	UCH_invite_ukrainian_free_cossacks = {
+		icon = GFX_decision_generic_cavalry
+		priority = 100
+		allowed = { always = no }
+		
+		available = {
+			at_peace_or_same_enemies_as_FROM = yes
+		}
+		visible = {
+			FROM = {
+				OR = {
+					is_subject = no
+					overlord = { has_idea = UCH_union_of_cossack_hosts }
+				}
+				OR = {
+					has_cosmetic_tag = UKR_cossack_state
+					has_cosmetic_tag = UKR_cossack_hetmanate
+					UKR_pavlo_skoropadsky_in_power = yes
+				}
+			}
+		}
+
+		cost = 10
+		days_remove = 14
+		fire_only_once = yes
+
+		ai_will_do = {
+			factor = 1000
+			modifier = {
+				factor = 0
+				FROM = { is_ai = no }
+			}
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel UCH_invite_ukrainian_free_cossacks target: [From.GetName]"
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UCH_invite_ukrainian_free_cossacks target: [From.GetName]"
+			FROM = { 
+				country_event = {
+					id = uch.2
+					days = 3
+					random_days = 4
+				}
+			}
+			custom_effect_tooltip = if_FROM_agrees
+			effect_tooltip = { UCH_add_to_uch = yes }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UCH_invite_ukrainian_free_cossacks target: [From.GetName]"
+		}
+	}
+	UCH_invite_country_to_faction = {
+		icon = GFX_decision_generic_prepare_civil_war
+		priority = 100
+		
+		available = {
+			at_peace_or_same_enemies_as_FROM = yes
+			OR = {
+				is_owner_neighbor_of = FROM
+				any_allied_country = {
+					is_owner_neighbor_of = FROM
+				}
+				any_enemy_country = {
+					is_owner_neighbor_of = FROM		
+				}
+				FROM = { 
+					any_allied_country = {
+						is_owner_neighbor_of = FROM
+					}
+				}
+			}
+		}
+		
+		fire_only_once = yes
+		targets = { DKB KUB KLY URL BRY TRB TRM SMR BKN TRK ORE UKR }
+		target_root_trigger = {
+			is_subject = no
+			is_faction_leader = yes
+			tag = UCH
+		}
+		target_trigger = {
+			FROM = { 
+				is_subject = no
+				has_idea = UCH_union_of_cossack_hosts
+				if = {
+					limit = { tag = UKR }
+					is_in_faction = no
+				}
+			}
+		}
+
+		cost = 10
+		days_remove = 14
+		fire_only_once = yes
+
+		ai_will_do = {
+			factor = 1000
+			modifier = {
+				factor = 0
+				FROM = { is_ai = no }
+			}
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel UCH_invite_country_to_faction target: [From.GetName]"
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UCH_invite_country_to_faction target: [From.GetName]"
+			FROM = { 
+				country_event = {
+					id = uch.21
+					days = 3
+					random_days = 4
+				}
+			}
+			custom_effect_tooltip = if_FROM_agrees
+			effect_tooltip = { add_to_faction = FROM }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UCH_invite_country_to_faction target: [From.GetName]"
+		}
+	}
+	UCH_increase_approval_FROM = {
+		icon = GFX_decision_generic_civil_support
+		priority = 100
+				
+		target_array = global.UCH_members
+		target_root_trigger = {
+			is_subject = no
+			tag = UCH
+		}
+		target_trigger = {
+			FROM = { has_idea = UCH_union_of_cossack_hosts }
+		}
+
+		cost = 45
+		days_remove = 30
+		days_re_enable = 90
+		
+		modifier = {
+			political_power_cost = 0.02
+		}
+	
+		ai_will_do = {
+			factor = 20
+			modifier = {
+				factor = 0
+				OR = {
+					check_variable = { UCH_increasing_opinion > 1 }
+					check_variable = { FROM.UCH_approval > 0.7 }
+				}
+			}
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel UCH_increase_approval_FROM target: [From.GetName]"
+			add_to_variable = { UCH_increasing_opinion = -1 }
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UCH_increase_approval_FROM target: [From.GetName]"
+			add_to_variable = { UCH_increasing_opinion = 1 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UCH_increase_approval_FROM target: [From.GetName]"
+			add_to_variable = { UCH_increasing_opinion = -1 }
+			FROM = {
+				set_temp_variable = { UCH_support_change = 0.10 }
+				UCH_change_support = yes
+			}
+		}
+	}
+	UCH_resist_UCH_influence = {
+		icon = GFX_decision_generic_civil_support
+		priority = 100
+				
+		target_array = global.UCH_members
+		target_root_trigger = {
+			is_subject = no
+			has_idea = UCH_union_of_cossack_hosts
+			NOT = { tag = UCH }
+		}
+		target_trigger = {
+			FROM = { tag = UCH }
+		}
+
+		cost = 45
+		days_remove = 30
+		days_re_enable = 90
+		
+		modifier = {
+			political_power_cost = 0.02
+		}
+	
+		ai_will_do = {
+			factor = 0
+			modifier = {
+				add = 5
+				original_tag = KUB
+			}
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel UCH_resist_UCH_influence target: [From.GetName]"
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UCH_resist_UCH_influence target: [From.GetName]"
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UCH_resist_UCH_influence target: [From.GetName]"
+			set_temp_variable = { UCH_support_change = -0.075 }
+			UCH_change_support = yes
+		}
+	}
+	UCH_integrate_cossack_host = {
+		icon = GFX_decision_oppression
+		priority = 100
+		
+		available = {
+			at_peace_or_same_enemies_as_FROM = yes
+			OR = {
+				is_owner_neighbor_of = FROM
+				any_allied_country = {
+					is_owner_neighbor_of = FROM
+				}
+				any_enemy_country = {
+					is_owner_neighbor_of = FROM		
+				}
+			}
+			UCH_can_integrate_cossack_host = yes
+		}
+		
+		fire_only_once = yes
+		target_array = faction_members
+		target_root_trigger = {
+			is_subject = no
+			is_faction_leader = yes
+			tag = UCH
+		}
+		target_trigger = {
+			FROM = { 
+				is_subject = no
+				has_idea = UCH_union_of_cossack_hosts
+				is_cossack_tag = yes
+			}
+		}
+
+		custom_cost_text = CP_10
+		custom_cost_trigger = { command_power > 9.99 }
+		days_remove = 14
+		fire_only_once = yes
+
+		ai_will_do = {
+			factor = 1000
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel UCH_integrate_cossack_host target: [From.GetName]"
+			hidden_effect = { add_command_power = 10 }
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UCH_integrate_cossack_host target: [From.GetName]"
+			hidden_effect = { add_command_power = -10 }
+			FROM = { 
+				country_event = {
+					id = uch.13
+					days = 3
+					random_days = 4
+				}
+			}
+			custom_effect_tooltip = if_FROM_agrees
+			effect_tooltip = { 
+				set_autonomy = {
+					target = FROM
+					autonomous_state = kr_cossack_host
+				}
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UCH_integrate_cossack_host target: [From.GetName]"
+		}
+	}
+	UCH_integrate_cossack_host_2 = {
+		allowed = { always = no }
+		icon = GFX_decision_infiltrate_state
+		priority = 100
+		
+		available = {
+			at_peace_or_same_enemies_as_FROM = yes
+			OR = {
+				is_owner_neighbor_of = FROM
+				any_allied_country = {
+					is_owner_neighbor_of = FROM
+				}
+			}
+		}
+		
+		fire_only_once = yes		
+
+		custom_cost_text = CP_35
+		custom_cost_trigger = { command_power > 34.99 }
+		days_remove = 14
+		fire_only_once = yes
+
+		ai_will_do = {
+			factor = 1000
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel UCH_integrate_cossack_host_2 target: [From.GetName]"
+			hidden_effect = { add_command_power = 35 }
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UCH_integrate_cossack_host_2 target: [From.GetName]"
+			hidden_effect = { add_command_power = -35 }
+			FROM = { 
+				country_event = {
+					id = uch.16
+					days = 3
+					random_days = 4
+				}
+			}
+			custom_effect_tooltip = if_FROM_agrees
+			effect_tooltip = { 
+				FROM = {
+					every_unit_leader = {
+						limit = {
+							OR = {
+								has_trait = cossack_leader
+								has_trait = RUS_orenburg_cossack
+								has_trait = RUS_ural_cossack
+								has_trait = RUS_semirechye_cossack
+								has_trait = RUS_don_cossack
+								has_trait = RUS_lineytsy_cossack
+								has_trait = RUS_kuban_cossack
+								has_trait = RUS_far_eastern_cossack
+								has_trait = RUS_astrakhan_cossack
+								has_trait = RUS_terek_cossack
+							}
+						}
+						set_unit_leader_flag = @FROM_original_leader
+						set_nationality = ROOT
+					}
+				}
+				annex_country = {
+					target = FROM
+					transfer_troops = yes
+				}
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UCH_integrate_cossack_host_2 target: [From.GetName]"
+		}
+	}
+	UCH_joint_weapon_research = {
+		icon = GFX_decision_SOV_academy_of_sciences
+		priority = 100
+		
+		available = {
+			if = {
+				limit = { original_tag = ORE }
+				has_completed_focus = ORE_The_Cossack_University
+			}
+			else = {
+				amount_research_slots > 3
+			}
+		}
+		
+		fire_only_once = yes
+		visible = {
+			tag = UCH
+			num_faction_members > 1
+		}
+
+		cost = 20
+		fire_only_once = yes
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel UCH_joint_weapon_research target: [From.GetName]"
+			hidden_effect = { add_political_power = 20 }
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UCH_joint_weapon_research target: [From.GetName]"
+			add_to_tech_sharing_group = uch_cossack_research
+		}
+	}
+	UCH_joint_weapon_research_member = {
+		name = UCH_joint_weapon_research
+		icon = generic_research
+		priority = 100
+				
+		fire_only_once = yes
+		visible = {
+			UCH = { is_in_tech_sharing_group = uch_cossack_research }
+			num_tech_sharing_groups < 1
+		}
+
+		cost = 0
+		fire_only_once = yes
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel UCH_joint_weapon_research_member target: [From.GetName]"
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UCH_joint_weapon_research_member target: [From.GetName]"
+			add_to_tech_sharing_group = uch_cossack_research
+			set_temp_variable = { UCH_support_change = 0.03 }
+			UCH_change_support = yes
+		}
+	}
+	UCH_mobilize_the_host = {
+		icon = GFX_decision_generic_cavalry
+		
+		available = {
+			has_war = yes
+		}
+		visible = {
+			has_global_flag = UCH_mobilize_the_hosts_decision_completed
+			is_subject = no
+			has_idea = UCH_union_of_cossack_hosts
+		}
+		
+		fire_only_once = yes
+		
+		cost = 50
+		days_remove = 30
+		fire_only_once = yes
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel UCH_mobilize_the_host target: [From.GetName]"
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UCH_mobilize_the_host target: [From.GetName]"
+			add_war_support = 0.1
+			add_timed_idea = {
+				idea = UCH_mobilized_host
+				days = 180
+			}
+			UCH_calculate_manpower_to_add = yes
+		}
+	}
+	UCH_claim_the_mace_of_all_russia = {
+		icon = GFX_decision_rus_flag
+		priority = 110
+		
+		available = {
+			OR = {
+				has_war_with = var:219.owner
+				var:219.owner = { has_country_flag = soviet_russia_restored }
+			}
+		}
+		visible = {
+			tag = UCH
+			is_subject = no
+			has_idea = UCH_union_of_cossack_hosts
+		}
+		
+		fire_only_once = yes
+		
+		cost = 50
+		fire_only_once = yes
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel UCH_claim_the_mace_of_all_russia target: [From.GetName]"
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UCH_claim_the_mace_of_all_russia target: [From.GetName]"
+			set_country_flag = RUS_can_integrate
+			for_each_scope_loop = {
+				array = RUS.RUS_starting_states_array
+				add_claim_by = ROOT
+			}
+			every_other_country = {
+				limit = { UCH_is_uch_member_tag = yes }
+				country_event = uch.10
+			}
+			every_other_country = {
+				limit = { is_russian_tag = yes }
+				country_event = uch.11
+			}
+			set_country_flag = UCH_can_attack_RUS
+			unlock_decision_tooltip = UCH_attack_russia
+		}
+	}
+	UCH_attack_russia = {
+		name = DKU_attack_russia
+		icon = hol_draw_up_staff_plans
+
+		available = {
+			is_subject = no
+			OR = {
+				is_owner_neighbor_of = FROM
+				any_allied_country = { is_owner_neighbor_of = FROM }
+			}
+		}
+		
+		visible = {
+			can_declare_war_on = FROM
+		}
+
+		targets = { RUS RVA RRF WRA TRM BKN TRM TRB }
+		target_root_trigger = {
+			has_country_flag = UCH_can_attack_RUS
+		}
+		target_trigger = {
+			can_declare_war_on = FROM			
+		}
+
+		cost = 10
+		days_remove = 14
+		fire_only_once = yes
+		war_with_target_on_remove = yes
+
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				FROM = { default_attack_AI_trigger_FROM = yes }
+			}
+			modifier = {
+				factor = 0
+				FROM = {
+					NOT = { tag = RUS }
+				}
+				country_exists = RUS
+			}
+			modifier = { # the best chance
+				add = 1000
+				russian_civil_war = yes
+			}
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision UCH_attack_russia target: [From.GetName]"
+			set_country_flag = { flag = imminent_war days = 20 value = 1 }
+			setup_decision_attack_AI = yes
+		}
+	
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove UCH_attack_russia target: [From.GetName]"
+			clear_decision_attack_AI = yes
+			declare_war_on = {
+				target = FROM
+				type = annex_everything
+			}
+			set_country_flag = UCH_has_attacked_@FROM
+		}
+	}
+	UCH_centrifugal_force = {
+		icon = GFX_decision_revolt
+		allowed = { always = no }
+		available = {
+			hidden_trigger = { always = no }
+		}
+		cancel_trigger = {
+			OR = {
+				is_subject = yes
+				is_faction_leader = no
+				NOT = { tag = UCH }
+				has_country_flag = UCH_A_Cossack_Led_Russia_completed
+			}
+		}
+		cancel_if_not_visible = yes
+		fire_only_once = yes
+		selectable_mission = no
+		is_good = no
+		days_mission_timeout = 90
+		
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel UCH_centrifugal_force"
+		}
+		timeout_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision timeout UCH_centrifugal_force"
+			every_other_country = {
+				limit = { UCH_is_uch_member_tag = yes }
+				set_temp_variable = { UCH_support_change = -0.05 }
+				UCH_change_support = yes
+			}
+			activate_mission = UCH_centrifugal_force
+		}
+	}
+}
