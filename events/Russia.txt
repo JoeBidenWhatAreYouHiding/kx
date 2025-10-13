@@ -5269,6 +5269,12 @@ country_event = { #Kornilov coup
 	picture = GFX_report_event_RUS_strike
 	fire_only_once = yes
 	is_triggered_only = yes
+	trigger = {
+		NOT = {
+			has_idea = RUS_general_strike
+			has_idea = RUS_general_strike_big
+		}
+	}
 	
 	option = {
 		name = rusd.8.a
@@ -5739,7 +5745,12 @@ country_event = { #General strike
 	desc = rusd.13.d
 
 	is_triggered_only = yes
-	fire_only_once = yes
+	trigger = {
+		NOT = {
+			has_idea = RUS_general_strike_big
+			has_country_flag = RUS_had_general_strike_big
+		}
+	}
 
 	option = {
 		name = rusd.13.a
@@ -69839,7 +69850,8 @@ country_event = { #Kornilov coup
 		add_to_variable = { RUS_infiltrate_revolutionary_cells_days_remove = -10 }
 	}
 	option = {
-		name = rusd.3010.c		
+		name = rusd.3010.c	
+		add_stability = 0.05
 	}
 }
 country_event = { #Kornilov coup
@@ -69992,8 +70004,25 @@ country_event = { #Kornilov coup
 		RUS_increase_psr_pop_small = yes
 		RUS_increase_rsdrp_pop_small = yes
 		RUS_decrease_rovs_pop_large = yes
+		set_temp_variable = { RUS_rev_ferment_change = 15 }
+		RUS_change_rev_ferment = yes
+		activate_targeted_decision = { target = ROOT decision = RUS_anti_socialist_legislation_rsdrp }
+		activate_targeted_decision = { target = ROOT decision = RUS_anti_socialist_legislation_psr }
+	}
+	option = {
+		name = rusd.3016.b
+		RUS_increase_rsdrp_pop = yes
+		RUS_decrease_rovs_pop_large = yes
 		set_temp_variable = { RUS_rev_ferment_change = 10 }
 		RUS_change_rev_ferment = yes
+		activate_targeted_decision = { target = ROOT decision = RUS_anti_socialist_legislation_rsdrp }
+	}
+	option = {
+		name = rusd.3016.c
+		RUS_increase_rovs_pop_small = yes
+		set_temp_variable = { RUS_vvsr_rovs_unity_change = -0.10 }
+		RUS_change_rovs_unity = yes
+		
 	}
 }
 country_event = { #Kornilov coup
@@ -70008,9 +70037,15 @@ country_event = { #Kornilov coup
 	
 	option = {
 		name = rusd.3017.a		
-		add_political_power = 15
+		add_political_power = -15
 		add_ideas = RUS_rovs_inner_line
 		set_temp_variable = { RUS_rev_ferment_change = -5 }
+		RUS_change_rev_ferment = yes
+	}
+	option = {
+		name = rusd.3017.b		
+		add_political_power = 15
+		set_temp_variable = { RUS_rev_ferment_change = 5 }
 		RUS_change_rev_ferment = yes
 	}
 }
@@ -71011,6 +71046,7 @@ country_event = { #Kornilov coup
 			add_unit_leader_trait = politically_connected
 		}	
 		hidden_effect = {
+			activate_targeted_decision = { target = ROOT decision = RUS_inner_line }
 			country_event = {
 				id = rusd.3018
 				days = 25
@@ -71768,7 +71804,7 @@ country_event = { #Kornilov coup
 	
 	option = {
 		name = rusd.3104.a
-		set_temp_variable = { RUS_rev_ferment_change = 2 }
+		set_temp_variable = { RUS_rev_ferment_change = 3 }
 		RUS_change_rev_ferment = yes
 		RUS_increase_plsr_pop = yes
 		RUS_increase_nsp_pop_small = yes
@@ -72215,7 +72251,10 @@ country_event = { #Kornilov coup
 		activate_targeted_decision = { target = ROOT decision = RUS_arrest_lozovsky }
 		if = {
 			limit = {
-				NOT = { has_idea = RUS_general_strike_big }
+				NOT = {
+					has_idea = RUS_general_strike_big
+					has_country_flag = RUS_had_general_strike_big
+				}
 			}
 			country_event = {
 				id = rusd.13
@@ -72560,7 +72599,7 @@ country_event = { #Kornilov coup
 	}
 	option = {
 		name = rusd.3122.b
-		set_temp_variable = { RUS_rev_ferment_change = -1 }
+		set_temp_variable = { RUS_rev_ferment_change = -2 }
 		RUS_change_rev_ferment = yes
 	}
 	option = {
@@ -73490,17 +73529,55 @@ country_event = {
 		RUS_remove_democratic_opposition = yes
 		clr_country_flag = RUS_duma_dissolved		
 		set_country_flag = RUS_early_elections
-		custom_effect_tooltip = elections_in_three_months
 		RUS_setup_acting_president_senate = yes
-		random_unit_leader = {
-			limit = { has_id = 401 }
-			remove_unit_leader_trait = politically_connected
+		if = {
+			limit = { has_country_flag = RUS_vvsr_presidency }
+			custom_effect_tooltip = elections_in_six_months
+			hidden_effect = {			
+				RUS_clear_all_preelection_coalitions = yes
+				RUS_calculate_polling_averages = yes
+				activate_mission = RUS_early_elections_mission
+				set_country_flag = RUS_president_elections_campaign
+				RUS_calculate_polling_presidential_averages = yes
+				country_event = { #rsdrp primaries
+					id = rusdem.53
+					days = 7
+				}
+				country_event = { #psr primaries
+					id = rusdem.54
+					days = 10
+				}
+				country_event = { #kdp primaries
+					id = rusdem.55
+					days = 14
+				}
+				country_event = { #vns primaries
+					id = rusdem.56
+					days = 17
+				}
+				country_event = { #nsnp primaries
+					id = rusdem.58
+					days = 20
+				}
+				country_event = {
+					id = rusdem.50
+					days = 120
+				}
+			}
 		}
-		hidden_effect = {			
-			RUS_clear_all_preelection_coalitions = yes
-			RUS_calculate_polling_averages = yes
-			activate_mission = RUS_early_elections_mission
-			country_event = rusdem.62
+		else = {
+			custom_effect_tooltip = elections_in_three_months
+			RUS_setup_acting_president_senate = yes
+			random_unit_leader = {
+				limit = { has_id = 401 }
+				remove_unit_leader_trait = politically_connected
+			}
+			hidden_effect = {			
+				RUS_clear_all_preelection_coalitions = yes
+				RUS_calculate_polling_averages = yes
+				activate_mission = RUS_early_elections_mission
+				country_event = rusdem.62
+			}
 		}
 	}
 } 
