@@ -2898,8 +2898,101 @@ RUS_Alliance_decisions = {
 			}
 		}
 	}
+	### Economic Sphere ###
+	RUS_form_rostorg = {
+		visible = {
+			is_faction_leader = yes
+			OR = {
+				has_completed_focus = RUS_Expansionism
+				has_completed_focus = RUS_Realpolitik
+			}
+			is_member_of_economic_sphere = no
+			NOT = { has_country_flag = soviet_russia_restored }
+		}
+		available = {
+			has_war = no
+		}
+		
+		fire_only_once = yes
+		days_remove = 15
+		ai_will_do = {
+			factor = 100
+		}
+		cost = 15
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision RUS_form_rostorg target: [From.GetName]"
+			add_to_array = { RUS.RUS_rostorg_members = THIS }
+			if = {
+				limit = { has_completed_focus = RUS_Realpolitik }
+				add_ideas = RUS_moscow_accord_leader_realpolitik
+			}
+			else = {
+				add_ideas = RUS_moscow_accord_leader_expansionist
+			}
+		}
+	}
 	
-	
+	RUS_invite_to_rostorg = {
+		icon = eng_trade_unions_support
+		
+		ai_will_do = {
+			factor = 100
+		}
+		
+		available = {
+			FROM = { at_peace_or_same_enemies_as_ROOT = yes }
+		}
+		cancel_if_not_visible = yes
+		
+		target_array = faction_members
+		target_root_trigger = { 
+			is_faction_leader = yes 
+			russian_civil_war = no
+			OR = {
+				has_idea = RUS_moscow_accord_leader_expansionist
+				has_idea = RUS_moscow_accord_leader_realpolitik
+			}
+			NOT = { has_country_flag = soviet_russia_restored }
+		}
+		target_trigger = {
+			FROM = { 
+				is_in_faction_with = ROOT 
+				NOT = {
+					has_idea = RUS_moscow_accord_member_expansionist
+					has_idea = RUS_moscow_accord_member_realpolitik
+				}
+			}
+		}
+
+		cost = 0
+		days_remove = 7
+		fire_only_once = yes
+		
+		ai_will_do = {
+			factor = 100
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel RUS_invite_to_rostorg target: [From.GetName]"
+			
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete RUS_invite_to_rostorg target: [From.GetName]"
+			FROM = {
+				country_event = {
+					id = rusfor.7
+					days = 2
+					random = 72
+				}
+			}
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_invite_to_rostorg target: [From.GetName]"
+		}		
+	}
 }
 RUS_Foreign_Policy_decisions = {
 	### Missions ###
@@ -3340,6 +3433,14 @@ RUS_Foreign_Policy_decisions = {
 					has_non_aggression_pact_with = TUR
 				}
 			}
+			else_if = {
+				limit = {
+					FROM = { tag = GEO }
+				}
+				FROM = {
+					NOT = { is_ally_with = GER }
+				}
+			}
 		}
 		cancel_trigger = {
 			OR = {
@@ -3409,16 +3510,16 @@ RUS_Foreign_Policy_decisions = {
 			log = "[GetDateText]: [Root.GetName]: Decision RUS_Attack_Caucasus target: [From.GetName]"
 			set_country_flag = { flag = imminent_war days = 20 value = 1 }
 			setup_decision_attack_AI = yes
+			#if = {
+			#	limit = {
+			#		FROM = { tag = AZE }
+			#	}
+			#	country_event = {
+			#		id = rusfor.1020
+			#		days = 1
+			#	}
+			#}
 			if = {
-				limit = {
-					FROM = { tag = AZE }
-				}
-				country_event = {
-					id = rusfor.1020
-					days = 1
-				}
-			}
-			else_if = {
 				limit = {
 					FROM = { tag = GEO }
 				}
@@ -3461,6 +3562,20 @@ RUS_Foreign_Policy_decisions = {
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_Attack_Caucasus target: [From.GetName]"
 			clear_decision_attack_AI = yes
+			if = {
+				limit = {
+					FROM = { 
+						OR = {
+							tag = ABK 
+							tag = AZE 
+						}
+					}
+				}
+				declare_war_on = {
+					target = FROM
+					type = annex_everything
+				}
+			}
 		}
 		cancel_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision cancel RUS_Attack_Caucasus target: [From.GetName]"
@@ -3685,6 +3800,16 @@ RUS_Foreign_Policy_decisions = {
 				custom_effect_tooltip = if_FROM_agrees
 				effect_tooltip = { puppet = FROM }
 			}
+			hidden_effect = {
+				if = {
+					limit = { FROM = { original_tag = ALO } }
+					remove_targeted_decision = { target = ALO decision = RUS_reinstate_control_over_alash_autonomy }
+				}
+				if = {
+					limit = { FROM = { original_tag = TRK } }
+					remove_targeted_decision = { target = TRK decision = RUS_reinstate_control_over_turkestan_autonomy }
+				}
+			}
 		}
 
 		remove_effect = {
@@ -3736,7 +3861,7 @@ RUS_Foreign_Policy_decisions = {
 			if = {
 				limit = { FROM = { tag = UKR } }
 				NOT = { has_global_flag = UKR_secret_collusion_with_russia }		
-			}			
+			}		
 			if = {
 				limit = { FROM = { tag = KAR } }
 				KAR = {
@@ -3783,7 +3908,7 @@ RUS_Foreign_Policy_decisions = {
 
 		cost = 10
 		days_remove = 30
-		fire_only_once = no
+		fire_only_once = yes
 		war_with_target_on_remove = yes
 
 		ai_will_do = {
@@ -3820,6 +3945,12 @@ RUS_Foreign_Policy_decisions = {
 				factor = 0
 				NOT = { FROM = { is_in_faction_with = GER } }
 				RUS_dont_attack_if_vulnerable_or_preparing = yes
+			}
+			# to prevent Kerch stalemate
+			modifier = {
+				factor = 0
+				FROM = { tag = CRM }
+				202 = { is_owned_by_ROOT_or_ally = no }
 			}
 			modifier = {
 				factor = 0
@@ -4863,7 +4994,7 @@ RUS_Foreign_Policy_decisions = {
 				}
 			}
 			custom_effect_tooltip = if_they_refuse_tt
-			create_wargoal = {
+			declare_war_on = {
 				target = FROM
 				type = take_state_focus
 				generator = { 230 1213 1000 }
@@ -4973,7 +5104,6 @@ RUS_Foreign_Policy_decisions = {
 		cancel_trigger = {
 			OR = {
 				NOT = { can_declare_war_on = FROM }
-				NOT = { 229 = { is_owned_by = FROM } } #Azerbaijan
 				has_non_aggression_pact_with = FROM
 				if = {
 					limit = { has_global_flag = RUSSIAN_OTTOMAN_DEAL_PER_BUFFER }
@@ -4990,14 +5120,11 @@ RUS_Foreign_Policy_decisions = {
 			OR = {
 				has_completed_focus = RUS_Demand_North_Iran
 				has_completed_focus = RUS_KER_Demand_North_Iran
-				FROM = { any_owned_state = { is_core_of = KHI } }
-				FROM = { any_owned_state = { is_core_of = AZE } }
 			}
 			NOT = { has_country_flag = RUS_will_attack_persia }
 		}
 		target_trigger = {
 			can_declare_war_on = FROM
-			FROM = { owns_state = 229 } #Azerbaijan
 		}
 
 		cost = 10
@@ -5027,19 +5154,7 @@ RUS_Foreign_Policy_decisions = {
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision complete RUS_Ultimatum_To_Persia target: [From.GetName]"
 			setup_decision_attack_AI = yes
-			if = {
-				limit = {
-					FROM = { is_subject = yes }
-				}
-				var:FROM.overlord = {
-					country_event = { id = rusfor.1066 days = 2 random_days = 2 } #warning event
-				}
-			}
-			else = {
-				FROM = {
-					country_event = { id = rusfor.1066 days = 2 random_days = 2 } #warning event
-				}
-			}
+			country_event = { id = rusfor.1065 days = 2 }
 		}
 
 		remove_effect = {
@@ -5295,6 +5410,7 @@ RUS_Foreign_Policy_decisions = {
 					activate_targeted_decision = { target = MAD decision = RUS_Intervene_In_India_PRF }
 					activate_targeted_decision = { target = TRV decision = RUS_Intervene_In_India_PRF }
 					activate_targeted_decision = { target = MYS decision = RUS_Intervene_In_India_PRF }
+					set_country_flag = BHC_owes_favor
 				}
 				else_if = {
 					limit = { 
@@ -5305,6 +5421,7 @@ RUS_Foreign_Policy_decisions = {
 					activate_targeted_decision = { target = MAD decision = RUS_Intervene_In_India_PRF }
 					activate_targeted_decision = { target = TRV decision = RUS_Intervene_In_India_PRF }
 					activate_targeted_decision = { target = MYS decision = RUS_Intervene_In_India_PRF }
+					set_country_flag = DEH_owes_favor
 				}
 				else_if = {
 					limit = { 
@@ -5315,6 +5432,7 @@ RUS_Foreign_Policy_decisions = {
 					activate_targeted_decision = { target = MAD decision = RUS_Intervene_In_India_PRF }
 					activate_targeted_decision = { target = TRV decision = RUS_Intervene_In_India_PRF }
 					activate_targeted_decision = { target = MYS decision = RUS_Intervene_In_India_PRF }
+					set_country_flag = PRF_owes_favor
 				}
 			}
 		}
@@ -5397,6 +5515,14 @@ RUS_Foreign_Policy_decisions = {
 			declare_war_on = {
 				target = FROM
 				type = annex_everything
+			}
+			hidden_effect = {
+				every_country = {
+					limit = { 
+						has_idea = IND_divided_india
+					}
+					remove_ideas = IND_divided_india
+				}
 			}
 		}
 	}
@@ -6221,8 +6347,7 @@ RUS_Integration_decisions = {
 				NOT = { has_autonomy_state = kr_autonomous_soviet_republic }
 				NOT = { has_autonomy_state = kr_labour_commune }
 				NOT = { has_autonomy_state = kr_soviet_republic_not_equal }
-				NOT = { has_autonomy_state = kr_soviet_republic_equal }			
-				NOT = { has_autonomy_state = autonomous_territory }			
+				NOT = { has_autonomy_state = kr_soviet_republic_equal }
 			}
 		}
 
@@ -8138,13 +8263,17 @@ RUS_Separate_Peace = {
 				OR = {
 					has_country_flag = soviet_russia_restored
 					has_government = national_populist
+					has_game_rule = { rule = RUS_treaty_danzig option = RUS_TREATY_DANZIG_DISABLED }
 				}
 			}
 			modifier = {
 				add = 2000
-				SOV_hardliners_in_power = yes
-				INT = {
-					has_communist_government = no
+				OR = {
+					AND = {
+						SOV_hardliners_in_power = yes
+						INT = { has_communist_government = no }
+					}
+					has_game_rule = { rule = RUS_treaty_danzig option = RUS_TREATY_DANZIG_GUARANTEED }
 				}
 			}
 		}
@@ -8599,6 +8728,17 @@ russian_debug_decisions = {
 		fire_only_once = no
 		cost = 0
 		complete_effect = {
+			clr_country_flag = make_absolute_monarchy_tree_visible
+			clr_country_flag = make_kerensky_tree_visible	
+			clr_country_flag = make_russia_rsdrp_democratic_tree_visible
+			clr_country_flag = make_russian_junta_tree_visible	
+			clr_country_flag = make_savinkov_tree_visible	
+			clr_country_flag = make_savinkov_successors_tree_visible	
+			clr_country_flag = make_russia_plsr_nsp_democratic_tree_visible
+			clr_country_flag = make_russia_psr_democratic_tree_visible
+			clr_country_flag = make_russia_liberal_conservative_democratic_tree_visible
+			clr_country_flag = make_russia_nrpr_democratic_tree_visible
+			clr_country_flag = make_russia_nsnp_democratic_tree_visible
 			load_focus_tree = RUS_EURASIAN_UNION_FOCUS
 		}
 	}
@@ -8611,6 +8751,17 @@ russian_debug_decisions = {
 		fire_only_once = no
 		cost = 0
 		complete_effect = {
+			clr_country_flag = make_absolute_monarchy_tree_visible
+			clr_country_flag = make_kerensky_tree_visible	
+			clr_country_flag = make_russia_rsdrp_democratic_tree_visible
+			clr_country_flag = make_russian_junta_tree_visible	
+			clr_country_flag = make_savinkov_tree_visible	
+			clr_country_flag = make_savinkov_successors_tree_visible	
+			clr_country_flag = make_russia_plsr_nsp_democratic_tree_visible
+			clr_country_flag = make_russia_psr_democratic_tree_visible
+			clr_country_flag = make_russia_liberal_conservative_democratic_tree_visible
+			clr_country_flag = make_russia_nrpr_democratic_tree_visible
+			clr_country_flag = make_russia_nsnp_democratic_tree_visible
 			load_focus_tree = RUS_LEFT_EURASIAN_UNION_FOCUS
 		}
 	}
@@ -8623,6 +8774,17 @@ russian_debug_decisions = {
 		fire_only_once = no
 		cost = 0
 		complete_effect = {
+			clr_country_flag = make_absolute_monarchy_tree_visible
+			clr_country_flag = make_kerensky_tree_visible	
+			clr_country_flag = make_russia_rsdrp_democratic_tree_visible
+			clr_country_flag = make_russian_junta_tree_visible	
+			clr_country_flag = make_savinkov_tree_visible	
+			clr_country_flag = make_savinkov_successors_tree_visible	
+			clr_country_flag = make_russia_plsr_nsp_democratic_tree_visible
+			clr_country_flag = make_russia_psr_democratic_tree_visible
+			clr_country_flag = make_russia_liberal_conservative_democratic_tree_visible
+			clr_country_flag = make_russia_nrpr_democratic_tree_visible
+			clr_country_flag = make_russia_nsnp_democratic_tree_visible
 			load_focus_tree = Russia_Socialist
 		}
 	}
@@ -8809,6 +8971,10 @@ RUS_Siberian_War = {
 		}
 		available = {
 			date > 1937.1.1
+			TRM = { 
+				has_war = no 
+				is_subject = no
+			}
 		}		
 		visible = {
 			OR = {
@@ -9474,6 +9640,10 @@ RUS_Siberian_War = {
 				limit = { 
 					check_variable = { global.siberian_war_chance < 0.01 } 
 					has_war_with = RUS
+					if = {
+						limit = { JAP = { is_ai = no } }
+						JAP = { NOT = { has_war_with = RUS } }
+					}
 				}
 				country_event = tram.501
 			}
@@ -9879,8 +10049,8 @@ RUS_Siberian_War = {
 		}
 		available = {
 			OR = {
-				is_owner_neighbor_of = FROM
-				any_allied_country = { is_owner_neighbor_of = FROM }
+				is_owner_neighbor_of = RUS
+				any_allied_country = { is_owner_neighbor_of = RUS }
 			}
 			if = {
 				limit = { 
@@ -10176,7 +10346,6 @@ RUS_integration_of_turkestan_cat = {
 		icon = GFX_decision_revolt
 
 		available = {
-			has_war_with = 407.owner
 			OR = {
 				589 = { is_controlled_by_ROOT_or_ally = yes }
 				1203 = { is_controlled_by_ROOT_or_ally = yes }
@@ -10190,6 +10359,15 @@ RUS_integration_of_turkestan_cat = {
 		}
 		cancel_trigger = { 
 			FROM = { has_capitulated = yes }
+		}
+		
+		targets = { 407.OWNER }
+		target_root_trigger = { has_war_with = 407.owner }
+		target_trigger = {
+			FROM = { 
+				TRK_has_tvo_influence = yes 
+				TRK_tvo_in_power = no
+			}
 		}
 		
 		custom_cost_text = CP_15
@@ -10270,7 +10448,7 @@ RUS_integration_of_turkestan_cat = {
 				create_unit = {
 					division = "division_template = \"TVO Detachment\" start_experience_factor = 0.8 start_equipment_factor = 1"
 					allow_spawning_on_enemy_provs = yes
-					owner = FROM
+					owner = ROOT
 					prioritize_location = 10187
 					count = 1
 				}
@@ -10288,7 +10466,7 @@ RUS_integration_of_turkestan_cat = {
 					create_unit = {
 						division = "division_template = \"TVO Detachment\" start_experience_factor = 0.2 start_equipment_factor = 1"
 						allow_spawning_on_enemy_provs = yes
-						owner = FROM
+						owner = ROOT
 						prioritize_location = 10601
 						count = 1
 					}
@@ -10302,16 +10480,20 @@ RUS_integration_of_turkestan_cat = {
 		available = {
 			has_war_with = 405.owner
 		}
-		visible = {
+		cancel_trigger = { 
+			FROM = { has_capitulated = yes }
+		}
+		targets = { 405.OWNER }
+		target_root_trigger = { 
+			has_war_with = 405.owner
+			has_socialist_government = no
+			NOT = { has_government = social_democrat }
+		}
+		target_trigger = {
 			FROM = { 
 				UZB_russian_control_low_enough = no 
 				UZB_has_russian_resident = yes
 			}
-			has_socialist_government = no
-			NOT = { has_government = social_democrat }
-		}
-		cancel_trigger = { 
-			FROM = { has_capitulated = yes }
 		}
 		
 		custom_cost_text = CP_15
