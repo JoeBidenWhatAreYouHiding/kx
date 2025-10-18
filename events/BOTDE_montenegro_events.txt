@@ -1280,7 +1280,6 @@ country_event = { #Klubasi representatives demand immediate union with Serbia
 				days = 3
 			}
 		}
-		
 	}
 	
 	option = { #Absolutely not! Suspend their activities.
@@ -1315,7 +1314,7 @@ country_event = { #Krsto Popovic Requests Increased Authority
 		ai_chance = { factor = 10 }
 		set_country_flag = MNT_pravasi
 		hidden_effect = {
-			country_event ={
+			country_event = {
 				id = mnt.33
 				days = 10
 				random = 2000
@@ -2763,8 +2762,9 @@ country_event = { #Montenegro Apologizes
 
 country_event = { #Montenegro Requests Annexation
 	id = mntfor.17
+	immediate = { log = "[GetDateText]: [Root.GetName]: event mntfor.17" }
 	title = mntfor.17.t
-	desc = mntfor.17.d
+	desc = mntfor.17.desc
 	
 	picture = GFX_report_event_generic_conference4
 
@@ -2774,33 +2774,164 @@ country_event = { #Montenegro Requests Annexation
 
 	option = { #YES
 		name = mntfor.17.a
-		ai_chance = { factor = 49 }
-		annex_country = {
-			target = MNT
-			transfer_troops = yes
-		}
-		every_state = {
-			limit = {
-				is_core_of = MNT
+		ai_chance = {
+			base = 100
+			modifier = {
+				tag = AUS
+				factor = 0.5
 			}
-			add_core_of = ROOT
+		}
+		if = {
+			limit = {
+				tag = AUS
+				is_in_faction_with = CRO
+			}
+			CRO_add_three_collapse = yes
+			AUS_raise_serbians = yes
+			CRO = {
+				annex_country = {
+					target = MNT
+					transfer_troops = yes
+				}
+				hidden_effect = {
+					every_unit_leader = {
+						set_nationality = CRO
+					}
+					every_scientist = {
+						set_nationality = CRO
+					}
+					every_state = {
+						limit = {
+							is_core_of = MNT
+						}
+						add_core_of = CRO
+					}
+				}
+			}
+			MNT = {
+				custom_override_tooltip = {
+					tooltip = is_now_a_minority_tt
+					set_global_flag = MNT_on_array
+					set_country_flag = CONST_minor
+					set_variable = { AUS_subject_status = 0 }
+					set_variable = { MNT.subject_revolt_progress = 0.3 }
+					if = {
+						limit = {
+							NOT = { is_in_array = { global.minorities_array = MNT } }
+						}
+						add_to_array = { global.minorities_array = MNT }
+					}
+					if = {
+						limit = {
+							NOT = { is_in_array = { AUS.austria_minority_array = MNT } }
+						}
+						add_to_array = { AUS.austria_minority_array = MNT }
+					}
+				}
+			}
+		}
+		else = {
+			annex_country = {
+				target = MNT
+				transfer_troops = yes
+			}
+			every_unit_leader = {
+				set_nationality = ROOT
+			}
+			every_scientist = {
+				set_nationality = ROOT
+			}
+			every_state = {
+				limit = {
+					is_core_of = MNT
+				}
+				add_state_core = ROOT
+			}
 		}
 	}
-	
-	option = { #No
-		name = mntfor.15.b
-		ai_chance = { factor = 0 }
+	option = { #No, Serbian Edition
+		name = mntfor.17.b
+		ai_chance = { base = 0 }
+		trigger = {
+			tag = SER
+		}
 		add_political_power = -50
 		add_war_support = -0.03
 		MNT = {
 			country_event = {
 				id = mntfor.18
 				days = 7
-				random = 100
 			}
 		}
 	}
-	
+	option = { #Turn into a constituent instead
+		name = mntfor.17.c
+		ai_chance = { base = 50 }
+		trigger = {
+			tag = AUS
+			OR = {
+				check_variable = { CRO.subject_revolt_progress > 0.75 }
+				check_variable = { CRO.subject_revolt_progress = 0.75 }
+			}
+		}
+		CRO_subtract_three_collapse = yes
+		AUS_raise_serbians = yes
+		MNT = {
+			custom_override_tooltip = {
+				tooltip = is_now_a_constituent_tt
+				clr_global_flag = MNT_on_array
+				clr_country_flag = CONST_minor
+				set_country_flag = CONST_proper
+				set_variable = { AUS_subject_status = 4 }
+				set_variable = { MNT.subject_revolt_progress = 0.15 }
+				add_to_variable = { SKS.extra_value = 0.01 }
+				if = {
+					limit = {
+						is_in_array = { global.minorities_array = MNT }
+					}
+					remove_from_array = { global.minorities_array = MNT }
+				}
+				if = {
+					limit = {
+						is_in_array = { AUS.austria_minority_array = MNT }
+					}
+					remove_from_array = { AUS.austria_minority_array = MNT }
+				}
+				if = {
+					limit = {
+						NOT = { is_in_array = { global.constituents_array = MNT } }
+					}
+					add_to_array = { global.constituents_array = MNT }
+				}
+				country_event = constituents.51
+				get_current_government_type = yes
+				AUS = {
+					set_autonomy = {
+						target = MNT
+						autonomy_state = botde_satellite
+					}
+				}
+				restore_previous_government_type = yes
+				add_ideas = {
+					AUS_part_of_the_Empire
+					AUS_cisleithanian_sphere
+				}
+			}
+		}
+	}
+	option = { #No, generic edition
+		name = mntfor.17.d
+		ai_chance = { base = 0 }
+		trigger = {
+			NOT = { tag = SER }
+		}
+		MNT = {
+			country_event = {
+				id = mntfor.18
+				days = 7
+			}
+		}
+	}
 }
 
 country_event = { #FROM Denies Annexation
