@@ -47,23 +47,9 @@ d_auscol5 = {
 }
 
 AUS_debug_effect = {
-	every_country = {
-		limit = {
-			OR = {
-				tag = AUS
-				tag = HUN
-				tag = CZE
-			}
-		}
-		add_to_array = {
-			array = global.ausgleich_attendants
-			value = PREV.id
-		}
-	}
 }
 
 AUS_debug_effect2 = {
-	#print_attendants = yes
 }
 
 AUS_debug_effect3 = {
@@ -135,11 +121,6 @@ AUS_do_revolt_rate_rise = {
 		}
 		set_variable = { var = extra_value_war_exhaust value = 0 }
 	}
-	clamp_variable = {
-		var = AUS.subject_revolt_progress
-		max = 1
-		min = 0
-	}
 	set_temp_variable = { revolt_rate_rising = stability }
 	subtract_from_temp_variable = { revolt_rate_rising = 1 }
 	multiply_temp_variable  = { revolt_rate_rising = -1 }
@@ -151,18 +132,10 @@ AUS_do_revolt_rate_rise = {
 	add_to_temp_variable = { CONST_revolt_rate_rising = AUS.extra_value }
 	add_to_temp_variable = { CONST_revolt_rate_rising = global.extra_value_war_exhaust }
 	add_to_temp_variable = { CONST_revolt_rate_rising = global.extra_collapse_federalizing }
-	add_to_variable = {
-		var = AUS.subject_revolt_progress
-		value = revolt_rate_rising
-	}
+	add_to_temp_variable = { AUS.revolt_progress_change = revolt_rate_rising }
 	if = {
-		limit = {
-			has_global_flag = AUS_ausgleich_over
-		}
-		subtract_from_variable = {
-			var = AUS.subject_revolt_progress
-			value = 0.002
-		}
+		limit = { has_global_flag = AUS_ausgleich_over }
+		subtract_from_temp_variable = { AUS.revolt_progress_change = 0.002 }
 	}
 	if = {
 		limit = {
@@ -173,16 +146,9 @@ AUS_do_revolt_rate_rise = {
 				has_completed_focus = AUS_charity_and_unity
 			}
 		}
-		subtract_from_variable = {
-			var = AUS.subject_revolt_progress
-			value = 0.002
-		}
+		subtract_from_temp_variable = { AUS.revolt_progress_change = 0.002 }
 	}
-	clamp_variable = {
-		var = AUS.subject_revolt_progress
-		max = 1
-		min = 0
-	}
+	BOTDE_add_collapse = yes
 	AUS_warning_check = yes
 }
 
@@ -207,24 +173,25 @@ CONST_do_additional_revolt_progress = {
 	add_to_temp_variable = { CONST_revolt_rate_rising = ROOT.extra_value }
 	add_to_temp_variable = { CONST_revolt_rate_rising = global.extra_value_war_exhaust }
 	add_to_temp_variable = { CONST_revolt_rate_rising = global.extra_collapse_federalizing }
-	add_to_variable = { ROOT.subject_revolt_progress = CONST_revolt_rate_rising }
-	
+	add_to_temp_variable = { ROOT.revolt_progress_change = CONST_revolt_rate_rising }
 	if = {
 		limit = {
 			has_global_flag = AUS_ausgleich_over
 		}
-		subtract_from_variable = { ROOT.subject_revolt_progress = 0.01 }
+		subtract_from_temp_variable = { ROOT.revolt_progress_change = 0.01 }
 	}
+	BOTDE_add_collapse = yes
 	AUS_warning_check = yes
 }
 
 AUS_do_revolt_rate_rise_counterintel = {
 	set_temp_variable = { AUS_intel_subtract = modifier@intelligence_agency_defense }
 	divide_temp_variable = { AUS_intel_subtract = 750 }
-	subtract_from_variable = {
-		var = ROOT.subject_revolt_progress
+	subtract_from_temp_variable = {
+		var = ROOT.revolt_progress_change
 		value = AUS_intel_subtract
 	}
+	BOTDE_add_collapse = yes
 }
 
 AUS_do_revolt_rate_rise_operative_mission = {
@@ -242,10 +209,11 @@ AUS_do_revolt_rate_rise_operative_mission = {
 				}
 			}
 		}
-		add_to_variable = {
-			var = ROOT.subject_revolt_progress
+		add_to_temp_variable = {
+			var = ROOT.revolt_progress_change
 			value = -0.003
 		}
+		BOTDE_add_collapse = yes
 	}
 }
 
@@ -266,10 +234,11 @@ AUS_do_revolt_rate_rise_operative_mission_diplo_pressure = {
 				}
 			}
 		}
-		add_to_variable = {
+		add_to_temp_variable = {
 			var = ROOT.subject_revolt_progress
 			value = -0.003
 		}
+		BOTDE_add_collapse = yes
 	}
 }
 
@@ -741,6 +710,59 @@ AUS_raise_austro_german_tensions = {
 
 AUS_lower_austro_german_tensions = {
 	add_to_variable = { global.austro_german_tensions = -1 }
+}
+
+#### Add constituent revolt ####
+
+#requires temp variable revolt_progress_change
+#is scoped to country i.e 
+# HUN = { 
+#	set_temp_variable = { revolt_progress_change = 0.01 }
+#	BOTDE_change_collapse = yes
+#}
+
+BOTDE_add_collapse = {
+	if = {
+		limit = { tag = AUS }
+		custom_effect_tooltip = BOTDE_collapse_AUS_tt
+	}
+	else = {
+		custom_effect_tooltip = BOTDE_collapse_THIS_tt
+	}
+	add_to_variable = { THIS.subject_revolt_progress = revolt_progress_change }
+	clamp_variable = {
+		var = THIS.subject_revolt_progress
+		min = 0
+		max = 1
+	}
+	BOTDE_check_for_constituent_revolt = yes
+}
+
+BOTDE_check_for_constituent_revolt = {
+	if = {
+		limit = {
+			OR = {
+				check_variable = { THIS.subject_revolt_progress = 1 }
+				check_variable = { THIS.subject_revolt_progress > 1 }
+			}
+		}
+		if = {
+			limit = { tag = HUN }
+			country_event = revolt.1
+		}
+		else_if = {
+			limit = { tag = CRO }
+			country_event = revolt.2
+		}
+		else_if = {
+			limit = { tag = CZE }
+			country_event = revolt.3
+		}
+		else_if = {
+			limit = { tag = GAL }
+			country_event = revolt.4
+		}
+	}
 }
 
 AUS_add_one_collapse = {
@@ -1223,62 +1245,6 @@ ALL_subtract_ten_collapse = {
 				NOT = { tag = AUS }
 			}
 			THIS_subtract_ten_collapse = yes
-		}
-	}
-}
-
-
-
-
-#### Add constituent revolt ####
-
-#requires temp variable revolt_progress_change
-#is scoped to country i.e 
-# HUN = { 
-#	set_temp_variable = { revolt_progress_change = 0.01 }
-#	BOTDE_change_collapse = yes
-#}
-
-BOTDE_add_collapse = {
-	if = {
-		limit = { tag = AUS }
-		custom_effect_tooltip = BOTDE_collapse_AUS_tt
-	}
-	else = {
-		custom_effect_tooltip = BOTDE_collapse_THIS_tt
-	}
-	add_to_variable = { THIS.subject_revolt_progress = revolt_progress_change }
-	clamp_variable = {
-		var = THIS.subject_revolt_progress
-		min = 0
-		max = 1
-	}
-	BOTDE_check_for_constituent_revolt = yes
-}
-
-BOTDE_check_for_constituent_revolt = {
-	if = {
-		limit = {
-			OR = {
-				check_variable = { THIS.subject_revolt_progress = 1 }
-				check_variable = { THIS.subject_revolt_progress > 1 }
-			}
-		}
-		if = {
-			limit = { tag = HUN }
-			country_event = revolt.1
-		}
-		else_if = {
-			limit = { tag = CRO }
-			country_event = revolt.2
-		}
-		else_if = {
-			limit = { tag = CZE }
-			country_event = revolt.3
-		}
-		else_if = {
-			limit = { tag = GAL }
-			country_event = revolt.4
 		}
 	}
 }
@@ -2648,85 +2614,109 @@ AUS_remove_paramilitaries = {
 
 
 AUS_add_to_DWV = {
-	custom_effect_tooltip = THIS_JOINS_DWV
-	add_to_array = {
-		array = AUS.DWV_members
-		value = THIS
-	}
-	add_to_tech_sharing_group = AUS_sphere_research
-	if = {
-		limit = {
-			has_global_flag = DWV_upgrade_5
+	custom_override_tooltip = {
+		tooltip = THIS_JOINS_DWV
+		if = {
+			limit = {
+				NOT = { is_in_array = { AUS.DWV_members = THIS.id } }
+			}
+			add_to_array = {
+				array = AUS.DWV_members
+				value = THIS
+			}
 		}
-		add_ideas = AUS_DWV_5
-	}
-	else_if = {
-		limit = {
-			has_global_flag = DWV_upgrade_4
+		if = {
+			limit = {
+				is_in_tech_sharing_group = austrian_research
+			}
+			remove_from_tech_sharing_group = austrian_research
 		}
-		add_ideas = AUS_DWV_4
-	}
-	else_if = {
-		limit = {
-			has_global_flag = DWV_upgrade_3
+		add_to_tech_sharing_group = AUS_sphere_research
+		if = {
+			limit = {
+				has_global_flag = DWV_upgrade_5
+			}
+			add_ideas = AUS_DWV_5
 		}
-		add_ideas = AUS_DWV_3
-	}
-	else_if = {
-		limit = {
-			has_global_flag = DWV_upgrade_2
+		else_if = {
+			limit = {
+				has_global_flag = DWV_upgrade_4
+			}
+			add_ideas = AUS_DWV_4
 		}
-		add_ideas = AUS_DWV_2
-	}
-	else_if = {
-		limit = {
-			has_global_flag = DWV_upgrade_1
+		else_if = {
+			limit = {
+				has_global_flag = DWV_upgrade_3
+			}
+			add_ideas = AUS_DWV_3
 		}
-		add_ideas = AUS_DWV_1
-	}
-	else = {
-		add_ideas = AUS_DWV
+		else_if = {
+			limit = {
+				has_global_flag = DWV_upgrade_2
+			}
+			add_ideas = AUS_DWV_2
+		}
+		else_if = {
+			limit = {
+				has_global_flag = DWV_upgrade_1
+			}
+			add_ideas = AUS_DWV_1
+		}
+		else = {
+			add_ideas = AUS_DWV
+		}
 	}
 }
 
 AUS_remove_from_DWV = {
-	custom_effect_tooltip = THIS_LEAVES_DWV
-	remove_from_array = {
-		array = AUS.DWV_members
-		value = THIS
-	}
-	if = {
-		limit = {
-			has_global_flag = DWV_upgrade_5
+	custom_override_tooltip = {
+		tooltip = THIS_LEAVES_DWV
+		if = {
+			limit = {
+				is_in_array = { AUS.DWV_members = THIS.id }
+			}
+			remove_from_array = {
+				array = AUS.DWV_members
+				value = THIS
+			}
 		}
-		remove_ideas = AUS_DWV_5
-	}
-	else_if = {
-		limit = {
-			has_global_flag = DWV_upgrade_4
+		if = {
+			limit = { is_in_tech_sharing_group = AUS_sphere_research }
+			remove_from_tech_sharing_group = AUS_sphere_research
 		}
-		remove_ideas = AUS_DWV_4
-	}
-	else_if = {
-		limit = {
-			has_global_flag = DWV_upgrade_3
+		if = {
+			limit = {
+				has_global_flag = DWV_upgrade_5
+			}
+			remove_ideas = AUS_DWV_5
 		}
-		remove_ideas = AUS_DWV_3
-	}
-	else_if = {
-		limit = {
-			has_global_flag = DWV_upgrade_2
+		else_if = {
+			limit = {
+				has_global_flag = DWV_upgrade_4
+			}
+			remove_ideas = AUS_DWV_4
 		}
-		remove_ideas = AUS_DWV_2
-	}
-	else_if = {
-		limit = {
-			has_global_flag = DWV_upgrade_1
+		else_if = {
+			limit = {
+				has_global_flag = DWV_upgrade_3
+			}
+			remove_ideas = AUS_DWV_3
 		}
-		remove_ideas = AUS_DWV_1
-	}
-	else = {
-		remove_ideas = AUS_DWV
+		else_if = {
+			limit = {
+				has_global_flag = DWV_upgrade_2
+			}
+			remove_ideas = AUS_DWV_2
+		}
+		else_if = {
+			limit = {
+				has_global_flag = DWV_upgrade_1
+			}
+			remove_ideas = AUS_DWV_1
+		}
+		else = {
+			remove_ideas = AUS_DWV
+		}
 	}
 }
 
@@ -5822,19 +5812,9 @@ do_minority_rise_advanced_calc = {
 	add_to_temp_variable = { additional_value = THIS.gamer_rage_value }
 	add_to_temp_variable = { additional_value = global.extra_collapse_federalizing }
 	subtract_from_temp_variable = { additional_value = subtractive_value }
-	add_to_variable = {
-		var = THIS.subject_revolt_progress
-		value = additional_value
-	}
-	add_to_variable = {
-		var = THIS.subject_revolt_progress
-		value = resistance_value
-	}
-	clamp_variable = {
-		var = THIS.subject_revolt_progress
-		min = 0
-		max = 1
-	}
+	add_to_temp_variable = { revolt_progress_change = additional_value }
+	add_to_temp_variable = { revolt_progress_change = resistance_value }
+	BOTDE_add_collapse = yes
 	AUS_warning_check = yes
 }
 
@@ -11763,25 +11743,6 @@ KRK_setup = {
 	}
 	REV_spawn_units = yes
 }
-AUS_add_all_const_revolt_progress = {
-	add_to_temp_variable = { temp_num = AUS.subject_revolt_progress }
-	if = {
-		limit = { HUN = { is_in_faction_with = AUS } }
-		add_to_temp_variable = { temp_num = HUN.subject_revolt_progress }
-	}
-	if = {
-		limit = { CZE = { is_in_faction_with = AUS } }
-		add_to_temp_variable = { temp_num = CZE.subject_revolt_progress }
-	}
-	if = {
-		limit = { CRO = { is_in_faction_with = AUS } }
-		add_to_temp_variable = { temp_num = CRO.subject_revolt_progress }
-	}
-	if = {
-		limit = { GAL = { is_in_faction_with = AUS } }
-		add_to_temp_variable = { temp_num = GAL.subject_revolt_progress }
-	}
-}
 AUS_ausgleich_ending_effect = {
 	if = {
 		limit = {
@@ -11901,7 +11862,12 @@ AUS_ausgleich_ending_effect = {
 }
 AUS_ausgleich_small_common_army_effect = {
 	every_country = {
-		limit = { has_country_flag = going_to_le_ausgleich }
+		limit = {
+			OR = {
+				tag = AUS
+				has_country_flag = going_to_le_ausgleich
+			}
+		}
 		custom_override_tooltip = {
 			tooltip = AUS_common_army_law_small_tt
 				if = {
@@ -11934,7 +11900,12 @@ AUS_ausgleich_small_common_army_effect = {
 }
 AUS_ausgleich_medium_common_army_effect = {
 	every_country = {
-		limit = { has_country_flag = going_to_le_ausgleich }
+		limit = {
+			OR = {
+				tag = AUS
+				has_country_flag = going_to_le_ausgleich
+			}
+		}
 		custom_override_tooltip = {
 			tooltip = AUS_common_army_law_medium_tt
 			if = {
@@ -11970,7 +11941,12 @@ AUS_ausgleich_medium_common_army_effect = {
 }
 AUS_ausgleich_large_common_army_effect = {
 	every_country = {
-		limit = { has_country_flag = going_to_le_ausgleich }
+		limit = {
+			OR = {
+				tag = AUS
+				has_country_flag = going_to_le_ausgleich
+			}
+		}
 		custom_override_tooltip = {
 			tooltip = AUS_common_army_law_large_tt
 			if = {
