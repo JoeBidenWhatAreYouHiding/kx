@@ -51,7 +51,14 @@ AUS_debug_effect = {
 }
 
 AUS_debug_effect2 = {
-	set_variable = { global.ausgleich_successes = 0 }
+	every_state = {
+		teleport_armies = {
+			limit = {
+				exists = yes
+			}
+			to_state_array  = owned_controlled_states
+		}
+	}
 }
 
 AUS_debug_effect3 = {
@@ -725,19 +732,20 @@ AUS_lower_austro_german_tensions = {
 
 BOTDE_add_collapse = {
 	if = {
-		limit = { tag = AUS }
-		custom_effect_tooltip = BOTDE_collapse_AUS_tt
+		limit = {
+			AUS_is_constituent_or_minority = yes
+		}
+		custom_override_tooltip = {
+			tooltip = BOTDE_collapse_tt
+			add_to_variable = { THIS.subject_revolt_progress = revolt_progress_change }
+			clamp_variable = {
+				var = THIS.subject_revolt_progress
+				min = 0
+				max = 1
+			}
+			BOTDE_check_for_constituent_revolt = yes
+		}
 	}
-	else = {
-		custom_effect_tooltip = BOTDE_collapse_THIS_tt
-	}
-	add_to_variable = { THIS.subject_revolt_progress = revolt_progress_change }
-	clamp_variable = {
-		var = THIS.subject_revolt_progress
-		min = 0
-		max = 1
-	}
-	BOTDE_check_for_constituent_revolt = yes
 }
 
 BOTDE_check_for_constituent_revolt = {
@@ -3874,12 +3882,10 @@ CRO_do_revolt = {
 	}
 	if = {
 		limit = {
-			CRO = {
-				check_variable = {
-					var = THIS.industrial_stuff_local
-					value = 1
-					compare = greater_than_or_equals
-				}
+			check_variable = {
+				var = THIS.industrial_stuff_local
+				value = 1
+				compare = greater_than_or_equals
 			}
 		}
 		subtract_from_variable = {
@@ -3889,12 +3895,16 @@ CRO_do_revolt = {
 	}
 	if = {
 		limit = {
-			CRO = {
-				AUS_DWV_member = yes
-			}
+			AUS_DWV_member = yes
 		}
 		AUS_remove_from_DWV =  yes
-	}	
+	}
+	if = {
+		limit = {
+			is_in_tech_sharing_group = austrian_research
+		}
+		remove_from_tech_sharing_group = austrian_research
+	}
 	hidden_effect = {
 		set_global_flag = { flag = CRO_recent_revolt days = 720 value = 1 }
 	}
@@ -3984,14 +3994,13 @@ HUN_do_revolt = {
 	set_politics = {
 		ruling_party = social_conservative
 		elections_allowed = no
-	}	
-	add_popularity = {
-		ideology = social_conservative
-		popularity = 0.2
 	}
-	remove_ideas_with_trait = head_of_government
-	add_ideas = HUN_Zoltan_Tildy_hog_sco
-	clear_all_relations = yes
+	hidden_effect = {
+		increase_ruling_party_popularity_by_30 = yes
+		remove_ideas_with_trait = head_of_government
+		add_ideas = HUN_Zoltan_Tildy_hog_sco
+		clear_all_relations = yes
+	}
 	AUS = {
 		country_event = revolt.5 #Notification
 		every_owned_state = {
@@ -4006,12 +4015,10 @@ HUN_do_revolt = {
 	}
 	if = {
 		limit = {
-			HUN = {
-				check_variable = {
-					var = THIS.industrial_stuff_local
-					value = 1
-					compare = greater_than_or_equals
-				}
+			check_variable = {
+				var = THIS.industrial_stuff_local
+				value = 1
+				compare = greater_than_or_equals
 			}
 		}
 		subtract_from_variable = {
@@ -4021,11 +4028,15 @@ HUN_do_revolt = {
 	}
 	if = {
 		limit = {
-			HUN = {
-				AUS_DWV_member = yes
-			}
+			AUS_DWV_member = yes
 		}
 		AUS_remove_from_DWV =  yes
+	}
+	if = {
+		limit = {
+			is_in_tech_sharing_group = austrian_research
+		}
+		remove_from_tech_sharing_group = austrian_research
 	}
 	hidden_effect = {
 		set_global_flag = { flag = HUN_recent_revolt days = 720 value = 1 }
@@ -4045,12 +4056,10 @@ GAL_do_revolt = {
 	}
 	if = {
 		limit = {
-			GAL = {
-				check_variable = {
-					var = THIS.industrial_stuff_local
-					value = 1
-					compare = greater_than_or_equals
-				}
+			check_variable = {
+				var = THIS.industrial_stuff_local
+				value = 1
+				compare = greater_than_or_equals
 			}
 		}
 		subtract_from_variable = {
@@ -4060,11 +4069,15 @@ GAL_do_revolt = {
 	}
 	if = {
 		limit = {
-			GAL = {
-				AUS_DWV_member = yes
-			}
+			AUS_DWV_member = yes
 		}
 		AUS_remove_from_DWV =  yes
+	}
+	if = {
+		limit = {
+			is_in_tech_sharing_group = austrian_research
+		}
+		remove_from_tech_sharing_group = austrian_research
 	}
 	hidden_effect = {
 		set_global_flag = { flag = GAL_recent_revolt days = 720 value = 1 }
@@ -4072,7 +4085,7 @@ GAL_do_revolt = {
 }
 
 AUS_blow_the_fuck_up_and_make_the_yugoslav_wars_look_like_a_joke = {
-	add_stability = -0.5
+	set_stability = 0
 	set_political_power = 0
 	load_focus_tree = austria_small_focus
 	hidden_effect = {
@@ -4487,40 +4500,46 @@ AUS_blow_the_fuck_up_and_make_the_yugoslav_wars_look_like_a_joke = {
 			clr_country_flag = subject_unrest_window_open
 		}
 		
-		hidden_effect = {
-			every_country = {
-				news_event = {
-					id = colnews.1
-					days = 1
-				}
+		every_country = {
+			news_event = {
+				id = colnews.1
+				days = 1
 			}
-			country_event = {
-				id = bdeausflavor.51
-				days = 30
-				random_days = 90
+		}
+		country_event = {
+			id = bdeausflavor.51
+			days = 30
+			random_days = 90
+		}
+		#country_event = {
+		#	id = bdeausflavor.55
+		#	days = 5
+		#	random_days = 3
+		#}
+		UKR = {
+			if = {
+				limit = { has_idea = UKR_brotfrieden_idea_AUS }
+				remove_ideas = UKR_brotfrieden_idea_AUS
 			}
-			#country_event = {
-			#	id = bdeausflavor.55
-			#	days = 5
-			#	random_days = 3
-			#}
-			UKR = {
-				if = {
-					limit = { has_idea = UKR_brotfrieden_idea_AUS }
-					remove_ideas = UKR_brotfrieden_idea_AUS
-				}
-				else_if = {
-					limit = { has_idea = UKR_brotfrieden_idea }
-					swap_ideas = {
-						remove_idea = UKR_brotfrieden_idea
-						add_idea = UKR_brotfrieden_idea_GER
-					}
+			else_if = {
+				limit = { has_idea = UKR_brotfrieden_idea }
+				swap_ideas = {
+					remove_idea = UKR_brotfrieden_idea
+					add_idea = UKR_brotfrieden_idea_GER
 				}
 			}
 		}
 		#AUS_fuck_this_ideology_they_unpopular_now_lmaofuckoff = yes
 		decrease_ruling_party_popularity_by_50 = yes
 		dismantle_faction = yes
+		every_state = {
+			teleport_armies = {
+				limit = {
+					exists = yes
+				}
+				to_state_array  = owned_controlled_states
+			}
+		}
 	}
 }
 
@@ -7419,66 +7438,34 @@ AUS_level_up_backer_combat_small = {
 }
 
 AUS_level_up_backer_combat_global = {
-	custom_effect_tooltip = level_up_backer_abilities
-	SER = {
-		AUS_level_up_backer_combat = yes
-	}
-	ROM = {
-		AUS_level_up_backer_combat = yes
-	}
-	POL = {
-		AUS_level_up_backer_combat = yes
-	}
-	UKR = {
-		AUS_level_up_backer_combat = yes
-	}
-	GER = {
-		AUS_level_up_backer_combat = yes
-	}
-	CRO = {
-		AUS_level_up_backer_combat = yes
-	}
-	MNT = {
-		AUS_level_up_backer_combat = yes
-	}
-	ITA = {
-		AUS_level_up_backer_combat = yes
-	}
-	SRI = {
-		AUS_level_up_backer_combat = yes
-	}
-	VNC = {
-		AUS_level_up_backer_combat = yes
-	}
-	RUS = {
-		AUS_level_up_backer_combat = yes
-	}
-	BUL = {
-		AUS_level_up_backer_combat = yes
-	}
-	ALB = {
-		AUS_level_up_backer_combat = yes
-	}
-	GRU = {
-		AUS_level_up_backer_combat = yes
-	}
-	SIC = {
-		AUS_level_up_backer_combat = yes
-	}
-	SRD = {
-		AUS_level_up_backer_combat = yes
-	}
-	HUN = {
-		AUS_level_up_backer_combat = yes
-	}
-	TRS = {
-		AUS_level_up_backer_combat = yes
-	}
-	CZE = {
-		AUS_level_up_backer_combat = yes
-	}
-	GAL = {
-		AUS_level_up_backer_combat = yes
+	custom_override_tooltip = {
+		tooltip = level_up_backer_abilities
+		every_country = {
+			limit = {
+				OR = {
+					tag = SER
+					tag = ROM
+					tag = POL
+					tag = UKR
+					tag = GER
+					tag = CRO
+					tag = MNT
+					tag = ITA
+					tag = SRI
+					tag = VNC
+					tag = RUS
+					tag = BUL
+					tag = ALB
+					tag = GRU
+					tag = SIC
+					tag = SRD
+					tag = TRS
+					tag = CZE
+					tag = GAL
+				}
+			}
+			PREV = { AUS_level_up_backer_combat = yes }
+		}
 	}
 }
 
@@ -7605,6 +7592,7 @@ AUS_divide_hungary_effect = {
 			}
 			transfer_state_to = TRS
 		}
+		hidden_effect = { set_cosmetic_tag = TRS_kingdom }
 	}
 	if = {
 		limit = {
@@ -7624,6 +7612,7 @@ AUS_divide_hungary_effect = {
 			}
 			transfer_state_to = CPU
 		}
+		hidden_effect = { set_cosmetic_tag = CPU_kingdom }
 	}
 	every_country = {
 		limit = {
@@ -7639,8 +7628,10 @@ AUS_divide_hungary_effect = {
 				autonomous_state = botde_transleithania
 			}
 		}
-		add_ideas = AUS_part_of_the_Empire
-		add_ideas = AUS_transleithanian_sphere
+		add_ideas = {
+			AUS_part_of_the_Empire
+			AUS_transleithanian_sphere
+		}
 		set_politics = {
 			ruling_party = social_conservative
 		}
@@ -7650,6 +7641,13 @@ AUS_divide_hungary_effect = {
 				HUN = { AUS_DWV_member = yes }
 			}
 			AUS_add_to_DWV = yes
+		}
+		if = {
+			limit = {
+				has_global_flag = AUS_ausgleich_ongoing
+			}
+			set_country_flag = going_to_le_ausgleich
+			add_to_array = { global.ausgleich_attendants = THIS.id }
 		}
 	}
 }
@@ -9610,16 +9608,23 @@ remove_all_ministers_but_for = {
 
 AUS_become_constituent = {
 	add_to_array = { global.constituents_array = THIS }
+	remove_from_array = { global.minorities_array = THIS }
 	set_country_flag = CONST_proper
+	clr_country_flag = CONST_minor
 }
 
 AUS_remove_constituent = {
 	remove_from_array = { global.constituents_array = THIS }
+	remove_from_array = { global.minorities_array = THIS }
 	clr_country_flag = CONST_proper
+	clr_country_flag = CONST_minor
 }
 
 AUS_become_minority = {
 	add_to_array = { global.minorities_array = THIS }
+	remove_from_array = { global.constituents_array = THIS }
+	set_country_flag = CONST_minor
+	clr_country_flag = CONST_proper
 }
 
 ROM_help_serb_player_revolt = {
@@ -12213,7 +12218,11 @@ AUS_restore_HUN_after_ausgleich_revolt_effect = {
 							is_in_array = { global.ausgleich_attendants = THIS.id }
 						}
 					}
-					add_to_array = { global.ausgleich_attendants = THIS.id }
+					add_to_array = {
+						array = global.ausgleich_attendants
+						value = THIS.id
+						index = 1
+					}
 				}
 				if = {
 					limit = {
@@ -12245,11 +12254,12 @@ AUS_restore_HUN_after_ausgleich_revolt_effect = {
 			}
 			create_country_leader = {
 				name = "József Ágost Habsburg–Lotaringiai"
-				desc = "POLITICS_JOSEPH_AUGUST_VON_HABSBURG_DESC"
+				desc = "POLITICS_JOSEPH_AUGUST_DESC"
 				picture = "gfx/leaders/AUS/Portrait_AUS_Joseph_August_von_Habsburg.png"
 				expire = "1965.1.1"
 				ideology = junta_subtype
 			}
+			set_cosmetic_tag = HUN_military_gov
 			increase_ruling_party_popularity_by_30 = yes
 			set_variable = { AUS_subject_status = 2 }
 			set_variable = { HUN.subject_revolt_progress = 0.45 }
