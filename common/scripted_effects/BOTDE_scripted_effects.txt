@@ -51,12 +51,13 @@ AUS_debug_effect = {
 }
 
 AUS_debug_effect2 = {
-	every_state = {
-		teleport_armies = {
-			limit = {
-				exists = yes
+	for_each_scope_loop = {
+		array = global.AUS_all_possible_array
+		AUS = {
+			remove_opinion_modifier = {
+				target = PREV
+				modifier = faction_traitor
 			}
-			to_state_array  = owned_controlled_states
 		}
 	}
 }
@@ -4085,12 +4086,29 @@ GAL_do_revolt = {
 }
 
 AUS_blow_the_fuck_up_and_make_the_yugoslav_wars_look_like_a_joke = {
-	set_stability = 0
-	set_political_power = 0
-	load_focus_tree = austria_small_focus
-	set_global_flag = AUS_collapsed
 	hidden_effect = {
 		#Finding out who will appear
+		set_stability = 0
+		set_political_power = 0
+		load_focus_tree = austria_small_focus
+		set_global_flag = AUS_collapsed
+		for_each_scope_loop = {
+			array = AUS.faction_members
+			add_to_temp_array = { temp_austrian_faction_countries = THIS.id }
+		}
+		for_each_scope_loop = {
+			array = AUS.subjects
+			add_to_temp_array = { temp_austrian_subject_countries = THIS.id }
+		}
+		if = {
+			limit = {
+				HUN = { is_subject_of = AUS }
+			}
+			for_each_scope_loop = {
+				array = HUN.subjects
+				add_to_temp_array = { temp_austrian_subject_countries = THIS.id }
+			}
+		}
 		if = {
 			limit = {
 				check_variable = {
@@ -4239,10 +4257,6 @@ AUS_blow_the_fuck_up_and_make_the_yugoslav_wars_look_like_a_joke = {
 					is_in_faction_with = AUS
 				}
 			}
-			HUN = {
-				country_event = constituents.2
-				leave_faction = yes
-			}
 			else_if = {
 				limit = {
 					owns_state = 34
@@ -4258,10 +4272,6 @@ AUS_blow_the_fuck_up_and_make_the_yugoslav_wars_look_like_a_joke = {
 				CRO = {
 					is_in_faction_with = AUS
 				}
-			}
-			CRO = {
-				country_event = constituents.3
-				leave_faction = yes
 			}
 			else_if = {
 				limit = {
@@ -4279,15 +4289,12 @@ AUS_blow_the_fuck_up_and_make_the_yugoslav_wars_look_like_a_joke = {
 					is_in_faction_with = AUS
 				}
 			}
-			end_puppet = CZE
 			CZE = {
-				country_event = constituents.4
 				country_event = {
 					id = bdecze.3
 					days = 3
 					random = 24
 				}
-				leave_faction = yes
 			}
 			else_if = {
 				limit = {
@@ -4305,11 +4312,6 @@ AUS_blow_the_fuck_up_and_make_the_yugoslav_wars_look_like_a_joke = {
 				GAL = {
 					is_in_faction_with = AUS
 				}
-			}
-			end_puppet = GAL
-			GAL = {
-				country_event = constituents.5
-				leave_faction = yes
 			}
 			else_if = {
 				limit = {
@@ -4355,6 +4357,8 @@ AUS_blow_the_fuck_up_and_make_the_yugoslav_wars_look_like_a_joke = {
 				end_puppet = PREV
 			}
 			leave_faction = yes
+			drop_cosmetic_tag = yes
+			country_event = constituents.2
 			add_ideas = AUS_fighting_for_the_people
 			if = {
 				limit = {
@@ -4366,16 +4370,15 @@ AUS_blow_the_fuck_up_and_make_the_yugoslav_wars_look_like_a_joke = {
 		
 		every_country = {
 			limit = {
-				NOT = {
-					tag = AUS
-					tag = HUN
-					tag = CRO
-					tag = CZE
-					tag = GAL
-				}
 				is_in_faction_with = AUS
 			}
 			leave_faction = yes
+			if = { #failsafe for testing collapse at game start
+				limit = {
+					tag = ITA
+				}
+				AUS = { country_event = italianrepublic.150 }
+			}
 			if = {
 				limit = {
 					tag = SPR
@@ -4390,13 +4393,6 @@ AUS_blow_the_fuck_up_and_make_the_yugoslav_wars_look_like_a_joke = {
 		
 		every_country = {
 			limit = {
-				NOT = {
-					tag = AUS
-					tag = HUN
-					tag = CRO
-					tag = CZE
-					tag = GAL
-				}
 				is_subject_of = AUS
 			}
 			AUS = {
@@ -4529,6 +4525,7 @@ AUS_blow_the_fuck_up_and_make_the_yugoslav_wars_look_like_a_joke = {
 				days = 1
 			}
 		}
+		country_event = worldtension.29
 		country_event = {
 			id = bdeausflavor.51
 			days = 30
@@ -4555,11 +4552,26 @@ AUS_blow_the_fuck_up_and_make_the_yugoslav_wars_look_like_a_joke = {
 		#AUS_fuck_this_ideology_they_unpopular_now_lmaofuckoff = yes
 		decrease_ruling_party_popularity_by_50 = yes
 		dismantle_faction = yes
-		every_country = {
-			limit = { AUS = { has_opinion_modifier = faction_traitor } }
-			remove_opinion_modifier = {
-				target = PREV
-				modifier = faction_traitor
+		for_each_scope_loop = {
+			array = temp_austrian_faction_countries
+			AUS = {
+				remove_opinion_modifier = {
+					target = PREV
+					modifier = faction_traitor
+				}
+			}
+		}
+		for_each_scope_loop = {
+			array = temp_austrian_subject_countries
+			PREV = {
+				reverse_add_opinion_modifier = {
+					target = AUS
+					modifier = BOTDE_collapsed_empire_opinion
+				}
+				add_opinion_modifier = {
+					target = AUS
+					modifier = BOTDE_collapsed_empire_opinion
+				}
 			}
 		}
 	}
