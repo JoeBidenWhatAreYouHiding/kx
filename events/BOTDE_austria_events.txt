@@ -7945,6 +7945,12 @@ country_event = { #Triumph over Serbia
 				remove_from_array = { array = ROOT.austria_minority_array }
 			}
 		}
+		every_state = {
+			limit = {
+				is_owned_by = ROM
+			}
+			set_state_controller_to = AUS
+		}
 	}
 }
 
@@ -7974,6 +7980,13 @@ country_event = { #Triumph over Romania
 				}
 			}
 			cancel_resistance = yes
+		}
+		clr_country_flag = AUS_szekler_sztuff
+		every_state = {
+			limit = {
+				is_owned_by = ROM
+			}
+			set_state_controller_to = AUS
 		}
 		TRS = {
 			set_country_flag = no_minority_revolt
@@ -8287,6 +8300,9 @@ country_event = { #The Fifth Balkan War Begins
 				}
 				country_event = {
 					id = super.4
+				}
+				random_other_country = {
+					country_event = bdeausnews.7
 				}
 			}
 			add_war_support = 0.05
@@ -27156,10 +27172,17 @@ country_event = { #The Innsbruck Experiment
 	option = { #Reach out to Meitner and Frisch. This could be big.
 		name = bdeausflavor.8.b
 		add_political_power = -35
-		country_event = {
-			id = bdeausflavor.9
-			days = 10
-			random = 200
+		add_breakthrough_progress = {
+			specialization = specialization_nuclear
+			value = 0.05
+		}
+		custom_override_tooltip = {
+			tooltip = AUS_makes_atomic_bomb_making_easier_tt
+			country_event = {
+				id = bdeausflavor.9
+				days = 10
+				random = 200
+			}
 		}
 	}
 }
@@ -27178,17 +27201,74 @@ country_event = { #The E.M.F. Project Begins
 
 	option = { #Operation A.E.I.O.U. is a go.
 		name = bdeausflavor.9.a
-		add_tech_bonus = {
-			category = nuclear
-			bonus = 1
-			uses = 1
-			ahead_reduction = 1.5
+		if = {
+			limit = {
+				NOT = {
+					has_dlc = "Gotterdammerung"
+				}
+			}
+			add_tech_bonus = {
+				category = nuclear
+				bonus = 1
+				uses = 1
+				ahead_reduction = 1.5
+			}
+			hidden_effect = {
+				country_event = {
+					id = bdeausflavor.11
+					days = 1250
+					random = 10000
+				}
+			}
 		}
-		hidden_effect = {
-			country_event = {
-				id = bdeausflavor.11
-				days = 1250
-				random = 10000
+		else = {
+			add_tech_bonus = {
+				category = nuclear
+				bonus = 0.85
+				uses = 1
+				ahead_reduction = 2
+			}
+			sp:sp_nuclear_bomb = {
+				add_project_progress_ratio = 0.15
+			}
+			if = {
+				limit = {
+					owns_state = 775
+				}
+				775 = {
+					add_dynamic_modifier = { modifier = AUS_innsbruck_project }
+					hidden_effect = {
+						if = {
+							limit = {
+								nuclear_facility > 0
+							}
+							remove_building = {
+								type = nuclear_facility
+								level = 1
+							}
+						}
+						AUS_remove_paramilitaries = yes
+						increase_state_category = yes
+						add_building_construction = {
+							type = supply_node
+							level = 1
+							instant_build = yes
+							province = 6691
+						}
+					}
+					add_building_construction = {
+						type = nuclear_facility
+						level = 1
+						instant_build = yes
+						province = 6691
+					}
+					build_railway = {
+						level = 1
+						path = { 13575 9679 9650 6691 }
+						start_province = 13575
+						target_province = 6691
+					}
+				}
 			}
 		}
 	}
@@ -27233,16 +27313,43 @@ country_event = { #Dropping of the "Frederick III" Atomic Bomb
 	fire_only_once = yes
 
 	is_triggered_only = yes
+	
+	immediate = {
+		hidden_effect = {
+			launch_nuke = {
+				province = 6687
+			}
+		}
+	}
 
 	option = { #Now I am become Death, destroyer of worlds.
 		name = bdeausflavor.11.a
 		add_nuclear_bombs = 1
+		every_state = {
+			limit = { has_dynamic_modifier = { modifier = AUS_innsbruck_project } }
+			remove_dynamic_modifier = { modifier = AUS_innsbruck_project }
+		}
 		hidden_effect = {
+			if = {
+				limit = {
+					any_owned_state = {
+						has_dynamic_modifier = { modifier = fallout_atomic }
+					}
+				}
+				every_owned_state = {
+					limit = { has_dynamic_modifier = { modifier = fallout_atomic } }
+					remove_dynamic_modifier = { modifier = fallout_atomic }
+					add_dynamic_modifier = {
+						modifier = fallout_atomic
+						days = 14
+					}
+				}
+			}
 			GER = {
 				country_event = {
 					id = bdeausflavor.12
 					days = 1
-					random = 24
+					random_days = 3
 				}
 			}
 		}
@@ -27264,6 +27371,11 @@ country_event = { #GER - A Ripple Across the Border
 	option = { #What could it mean?
 		name = bdeausflavor.12.a
 		add_stability = -0.01
+		hidden_effect = {
+			random_other_country = {
+				news_event = bdeausnews.17
+			}
+		}
 	}
 }
 
@@ -27720,7 +27832,6 @@ country_event = { #Reorganization of the Krajowy Związek Producentów Ropy
 		CZE_subtract_five_collapse = yes
 		HUN_subtract_five_collapse = yes
 	}
-	
 }
 
 country_event = { #FIU - Austria Prepares A Polar Expedition
@@ -29994,5 +30105,42 @@ news_event = { #Crisis in German-Bohemia
 			}
 		}
 	}
+}
+news_event = { #Austria Develops the Atomic Bomb
+	id = bdeausnews.17
+	immediate = { log = "[GetDateText]: [Root.GetName]: event bdeausnews.17" }
+	title = bdeausnews.17.t
+	desc = bdeausnews.17.d
 	
+	picture = GFX_news_event_AUS_nuke
+
+	fire_only_once = yes
+	
+	major = yes
+	
+	trigger = {
+		wants_world_news = yes
+	}
+
+	is_triggered_only = yes
+
+	option = { #Yippee
+		name = bdeausnews.17.a
+		trigger = {
+			OR = {
+				tag = AUS
+				is_in_faction_with = AUS
+			}
+		}
+	}
+	
+	option = { #Oh
+		name = bdeausnews.17.b
+		trigger = {
+			NOT = {
+				tag = AUS
+				is_in_faction_with = AUS
+			}
+		}
+	}
 }
