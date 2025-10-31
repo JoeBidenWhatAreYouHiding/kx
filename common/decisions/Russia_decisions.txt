@@ -2098,6 +2098,12 @@ RUS_Alliance_decisions = {
 					}
 				}
 			}
+			OR = {
+				has_global_flag = budapest_treaty_active
+				NOT = { country_exists = AUS }
+				AUS = { is_subject = yes }
+				has_war_with = AUS
+			}
 			FROM = { at_peace_or_same_enemies_as_ROOT = yes }
 		}
 
@@ -5745,7 +5751,13 @@ RUS_Foreign_Policy_decisions = {
 	RUS_support_chinese_faction = {
 		icon = generic_civil_support
 		allowed = { always = no }
-		visible = { country_exists = FROM }
+		visible = { 
+			FROM = { has_capitulated = no }
+			any_other_country = {
+				is_chinese_tag = yes
+				NOT = { has_country_flag = Russia_Supports_Us }
+			}
+		}
 		
 		cost = 10
 		days_remove = 1
@@ -5777,6 +5789,15 @@ RUS_Foreign_Policy_decisions = {
 		icon = ger_military_buildup
 		
 		allowed = { always = no }
+		
+		visible = {
+			FROM = { 
+				has_capitulated = no
+				is_subject = no
+				has_country_flag = Russia_Supports_Us
+			}
+		}
+		
 		custom_cost_trigger = {
 			has_equipment = { infantry_equipment > 2499 }
 		}
@@ -5838,20 +5859,41 @@ RUS_Foreign_Policy_decisions = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_Send_Attache target: [From.GetName]"
 			hidden_effect = { add_command_power = -50 }
 			#TODO: unit_leader_event
-			random_unit_leader = {
-				limit = { 
-					OR = {
-						has_id = 417 
-						has_id = 606 
-						has_id = 50004 
-					}
+			if = {
+				limit = {
+					NOT = { has_unit_leader = 417 }
+					NOT = { has_unit_leader = 606 }
+					NOT = { has_unit_leader = 50004 }
 				}
-				set_unit_leader_flag = RUS_russian_in_china
-				set_nationality = FROM
+				random_army_leader = {
+					limit = {
+						is_field_marshal = no
+						OR = {
+							RUS_is_irrelevant_monarchist_officer = yes
+							RUS_is_irrelevant_republican_officer = yes
+						}
+					}
+					add_unit_leader_trait = RUS_chinese_officer
+					set_nationality = FROM
+				}
+			}
+			else = {
+				random_unit_leader = {
+					limit = { 
+						OR = {
+							has_id = 417 
+							has_id = 606 
+							has_id = 50004 
+						}
+					}
+					add_unit_leader_trait = RUS_chinese_officer
+					set_nationality = FROM
+				}			
 			}
 			FROM = { 
 				add_command_power = 50
 				army_experience = 50
+				add_ideas = RUS_chinese_military_mission_idea
 			}
 			activate_targeted_decision = { target = FROM decision = RUS_Recall_Attache }
 		}
@@ -5870,9 +5912,12 @@ RUS_Foreign_Policy_decisions = {
 			factor = 0
 			modifier = {
 				add = 100
-				OR = {
-					NOT = { country_exists = FROM }
-					FROM = { surrender_progress > 0.2 }
+				FROM = {
+					OR = {
+						exists = no
+						has_capitulated = yes
+						surrender_progress > 0.2
+					}
 				}
 			}
 		}
@@ -5881,8 +5926,8 @@ RUS_Foreign_Policy_decisions = {
 			#TODO: unit_leader_event
 			FROM = {
 				random_unit_leader = {
-					limit = { has_unit_leader_flag = RUS_russian_in_china }
-					clr_unit_leader_flag = RUS_russian_in_china
+					limit = { has_trait = RUS_chinese_officer }
+					remove_unit_leader_trait = RUS_chinese_officer
 					set_nationality = ROOT
 				}
 			}
@@ -8645,6 +8690,10 @@ RUS_Siberian_War = {
 				factor = 0
 				FROM = { RUS_dont_attack_if_overlord_is_stronger = yes }
 			}
+			modifier = {
+				factor = 0
+				TRM = { has_country_flag = TRM_integration_with_russia }
+			}
 		}
 		cancel_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision cancel RUS_Start_The_Offensive target: [From.GetName]"
@@ -8754,7 +8803,7 @@ RUS_Siberian_War = {
 			date > 1937.1.1
 			TRM = { 
 				has_war = no 
-				is_subject = no
+				is_valid_peace_target = yes
 			}
 		}		
 		visible = {
@@ -8888,6 +8937,10 @@ RUS_Siberian_War = {
 					russian_civil_war = yes
 				}
 			}
+			modifier = {
+				factor = 0
+				TRM = { has_country_flag = TRM_integration_with_russia }
+			}
 		}
 		cancel_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision cancel RUS_Conduct_Border_Exercize target: [From.GetName]"
@@ -8937,6 +8990,10 @@ RUS_Siberian_War = {
 		}
 		ai_will_do = {
 			factor = 0
+			modifier = {
+				add = 20
+				TRM = { has_country_flag = TRM_integration_with_russia }
+			}
 		}
 		cancel_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision cancel RUS_Speech_About_Peaceful_Unification target: [From.GetName]"
@@ -8987,6 +9044,10 @@ RUS_Siberian_War = {
 					has_political_power < 100
 					russian_civil_war = yes
 				}
+			}
+			modifier = {
+				factor = 0
+				TRM = { has_country_flag = TRM_integration_with_russia }
 			}
 		}
 		cancel_effect = {
@@ -9045,6 +9106,10 @@ RUS_Siberian_War = {
 			modifier = {
 				factor = 0.5
 				command_power < 100				
+			}
+			modifier = {
+				factor = 0
+				TRM = { has_country_flag = TRM_integration_with_russia }
 			}
 		}
 		cancel_effect = {
@@ -9117,6 +9182,10 @@ RUS_Siberian_War = {
 					russian_civil_war = yes
 				}
 			}
+			modifier = {
+				factor = 0
+				TRM = { has_country_flag = TRM_integration_with_russia }
+			}
 		}
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_propaganda_campaign target: [From.GetName]"
@@ -9162,6 +9231,10 @@ RUS_Siberian_War = {
 					command_power < 50
 					russian_civil_war = yes
 				}
+			}
+			modifier = {
+				factor = 0
+				TRM = { has_country_flag = TRM_integration_with_russia }
 			}
 		}
 		remove_effect = {
@@ -9297,6 +9370,10 @@ RUS_Siberian_War = {
 				factor = 0
 				has_political_power < 100
 			}
+			modifier = {
+				factor = 0
+				TRM = { has_country_flag = TRM_integration_with_russia }
+			}
 		}
 		cancel_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision cancel TRM_supply_buff target: [From.GetName]"
@@ -9354,6 +9431,10 @@ RUS_Siberian_War = {
 			modifier = {
 				factor = 0.5
 				command_power < 100				
+			}
+			modifier = {
+				factor = 0
+				TRM = { has_country_flag = TRM_integration_with_russia }
 			}
 		}
 		cancel_effect = {
@@ -9452,7 +9533,11 @@ RUS_Siberian_War = {
 			modifier = {
 				factor = 0
 				has_political_power < 100
-			}			
+			}	
+			modifier = {
+				factor = 0
+				TRM = { has_country_flag = TRM_integration_with_russia }
+			}		
 		}
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove TRM_propaganda_campaign target: [From.GetName]"
@@ -9484,7 +9569,11 @@ RUS_Siberian_War = {
 		cancel_if_not_visible = yes
 		
 		ai_will_do = {
-			factor = 100			
+			factor = 100
+			modifier = {
+				factor = 0
+				TRM = { has_country_flag = TRM_integration_with_russia }
+			}			
 		}
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision TRM_fortify_key_positions target: [From.GetName]"
@@ -9573,6 +9662,10 @@ RUS_Siberian_War = {
 				factor = 0
 				has_stability < 0.25
 			}
+			modifier = {
+				factor = 0
+				TRM = { has_country_flag = TRM_integration_with_russia }
+			}
 		}
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision TRM_boost_morale target: [From.GetName]"			
@@ -9605,6 +9698,10 @@ RUS_Siberian_War = {
 					rule = TRB_independence_path
 					option = TRM_SEMYONOV_MILITARY_DISTRICT
 				}
+			}
+			modifier = {
+				factor = 0
+				TRM = { has_country_flag = TRM_integration_with_russia }
 			}
 		}
 		remove_effect = {
@@ -9660,6 +9757,10 @@ RUS_Siberian_War = {
 					option = TRM_SEMYONOV_MILITARY_DISTRICT
 				}
 			}
+			modifier = {
+				factor = 0
+				TRM = { has_country_flag = TRM_integration_with_russia }
+			}
 		}
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove TRM_anti_air_defences target: [From.GetName]"
@@ -9713,6 +9814,10 @@ RUS_Siberian_War = {
 		fire_only_once = yes
 		ai_will_do = {
 			factor = 100
+			modifier = {
+				factor = 0
+				TRM = { has_country_flag = TRM_integration_with_russia }
+			}
 		}
 		cancel_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision cancel TRM_send_a_delegation_to_major_power target: [From.GetName]"
@@ -9879,6 +9984,10 @@ RUS_Siberian_War = {
 					russian_civil_war = yes
 				}
 			}
+			modifier = {
+				factor = 0
+				TRM = { has_country_flag = TRM_integration_with_russia }
+			}
 		}
 		cancel_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision cancel TRM_Conduct_Border_Exercize target: [From.GetName]"
@@ -10005,6 +10114,10 @@ RUS_Siberian_War = {
 			modifier = {
 				factor = 2
 				russian_civil_war = yes
+			}
+			modifier = {
+				factor = 0
+				TRM = { has_country_flag = TRM_integration_with_russia }
 			}
 		}
 		cancel_effect = {
@@ -11318,11 +11431,15 @@ RUS_dealing_with_revolution_cat = {
 
 		available = {
 			has_completed_focus = RUS_Social_Ferment
-			RUS_rev_ferment_lower_10 = yes
+			RUS_rev_ferment_lower_15 = yes
 		}
 
 		cancel_trigger = {
 			has_capitulated = yes
+		}
+		
+		ai_will_do = {
+			factor = 100
 		}
 		
 		cost = 0
@@ -11333,20 +11450,32 @@ RUS_dealing_with_revolution_cat = {
 		
 		cancel_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision RUS_revolutionary_activity_timer"
-			set_country_flag = RUS_revolutionary_ferment_dealt_with
+			hidden_effect = {
+				set_country_flag = RUS_revolutionary_ferment_dealt_with
+				remove_dynamic_modifier = { modifier = RUS_rev_ferment_modifier }
+			}
 		}
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision RUS_revolutionary_activity_timer"
+			custom_effect_tooltip = RUS_revolutionary_ferment_dealt_with_tt
+			remove_dynamic_modifier = { modifier = RUS_rev_ferment_modifier }
 			if = {
 				limit = { has_idea = RUS_political_instability_1 }
-				remove_ideas = RUS_political_instability_1
+				swap_ideas = {
+					remove_idea = RUS_political_instability_1
+					add_idea = RUS_political_instability_1_legacy
+					days = 650
+				}
 			}
 			else_if = {
 				limit = { has_idea = RUS_political_instability }
-				remove_ideas = RUS_political_instability
+				swap_ideas = {
+					remove_idea = RUS_political_instability
+					add_idea = RUS_political_instability_legacy
+					days = 650
+				}
 			}
 			set_country_flag = RUS_revolutionary_ferment_dealt_with
-			custom_effect_tooltip = RUS_revolutionary_ferment_dealt_with_tt
 			RUS_increase_rovs_pop_large = yes
 		}
 		timeout_effect = {
@@ -11443,7 +11572,7 @@ RUS_dealing_with_revolution_cat = {
 
 		cost = RUS_infiltrate_revolutionary_cells_cost?25
 		days_remove = RUS_infiltrate_revolutionary_cells_days_remove?20
-		days_re_enable = 15
+		days_re_enable = 10
 		cancel_if_not_visible = yes
 
 		modifier = {
@@ -11456,7 +11585,7 @@ RUS_dealing_with_revolution_cat = {
 
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_infiltrate_revolutionary_cells"			
-			set_temp_variable = { RUS_rev_ferment_change = -5 }
+			set_temp_variable = { RUS_rev_ferment_change = -6 }
 			RUS_change_rev_ferment = yes
 		}
 	}
@@ -11647,7 +11776,7 @@ RUS_dealing_with_revolution_cat = {
 			RUS_rev_ferment_lower_50 = yes
 		}
 		visible = {
-			NOT = { has_country_flag = Maria_Spiridonova_dead }
+			NOT = { has_country_flag = Viktor_Chernov_dead }
 		}
 		
 		cost = 40
@@ -11854,7 +11983,13 @@ RUS_dealing_with_revolution_cat = {
 
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_anti_socialist_legislation_rrdp"					
-			
+			RUS_remove_democratic_opposition = yes
+			set_country_flag = lkdp_banned
+			RUS_decrease_psr_pop_large = yes
+			RUS_decrease_lkdp_pop_large = yes
+			hidden_effect = {
+				country_event = { id = rusd.3318 days = 20 }
+			}
 		}
 	}
 }
@@ -11941,7 +12076,8 @@ RUS_rovs_internal_faction = {
 					id = rusd.3099
 					days = 50
 				}
-			
+			}
+		}
 		timeout_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision timeout RUS_wrangels_growing_ambitions"			
 			set_temp_variable = { RUS_wrangel_change = 3 }
@@ -11981,7 +12117,7 @@ RUS_rovs_internal_faction = {
 		
 		
 		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_placate_wrangels_allies"			
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_placate_wrangels_allies"
 			set_temp_variable = { RUS_wrangel_change = -5 }
 			RUS_change_wrangels_ambitions = yes
 			set_temp_variable = { RUS_vvsr_rovs_unity_change = 0.10 }
@@ -11992,10 +12128,7 @@ RUS_rovs_internal_faction = {
 		icon = GFX_decision_generic_army_support
 				
 		visible = {
-			OR = {
-				has_active_mission = RUS_constitutional_drafting_mission
-				has_completed_focus = RUS_Neutralize_The_Monarchist_Threat
-			}
+			has_completed_focus = RUS_Neutralize_The_Monarchist_Threat
 			any_unit_leader = { has_trait = RUS_drozdovsky_officer }
 		}
 		
@@ -12063,7 +12196,12 @@ RUS_rovs_internal_faction = {
 				
 		visible = {
 			has_completed_focus = RUS_Republican_Shadows_Exposed
-			any_unit_leader = { has_trait = RUS_denikin_officer }
+			any_unit_leader = { 
+				OR = {
+					has_trait = RUS_denikin_officer 
+					has_trait = RUS_savinkov_officer
+				}
+			}			
 		}
 		
 		cancel_if_not_visible = yes
@@ -12091,7 +12229,12 @@ RUS_rovs_internal_faction = {
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_sideline_republican_officers"			
 			every_unit_leader = {
-				limit = { has_trait = RUS_denikin_officer }
+				limit = { 
+					OR = {
+						has_trait = RUS_denikin_officer 
+						has_trait = RUS_savinkov_officer
+					}
+				}
 				add_unit_leader_trait = RUS_sidelined
 			}
 			RUS_bop_increase_monarchists_large = yes
@@ -12122,7 +12265,23 @@ RUS_rovs_internal_faction = {
 		}
 
 		ai_will_do = {
-			factor = 100
+			factor = 10
+			modifier = {
+				factor = 0
+				is_power_balance_in_range = {
+					id = RUS_rovs_balance
+					range > RUS_rovs_republican_side_1
+				}
+				has_game_rule = { rule = RUS_aftermath_of_kornilov option = RUS_AFTERMATH_OF_KORNILOV_WRANGEL_TSAR }
+			}
+			modifier = {
+				factor = 0
+				is_power_balance_in_range = {
+						id = RUS_rovs_balance
+						range < RUS_rovs_republican_side_1
+					}
+				has_game_rule = { rule = RUS_aftermath_of_kornilov option = RUS_AFTERMATH_OF_KORNILOV_WRANGEL_SUPREME_RULER }
+			}
 		}
 
 		remove_effect = {
@@ -12295,33 +12454,48 @@ RUS_council_of_the_republic_cat = {
 			custom_effect_tooltip = RUS_constitutional_drafting_mission_tt
 			if = {
 				limit = {
-					set_temp_variable = { RUS_vvsr_public_confidence = party_popularity@ruling_party }
-					if = {
-						limit = { is_in_coalition_with_market_liberal = yes }
-						add_to_temp_variable = { RUS_vvsr_public_confidence = party_popularity@market_liberal }
-					}
-					if = {
-						limit = { is_in_coalition_with_social_conservative = yes }
-						add_to_temp_variable = { RUS_vvsr_public_confidence = party_popularity@social_conservative }
-					}
-					if = {
-						limit = { is_in_coalition_with_authoritarian_democrat = yes }
-						add_to_temp_variable = { RUS_vvsr_public_confidence = party_popularity@authoritarian_democrat }
-					}
-					if = {
-						limit = { is_in_coalition_with_national_populist = yes }
-						add_to_temp_variable = { RUS_vvsr_public_confidence = party_popularity@national_populist }
-					}
+					NOT = { has_idea = RUS_empowered_president }
+				}
+				custom_effect_tooltip = RUS_constitutional_drafting_mission_tt2
+			}
+			if = {
+				limit = {
 					OR = {
-						check_variable = { RUS_vvsr_public_confidence = 0.25 }
-						check_variable = { RUS_vvsr_public_confidence > 0.25 }
+						AND = {
+							set_temp_variable = { RUS_vvsr_public_confidence = party_popularity@ruling_party }
+							if = {
+								limit = { is_in_coalition_with_market_liberal = yes }
+								add_to_temp_variable = { RUS_vvsr_public_confidence = party_popularity@market_liberal }
+							}
+							if = {
+								limit = { is_in_coalition_with_social_conservative = yes }
+								add_to_temp_variable = { RUS_vvsr_public_confidence = party_popularity@social_conservative }
+							}
+							if = {
+								limit = { is_in_coalition_with_authoritarian_democrat = yes }
+								add_to_temp_variable = { RUS_vvsr_public_confidence = party_popularity@authoritarian_democrat }
+							}
+							if = {
+								limit = { is_in_coalition_with_national_populist = yes }
+								add_to_temp_variable = { RUS_vvsr_public_confidence = party_popularity@national_populist }
+							}
+							OR = {
+								check_variable = { RUS_vvsr_public_confidence = 0.25 }
+								check_variable = { RUS_vvsr_public_confidence > 0.25 }
+							}
+							check_variable = { RUS_vvsr_rovs_unity > 0.25 }
+						}
+						AND = {
+							is_ai = yes
+							has_game_rule = { rule = RUS_aftermath_of_kornilov option = RUS_AFTERMATH_OF_KORNILOV_DENIKIN_PRESIDENT }
+						}
 					}
-					check_variable = { RUS_vvsr_rovs_unity > 0.25 }
 				}
 				if = {
 					limit = {
 						check_variable = { RUS_vvsr_public_confidence > 0.59 }
 						check_variable = { RUS_rovs_wrangel < 15 }
+						NOT = { has_idea = RUS_empowered_president }
 					}
 					country_event = rusd.3220 # republic
 				}
@@ -12468,6 +12642,11 @@ RUS_council_of_the_republic_cat = {
 
 		ai_will_do = {
 			factor = 100
+			modifier = {
+				factor = 0
+				NOT = { has_country_flag = RUS_monarchist_heir_chosen }
+				has_game_rule = { rule = RUS_aftermath_of_kornilov option = RUS_AFTERMATH_OF_KORNILOV_WRANGEL_SUPREME_RULER }
+			}
 		}
 
 		remove_effect = {
@@ -12573,7 +12752,7 @@ RUS_council_of_the_republic_cat = {
 
 RUS_zemsky_sobor_cat = {	
 	RUS_convene_the_zemsky_sobor = {
-		icon = GFX_decision_eng_ally_imperialist_coup
+		icon = GFX_decision_generic_monarchy
 		priority = 100
 
 		allowed = { always = no } #manually activated
@@ -12597,13 +12776,39 @@ RUS_zemsky_sobor_cat = {
 			custom_effect_tooltip = RUS_convene_the_zemsky_sobor_tt
 			if = {
 				limit = {
+					NOT = { has_country_flag = RUS_monarchist_heir_chosen }
+				}
+				custom_effect_tooltip = RUS_convene_the_zemsky_sobor_tt2
+			}
+			else = {
+				custom_effect_tooltip = RUS_convene_the_zemsky_sobor_tt3
+			}
+			if = {
+				limit = {
 					check_variable = { RUS_zs_blackhundred < 0.25 }
+					set_temp_variable = { RUS_vvsr_public_confidence = party_popularity@ruling_party }
+					if = {
+						limit = { is_in_coalition_with_market_liberal = yes }
+						add_to_temp_variable = { RUS_vvsr_public_confidence = party_popularity@market_liberal }
+					}
+					if = {
+						limit = { is_in_coalition_with_social_conservative = yes }
+						add_to_temp_variable = { RUS_vvsr_public_confidence = party_popularity@social_conservative }
+					}
+					if = {
+						limit = { is_in_coalition_with_authoritarian_democrat = yes }
+						add_to_temp_variable = { RUS_vvsr_public_confidence = party_popularity@authoritarian_democrat }
+					}
+					if = {
+						limit = { is_in_coalition_with_national_populist = yes }
+						add_to_temp_variable = { RUS_vvsr_public_confidence = party_popularity@national_populist }
+					}
 					OR = {
-						check_variable = { RUS_zs_monarchist > 0.75 }
-						check_variable = { RUS_zs_monarchist = 0.75 }
+						check_variable = { RUS_vvsr_public_confidence > 0.65 }
+						check_variable = { RUS_vvsr_public_confidence = 0.65 }
 					}
 				}
-				# Zemsky Sobor
+				country_event = rusd.3320
 			}
 			else = {
 				country_event = rusd.3039
@@ -12617,7 +12822,12 @@ RUS_zemsky_sobor_cat = {
 		allowed = { always = no } #manually activated
 
 		cancel_trigger = {
-			RUS_wrangel_in_power = no
+			OR = {
+				RUS_wrangel_in_power = no
+				has_completed_focus = RUS_Black_Tsar
+				has_completed_focus = RUS_The_Sword_Bows_To_The_Crown
+				has_completed_focus = RUS_Retain_Supreme_Command
+			}
 		}
 		
 		cancel_if_not_visible = yes
@@ -12626,6 +12836,14 @@ RUS_zemsky_sobor_cat = {
 		selectable_mission = yes
 		days_mission_timeout = 90
 		days_remove = 60
+		
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				check_variable = { RUS_zs_blackhundred < 0.15 }
+			}
+		}
 		
 		timeout_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision timeout RUS_zs_blackhundred_demands"			
@@ -12670,9 +12888,13 @@ RUS_zemsky_sobor_cat = {
 			has_active_mission = RUS_convene_the_zemsky_sobor
 		}
 
+		custom_cost_text = RUS_2_paternal_autocrat_pop
+		custom_cost_trigger = {
+			paternal_autocrat > 0.02
+		}
 		cost = 35
 		days_remove = 14
-		days_re_enable = 60
+		days_re_enable = 20
 		fire_only_once = no
 		
 		cancel_if_not_visible = yes
@@ -12682,11 +12904,43 @@ RUS_zemsky_sobor_cat = {
 		}
 
 		ai_will_do = {
-			factor = 100
+			base = 0
+			modifier = {
+				add = 70
+				has_game_rule = { rule = RUS_aftermath_of_kornilov option = RUS_AFTERMATH_OF_KORNILOV_WRANGEL_TSAR }
+				check_variable = { RUS_rovs_wrangel < 11 }
+			}
+			modifier = {
+				add = 70
+				has_game_rule = { rule = RUS_aftermath_of_kornilov option = RUS_AFTERMATH_OF_KORNILOV_WRANGEL_SUPREME_RULER }
+				check_variable = { RUS_rovs_wrangel > 10 }
+			}
+			modifier = {
+				add = 70
+				OR = {
+					has_game_rule = { rule = RUS_aftermath_of_kornilov option = RUS_AFTERMATH_OF_KORNILOV_WRANGEL_MONARCHY }
+					has_game_rule = { rule = RUS_aftermath_of_kornilov option = RUS_AFTERMATH_OF_KORNILOV_WRANGEL }
+					has_game_rule = { rule = RUS_aftermath_of_kornilov option = RUS_AFTERMATH_OF_KORNILOV_WRANGEL_SUPREME_RULER }
+					has_game_rule = { rule = RUS_aftermath_of_kornilov option = RUS_AFTERMATH_OF_KORNILOV_WRANGEL_TSAR }
+				}
+				OR = {
+					check_variable = { RUS_zs_blackhundred > 0.25 }
+					set_temp_variable = { RUS_vvsr_public_confidence = party_popularity@ruling_party }
+					add_to_temp_variable = { RUS_vvsr_public_confidence = party_popularity@market_liberal }
+					add_to_temp_variable = { RUS_vvsr_public_confidence = party_popularity@social_conservative }
+					add_to_temp_variable = { RUS_vvsr_public_confidence = party_popularity@authoritarian_democrat }
+					if = {
+						limit = { has_country_flag = nrpr_banned }
+						add_to_temp_variable = { RUS_vvsr_public_confidence = party_popularity@national_populist }
+					}
+					check_variable = { RUS_vvsr_public_confidence < 0.66 }
+				}
+			}
 		}
 
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_delay_the_sobor"
+			RUS_decrease_rovs_pop_small = yes
 			add_days_mission_timeout = {
 				mission = RUS_convene_the_zemsky_sobor
 				days = 75
@@ -12697,6 +12951,271 @@ RUS_zemsky_sobor_cat = {
 			set_temp_variable = { RUS_zs_change = 0.2 }
 			RUS_change_zs_blackhundred = yes
 			RUS_bop_increase_republicans = yes
+		}
+	}
+	RUS_reaffirm_army_loyalty = {
+		icon = GFX_decision_generic_army_support
+		available = { has_completed_focus = RUS_Unbroken_Command }
+		visible = {
+			has_active_mission = RUS_convene_the_zemsky_sobor
+		}
+
+		cost = 30
+		days_remove = 30
+		fire_only_once = yes
+		
+		cancel_if_not_visible = yes
+
+		modifier = {
+			paternal_autocrat_drift = 0.05
+			experience_gain_army = 0.02
+		}
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_reaffirm_army_loyalty"
+			add_war_support = 0.05
+			set_temp_variable = { RUS_vvsr_rovs_unity_change = 0.10 }
+			RUS_change_rovs_unity = yes
+			set_temp_variable = { RUS_zs_change = -0.03 }
+			RUS_change_zs_blackhundred = yes
+		}
+	}
+	RUS_restore_clerical_influence = {
+		icon = GFX_decision_generic_nationalism
+		available = {
+			has_completed_focus = RUS_Church_And_Saber
+		}
+		visible = {
+			has_active_mission = RUS_convene_the_zemsky_sobor
+		}
+
+		cost = 15
+		days_remove = 20
+		fire_only_once = yes
+		
+		cancel_if_not_visible = yes
+
+		modifier = {
+			stability_weekly = 0.01
+		}
+
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				has_game_rule = { rule = RUS_aftermath_of_kornilov option = RUS_AFTERMATH_OF_KORNILOV_WRANGEL_TSAR }
+			}
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_restore_clerical_influence"
+			RUS_increase_vns_pop = yes
+			RUS_increase_rovs_pop = yes
+			RUS_increase_monarchists_pop = yes
+			set_temp_variable = { RUS_wrangel_change = -1 }
+			RUS_change_wrangels_ambitions = yes
+		}
+	}
+	RUS_court_noble_families = {
+		icon = GFX_decision_NOR_deploy_prep_mon_3
+		
+		visible = {
+			has_active_mission = RUS_convene_the_zemsky_sobor
+		}
+
+		cost = 40
+		days_remove = 35
+		days_re_enable = 60
+		
+		cancel_if_not_visible = yes
+
+		modifier = {
+			political_power_cost = 0.05
+		}
+
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				has_game_rule = { rule = RUS_aftermath_of_kornilov option = RUS_AFTERMATH_OF_KORNILOV_WRANGEL_TSAR }
+			}
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_court_noble_families"
+			RUS_increase_vns_pop = yes
+			RUS_increase_rovs_pop = yes
+			set_temp_variable = { RUS_wrangel_change = -2 }
+			RUS_change_wrangels_ambitions = yes
+		}
+	}
+	RUS_address_peasantry = {
+		icon = GFX_decision_generic_political_discourse
+		available = { has_completed_focus = RUS_Zemskaya_Reform }
+		visible = {
+			has_active_mission = RUS_convene_the_zemsky_sobor
+		}
+
+		cost = 50
+		days_remove = 25
+		days_re_enable = 50
+		
+		cancel_if_not_visible = yes
+
+		modifier = {
+			stability_weekly = 0.005
+			war_support_weekly = 0.005
+		}
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_address_peasantry"
+			RUS_decrease_democratic_opposition = yes
+			RUS_decrease_lkdp_pop = yes
+			RUS_increase_vns_pop = yes
+			RUS_increase_rovs_pop = yes
+			set_temp_variable = { RUS_zs_change = -0.04 }
+			RUS_change_zs_blackhundred = yes
+		}
+	}
+	RUS_consult_philosophical_circles = {
+		icon = GFX_decision_generic_political_discourse
+		available = {
+			OR = {
+				has_completed_focus = RUS_Knight_Of_The_White_Idea
+				has_completed_focus = RUS_Guided_Reformism
+			}
+		}
+		visible = {
+			has_active_mission = RUS_convene_the_zemsky_sobor
+		}
+
+		cost = 50
+		days_remove = 45
+		fire_only_once = yes
+		
+		cancel_if_not_visible = yes
+
+		modifier = {
+			political_power_cost = 0.05
+		}
+
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				NOT = { has_country_flag = RUS_monarchist_heir_chosen }
+				has_game_rule = { rule = RUS_aftermath_of_kornilov option = RUS_AFTERMATH_OF_KORNILOV_WRANGEL_SUPREME_RULER }
+			}
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_consult_philosophical_circles"
+			RUS_increase_rkdp_pop = yes
+			RUS_increase_vns_pop = yes
+			RUS_increase_ep_pop = yes
+			set_temp_variable = { RUS_wrangel_change = 3 }
+			RUS_change_wrangels_ambitions = yes
+		}
+	}
+	RUS_consult_cossack_hosts = {
+		icon = GFX_decision_generic_cavalry
+		available = {
+			OR = {
+				any_owned_state = {
+					OR = {
+						is_core_of = DKB
+						is_core_of = KUB
+						is_core_of = KLY
+						state = 1189
+						state = 1187
+					}
+				}
+				any_unit_leader = {
+					RUS_is_cossack_leader = yes
+				}
+			}
+		}
+		visible = {
+			has_active_mission = RUS_convene_the_zemsky_sobor
+		}
+
+		cost = 25
+		days_remove = 35
+		fire_only_once = yes
+		
+		cancel_if_not_visible = yes
+
+		modifier = {
+			modifier_army_sub_unit_irregular_infantry_max_org_factor = 0.10
+			modifier_army_sub_unit_irregular_infantry_org_recovery_cap_factor = 0.10
+			war_support_weekly = 0.005
+		}
+
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				has_game_rule = { rule = RUS_aftermath_of_kornilov option = RUS_AFTERMATH_OF_KORNILOV_WRANGEL_TSAR }
+			}
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_consult_cossack_hosts"
+			every_owned_state = {
+				limit = {
+					OR = {
+						is_core_of = DKB
+						is_core_of = KUB
+						is_core_of = KLY
+						state = 1189
+						state = 1187
+					}
+				}
+				custom_effect_tooltip = RUS_increase_vns_pop_tt
+				custom_effect_tooltip = RUS_increase_rovs_pop_tt
+				hidden_effect = {
+					add_to_variable = { RUS_state_vns_temp_pop = 0.05 }
+					add_to_variable = { RUS_state_rovs_temp_pop = 0.05 }
+					add_to_variable = { RUS_state_plsr_temp_pop = -0.01 }
+					add_to_variable = { RUS_state_rsdrp_temp_pop = -0.01 }
+					add_to_variable = { RUS_state_nsp_temp_pop = -0.01 }
+					add_to_variable = { RUS_state_psr_temp_pop = -0.01 }
+					add_to_variable = { RUS_state_lkdp_temp_pop = -0.01 }
+					add_to_variable = { RUS_state_pp_temp_pop = -0.01 }
+					add_to_variable = { RUS_state_rkdp_temp_pop = -0.01 }
+					add_to_variable = { RUS_state_ep_temp_pop = -0.01 }
+					add_to_variable = { RUS_state_ndm_temp_pop = -0.01 }
+					add_to_variable = { RUS_state_nrpr_temp_pop = -0.01 }
+					add_to_variable = { RUS_state_nsnp_temp_pop = -0.01 }
+					add_to_variable = { RUS_state_independent_temp_pop = -0.01 }
+				}
+			}
+			hidden_effect = {
+				add_popularity = {
+					ideology = social_conservative
+					popularity = 0.035
+				}
+				add_popularity = {
+					ideology = authoritarian_democrat
+					popularity = 0.035
+				}
+				add_popularity = {
+					ideology = paternal_autocrat
+					popularity = 0.05
+				}
+			}			
+			set_temp_variable = { RUS_zs_change = -0.03 }
+			RUS_change_zs_blackhundred = yes
+			set_temp_variable = { RUS_wrangel_change = -1 }
+			RUS_change_wrangels_ambitions = yes
 		}
 	}
 }
