@@ -1702,7 +1702,7 @@ RUS_Alliance_decisions = {
 		available = {
 			NOT = { has_country_flag = RUS_invited_country }
 			FROM = {
-				has_completed_focus = GEO_pipeline_seized
+				has_country_flag = GEO_end_treaty
 				at_peace_or_same_enemies_as_ROOT = yes
 			}
 		}
@@ -1724,10 +1724,7 @@ RUS_Alliance_decisions = {
 					is_faction_leader = yes
 					has_completed_focus = RUS_Negotiations_Fail
 				}
-			}
-			OR = {
 				has_completed_focus = RUS_Realpolitik
-				has_left_democratic_government = yes
 				has_country_flag = RUS_KER
 			}
 		}
@@ -2100,6 +2097,12 @@ RUS_Alliance_decisions = {
 						owns_state = 773 #Constantinople
 					}
 				}
+			}
+			OR = {
+				has_global_flag = budapest_treaty_active
+				NOT = { country_exists = AUS }
+				AUS = { is_subject = yes }
+				has_war_with = AUS
 			}
 			FROM = { at_peace_or_same_enemies_as_ROOT = yes }
 		}
@@ -3198,7 +3201,7 @@ RUS_Foreign_Policy_decisions = {
 					FROM = { tag = KLY }
 				}
 				country_event = {
-					id = rusfor.1288
+					id = rusfor.1285
 					days = 1
 				}
 			}
@@ -3490,7 +3493,7 @@ RUS_Foreign_Policy_decisions = {
 					tag = GEO
 					is_subject = no
 					is_in_faction = no
-					has_completed_focus = GEO_pipeline_seized
+					has_country_flag = GEO_end_treaty
 					is_valid_peace_target = yes
 					OR = {
 						has_government = social_democrat
@@ -3499,8 +3502,11 @@ RUS_Foreign_Policy_decisions = {
 					}
 				}
 				OR = {
+					AND = {
+						is_faction_leader = yes
+						has_completed_focus = RUS_Negotiations_Fail
+					}
 					has_completed_focus = RUS_Realpolitik
-					has_left_democratic_government = yes
 					has_country_flag = RUS_KER
 				}
 			}
@@ -3542,12 +3548,7 @@ RUS_Foreign_Policy_decisions = {
 			}		
 			else_if = {
 				limit = {
-					FROM = { 
-						OR = {
-							tag = MTR 
-							tag = DAG
-						}
-					}
+					FROM = { tag = MTR }
 				}
 				country_event = {
 					id = rusfor.1294
@@ -3566,8 +3567,9 @@ RUS_Foreign_Policy_decisions = {
 				limit = {
 					FROM = { 
 						OR = {
-							tag = ABK 
+							tag = ABK
 							tag = AZE 
+							tag = DAG 
 						}
 					}
 				}
@@ -4000,52 +4002,36 @@ RUS_Foreign_Policy_decisions = {
 			}
 			if = {
 				limit = {
-					OR = {
-						AND = {
-							has_socialist_government = yes
-							FROM = {
-								tag = WHR
-							}
-						}
-						AND = {
-							has_socialist_government = no
-							FROM = {
-								tag = WHR
-								NOT = {
-									has_country_leader = {
-										ruling_only = yes
-										name = "Stanisłaŭ Bułak-Bałachowič"
-									}
-								}
+					FROM = { tag = WHR }
+				}
+				if = {
+					limit = {
+						has_socialist_government = no
+							WHR = {
+							has_country_leader = {
+								ruling_only = yes
+								name = "Stanisłaŭ Bułak-Bałachowič"
 							}
 						}
 					}
-				}
-				country_event = {
-					id = rusfor.1240
-					days = 1
-				}
-			}
-			if = {
-				limit = {
-					has_socialist_government = no
-					FROM = {
-						tag = WHR
-						has_country_leader = {
-							ruling_only = yes
-							name = "Stanisłaŭ Bułak-Bałachowič"
+					WHR = { get_current_government_type = yes }
+					RUS = {
+						set_autonomy = {
+							target = WHR
+							autonomy_state = kr_autonomous_puppet
 						}
 					}
-				}
-				RUS = {
-					set_autonomy = {
-						target = WHR
-						autonomy_state = kr_autonomous_puppet
+					WHR = { restore_previous_government_type = yes }
+					country_event = {
+						id = rusfor.1242
+						days = 1
 					}
 				}
-				country_event = {
-					id = rusfor.1242
-					days = 1
+				else = {
+					country_event = {
+						id = rusfor.1240
+						days = 1
+					}
 				}
 			}
 		}
@@ -4931,6 +4917,10 @@ RUS_Foreign_Policy_decisions = {
 			}
 			modifier = {
 				factor = 0
+				has_country_flag = RUS_OTT_AI_strategies
+			}
+			modifier = {
+				factor = 0
 				any_allied_country = {
 					773 = { is_claim_or_core_of_PREV = yes } #Constantinople
 				}
@@ -5137,6 +5127,10 @@ RUS_Foreign_Policy_decisions = {
 					TUR = { is_subject = yes }
 				}
 			}
+			modifier = {
+				factor = 0
+				has_country_flag = RUS_OTT_AI_strategies
+			}
 		}
 
 		cancel_effect = {
@@ -5166,6 +5160,7 @@ RUS_Foreign_Policy_decisions = {
 			}
 			clr_country_flag = RUS_attacking_ottomans
 			clr_country_flag = RUS_demanding_armenia
+			clr_country_flag = RUS_OTT_AI_strategies
 		}
 	}
 	RUS_Ultimatum_To_Persia = {
@@ -5681,7 +5676,13 @@ RUS_Foreign_Policy_decisions = {
 	RUS_support_chinese_faction = {
 		icon = generic_civil_support
 		allowed = { always = no }
-		visible = { country_exists = FROM }
+		visible = { 
+			FROM = { has_capitulated = no }
+			any_other_country = {
+				is_chinese_tag = yes
+				NOT = { has_country_flag = Russia_Supports_Us }
+			}
+		}
 		
 		cost = 10
 		days_remove = 1
@@ -5713,6 +5714,15 @@ RUS_Foreign_Policy_decisions = {
 		icon = ger_military_buildup
 		
 		allowed = { always = no }
+		
+		visible = {
+			FROM = { 
+				has_capitulated = no
+				is_subject = no
+				has_country_flag = Russia_Supports_Us
+			}
+		}
+		
 		custom_cost_trigger = {
 			has_equipment = { infantry_equipment > 2499 }
 		}
@@ -5774,20 +5784,41 @@ RUS_Foreign_Policy_decisions = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_Send_Attache target: [From.GetName]"
 			hidden_effect = { add_command_power = -50 }
 			#TODO: unit_leader_event
-			random_unit_leader = {
-				limit = { 
-					OR = {
-						has_id = 417 
-						has_id = 606 
-						has_id = 50004 
-					}
+			if = {
+				limit = {
+					NOT = { has_unit_leader = 417 }
+					NOT = { has_unit_leader = 606 }
+					NOT = { has_unit_leader = 50004 }
 				}
-				set_unit_leader_flag = RUS_russian_in_china
-				set_nationality = FROM
+				random_army_leader = {
+					limit = {
+						is_field_marshal = no
+						#OR = {
+						#	RUS_is_irrelevant_monarchist_officer = yes
+						#	RUS_is_irrelevant_republican_officer = yes
+						#}
+					}
+					add_unit_leader_trait = RUS_chinese_officer
+					set_nationality = FROM
+				}
+			}
+			else = {
+				random_unit_leader = {
+					limit = { 
+						OR = {
+							has_id = 417 
+							has_id = 606 
+							has_id = 50004 
+						}
+					}
+					add_unit_leader_trait = RUS_chinese_officer
+					set_nationality = FROM
+				}
 			}
 			FROM = { 
 				add_command_power = 50
 				army_experience = 50
+				add_ideas = RUS_chinese_military_mission_idea
 			}
 			activate_targeted_decision = { target = FROM decision = RUS_Recall_Attache }
 		}
@@ -5806,9 +5837,12 @@ RUS_Foreign_Policy_decisions = {
 			factor = 0
 			modifier = {
 				add = 100
-				OR = {
-					NOT = { country_exists = FROM }
-					FROM = { surrender_progress > 0.2 }
+				FROM = {
+					OR = {
+						exists = no
+						has_capitulated = yes
+						surrender_progress > 0.2
+					}
 				}
 			}
 		}
@@ -5817,8 +5851,8 @@ RUS_Foreign_Policy_decisions = {
 			#TODO: unit_leader_event
 			FROM = {
 				random_unit_leader = {
-					limit = { has_unit_leader_flag = RUS_russian_in_china }
-					clr_unit_leader_flag = RUS_russian_in_china
+					limit = { has_trait = RUS_chinese_officer }
+					remove_unit_leader_trait = RUS_chinese_officer
 					set_nationality = ROOT
 				}
 			}
@@ -9056,7 +9090,7 @@ RUS_Siberian_War = {
 			date > 1937.1.1
 			TRM = { 
 				has_war = no 
-				is_subject = no
+				is_valid_peace_target = yes
 			}
 		}		
 		visible = {
