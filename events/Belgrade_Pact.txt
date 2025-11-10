@@ -615,7 +615,6 @@ country_event = {
 			add_ideas = has_scripted_peace
 			BUL = { add_ideas = has_scripted_peace }
 			news_event = { id = worldnews.37 days = 1 }
-			country_event = worldtension.6
 		}
 	}
 }
@@ -2505,9 +2504,6 @@ country_event = {
 			BUL = { give_military_access = ALB }
 			ALB = { give_military_access = BUL }
 		}
-		ALB = {
-			country_event = { id = pact.73 hours = 4 }
-		}
 	}
 
 	option = {
@@ -2860,65 +2856,36 @@ country_event = {
 # Belgrade Pact vs. Austria
 ###########################
 
-# Preventing Pact members from collapsing just because Serbia has
-country_event = {
+country_event = { # looping hidden event to move the Pact leader to another member who's still fighting (donotlog)
 	id = pact.100
-	immediate = { log = "[GetDateText]: [Root.GetName]: event pact.100" }
-	title = pact.100.t
-	desc = pact.100.d
-	picture = GFX_report_event_czech_soldiers_02
 
-	trigger = {
-		OR = {
-			tag = ROM
-			tag = GRE
-		}
-		is_in_faction_with = SER
-		SER = { is_faction_leader = yes }
-		is_major = no
-		has_war = yes
-		NOT = { has_country_flag = belgrade_pact_major }
-	}
-
-	mean_time_to_happen = {
-		days = 3
-	}
+	hidden = yes
+	is_triggered_only = yes
 
 	option = {
-		name = pact.100.a
-		set_country_flag = belgrade_pact_major
-		set_major = yes
-	}
-}
-
-# Re-setting their major status
-country_event = {
-	id = pact.101
-	immediate = { log = "[GetDateText]: [Root.GetName]: event pact.101" }
-	title = pact.101.t
-	desc = pact.101.d
-
-	trigger = {
-		OR = {
-			tag = ROM
-			tag = GRE
+		if = {
+			limit = {
+				is_faction_leader = yes
+				surrender_progress > 0.85
+			}
+			random_other_country = {
+				limit = {
+					is_in_faction_with = ROOT
+					is_subject = no
+					NOT = { surrender_progress > 0.85 }
+				}
+				set_faction_leader = yes
+			}
 		}
-		has_country_flag = belgrade_pact_major
-		is_major = yes
-		OR = {
-			has_war = no
-			NOT = { is_in_faction_with = SER }
+
+		#break the loop if no longer in the faction or no longer at war
+		if = {
+			limit = {
+				is_in_faction_with = BPL
+				has_war = yes
+			}
+			country_event = { id = pact.100 days = 1 }
 		}
-	}
-
-	mean_time_to_happen = {
-		days = 3
-	}
-
-	option = {
-		name = pact.101.a
-		clr_country_flag = belgrade_pact_major
-		set_major = no
 	}
 }
 
