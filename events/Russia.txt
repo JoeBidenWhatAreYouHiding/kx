@@ -9404,6 +9404,17 @@ country_event = { #Elections 1941
 	
 	option = { #
 		name = rusdem.30.a
+		meta_effect = {
+			text = {
+				set_politics = {
+					ruling_party = var:RUS.current_party_ideology_group
+					last_election = "[CURRENT_DATE]"
+					election_frequency = 60
+					elections_allowed = yes
+				}
+			}
+			CURRENT_DATE = "[?global.date.GetDateStringNoHour]"
+		}
 		hidden_effect = {
 			mp_support_calc = yes
 			senators_support_calc = yes			
@@ -9485,7 +9496,7 @@ country_event = { #presidential general elections
 		name = rusdem.50.o
 		trigger = {
 			rsdrp_in_power = yes
-			has_country_flag = RUS_vi_congress_moderates
+			NOT = { has_country_flag = RUS_vi_congress_internationalists }
 		}
 		RUS_setup_president_gvozdev = yes
 		remove_add_presidential_senators = yes
@@ -21219,37 +21230,20 @@ country_event = { #The Capital
 	desc = rusd.203.d
 
 	is_triggered_only = yes
+	trigger = {
+		SOV_any_bolshevik_in_power = no
+	}
 
 	option = {
 		name = rusd.203.a
-		ai_chance = {
-			factor = 60
-			modifier = {
-				factor = 0
-				OR = {
-					has_game_rule = { rule = SOV_path option = RULE_OPTION_SOV_PATH_NSP }
-					SOV_bukharin_in_power = yes
-					nsp_in_power = yes
-					SOV_rykov_in_power = yes
-				}
-			}
-		}
-		hidden_effect = {
-			set_temp_variable = { politburo_change = 2 }
-			SOV_change_politburo_left_communists = yes
-		}
+		activate_targeted_decision = { target = ROOT decision = RUS_fortify_the_petrograd_approaches }
 	}
 
 	option = {
 		name = rusd.203.b
-		ai_chance = {
-			factor = 40
-		}		
-		set_country_flag = RUS_moscow_capital
-		set_capital = { state = 219 remember_old_capital = yes }
-		hidden_effect = {
-			set_temp_variable = { politburo_change = 2 }
-			SOV_change_politburo_bukharin = yes
+		set_capital = {
+			state = 219
+			remember_old_capital = yes
 		}
 	}
 }
@@ -21353,28 +21347,27 @@ country_event = { #Russian Language
 	immediate = { log = "[GetDateText]: [Root.GetName]: event rusd.206" }
 	title = rusd.206.t
 	desc = rusd.206.d
+	
 	is_triggered_only = yes
 	fire_only_once = yes
+	trigger = {
+		has_socialist_government = no
+	}
 	picture = GFX_report_event_RUS_Latinization
+	
 	option = {
 		name = rusd.206.a
-		ai_chance = {
-			factor = 30
-		}
-		add_political_power = 50
+		add_stability = 0.03
+		add_political_power = -35
+		RUS_increase_nsp_pop_small = yes
+		RUS_increase_rsdrp_pop_small = yes
 	}
 	option = {
 		name = rusd.206.b
-		trigger = {
-			OR = {
-				vns_in_power = yes
-				has_authoritarian_government = yes
-			}
-		}
-		ai_chance = {
-			factor = 70
-		}
-		add_political_power = -50
+		add_stability = -0.02
+		add_political_power = 25
+		RUS_decrease_nsp_pop_small = yes
+		RUS_decrease_rsdrp_pop_small = yes
 	}
 }
 country_event = { #Green cough Vozhd
@@ -23149,7 +23142,9 @@ country_event = { #Avksentiev dead
 		effect_tooltip = { kill_country_leader = yes }
 		RUS_setup_acting_president_senate = yes
 		set_country_flag = Nikolay_Avksentiev_dead
-		add_stability = -0.1
+		add_stability = -0.03
+		clr_country_flag = avksentiev_psr_candidate	
+		clr_country_flag = avksentiev_psr_kdp_candidate
 	}
 	option = {
 		name = rusd.131.a
@@ -23162,6 +23157,8 @@ country_event = { #Avksentiev dead
 			}
 		}
 		set_country_flag = Nikolay_Avksentiev_dead
+		clr_country_flag = avksentiev_psr_candidate	
+		clr_country_flag = avksentiev_psr_kdp_candidate
 	}
 }
 country_event = { #Nekrasov dead
@@ -24930,6 +24927,146 @@ country_event = { #Rakhaminov
 		add_political_power = 15
 	}
 }
+country_event = { #Savinkov
+	id = rusd.182
+	immediate = { log = "[GetDateText]: [Root.GetName]: event rusd.182" }
+	title = rusd.182.t
+	desc = rusd.182.d
+	
+	picture = GFX_report_event_RUS_savinkov2
+	fire_only_once = yes
+	is_triggered_only = yes
+	
+	option = {
+		name = rusd.182.a
+		add_war_support = 0.02
+		RUS_increase_nrpr_pop_small = yes
+	}
+}
+country_event = { #Bunin
+	id = rusd.190
+	immediate = { 
+		log = "[GetDateText]: [Root.GetName]: event rusd.190" 
+		hidden_effect = {
+			if = {
+				limit = { 
+					OR = {
+						has_global_flag = USA_civil_war_avoided_flag
+						has_global_flag = USA_civil_war_over_flag
+					}
+				}
+				random_other_country = {
+					limit = { 
+						is_american_tag = yes
+						has_socialist_government = no
+						has_dictatorship_government = no
+					}
+					save_event_target_as = target 
+				}
+			}
+			else_if = {
+				limit = { 
+					country_exists = CAN
+					CAN = { 
+						has_socialist_government = no
+						has_dictatorship_government = no
+						is_valid_peace_target = yes
+					}
+				}
+				CAN = { save_event_target_as = target }
+			}
+			else_if = {
+				limit = { 
+					country_exists = SWE
+					SWE = { 
+						has_socialist_government = no
+						has_dictatorship_government = no
+						is_valid_peace_target = yes
+						has_war = no
+					}
+				}
+				SWE = { save_event_target_as = target }
+			}
+			else = {
+				random_other_country = {
+					limit = { 
+						has_socialist_government = no
+						has_dictatorship_government = no
+						is_valid_peace_target = yes
+						has_war = no
+						is_actual_major = yes
+						OR = {
+							is_in_americas = yes
+							is_in_australia = yes
+						}
+					}
+					save_event_target_as = target
+				}
+			}
+		}
+	}
+	title = rusd.190.t
+	desc = rusd.190.d
+	
+	picture = GFX_report_event_RUS_bunin
+	
+	fire_only_once = yes
+	is_triggered_only = yes
+	trigger = { 
+		OR = {
+			has_country_flag = soviet_russia_restored
+			nsp_in_power = yes
+			rsdrp_in_power = yes
+			lpsr_in_power = yes
+		}
+	}
+	
+	option = {
+		name = rusd.190.a
+		add_political_power = -10
+	}
+}
+country_event = { #Bunin
+	id = rusd.191
+	immediate = { log = "[GetDateText]: [Root.GetName]: event rusd.191" }
+	title = rusd.191.t
+	desc = rusd.191.d
+	
+	picture = GFX_report_event_RUS_bunin
+	
+	fire_only_once = yes
+	is_triggered_only = yes
+	trigger = { 
+		NOT = {
+			has_country_flag = soviet_russia_restored
+			nsp_in_power = yes
+			rsdrp_in_power = yes
+			lpsr_in_power = yes
+		}
+	}
+	
+	option = {
+		name = rusd.191.a
+		add_stability = 0.02
+	}
+}
+country_event = { #Bunin
+	id = rusd.192
+	immediate = { log = "[GetDateText]: [Root.GetName]: event rusd.192" }
+	title = rusd.192.t
+	desc = rusd.192.d
+	
+	picture = GFX_report_event_RUS_bunin
+	
+	fire_only_once = yes
+	is_triggered_only = yes
+		
+	option = {
+		name = rusd.192.a
+		RUS_increase_rovs_pop_small = yes
+	}
+}
+
 ###Socialist events
 country_event = { #Unlock political decisions
 	id = russoc.1
