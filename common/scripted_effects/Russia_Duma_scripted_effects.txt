@@ -435,13 +435,24 @@ RUS_add_to_coalition = {
 		add_radsoc_to_coalition = yes
 	}
 	else_if = {
-		limit = { 
-			OR = {
-				check_variable = { RUS_coalition_partner = 3 } 
-				check_variable = { RUS_coalition_partner = 4 } 
-			}
+		limit = { check_variable = { RUS_coalition_partner = 3 } }
+		if = {
+			limit = { has_country_flag = RUS_rsdrp_is_radsoc }
+			add_radsoc_to_coalition = yes
 		}
-		add_socdem_to_coalition = yes
+		else = {
+			add_socdem_to_coalition = yes
+		}
+	}
+	else_if = {
+		limit = { check_variable = { RUS_coalition_partner = 4 } }
+		if = {
+			limit = { has_country_flag = RUS_psr_is_soclib }
+			add_soclib_to_coalition = yes
+		}
+		else = {
+			add_socdem_to_coalition = yes
+		}
 	}
 	else_if = {
 		limit = { check_variable = { RUS_coalition_partner = 5 } }
@@ -12974,12 +12985,57 @@ RUS_setup_plsr_government = {
 	mp_support_calc = yes
 	senators_support_calc = yes
 	set_variable = { Duma_Party_Status^1 = 1 }
-}
+} 
 RUS_setup_nsp_government = {
-	add_ideas = var:RUS_nsp_minister_hog
-	add_ideas = var:RUS_nsp_minister_for
-	add_ideas = var:RUS_nsp_minister_eco
-	add_ideas = var:RUS_nsp_minister_sec
+	hidden_effect = {
+		# Set party name if not in power
+		if = {
+			limit = { nsp_in_power = no }
+			if = {
+				limit = { 
+					has_country_flag = RUS_nsp_is_vsp
+				}
+				set_party_name = {
+					ideology = radical_socialist
+					name = SOV_vsp_rso_party
+					long_name = SOV_vsp_rso_party_long
+				}
+			}
+			else = {
+				set_party_name = {
+					ideology = radical_socialist
+					name = RUS_radical_socialist_party
+					long_name = RUS_radical_socialist_party_long
+				}
+			}
+		}
+		# Just in case
+		remove_all_ministers = yes
+	}
+	if = {
+		limit = { has_country_flag = RUS_nsp_lev_kamenev }
+		add_ideas = RUS_Lev_Kamenev_hog_rso
+		activate_targeted_decision = { target = ROOT decision = RUS_coalition_with_RSDRP }
+	}
+	else_if = {
+		limit = { has_country_flag = RUS_nsp_sergey_kirov }
+		add_ideas = RUS_Sergey_M_Kirov_hog_rso
+		activate_targeted_decision = { target = ROOT decision = RUS_coalition_with_RSDRP }
+		activate_targeted_decision = { target = ROOT decision = RUS_coalition_with_PSR }
+		activate_targeted_decision = { target = ROOT decision = RUS_coalition_with_LKDP }
+	}
+	else = {
+		add_ideas = RUS_Nikolay_I_Bukharin_hog_rso
+	}
+	add_ideas = RUS_Valerian_V_Osinskiy_for_rso
+	add_ideas = RUS_Nikolay_D_Kondratiev_eco_rso
+	if = {
+		limit = { has_country_flag = Aleksey_Rykov_dead }
+		add_ideas = RUS_Georgiy_M_Malenkov_sec_rso
+	}
+	else = {
+		add_ideas = RUS_Martemyan_Ryutin_sec_rso
+	}
 	if = {
 		limit = { 
 			has_country_flag = RUS_popular_front_coalition
@@ -12989,32 +13045,57 @@ RUS_setup_nsp_government = {
 		set_temp_variable = { RUS_coalition_partner = 4 }
 		RUS_add_to_coalition = yes
 	}
+	set_variable = { Duma_Party_Status^2 = 1 }
 	mp_support_calc = yes
 	senators_support_calc = yes
-	set_variable = { Duma_Party_Status^2 = 1 }
 }
 RUS_setup_rsdrp_government = {
-	if = {
-		limit = {
-			has_country_flag = RUS_rsrpi_exists
-		}
-		set_party_name = {
+	hidden_effect = {
+		# Split popularity if rsdrp was not in power before
+		if = {
+			limit = { rsdrp_in_power = no }
+			set_temp_variable = { RUS_socdem_pop = party_popularity@social_democrat }
+			divide_temp_variable = { RUS_socdem_pop = 2 }
+			multiply_temp_variable = { RUS_socdem_pop = 100 }
+			set_political_party = {
 			ideology = social_democrat
-			name = RUS_rsrpi_party
-			long_name = RUS_rsrpi_party_long
+				popularity = var:RUS_socdem_pop
+			}
+			# Set party name for ideology group (decided prior to effect)
+			if = {
+				limit = {
+					has_country_flag = RUS_rsrpi_exists
+				}
+				set_party_name = {
+					ideology = var:RUS.current_party_ideology_group
+					name = RUS_rsrpi_party
+					long_name = RUS_rsrpi_party_long
+				}
+			}
+			else = {
+				set_party_name = {
+					ideology = var:RUS.current_party_ideology_group
+					name = RUS_social_democrat_party
+					long_name = RUS_social_democrat_party_long
+				}
+			}
 		}
+		# Just in case
+		remove_all_ministers = yes
+	}
+	if = {
+		limit = { has_country_flag = RUS_vi_congress_internationalists }
+		add_ideas = RUS_Rafail_Abramovich_hog_sde
+		add_ideas = RUS_Andrey_Vyshinsky_for_sde
+		add_ideas = RUS_Nikolay_Sukhanov_eco_sde
+		add_ideas = RUS_Vyacheslav_P_Volgin_sec_sde
 	}
 	else = {
-		set_party_name = {
-			ideology = social_democrat
-			name = RUS_social_democrat_party
-			long_name = RUS_social_democrat_party_long
-		}
+		add_ideas = RUS_Irakliy_G_Tsereteli_hog_sde
+		add_ideas = RUS_Aleksey_M_Nikitin_for_sde
+		add_ideas = RUS_Boris_I_Nikolayevsky_eco_sde
+		add_ideas = RUS_Fyodor_I_Dan_sec_sde
 	}
-	add_ideas = var:RUS_rsdrp_minister_hog
-	add_ideas = var:RUS_rsdrp_minister_for
-	add_ideas = var:RUS_rsdrp_minister_eco
-	add_ideas = var:RUS_rsdrp_minister_sec
 	if = {
 		limit = { 
 			has_country_flag = RUS_popular_front_coalition
@@ -13031,38 +13112,91 @@ RUS_setup_rsdrp_government = {
 		set_temp_variable = { RUS_coalition_partner = 3 }
 		RUS_add_to_coalition = yes
 	}
+	set_variable = { Duma_Party_Status^4 = 1 }
 	mp_support_calc = yes
 	senators_support_calc = yes
-	set_variable = { Duma_Party_Status^4 = 1 }
 }
 RUS_setup_psr_government = {
-	add_ideas = var:RUS_psr_minister_hog
-	add_ideas = var:RUS_psr_minister_for
-	add_ideas = var:RUS_psr_minister_eco
-	add_ideas = var:RUS_psr_minister_sec
+	hidden_effect = {
+		# Split popularity if rsdrp was not in power before
+		if = {
+			limit = { psr_in_power = no }
+			set_temp_variable = { RUS_socdem_pop = party_popularity@social_democrat }
+			divide_temp_variable = { RUS_socdem_pop = 2 }
+			multiply_temp_variable = { RUS_socdem_pop = 100 }
+			set_political_party = {
+				ideology = social_democrat
+				popularity = var:RUS_socdem_pop
+			}
+			# Set party name for ideology group (decided prior to effect)
+			if = {
+				limit = {
+					has_country_flag = RUS_socdems_rpr
+				}
+				set_party_name = {
+					ideology = var:RUS.current_party_ideology_group
+					name = RUS_rpr_party
+					long_name = RUS_rpr_party_long
+				}
+				set_temp_variable = { RUS_coalition_partner = 14 }
+				RUS_add_to_coalition = yes
+			}
+			else_if = {
+				limit = {
+					has_country_flag = RUS_soclibs_rrdo
+				}
+				set_party_name = {
+					ideology = var:RUS.current_party_ideology_group
+					name = RUS_rrdo_party
+					long_name = RUS_rrdo_party_long
+				}
+				set_temp_variable = { RUS_coalition_partner = 5 }
+				RUS_add_to_coalition = yes
+			}
+			else_if = {
+				limit = {
+					has_country_flag = RUS_socdems_ref
+				}
+				set_party_name = {
+					ideology = var:RUS.current_party_ideology_group
+					name = RUS_soc_ref_party
+					long_name = RUS_soc_ref_party_long
+				}
+			}
+			else = {
+				set_party_name = {
+					ideology = var:RUS.current_party_ideology_group
+					name = RUS_social_rev_party
+					long_name = RUS_social_rev_party_long
+				}
+			}
+		}
+		# Just in case
+		remove_all_ministers = yes
+	}
+	add_ideas = RUS_Vladimir_M_Zenzinov_hog_sde
 	if = {
-		limit = { has_country_flag = RUS_socdems_rpr }
-		set_party_name = {
-			ideology = social_democrat
-			name = RUS_rpr_party
-			long_name = RUS_rpr_party_long
+		limit = { 
+			OR = {
+				has_country_flag = Viktor_Chernov_dead
+				has_country_leader = { name = "Viktor Chernov" ruling_only = yes }
+				has_country_flag = chernov_psr_candidate
+			}
 		}
+		add_ideas = RUS_Ilya_I_Fondaminskiy_for_sde
 	}
-	else_if = {
-		limit = { has_country_flag = RUS_socdems_ref }
-		set_party_name = {
-			ideology = social_democrat
-			name = RUS_soc_ref_party
-			long_name = RUS_soc_ref_party_long
+	else = {
+		add_ideas = RUS_Viktor_M_Chernov_for_sde
+	}
+	if = {
+		limit = { 
+			has_country_flag = RUS_Vadim_V_Rudnev_dead
 		}
+		add_ideas = RUS_Andrey_D_Sakharov_eco_sde
 	}
-	else = { 
-		set_party_name = {
-			ideology = social_democrat
-			name = RUS_social_liberal_party
-			long_name = RUS_social_liberal_party_long
-		}		
-	}	
+	else = {
+		add_ideas = RUS_Vadim_V_Rudnev_eco_sde
+	}
 	if = {
 		limit = { 
 			has_country_flag = RUS_psr_rsdrp_coalition
@@ -13078,31 +13212,45 @@ RUS_setup_psr_government = {
 		RUS_add_to_coalition = yes
 	}
 	if = {
-		limit = { has_country_flag = RUS_socdems_rpr }
-		custom_effect_tooltip = RUS_nrpr_will_join_coalition
-		set_temp_variable = { RUS_coalition_partner = 14 }
-		RUS_add_to_coalition = yes
-	}
-	if = {
 		limit = { 
-			OR = {
-				has_country_flag = RUS_soclibs_rrdo 
-				has_country_flag = RUS_psr_kdp_coalition 
-			}
+			has_country_flag = RUS_psr_kdp_coalition 
 		}
 		custom_effect_tooltip = RUS_lkdp_will_join_coalition		
 		set_temp_variable = { RUS_coalition_partner = 5 }
 		RUS_add_to_coalition = yes
 	}
+	set_variable = { Duma_Party_Status^3 = 1 }
 	mp_support_calc = yes
 	senators_support_calc = yes
-	set_variable = { Duma_Party_Status^3 = 1 }
 }
 RUS_setup_lkdp_government = {
-	add_ideas = var:RUS_lkdp_minister_hog
-	add_ideas = var:RUS_lkdp_minister_for
-	add_ideas = var:RUS_lkdp_minister_eco
-	add_ideas = var:RUS_lkdp_minister_sec
+	hidden_effect = {
+		# Just in case
+		remove_all_ministers = yes
+	}
+	add_ideas = RUS_Nikolay_V_Nekrasov_hog_sli
+	if = {
+		limit = { 
+			NOT = {
+				has_country_leader = { name = "Pavel Milyukov" ruling_only = yes }
+				has_country_flag = milyukov_kdp_candidate
+				has_country_flag = Pavel_N_Milyukov_dead
+			}
+		}
+		add_ideas = RUS_Pavel_N_Milyukov_for_sli
+	}
+	else_if = {
+		limit = { 
+			NOT = {
+				has_country_leader = { name = "Mikhail Tereschenko" ruling_only = yes }
+				has_country_flag = tereschenko_kdp_candidate
+			}
+		}
+		add_ideas = RUS_Pavel_N_Milyukov_for_sli
+	}
+	else = {
+		add_ideas = RUS_Pyetr_B_Struve_for_mli
+	}
 	if = {
 		limit = { 
 			has_country_flag = RUS_psr_kdp_coalition
@@ -13110,9 +13258,9 @@ RUS_setup_lkdp_government = {
 		set_temp_variable = { RUS_coalition_partner = 3 }
 		RUS_add_to_coalition = yes
 	}
+	set_variable = { Duma_Party_Status^5 = 1 }
 	mp_support_calc = yes
 	senators_support_calc = yes
-	set_variable = { Duma_Party_Status^5 = 1 }
 }
 RUS_setup_progressive_government = {
 	add_ideas = var:RUS_pp_minister_hog
@@ -13124,6 +13272,45 @@ RUS_setup_progressive_government = {
 	set_variable = { Duma_Party_Status^6 = 1 }	
 }
 RUS_setup_rkdp_government = {
+	hidden_effect = {
+		# Just in case
+		remove_all_ministers = yes
+		if = {
+			limit = { rkdp_in_power = no }
+			# Set party name for ideology group (decided prior to effect)
+			if = {
+				limit = {
+					has_country_flag = RUS_marlibs_vps
+				}
+				set_party_name = {
+					ideology = market_liberal
+					name = RUS_vps_party
+					long_name = RUS_vps_party_long
+				}
+				add_soccon_to_coalition = yes
+			}
+			else_if = {
+				limit = {
+					has_country_flag = RUS_marlibs_ldp
+				}
+				set_party_name = {
+					ideology = market_liberal
+					name = RUS_ldp_party
+					long_name = RUS_ldp_party_long
+				}
+			}
+			else = {
+				set_party_name = {
+					ideology = market_liberal
+					name = RUS_left_kadets_party
+					long_name = RUS_right_kadets_party_long
+				}
+			}
+		}
+	}
+	if = {
+		limit = { }
+	}
 	add_ideas = var:RUS_rkdp_minister_hog
 	add_ideas = var:RUS_lkdp_minister_for
 	add_ideas = var:RUS_rkdp_minister_eco
@@ -14777,6 +14964,30 @@ RUS_pass_current_law = {
 				}
 			}
 			increase_state_category_by_one_level = yes
+		}
+		custom_effect_tooltip = tooltip_white_line
+		if = {
+			limit = { has_dlc_aat = no }
+			custom_effect_tooltip = {
+				localization_key = RUS_unlock_improved_company COMPANY = putilovets
+			}
+			show_ideas_tooltip = putilovets_improved
+			hidden_effect = {
+				if = {
+					limit = { has_idea = putilovets }
+					swap_ideas = {
+						remove_idea = putilovets
+						add_idea = putilovets_improved
+					}
+				}
+			}
+			set_country_flag = upgrade_putilovets
+		}
+		else = {
+			mio:RUS_putilovets_organisation = { 
+				add_mio_size = 1
+				add_mio_funds_gain_factor = 0.10
+			}
 		}
 	}
 	if = {
