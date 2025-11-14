@@ -18316,6 +18316,7 @@ country_event = { #NSNP
 		option = {
 		name = rusdem.604.a
 		set_country_flag = RUS_solidarist_christian_dem
+		clr_country_flag = VNS_aristocratic
 		set_politics = {
 			ruling_party = authoritarian_democrat
 			elections_allowed = yes
@@ -18329,6 +18330,37 @@ country_event = { #NSNP
 		custom_effect_tooltip = authdem_autdem_christian_democracy_subtype_swap_tt
 		add_natpop_to_coalition = yes
 		hidden_effect = {
+			# give authdem to soccon first
+			set_temp_variable = { RUS_new_soccon = party_popularity_100@social_conservative}
+			add_to_temp_variable = { RUS_new_soccon = party_popularity_100@authoritarian_democrat  }
+
+			set_temp_variable = { sum = 100 }
+			subtract_from_temp_variable = { sum = party_popularity_100@totalist }
+			subtract_from_temp_variable = { sum = party_popularity_100@syndicalist }
+			subtract_from_temp_variable = { sum = party_popularity_100@radical_socialist }
+			subtract_from_temp_variable = { sum = party_popularity_100@social_democrat }
+			subtract_from_temp_variable = { sum = party_popularity_100@social_liberal }
+			subtract_from_temp_variable = { sum = party_popularity_100@market_liberal }
+			subtract_from_temp_variable = { sum = RUS_new_soccon }
+			subtract_from_temp_variable = { sum = party_popularity_100@paternal_autocrat }
+			subtract_from_temp_variable = { sum = party_popularity_100@national_populist }
+
+			add_to_temp_variable = { RUS_new_soccon = sum } #avoid rounding errors
+
+			set_popularities = {
+				totalist = party_popularity_100@totalist
+				syndicalist = party_popularity_100@syndicalist
+				radical_socialist = party_popularity_100@radical_socialist
+				social_democrat = party_popularity_100@social_democrat
+				social_liberal = party_popularity_100@social_liberal
+				market_liberal = party_popularity_100@market_liberal
+				social_conservative = RUS_new_soccon
+				authoritarian_democrat = 0
+				paternal_autocrat = party_popularity_100@paternal_autocrat
+				national_populist = party_popularity_100@national_populist
+			}
+			# Change natpop to authdem after 
+			
 			set_temp_variable = { RUS_new_authdem = party_popularity_100@authoritarian_democrat }
 			set_temp_variable = { RUS_new_natpop = party_popularity_100@national_populist }
 			add_to_temp_variable = { RUS_new_authdem = RUS_new_natpop }
@@ -21619,17 +21651,55 @@ country_event = { #Boris Romanov dies
 			name = "Boris II"
 		}
 	}
-	title = rusd.94.t
+	title = {
+		text = rusd.94.t
+		trigger = { 
+			NOT = {
+				has_country_leader = {
+					ruling_only = yes
+					name = "Boris II"
+				}
+			}
+		}
+	}
+	title = {
+		text = rusd.95.t.tsar
+		trigger = { 
+			has_country_leader = {
+				ruling_only = yes
+				name = "Boris II"
+			}
+		}
+	}
 	desc = {
 		text = rusd.94.d.has_heir
 		trigger = {
+			has_country_leader = {
+				ruling_only = yes
+				name = "Boris II"
+			}
 			has_completed_focus = RUS_A_Clear_Line_Of_Succession
 		}
 	}
 	desc = {
 		text = rusd.94.d.no_heir
 		trigger = {
+			has_country_leader = {
+				ruling_only = yes
+				name = "Boris II"
+			}
 			NOT = {	has_completed_focus = RUS_A_Clear_Line_Of_Succession }
+		}
+	}
+	desc = {
+		text = rusd.94.d
+		trigger = {
+			NOT = {
+				has_country_leader = {
+					ruling_only = yes
+					name = "Boris II"
+				}
+			}
 		}
 	}
 
@@ -21639,11 +21709,119 @@ country_event = { #Boris Romanov dies
 	immediate = {
 		log = "[GetDateText]: [Root.GetName]: event rusd.94"
 		set_country_flag = Boris_Romanov_dead
+		if = {
+			limit = { has_country_flag = RUS_TSAR_BORIS }
+			clr_country_flag = RUS_TSAR_BORIS
+			set_country_flag = RUS_TSAR_VLA
+		}
+		if = {
+			limit = { has_country_flag = GRU_boris_romanov }
+			if = {
+				limit = { 
+					RUS_russian_monarch = yes
+					NOT = { has_country_leader = { name = "Roman I" ruling_only = yes } }					
+				}
+				set_country_flag = DDR_roman_romanov
+				GRU = {
+					set_country_flag = wilhelm_iv
+					country_event = part.23
+				}
+			}
+			else = {
+				GRU = { drop_cosmetic_tag = yes }
+			}
+		}
+		else_if = {
+			limit = { has_country_flag = DDR_boris_romanov }
+			if = {
+				limit = { 
+					RUS_russian_monarch = yes
+					NOT = { has_country_leader = { name = "Roman I" ruling_only = yes } }					
+				}
+				set_country_flag = DDR_roman_romanov
+				DDR = {
+					set_country_flag = wilhelm_iv
+					country_event = part.23
+				}
+			}
+			else_if = {
+				limit = {
+					OR = {
+						has_authoritarian_government = yes
+						has_country_leader = { name = "Roman I" ruling_only = yes }
+					}
+					has_unit_leader = 78823
+				}
+				random_unit_leader = {
+					limit = { has_id = 78823 }
+					set_nationality = DDR
+				}
+				DDR = {
+					set_cosmetic_tag = DDR_russian_puppet
+					set_party_name = {
+						ideology = paternal_autocrat
+						name = DDR_russian_party
+						long_name = DDR_russian_party
+					}
+					set_politics = {
+						ruling_party = paternal_autocrat
+						elections_allowed = no
+					}
+					create_country_leader = {
+						name = "Pavel Bermondt-Avalov"
+						desc = "POLITICS_PAVEL_BERMONDT_AVALOV_DESC"
+						picture = "gfx/leaders/RUS/Portrait_RUS_Pavel_Bermondt_Avalov.png"
+						expire = "1.1.1"
+						ideology = junta_subtype
+					}
+					country_event = part.137
+				}
+			}
+			else_if = {
+				limit = {
+					OR = {
+						has_authoritarian_government = yes
+						has_country_leader = { name = "Roman I" ruling_only = yes }
+					}
+					has_unit_leader = 413				
+				}
+				random_unit_leader = {
+					limit = { has_id = 413 }
+					set_nationality = DDR
+				}
+				DDR = {
+					set_cosmetic_tag = DDR_russian_puppet
+					set_party_name = {
+						ideology = paternal_autocrat
+						name = DDR_russian_party
+						long_name = DDR_russian_party
+					}
+					set_politics = {
+						ruling_party = paternal_autocrat
+						elections_allowed = no
+					}
+					create_country_leader = {
+						name = "Vladimir Manshteyn"
+						picture = "gfx/leaders/RUS/Portrait_RUS_Vladimir_von_Manstein.png"
+						expire = "1.1.1"
+						ideology = junta_subtype
+					}
+					country_event = part.137
+				}
+			}
+			else = {
+				DDR = { drop_cosmetic_tag = yes }
+			}
+		}
 	}
 
 	option = {
 		name = rusd.94.a
 		trigger = {
+			has_country_leader = {
+				ruling_only = yes
+				name = "Boris II"
+			}
 			NOT = { has_completed_focus = RUS_God_Save_the_Tsar }
 			has_completed_focus = RUS_A_Clear_Line_Of_Succession
 		}
@@ -21657,6 +21835,10 @@ country_event = { #Boris Romanov dies
 	option = {
 		name = rusd.94.b
 		trigger = {
+			has_country_leader = {
+				ruling_only = yes
+				name = "Boris II"
+			}
 			NOT = { has_completed_focus = RUS_God_Save_the_Tsar }
 			has_completed_focus = RUS_A_Clear_Line_Of_Succession
 		}
@@ -21665,6 +21847,17 @@ country_event = { #Boris Romanov dies
 		}
 		hidden_effect = {
 			RUS_setup_tsar_vladimir = yes
+		}
+	}
+	option = {
+		name = rusd.97.a
+		trigger = {
+			NOT = {
+				has_country_leader = {
+					ruling_only = yes
+					name = "Boris II"
+				}
+			}
 		}
 	}
 }
