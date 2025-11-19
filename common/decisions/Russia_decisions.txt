@@ -2476,7 +2476,7 @@ RUS_Alliance_decisions = {
 					}
 					ROOT = { 
 						is_in_faction_with = BUL
-						NOT = {	is_in_faction_with = SER
+						NOT = {	is_in_faction_with = SER }
 					}
 				}
 				if = {
@@ -9384,62 +9384,87 @@ RUS_Siberian_War = {
 			date > 1937.1.1
 			at_peace_or_same_enemies_as_FROM = yes
 			if = {
-				limit = { TRM = { TRM_do_rovs_in_power = yes } }
-				TRM = { RUS_russian_monarch = no }
-				OR = {
-					RUS_is_absolute_monarchy = yes
-					RUS_wrangel_in_power = yes
+				limit = { 
+					OR = {
+						RUS_is_absolute_monarchy = yes
+						RUS_wrangel_in_power = yes
+					}
 				}
+				TRM = { 
+					TRM_do_rovs_in_power = yes
+					RUS_russian_monarch = no 
+				}				
 			}
 			else_if = {
-				limit = { TRM = { TRM_Pepelyaev_coup = yes } }
-				if = {
-					limit = { TRM = { has_country_flag = TRM_ally_monarchist_officers } }
+				limit = { 
 					OR = {
 						RUS_russian_monarch = yes
 						RUS_wrangel_in_power = yes
 					}
 				}
-				else = {
+				TRM = { 
+					TRM_Pepelyaev_coup = yes
+					TRM = { has_country_flag = TRM_ally_monarchist_officers }					
+				}
+			}
+			else_if = {
+				limit = { 
 					OR = {
 						RUS_denikin_in_power = yes
 						vns_in_power = yes
 						nsnp_in_power = yes
 					}
 				}
+				TRM = { TRM_Pepelyaev_coup = yes }
 			}
 			else_if = {
-				limit = { 
-					TRM = {
-						OR = {
-							TRM_kolchak_in_power = yes 
-							AND = {
-								TRM_czech_legion_in_power = yes 
-								has_completed_focus = TRM_Panslavist_Direction
-							}
+				limit = {
+					OR = {
+						RUS_denikin_in_power = yes
+						vns_in_power = yes
+						nsnp_in_power = yes
+					} 
+				}
+				TRM = {
+					OR = {
+						TRM_kolchak_in_power = yes 
+						AND = {
+							TRM_czech_legion_in_power = yes 
+							has_completed_focus = TRM_Panslavist_Direction
 						}
 					}
 				}
-				OR = {
-					RUS_denikin_in_power = yes
-					vns_in_power = yes
-					nsnp_in_power = yes
-				}
 			}
 			else_if = {
-				limit = { TRM = { TRM_nra_in_power = yes } }
-				has_socialist_government = yes
+				limit = {
+					OR = {
+						has_country_flag = soviet_russia_restored
+						lpsr_in_power = yes
+						psr_in_power = yes
+						AND = {
+							OR = {
+								rsdrp_in_power = yes
+								lkdp_in_power = yes
+							}
+							check_variable = { Duma_Party_Status^3 = 1 } 
+						}
+					}
+				}
+				TRM = { TRM_nra_in_power = yes } 
 			}
 			else_if = {
 				limit = { 
-					TRM = {
-						TRM_democrats_in_power = yes
-						has_liberal_government = yes
+					OR = {
+						has_left_democratic_government = yes 
+						has_right_democratic_government = yes
 					}
+					lpsr_in_power = no
+					psr_in_power = no
+					NOT = { check_variable = { Duma_Party_Status^3 = 1 } }
 				}
-				OR = {
-					has_left_democratic_government = yes 
-					has_right_democratic_government = yes
+				TRM = {
+					TRM_democrats_in_power = yes
+					has_liberal_government = yes
 				}
 			}
 		}		
@@ -9784,6 +9809,63 @@ RUS_Siberian_War = {
 				var = change_morale
 				min = -0.15
 				max = -0.05
+			}
+			RUS_change_siberian_war_morale = yes
+		}
+	}
+	RUS_fund_nra_partisans = {
+		icon = GFX_decision_generic_protection
+		allowed = { original_tag = RUS }
+		visible = {
+			OR = {
+				has_country_flag = soviet_russia_restored
+				lpsr_in_power = yes
+				psr_in_power = yes
+				AND = {
+					OR = {
+						rsdrp_in_power = yes
+						lkdp_in_power = yes
+					}
+					check_variable = { Duma_Party_Status^3 = 1 } 
+				}
+			}
+			russian_civil_war = no
+			has_capitulated = no
+			TRM = { 
+				TRM_nra_in_power = no
+				is_subject = no
+				NOT = { has_war_with = ROOT }
+				has_dynamic_modifier = { modifier = TRM_nra_resistance_modifier }
+			}
+		}
+		custom_cost_trigger = {
+			has_equipment = { infantry_equipment > 999 }
+			has_equipment = { support_equipment > 129 }
+		}
+		custom_cost_text = UKR_forts_expansion_large
+		
+		days_remove = 15
+		days_re_enable = 100
+		fire_only_once = no
+		cancel_if_not_visible = yes
+		
+		ai_will_do = {
+			factor = 0
+			modifier = {
+				add = 200
+				TRM_nra_game_rule = yes
+			}
+			modifier = {
+				factor = 0
+				TRM = { has_country_flag = TRM_integration_with_russia }
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_propaganda_campaign target: [From.GetName]"
+			set_temp_variable_to_random = {
+				var = change_morale
+				min = -0.06
+				max = -0.02
 			}
 			RUS_change_siberian_war_morale = yes
 		}
@@ -10482,7 +10564,20 @@ RUS_Siberian_War = {
 			}
 			else_if = {
 				limit = { TRM_nra_in_power = yes }
-				RUS = { has_socialist_government = yes }
+				RUS = {
+					OR = {
+						has_country_flag = soviet_russia_restored
+						lpsr_in_power = yes
+						psr_in_power = yes
+						AND = {
+							OR = {
+								rsdrp_in_power = yes
+								lkdp_in_power = yes
+							}
+							check_variable = { Duma_Party_Status^3 = 1 } 
+						}
+					}
+				}
 			}
 			else_if = {
 				limit = { 
@@ -10494,6 +10589,9 @@ RUS_Siberian_War = {
 						has_left_democratic_government = yes 
 						has_right_democratic_government = yes
 					}
+					lpsr_in_power = no
+					psr_in_power = no
+					NOT = { check_variable = { Duma_Party_Status^3 = 1 } }
 				}
 			}
 		}		
@@ -12649,7 +12747,10 @@ RUS_dealing_with_revolution_cat = {
 		allowed = { always = no }
 		
 		available = {
-			RUS_rev_ferment_lower_50 = yes
+			if = {
+				limit = { NOT = { has_country_flag = RUS_revolutionary_ferment_dealt_with} }
+				RUS_rev_ferment_lower_50 = yes
+			}
 		}
 		
 		cost = 40
@@ -12675,7 +12776,10 @@ RUS_dealing_with_revolution_cat = {
 		allowed = { always = no }
 		
 		available = {
-			RUS_rev_ferment_lower_50 = yes
+			if = {
+				limit = { NOT = { has_country_flag = RUS_revolutionary_ferment_dealt_with} }
+				RUS_rev_ferment_lower_50 = yes
+			}
 		}
 		visible = {
 			NOT = { has_country_flag = Viktor_Chernov_dead }
@@ -12704,7 +12808,10 @@ RUS_dealing_with_revolution_cat = {
 		allowed = { always = no }
 		
 		available = {
-			RUS_rev_ferment_lower_50 = yes
+			if = {
+				limit = { NOT = { has_country_flag = RUS_revolutionary_ferment_dealt_with} }
+				RUS_rev_ferment_lower_50 = yes
+			}
 		}
 		visible = {
 			NOT = { has_country_flag = Maria_Spiridonova_dead }
@@ -12733,7 +12840,10 @@ RUS_dealing_with_revolution_cat = {
 		allowed = { always = no }
 		
 		available = {
-			RUS_rev_ferment_lower_50 = yes
+			if = {
+				limit = { NOT = { has_country_flag = RUS_revolutionary_ferment_dealt_with} }
+				RUS_rev_ferment_lower_50 = yes
+			}
 		}
 		
 		cost = 40
@@ -12781,7 +12891,10 @@ RUS_dealing_with_revolution_cat = {
 				check_variable = { pop_to_check > 0.40 }
 				tooltip = RUS_ruling_party_popularity_higher_40
 			}
-			RUS_rev_ferment_lower_35 = yes
+			if = {
+				limit = { NOT = { has_country_flag = RUS_revolutionary_ferment_dealt_with} }
+				RUS_rev_ferment_lower_35 = yes
+			}
 		}
 		
 		cost = 40
@@ -12829,7 +12942,10 @@ RUS_dealing_with_revolution_cat = {
 				check_variable = { pop_to_check > 0.40 }
 				tooltip = RUS_ruling_party_popularity_higher_40
 			}
-			RUS_rev_ferment_lower_35 = yes
+			if = {
+				limit = { NOT = { has_country_flag = RUS_revolutionary_ferment_dealt_with} }
+				RUS_rev_ferment_lower_35 = yes
+			}
 		}
 		
 		cost = 40
@@ -12872,7 +12988,10 @@ RUS_dealing_with_revolution_cat = {
 				check_variable = { pop_to_check > 0.40 }
 				tooltip = RUS_ruling_party_popularity_higher_40
 			}
-			RUS_rev_ferment_lower_35 = yes
+			if = {
+				limit = { NOT = { has_country_flag = RUS_revolutionary_ferment_dealt_with} }
+				RUS_rev_ferment_lower_35 = yes
+			}
 		}
 		
 		cost = 40
@@ -12930,9 +13049,16 @@ RUS_rovs_internal_faction = {
 						has_idea = RUS_regency_council_lukomsky
 					}
 				}
-				RUS_bop_increase_monarchists = yes
+				RUS_bop_increase_monarchists_small = yes
 			}
-			RUS_increase_monarchists_pop_small = yes
+			if = {
+				limit = { check_variable = { RUS_monarchists_rally_var = 0 } }
+				add_to_variable = { RUS_monarchists_rally_var = 1 }
+				RUS_increase_monarchists_pop_small = yes
+			}
+			else = {
+				add_to_variable = { RUS_monarchists_rally_var = -1 }				
+			}
 		}
 	}
 	RUS_wrangels_growing_ambitions = {
