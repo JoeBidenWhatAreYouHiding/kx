@@ -7442,6 +7442,14 @@ country_event = {	#Istanbul Pact - Invite
 					NOT = { has_game_rule = { rule = UZB_foreign option = DEFAULT } }
 					NOT = { has_game_rule = { rule = UZB_foreign option = UZB_FOREIGN_OTT } }
 				}
+				AND = {
+					tag = AZE
+					NOT = { has_game_rule = { rule = AZE_forpol option = DEFAULT } }
+					NOT = { 
+						has_game_rule = { rule = AZE_forpol option = AZE_FOREIGN_TUR } 
+						has_game_rule = { rule = AZE_forpol option = AZE_FOREIGN_TUR_PUPPET } 
+					}
+				}
 			}
 		}
 		TUR = {
@@ -7457,6 +7465,12 @@ country_event = {	#Istanbul Pact - Invite
 			country_event = ottfor.19
 		}
 		add_stability = -0.05
+		hidden_effect = {
+			if = {
+				limit = { tag = AZE }
+				activate_targeted_decision = { target = ARM decision = AZE_attack_armenia_getting_too_strong_decision }
+			}
+		}
 	}
 }
 
@@ -7608,7 +7622,7 @@ country_event = {	#An Alliance of Convenience
 			create_faction_from_template = { 
 				template = faction_template_regional   
 				name = "Sarajevo Accords"
-				icon = GFX_faction_logo_generic_16
+				icon = GFX_faction_sarajevo_accords
 			}				
 			}
 			else = {
@@ -9557,11 +9571,28 @@ country_event = {	#The Russians Propose Splitting the Persian Empire
 			factor = 100
 		}
 		set_global_flag = RUSSIAN_OTTOMAN_DEAL_PER_SPLIT
-		TUR = {
-			country_event = {
-				id = ottfor.71
-				days = 1
-			}	
+		if = {
+			limit = { 
+				AZE = { 
+					is_valid_peace_target = yes 
+					NOT = { has_idea = rgoc }
+				}
+				NOT = { has_global_flag = RUSSIAN_OTTOMAN_DEAL_AZE }
+			}
+			TUR = {
+				country_event = {
+					id = ottfor.71
+					days = 1
+				}	
+			}
+		}
+		else = {
+			RUS = {
+				country_event = {
+					id = ottfor.73
+					days = 1
+				}	
+			}
 		}
 	}
 	option = {
@@ -10048,14 +10079,14 @@ country_event = {	#Russia Demands Our Submission
 				add = 100
 				OR = {
 					AND = {
-					tag = GEO
+						tag = GEO
 						NOT = {
 							has_country_leader = { name = "Ioakhim I" ruling_only = yes }
 							has_government = market_liberal
 						}
 					}
 					AND = {
-					tag = ARM
+						tag = ARM
 						has_game_rule = { rule = ARM_forpol option = ARM_FORPOL_RUS }
 					}
 				}
@@ -10105,7 +10136,7 @@ country_event = {	#Russia Demands Our Submission
 				add = 100
 				OR = {
 					AND = {
-				tag = AFG
+						tag = AFG
 						has_game_rule = { rule = AFG_forpol option = AFG_FORPOL_RUS }
 					}
 					AND = {
@@ -10114,8 +10145,8 @@ country_event = {	#Russia Demands Our Submission
 							has_country_leader = { name = "Ioakhim I" ruling_only = yes }
 							has_government = market_liberal
 						}
-			}
-		}
+					}
+				}
 			}
 		}
 		RUS = {
@@ -10178,24 +10209,57 @@ country_event = {	#The Russo-Ottoman Convention
 		name = ottfor.80.a
 		ai_chance = {
 			factor = 100
+			modifier = {
+				factor = 0
+				has_completed_focus = AZE_Ask_For_German_Bailout
+			}
+			modifier = {
+				factor = 0
+				OR = {
+					has_game_rule = { rule = AZE_forpol option = AZE_FOREIGN_FACTION }
+					has_game_rule = { rule = AZE_forpol option = AZE_FOREIGN_PANTURKIST }
+					has_game_rule = { rule = AZE_forpol option = AZE_FOREIGN_TUR_PUPPET }
+					has_game_rule = { rule = AZE_forpol option = AZE_FOREIGN_TUR }
+					has_game_rule = { rule = AZE_forpol option = AZE_FOREIGN_GER }
+					has_game_rule = { rule = AZE_forpol option = AZE_FOREIGN_UKR }
+				}
+			}
 		}
-		GER = {
-			remove_from_faction = AZE
-		}
+		AZE_remove_german_dependence = yes
 		TUR = {
 			give_guarantee = AZE
 		}
 		RUS = {
+			set_country_flag = RUS_will_liberate_caucasus
 			give_guarantee = AZE
+			add_opinion_modifier = {
+				target = RUS
+				modifier = KR_trade_agreement
+			}
 		}
-		give_resource_rights = { state = 990 receiver = RUS }
+		diplomatic_relation = {
+			country = RUS
+			relation = non_aggression_pact
+			active = yes
+		}
+		RUS_add_to_rostorg = yes
+		add_ideas = rgoc
+		give_resource_rights = {
+			receiver = RUS
+			state = 990
+			resources = { oil }
+		}
+		add_opinion_modifier = {
+			modifier = KR_trade_agreement
+			target = RUS
+		}
 		# news event Russo-Ottoman Convention
 	}
 	option = {
 		name = ottfor.80.b
 		RUS = { country_event = ottfor.8001 }
-		}
-			}
+	}
+}
 country_event = {	#The Russo-Ottoman Convention
 	id = ottfor.8001
 	immediate = { log = "[GetDateText]: [Root.GetName]: event ottfor.8001" }
@@ -10214,6 +10278,7 @@ country_event = {	#The Russo-Ottoman Convention
 	option = {
 		name = ottfor.8001.b
 		ai_chance = { base = 0 }
+		activate_mission = RUS_defeat_caucasus
 		declare_war_on = {
 			target = FROM
 			type = topple_government
