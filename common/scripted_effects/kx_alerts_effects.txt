@@ -1,0 +1,101 @@
+# Scripted effects for custom alert system ported from TNO into EAW and ported from EAW into KX
+add_kx_alert_unless_exists = {
+	if = {
+		limit = {
+			NOT = { is_in_array = { kx_alerts = alert_id } }
+		}
+
+		add_kx_alert = yes
+	}
+}
+
+# Adds an alert with id `alert_id`, color `alert_color`, and optionally data `alert_data` to the list of alerts unconditionally
+add_kx_alert = {
+	if = {
+		limit = {
+			is_ai = no
+		}
+		add_to_array = { array = kx_alerts value = alert_id index = 0 }
+		add_to_array = { array = kx_alert_color value = alert_color index = 0 }
+		
+		hidden_effect = {
+			add_ideas = var:alert_id
+			remove_ideas = var:alert_id
+		}
+	
+		kx_alert_update_gui = yes
+	}
+}
+
+# Removes all alerts with id `alert_id`
+remove_kx_alert = {
+	set_temp_variable = { idx = 0 }
+
+	while_loop_effect = {
+		limit = { check_variable = { idx < kx_alerts^num } }
+
+		if = { 
+			limit = { check_variable = { kx_alerts^idx = alert_id } }
+
+			remove_from_array = { array = kx_alerts index = idx }
+			remove_from_array = { array = kx_alert_color index = idx }
+			remove_from_array = { array = kx_alert_data index = idx }
+
+			subtract_from_temp_variable = { idx = 1 }
+		}
+		add_to_temp_variable = { idx = 1 }
+	}
+	
+	kx_alert_update_gui = yes
+}
+
+# Alert click effect
+kx_alert_click = {
+	# Follow this template:
+	# if = {
+	# 	limit = {
+	# 		check_variable = { kx_alerts^alert_idx = token:<token ID> }
+	# 	}
+	# 	<effects>
+	# }
+	if = {
+		limit = {
+			check_variable = { kx_alerts^alert_idx = token:kx_alert_aus_const_revolt_incoming }
+			is_ai = no
+		}
+		if = {
+			limit = { tag = AUS }
+			if = {
+				limit = { NOT = { has_country_flag = subject_unrest_window_open } }
+				AUS_open_gui_click_effect = yes
+			}
+		}
+	}
+	
+	kx_alert_update_gui = yes
+}
+
+# Alert right click/cancel effect
+kx_alert_right_click = {
+	# Follow this template:
+	# if = {
+	# 	limit = {
+	# 		check_variable = { kx_alerts^alert_idx = token:<token ID> }
+	# 	}
+	# 	<effects>
+	# }
+
+	remove_from_array = { array = kx_alerts index = alert_idx }
+	remove_from_array = { array = kx_alert_color index = alert_idx }
+	remove_from_array = { array = kx_alert_data index = alert_idx }
+	kx_alert_update_gui = yes
+}
+
+kx_alert_update_gui = {
+	if = {
+		limit = {
+			is_ai = no
+		}
+		add_to_variable = { kx_alertbar_dirty = 0.001 }
+	}
+}
