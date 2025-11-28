@@ -46,7 +46,17 @@ d_auscol5 = {
 }
 
 AUS_debug_effect = {
-	set_variable = { THIS.subject_revolt_progress = 0.95 }
+	every_possible_country = {
+		limit = { has_variable = THIS.subject_revolt_progress }
+		random_list = {
+			50 = {
+				set_variable = { THIS.subject_revolt_progress = 0.95 }
+			}
+			1 = {
+				set_variable = { THIS.subject_revolt_progress = 0 }
+			}
+		}
+	}
 }
 
 AUS_debug_effect2 = {
@@ -1063,14 +1073,34 @@ BOTDE_check_for_constituent_revolt = {
 			country_event = revolt.4
 		}
 	}
+	set_variable = { global.AUS_tags_over_94_revolt = 0 }
+	for_each_scope_loop = {
+		array = global.AUS_all_possible_array
+		if = {
+			limit = { has_variable = THIS.subject_revolt_progress }
+			if = {
+				limit = { check_variable = { THIS.subject_revolt_progress > 0.94 } }
+				add_to_variable = { global.AUS_tags_over_94_revolt = 1 }
+			}
+		}
+	}
 	if = {
 		limit = {
-			check_variable { THIS.subject_revolt_progress > 0.94 }
+			check_variable { global.AUS_tags_over_94_revolt > 0 }
 		}
 		AUS = {
 			set_temp_variable = { alert_id = token:kx_alert_aus_const_revolt_incoming }
 			set_temp_variable = { alert_color = 2 }
 			add_kx_alert_unless_exists = yes
+		}
+	}
+	if = {
+		limit = {
+			check_variable { global.AUS_tags_over_94_revolt < 1 }
+		}
+		AUS = {
+			set_temp_variable = { alert_id = token:kx_alert_aus_const_revolt_incoming }
+			remove_kx_alert = yes
 		}
 	}
 }
