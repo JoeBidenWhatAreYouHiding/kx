@@ -8,31 +8,6 @@ remove_backward_industry = {
 		add_dynamic_modifier = { modifier = RUS_industrialized_nation_modifier }		
 }
 setup_unfinished_land_reform = {
-	every_state = {
-		limit = {
-			OR = {
-				state = 217
-				state = 250
-				state = 251
-				state = 249
-				state = 252
-				state = 219
-				state = 195
-				state = 652
-				state = 651
-				state = 572
-				state = 653
-				state = 571
-				state = 570
-				state = 40
-				state = 568
-				state = 566
-				state = 399
-				state = 399
-			}
-		}
-		add_dynamic_modifier = { modifier = RUS_unfinished_land_reform_modifier	} 
-	}
 	add_ideas = rus_unfinished_land_reform
 	set_variable = { RUS_NEP_global_building_slots_factor = 0.1 }
 	set_variable = { RUS_NEP_production_factory_max_efficiency_factor = -0.06 }
@@ -44,17 +19,12 @@ setup_unfinished_land_reform = {
 	
 }
 destroy_unfinished_land_reform = {
-	remove_ideas = rus_unfinished_land_reform
+	if = {
+		limit = { has_idea = rus_unfinished_land_reform }
+		remove_ideas = rus_unfinished_land_reform
+	}
 	set_global_flag = RUS_land_reform_finished
-	hidden_effect = {
-		every_state = {
-			limit = {
-				has_dynamic_modifier = { modifier = RUS_unfinished_land_reform_modifier }
 }
-			remove_dynamic_modifier = { modifier = RUS_unfinished_land_reform_modifier	} 
-	}
-}
-	}
 recalculate_monthly_industrialisation_rate = {
 	
 	set_variable = { RUS_backward_industry_industrialisation_rate = ROOT.num_of_factories }
@@ -4123,6 +4093,16 @@ RUS_install_puppet_monarchy = {
 		}
 	}
 	else_if = {
+		limit = { has_government = authoritarian_democrat }
+		create_country_leader = {
+			name = "Tsar of All-Russia"
+			desc = "POLITICS_TSAR_OF_ALL_RUSSIA_DESC"
+			picture = "gfx/leaders/RUS/Portrait_RUS_Imperial_Administration.png"
+			expire = "1.1.1"
+			ideology = oligarchy_subtype
+		}
+	}
+	else_if = {
 		limit = { has_government = social_conservative }
 		create_country_leader = {
 			name = "Tsar of All-Russia"
@@ -4140,6 +4120,26 @@ RUS_install_puppet_monarchy = {
 			picture = "gfx/leaders/RUS/Portrait_RUS_Imperial_Administration.png"
 			expire = "1.1.1"
 			ideology = liberal_conservative_subtype
+		}
+	}
+	else_if = {
+		limit = { has_government = social_liberal }
+		create_country_leader = {
+			name = "Tsar of All-Russia"
+			desc = "POLITICS_TSAR_OF_ALL_RUSSIA_DESC"
+			picture = "gfx/leaders/RUS/Portrait_RUS_Imperial_Administration.png"
+			expire = "1.1.1"
+			ideology = social_liberal_subtype
+		}
+	}
+	else_if = {
+		limit = { has_government = social_democrat }
+		create_country_leader = {
+			name = "Tsar of All-Russia"
+			desc = "POLITICS_TSAR_OF_ALL_RUSSIA_DESC"
+			picture = "gfx/leaders/RUS/Portrait_RUS_Imperial_Administration.png"
+			expire = "1.1.1"
+			ideology = revisionist_marxism_subtype
 		}
 	}
 	else_if = {
@@ -5461,7 +5461,7 @@ setup_vilnius_accords = {
 		remove_from_tech_sharing_group = russian_research
 	}
 	if = {
-		limit = { is_in_faction = yes }
+		limit = { is_faction_leader = yes }
 		faction_leader = { dismantle_faction = yes }
 	}	
 	# free all puppets 
@@ -5483,7 +5483,7 @@ setup_vilnius_accords = {
 				tag = DKB
 				tag = KUB
 				tag = GEO
-				tag = AZE
+				tag = KLY
 			}
 			exists = no
 		}
@@ -5499,6 +5499,7 @@ setup_vilnius_accords = {
 			OR = {
 				tag = ARM
 				tag = MTR
+				tag = AZE
 			}
 			exists = no
 		}
@@ -5628,12 +5629,6 @@ setup_vilnius_accords = {
 		}
 		event_target:peace_country = { white_peace = PREV }
 	}
-	#RUS = {
-	#	country_event = {
-	#		id = rcw.250
-	#		days = 120
-	#	}
-	#}
 }
 
 setup_danzig_treaty = {
@@ -5654,11 +5649,13 @@ setup_danzig_treaty = {
 				tag = MTR
 				tag = GEO
 				tag = AZE
+				tag = ARM
+				tag = ABK
+				tag = FIN
+				is_central_asian_tag = yes
 			}
-			OR = {
-				is_in_faction_with = GER
-				is_subject_of = GER
-			}
+			has_capitulated = yes
+			is_ally_with = GER
 		}
 		ROOT = {
 			annex_country = {
@@ -5666,60 +5663,106 @@ setup_danzig_treaty = {
 			}
 		}
 	}
+	every_other_country = {
+		limit = {
+			OR = {
+				tag = EST
+				tag = LIT
+				tag = LAT
+				tag = BAT
+				tag = WHR
+				original_tag = UKR
+				tag = CRM
+				tag = DKB
+				tag = KLY
+				tag = KUB
+				tag = MTR
+				tag = GEO
+				tag = AZE
+				tag = ARM
+				tag = ABK
+				tag = FIN
+				is_central_asian_tag = yes
+			}
+			has_capitulated = no
+			is_ally_with = GER
+		}
+		remove_puppet_and_leave_faction = yes
+	}
 	if = {
 		limit = {
-			has_global_flag = RUS_GER_pol_fin_annex
+			var:78.owner = { is_ally_with = GER }
+		}
+		var:78.owner = {
+			every_owned_state = {
+				limit = {
+					OR = {
+						state = 78
+						state = 1222
+						state = 1320
+					}
+				}
+				transfer_state_to = RUS
+			}
+		}
+	}
+	if = {
+		limit = {
+			has_country_flag = RUS_GER_ex_imperial_poland
 		}
 		every_other_country = {
 			limit = {
 				OR = {
-					tag = FIN
 					tag = POL
 					tag = PLC
 				}
-				is_in_faction_with = GER
-				OR = {
-					exists = no
+				is_ally_with = GER
 					has_capitulated = yes
 				}
-			}
 			ROOT = {
 				annex_country = {
 					target = PREV
 				}
 			}
 		}
-	}
-	if = {
+		every_other_country = {
 		limit = {
-			has_global_flag = RUS_GER_pol_fin_border
+				OR = {
+					tag = POL
+					tag = PLC
+		}
+				is_ally_with = GER
+				has_capitulated = no
+			}
+			remove_puppet_and_leave_faction = yes
+		}
+		GER = {
+			every_owned_state = {
+			limit = {
+					OR = {
+						state = 86
+						state = 67
+					}
+				}
+				transfer_state_to = RUS
+			}
+			}
 		}
 		if = {
 			limit = {
-				POL = { is_in_faction_with = GER }
-			}
-			ROOT = {
-				transfer_state = 97 #Belostok
-				add_state_claim = 97 #Belostok
-				transfer_state = 1088 #Chelm
-				add_state_claim = 1088 #Chelm
-			}
+			has_country_flag = RUS_GER_ex_imperial_east_prus
 		}
-		if = {
-			limit = {
-				FIN = { is_in_faction_with = GER }
+		GER = {
+			every_owned_state = {
+				limit = {
+					OR = {
+						state = 5
+						state = 188
+						state = 777
+						state = 776
 			}
-			ROOT = {
-				transfer_state = 146 #Viipuri
-				add_state_claim = 146 #Viipuri
-				transfer_state = 1324 #Viipuri
-				add_state_claim = 1324 #Viipuri
-				transfer_state = 1325 #Viipuri
-				add_state_claim = 1325 #Viipuri
-				transfer_state = 1326 #Viipuri
-				add_state_claim = 1326 #Viipuri
-				transfer_state = 147 #Kuolajarvi
-				add_state_claim = 147 #Kuolajarvi
+				}
+				transfer_state_to = RUS
 			}
 		}
 	}
@@ -5732,23 +5775,9 @@ setup_danzig_treaty = {
 	}
 	every_enemy_country = {
 		limit = {
-			is_in_faction_with = GER
+			is_ally_with = GER
 		}
 		event_target:peace_country = { white_peace = PREV }
-	}
-	if = {
-		limit = {
-			has_global_flag = RUS_GER_ex_imperial_east_prus
-		}
-		ROOT = {
-			transfer_state = 5
-			transfer_state = 188
-			transfer_state = 777
-			country_event = {
-				id = part.138
-				days = 5
-			}
-		}
 	}
 }
 setup_yerevan_treaty = {
@@ -5941,158 +5970,177 @@ setup_yerevan_treaty = {
 setup_budapest_treaty = {
 	set_global_flag = budapest_treaty_active
 	if = {
-		limit = {
-			ROM = { is_in_faction_with = ROOT }
-		}
-		if = {
+		limit = { has_country_flag = RUS_AUS_all_slavic_lands }
+		every_other_country = {
 			limit = {
-				713 = { owned_by_austria_or_puppet = yes }
+				OR = {
+					tag = CZE
+					tag = SVK
+					tag = SLO
+					tag = CRO
+					tag = BOS
+					tag = MNT
+					tag = SER
+					tag = BUL
+				}
+				is_ally_with = AUS
+				has_capitulated = yes
 			}
-			ROM = {
-				transfer_state = 713
-			}
-		}
-		every_state = {
-			limit = { 
-				is_core_of = TRS
-				owned_by_austria_or_puppet = yes
-			}
-			ROM = { transfer_state = PREV }
+			remove_puppet_and_leave_faction = yes
+			separate_peace_all_wars = yes
+			RUS = {
+				add_to_faction = PREV
 		}
 	}
-	if = {
+		every_state = {
 		limit = {
-			10 = { is_owned_and_controlled_by_ROOT_or_ally = yes }
+				is_owned_by = AUS
+				OR = {
+					is_core_of = CZE
+					is_core_of = SVK
+					is_core_of = SLO
+					is_core_of = CRO
+					is_core_of = BOS
+					is_core_of = MNT
+					is_core_of = SER
+					is_core_of = BUL
+		}
+	}
+			transfer_state_to = RUS
+		}
+		every_state = {
+			limit = {
+				OR = {
+					is_owned_by = AUS
+					AND = {
+						is_owned_by = HUN
+						HUN = { is_ally_with = AUS }
+			}
+			}
+				OR = {
+					state = 73
+					state = 1119
+		}
+			}
+			transfer_state_to = RUS
+			}
+		}
+		if = {
+		limit = { has_country_flag = RUS_AUS_hungary }
+		if = {
+			limit = { ROM = { has_war_with = AUS } }
+			every_state = {
+			limit = {
+					OR = {
+						is_owned_by = HUN
+						is_owned_by = AUS
+						is_owned_by = TRS
+		}
+					is_core_of = ROM
+					is_controlled_by = ROM
+			}
+				transfer_state_to = ROM
+			}
 		}
 		every_other_country = {
 			limit = {
-				tag = GAL
-				OR = {
-					is_in_faction_with = AUS
-					is_subject_of = AUS
-				}
+				tag = HUN
+				is_ally_with = AUS
 			}
-			ROOT = {
-				annex_country = {
-					target = PREV
-				}
+			remove_puppet_and_leave_faction = yes
+			separate_peace_all_wars = yes
+			RUS = {
+				add_to_faction = PREV
 			}
 		}
-	}
-	else_if = {
-		limit = {
-			1140 = { owned_by_austria_or_puppet = yes }
-			89 = { owned_by_austria_or_puppet = yes }
-			91 = { owned_by_austria_or_puppet = yes }
-			1125 = { owned_by_austria_or_puppet = yes }
-		}
-		transfer_state = 1140
-		transfer_state = 89
-		transfer_state = 91
-		transfer_state = 1125
-	}
-	if = {
-		limit = {
-			SER = { is_in_faction_with = ROOT }
-		}
-		if = {
+		every_other_country = {
 			limit = {
-				45 = { owned_by_austria_or_puppet = yes }
+				tag = TRS
+				is_ally_with = AUS
 			}
-			SER = {
-				transfer_state = 45
-			}
-		}
-		if = {
-			limit = {
-				875 = { owned_by_austria_or_puppet = yes }
-			}
-			SER = {
-				transfer_state = 875
-			}
-		}
-		if = {
-			limit = {
-				104 = { owned_by_austria_or_puppet = yes }
-			}
-			SER = {
-				transfer_state = 104
-			}
-		}
-		if = {
-			limit = {
-				1141 = { owned_by_austria_or_puppet = yes }
-			}
-			SER = {
-				transfer_state = 1141
-			}
-		}
-		if = {
-			limit = {
-				1145 = { owned_by_austria_or_puppet = yes }
-			}
-			SER = {
-				transfer_state = 1145
-			}
-		}
-		if = {
-			limit = {
-				1128 = { owned_by_austria_or_puppet = yes }
-			}
-			SER = {
-				transfer_state = 1128
-			}
-		}
-		if = {
-			limit = {
-				794 = { owned_by_austria_or_puppet = yes }
-			}
-			SER = {
-				transfer_state = 794
-			}
+			remove_puppet_and_leave_faction = yes
+			peace_out_non_neighbours_after_leaving_faction = yes
 		}		
-	}
-	if = {
+		every_state = {
 		limit = {
-			SER = {
-				is_subject_of = AUS
+				is_owned_by = AUS
+				OR = {
+					is_core_of = HUN
+					is_core_of = TRS
 			}
 		}
-		AUS = { release = SER }
+			transfer_state_to = RUS
 	}
-	if = {
-		limit = {
-			POL = {
-				is_subject_of = AUS
-			}
-		}
-		AUS = { release = POL }
 	}
-	if = {
+	every_other_country = {
 		limit = {
-			ROM = {
-				is_subject_of = AUS
+			OR = {
+				tag = EST
+				tag = LIT
+				tag = LAT
+				tag = BAT
+				tag = WHR
+				original_tag = UKR
+				tag = CRM
+				tag = DKB
+				tag = KLY
+				tag = KUB
+				tag = MTR
+				tag = GEO
+				tag = AZE
+				tag = ARM
+				tag = ABK
+				tag = FIN
+				tag = POL
+				tag = GAL
+				tag = PLC
+				tag = MOL
+				tag = KRK
+				tag = WSU
+				tag = CPU
+				tag = BUK
 			}
+			has_capitulated = no
+			is_ally_with = AUS
 		}
-		if = {
-			limit = {
-				78 = {
-					NOT = { is_owned_by = ROOT }
+		ROOT = {
+			annex_country = {
+				target = PREV
 				}
 			}
-			transfer_state = 78
-			add_state_claim = 78
 		}
-		if = {
+	every_other_country = {
 			limit = {
-				1222 = {
-					NOT = { is_owned_by = ROOT }
-				}
+			OR = {
+				tag = EST
+				tag = LIT
+				tag = LAT
+				tag = BAT
+				tag = WHR
+				original_tag = UKR
+				tag = CRM
+				tag = DKB
+				tag = KLY
+				tag = KUB
+				tag = MTR
+				tag = GEO
+				tag = AZE
+				tag = ARM
+				tag = ABK
+				tag = FIN
+				tag = POL
+				tag = GAL
+				tag = PLC
+				tag = MOL
+				tag = KRK
+				tag = WSU
+				tag = CPU
+				tag = BUK
 			}
-			transfer_state = 1222
-			add_state_claim = 1222
+			has_capitulated = no
+			is_ally_with = AUS
 		}
-		AUS = { release = ROM }
+		remove_puppet_and_leave_faction = yes
 	}	
 }
 load_base_russian_tree = {
@@ -6569,12 +6617,9 @@ RUSSIAN_UNIFICATION_play_superevent = {
 	custom_effect_tooltip = RUS_superevent_trigger_tt
 	if = {
 		limit = {
-			has_idea = RUS_Nikolay_I_Bukharin_hog_rso
-			NOT = {
-				has_country_leader = {
-					name = "Lev Kamenev"
-					ruling_only = yes
-				}
+			OR = {
+				has_idea = RUS_Nikolay_I_Bukharin_hog_rso
+				SOV_bukharin_in_power = yes
 			}
 		}
 		custom_effect_tooltip = GFX_SPEVNT_RUSSIAN_UNIFICATION_nsp
@@ -6604,12 +6649,6 @@ RUSSIAN_UNIFICATION_play_superevent = {
 					ruling_only = yes
 				}
 			}
-			NOT = {
-				has_country_leader = {
-					name = "Lev Kamenev"
-					ruling_only = yes
-				}
-			}
 		}
 		custom_effect_tooltip = GFX_SPEVNT_RUSSIAN_UNIFICATION_plsr
 		hidden_effect = { country_event = super.56 }
@@ -6630,119 +6669,79 @@ RUSSIAN_UNIFICATION_play_superevent = {
 	else_if = {
 		limit = {
 			OR = {
-				has_country_leader = {
-					name = "Mikhail Tomsky"
-					ruling_only = yes
-				}
-				has_country_leader = {
-					name = "Aleksandr Shlyapnikov"
-					ruling_only = yes
-				}
-				has_country_leader = {
-					name = "Aleksandra Kollontai"
-					ruling_only = yes
-				}
+				has_idea = RUS_Sergey_M_Kirov_hog_rso
+				SOV_kirov_in_power = yes
 			}
-			rsdrp_in_power = no
-			psr_in_power = no
-		}
-		custom_effect_tooltip = GFX_SPEVNT_RUSSIAN_UNIFICATION_tomsky
-		hidden_effect = { country_event = super.96 }
-	}
-	else_if = {
-		limit = {
-			has_country_leader = {
-				name = "Sergey Kirov"
-				ruling_only = yes
-			}
+			SOV_kirov_in_power = yes
 		}
 		custom_effect_tooltip = GFX_SPEVNT_RUSSIAN_UNIFICATION_kirov
 		hidden_effect = { country_event = super.97 }
 	}
 	else_if = {
 		limit = {
-			has_country_leader = {
-				name = "Aleksey Rykov"
-				ruling_only = yes
+			OR = {
+				has_idea = RUS_Lev_Kamenev_hog_rso
+				SOV_kamenev_in_power = yes
 			}
-		}
-		custom_effect_tooltip = GFX_SPEVNT_RUSSIAN_UNIFICATION_rykov
-		hidden_effect = { country_event = super.98 }
-	}
-	else_if = {
-		limit = {
-			has_country_leader = {
-				name = "Andrei Zhdanov"
-				ruling_only = yes
-			}
-		}
-		custom_effect_tooltip = GFX_SPEVNT_RUSSIAN_UNIFICATION_zhdanov
-		hidden_effect = { country_event = super.99 }
-	}
-	else_if = {
-		limit = {
-			has_country_leader = {
-				name = "Grigory Zinoviev"
-				ruling_only = yes
-			}
-			NOT = { has_completed_focus = SOV_Tsentrobalt_In_Control }
-		}
-		custom_effect_tooltip = GFX_SPEVNT_RUSSIAN_UNIFICATION_zinoviev
-		hidden_effect = { country_event = super.57 }
-	}
-	else_if = {
-		limit = {
-			has_country_leader = {
-				name = "Lev Kamenev"
-				ruling_only = yes
-			}
-			NOT = { has_completed_focus = SOV_Tsentrobalt_In_Control }
 		}
 		custom_effect_tooltip = GFX_SPEVNT_RUSSIAN_UNIFICATION_kamenev
 		hidden_effect = { country_event = super.58 }
 	}
 	else_if = {
 		limit = {
-			has_country_leader = {
-				name = "Nikolay Yezhov"
-				ruling_only = yes
+			OR = {
+				SOV_workers_opposition_in_power = yes
+				SOV_kuznetsov_in_power = yes
 			}
-			NOT = { has_completed_focus = SOV_Tsentrobalt_In_Control }
+		}
+		custom_effect_tooltip = GFX_SPEVNT_RUSSIAN_UNIFICATION_tomsky
+		hidden_effect = { country_event = super.96 }
+	}
+	else_if = {
+		limit = {
+			SOV_rykov_in_power = yes
+		}
+		custom_effect_tooltip = GFX_SPEVNT_RUSSIAN_UNIFICATION_rykov
+		hidden_effect = { country_event = super.98 }
+	}
+	else_if = {
+		limit = {
+			SOV_zhdanov_in_power = yes
+		}
+		custom_effect_tooltip = GFX_SPEVNT_RUSSIAN_UNIFICATION_zhdanov
+		hidden_effect = { country_event = super.99 }
+	}
+	else_if = {
+		limit = {
+			SOV_zinoviev_in_power = yes
+		}
+		custom_effect_tooltip = GFX_SPEVNT_RUSSIAN_UNIFICATION_zinoviev
+		hidden_effect = { country_event = super.57 }
+	}
+	else_if = {
+		limit = {
+			SOV_yezhov_in_power = yes
 		}
 		custom_effect_tooltip = GFX_SPEVNT_RUSSIAN_UNIFICATION_yezhov
 		hidden_effect = { country_event = super.59 }
 	}
 	else_if = {
 		limit = {
-			OR = {
-				has_idea = RUS_Georgy_Blagonravov_hog_tot
-				has_idea = RUS_Genrikh_Yagoda_hog_tot
-			}
-			NOT = { has_completed_focus = SOV_Tsentrobalt_In_Control }
+			SOV_yagoda_in_power = yes
 		}
 		custom_effect_tooltip = GFX_SPEVNT_RUSSIAN_UNIFICATION_yagoda
 		hidden_effect = { country_event = super.60 }
 	}
 	else_if = {
 		limit = {
-			has_country_leader = {
-				ruling_only = yes
-				name = "Nikolay Krestinsky"
-			}
-			has_idea = RUS_Nikolay_Krestinsky_hog_tot
-			NOT = { has_completed_focus = SOV_Tsentrobalt_In_Control }
+			SOV_kaganovich_in_power = yes
 		}
 		custom_effect_tooltip = GFX_SPEVNT_RUSSIAN_UNIFICATION_kaganovich
 		hidden_effect = { country_event = super.61 }
 	}
 	else_if = {
 		limit = {
-			has_country_leader = {
-				ruling_only = yes
-				name = "Vyacheslav Molotov"
-			}
-			has_idea = RUS_Vyacheslav_Molotov_hog_tot
-			NOT = { has_completed_focus = SOV_Tsentrobalt_In_Control }
+			SOV_molotov_in_power = yes
 		}
 		custom_effect_tooltip = GFX_SPEVNT_RUSSIAN_UNIFICATION_molotov
 		hidden_effect = { country_event = super.62 }
@@ -6750,20 +6749,13 @@ RUSSIAN_UNIFICATION_play_superevent = {
 	else_if = {
 		limit = {
 			OR = {
-				has_country_leader = {
-					ruling_only = yes
-					name = "Vladimir Mayakovsky"
-				}
-				has_country_leader = {
-					ruling_only = yes
-					name = "Aleksei Gastev"
-				}
-				has_country_leader = {
-					ruling_only = yes
-					name = "Anatoly Lunacharsky"
-				}
+				SOV_lunacharsky_in_power = yes
+				SOV_mayakovsky_in_power = yes
+				SOV_gastev_in_power = yes
+				SOV_krupskaya_in_power = yes
+				SOV_bogdanov_in_power = yes
+				SOV_polyansky_in_power = yes
 			}
-			NOT = { has_completed_focus = SOV_Tsentrobalt_In_Control }
 		}
 		custom_effect_tooltip = GFX_SPEVNT_RUSSIAN_UNIFICATION_proletkultists
 		hidden_effect = { country_event = super.63 }
@@ -6771,58 +6763,51 @@ RUSSIAN_UNIFICATION_play_superevent = {
 	else_if = {
 		limit = {
 			OR = {
-				has_country_leader = {
-					ruling_only = yes
-					name = "Grigory Sokolnikov"
-				}
-				has_country_leader = {
-					ruling_only = yes
-					name = "Mikhail Kalinin"
-				}
+				SOV_moderate_bolsheviks_in_power = yes
+				SOV_ryutin_in_power = yes
+				SOV_kosygin_in_power = yes
 			}
-			NOT = { has_completed_focus = SOV_Tsentrobalt_In_Control }
 		}
 		custom_effect_tooltip = GFX_SPEVNT_RUSSIAN_UNIFICATION_sokolnikov
 		hidden_effect = { country_event = super.64 }
 	}
 	else_if = {
 		limit = {
-			has_country_leader = {
-				name = "Georgy Zhukov"
-				ruling_only = yes
+			OR = {
+				SOV_krestinsky_in_power = yes
+				SOV_radek_in_power = yes
+				SOV_pyatnitsky_in_power = yes
 			}
+		}
+		custom_effect_tooltip = GFX_SPEVNT_RUSSIAN_UNIFICATION_internationalists
+		hidden_effect = { country_event = super.114 }
+	}
+	else_if = {
+		limit = {
+			SOV_zhukov_in_power = yes
 		}
 		custom_effect_tooltip = GFX_SPEVNT_RUSSIAN_UNIFICATION_zhukov
 		hidden_effect = { country_event = super.65 }
 	}
 	else_if = {
 		limit = {
-			has_country_leader = {
-				name = "Mikhail Frunze"
-				ruling_only = yes
-			}
+			RUS_mikhail_frunze_in_power = yes
 		}
 		custom_effect_tooltip = GFX_SPEVNT_RUSSIAN_UNIFICATION_frunze
 		hidden_effect = { country_event = super.66 }
 	}
 	else_if = {
 		limit = {
-			has_country_leader = {
-				name = "Mikhail Tukhachevsky"
-				ruling_only = yes
-			}
+			RUS_mikhail_tukhachevsky_in_power = yes
 		}
 		custom_effect_tooltip = GFX_SPEVNT_RUSSIAN_UNIFICATION_tukhachevsky
 		hidden_effect = { country_event = super.67 }
 	}
 	else_if = {
 		limit = {
-			has_idea = RUS_Rafail_Abramovich_hog_sde
-			NOT = {
-				has_country_leader = {
-					name = "Lev Kamenev"
-					ruling_only = yes
-				}
+			has_country_leader = {
+				name = "Solomon Lozovsky"
+				ruling_only = yes
 			}
 		}
 		custom_effect_tooltip = GFX_SPEVNT_RUSSIAN_UNIFICATION_rsrpi
@@ -6830,14 +6815,30 @@ RUSSIAN_UNIFICATION_play_superevent = {
 	}
 	else_if = {
 		limit = {
-			has_idea = RUS_Vladimir_K_Volsky_hog_rso
+			has_country_leader = {
+				name = "Vladimir Volsky"
+				ruling_only = yes
+			}
 		}
 		custom_effect_tooltip = GFX_SPEVNT_RUSSIAN_UNIFICATION_centroleft_psr
 		hidden_effect = { country_event = super.94 }
 	}
 	else_if = {
 		limit = {
-			has_completed_focus = SOV_Tsentrobalt_In_Control
+			OR = {
+				has_country_leader = {
+					ruling_only = yes
+					name = "Pavel Dybenko"
+				}
+				has_country_leader = {
+					ruling_only = yes
+					name = "Stepan Petrichenko"
+				}
+				has_country_leader = {
+					ruling_only = yes
+					name = "Nestor Makhno"
+				}
+			}
 		}
 		custom_effect_tooltip = GFX_SPEVNT_RUSSIAN_UNIFICATION_ancom
 		hidden_effect = { country_event = super.84 }
@@ -6974,12 +6975,6 @@ RUSSIAN_UNIFICATION_play_superevent = {
 	else_if = {
 		limit = {
 			has_idea = RUS_Irakliy_G_Tsereteli_hog_sde
-			NOT = {
-				has_country_leader = {
-					name = "Lev Kamenev"
-					ruling_only = yes
-				}
-			}
 			NOT = {
 				has_country_leader = {
 					ruling_only = yes
@@ -7294,6 +7289,7 @@ RUS_enable_integration = {
 				UKR = { enable_coring_at_fifty_compliance = yes }
 			}
 			WSU = { enable_coring_at_eighty_compliance = yes }
+			MOL = { enable_coring_at_eighty_compliance = yes }
 			ALO = { enable_coring_at_fifty_compliance = yes }
 			TRK = { enable_coring_at_eighty_compliance = yes }
 			UZB = { enable_coring_at_eighty_compliance = yes }
@@ -7317,9 +7313,6 @@ RUS_enable_integration = {
 			KLY = { enable_coring_at_eighty_compliance = yes }
 			MTR = { enable_coring_at_eighty_compliance = yes }
 			DAG = { enable_coring_at_eighty_compliance = yes }
-			BRY = { enable_coring_at_fifty_compliance = yes }
-			YAK = { enable_coring_at_fifty_compliance = yes }
-			KAR = { enable_coring_at_fifty_compliance = yes }
 			if = {
 				limit = { ROOT = { NOT = { tag = CRM } } }
 				CRM = { enable_coring_at_fifty_compliance = yes }
@@ -7345,11 +7338,17 @@ RUS_enable_integration = {
 			### Russia Minors Integration ###
 			TTR = { enable_coring_at_fifty_compliance = yes }
 			BKN = { enable_coring_at_fifty_compliance = yes }
+			BRY = { enable_coring_at_fifty_compliance = yes }
+			YAK = { enable_coring_at_fifty_compliance = yes }
+			KAR = { enable_coring_at_fifty_compliance = yes }
 			
 			### Eurasian Integration ###
 			
 			
 
+			240 = { enable_state_integration_50_compliance = yes } #Sudzha
+			821 = { enable_state_integration_50_compliance = yes } #Bilgorod
+			1231 = { enable_state_integration_50_compliance = yes } #Taganrog
 			73 = { enable_state_integration_80_compliance = yes } #Transcarpathia
 			1119 = { enable_state_integration_80_compliance = yes } #Transcarpathia
 			78 = { enable_state_integration_80_compliance = yes } #Bessarabia
@@ -7405,4 +7404,38 @@ RUS_change_siberian_war_morale = {
 	clamp_variable = { var = global.siberian_war_chance min = 0 max = 1 }
 	
 	log = "Morale is now [?global.siberian_war_chance]"
+}
+RUS_add_to_rostorg = {
+	if = {
+		limit = { RUS_is_in_rostorg = no }
+		custom_effect_tooltip = RUS_add_to_rostorg
+		set_country_flag = RUS_is_in_rostorg
+		add_to_array = { RUS.RUS_rostorg_members = THIS }
+		if = {
+			limit = {
+				RUS = { has_idea = RUS_moscow_accord_leader_expansionist }
+			}
+			add_ideas = RUS_moscow_accord_member_expansionist
+		}
+		else_if = {
+			limit = {
+				RUS = { has_idea = RUS_moscow_accord_leader_realpolitik }
+			}
+			add_ideas = RUS_moscow_accord_member_realpolitik
+		}
+	}
+}
+
+RUS_remove_from_rostorg = {
+	if = {
+		limit = { RUS_is_in_rostorg = yes }
+		custom_effect_tooltip = RUS_remove_from_rostorg
+		hidden_effect = {
+			remove_from_array = { RUS.RUS_rostorg_members = THIS }
+			remove_ideas = {
+				RUS_moscow_accord_member_realpolitik
+				RUS_moscow_accord_member_expansionist
+			}
+		}
+	}
 }
