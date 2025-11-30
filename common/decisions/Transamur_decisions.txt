@@ -4,10 +4,18 @@ TRM_dealing_with_minorities = {
 		icon = GFX_decision_SWI_no_elected_president
 		allowed = { always = no }
 		available = {
-			FROM = { is_owned_and_controlled_by = ROOT }
+			FROM = { 
+				is_owned_and_controlled_by = ROOT 
+				NOT = { has_dynamic_modifier = { modifier = TRM_martial_law_modifier } }
+			}
 		}
 		cost = 25
 		days_remove = 40
+		
+		modifier = {
+			compliance_growth = 0.02
+		}
+		
 		fire_only_once = yes
 		state_target = yes
 		ai_will_do = {
@@ -38,10 +46,18 @@ TRM_dealing_with_minorities = {
 		icon = GFX_decision_SWI_no_elected_president
 		allowed = { always = no }
 		available = {
-			FROM = { is_owned_and_controlled_by = ROOT }
+			FROM = { 
+				is_owned_and_controlled_by = ROOT 
+				NOT = { has_dynamic_modifier = { modifier = TRM_martial_law_modifier } }
+			}
 		}
 		cost = 25
 		days_remove = 40
+		
+		modifier = {
+			compliance_growth = 0.02
+		}
+		
 		fire_only_once = yes
 		state_target = yes
 		ai_will_do = {
@@ -175,6 +191,7 @@ TRM_dealing_with_minorities = {
 				has_resistance = yes
 			}
 		}
+		visible = { has_country_flag = TRM_martial_law_in_buryatia }
 		cost = 40
 		days_remove = 14
 		fire_only_once = yes
@@ -264,6 +281,7 @@ TRM_dealing_with_minorities = {
 		available = {
 			FROM = { is_owned_and_controlled_by = ROOT }
 		}
+		visible = { has_country_flag = TRM_martial_law_in_yakutia }
 		cost = 40
 		days_remove = 14
 		fire_only_once = yes
@@ -347,6 +365,111 @@ TRM_dealing_with_minorities = {
 			}
 			TRM_clamp_spheres_of_influence = yes
 			TRM_recalculate_kolchak_variables = yes
+		}
+	}	
+	TRM_martial_law_in_state = {
+		icon = GFX_decision_soldierly_discipline
+		allowed = { always = no }
+		available = {
+			FROM = { is_owned_and_controlled_by = ROOT }
+		}
+		
+		custom_cost_trigger = {
+			command_power > 15
+		}
+		custom_cost_text = CP_15
+		
+		fire_only_once = yes
+		state_target = yes
+		ai_will_do = {
+			factor = 0
+			modifier = {
+				add = 100
+				FROM = { state = 574 }
+				has_game_rule = {
+					rule = YAK_independece_path
+					option = RULE_OPTION_TRM_YAKUTIA
+				}
+			}
+			modifier = {
+				add = 100
+				FROM = { state = 564 }
+				has_game_rule = {
+					rule = BRY_independence_path
+					option = TRM_BURYAT_REVOLT
+				}
+			}
+			modifier = {
+				factor = 0
+				has_game_rule = {
+					rule = TRM_path
+					option = RULE_OPTION_TRM_KOLCHAK_SECURES_POWER
+				}
+			}
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRM_send_division_to_yakutia target: [From.GetName]"
+			hidden_effect = { add_command_power = -15 }			
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRM_send_division_to_yakutia target: [From.GetName]"
+			if = {
+				limit = {
+					FROM = { state = 564 }
+				}
+				set_country_flag = TRM_martial_law_in_buryatia
+				add_popularity = {
+					ideology = social_liberal
+					popularity = 0.05
+				}
+				custom_effect_tooltip = TRM_buryat_martial_law_tt
+				564 = { 
+					TRM_Decrease_Oblastniki_Support_Greatly = yes
+					TRM_Increase_Kolchak_Support = yes
+					TRM_Increase_Semyonov_Support = yes
+					TRM_Increase_ROVS_Support = yes
+					if = {
+						limit = {
+							has_dynamic_modifier = { modifier = TRM_civilian_government_modifier }
+						}
+						remove_dynamic_modifier = { modifier = TRM_civilian_government_modifier }
+					}
+					if = {
+						limit = {
+							has_dynamic_modifier = { modifier = TRM_cossack_host_modifier }
+						}
+						remove_dynamic_modifier = { modifier = TRM_cossack_host_modifier }
+					}
+					add_dynamic_modifier = { modifier = TRM_martial_law_modifier } 
+				}
+				TRM_clamp_spheres_of_influence = yes
+				TRM_recalculate_kolchak_variables = yes
+				hidden_effect = { country_event = tram.10003 }
+			}
+			else = {
+				set_country_flag = TRM_martial_law_in_yakutia
+				add_popularity = {
+					ideology = social_liberal
+					popularity = 0.05
+				}
+				custom_effect_tooltip = TRM_yakut_martial_law_tt
+				574 = { 
+					TRM_Decrease_Oblastniki_Support_Greatly = yes
+					TRM_Increase_Kolchak_Support = yes
+					TRM_Increase_Semyonov_Support = yes
+					TRM_Increase_ROVS_Support = yes
+					if = {
+						limit = {
+							has_dynamic_modifier = { modifier = TRM_civilian_government_modifier }
+						}
+						remove_dynamic_modifier = { modifier = TRM_civilian_government_modifier }
+					}
+					add_dynamic_modifier = { modifier = TRM_martial_law_modifier } 
+				}		
+				TRM_clamp_spheres_of_influence = yes
+				TRM_recalculate_kolchak_variables = yes
+				hidden_effect = { country_event = tram.10001 }
+			}
 		}
 	}	
 }
@@ -1027,7 +1150,7 @@ TRM_Spheres_Of_Influence = {
 						state = 563
 					}
 				}
-				TRM_Increase_Kolchak_Support = yes 
+				TRM_increase_ruling_party_support = yes
 			}
 			TRM_clamp_spheres_of_influence = yes
 			TRM_recalculate_kolchak_variables = yes
@@ -1333,6 +1456,43 @@ TRM_Spheres_Of_Influence = {
 			TRM_recalculate_kolchak_variables = yes
 			clr_country_flag = TRM_already_boosting_support
 		}
+	}	
+	TRM_destroy_separatism = {
+		icon = GFX_decision_generic_prepare_civil_war
+		available = {
+			custom_trigger_tooltip = {
+				tooltip = TRM_destroy_separatism_available
+				check_variable = { party_popularity@social_liberal < 0.05 }
+			}
+			if = {
+				limit = { TRM_kolchak_in_power = yes }
+				has_completed_focus = TRM_Deal_With_Oblastniki
+			}
+			else_if = {
+				limit = { has_right_democratic_government = yes }
+				has_completed_focus = TRM_Continue_Kolchak_Policies
+			}
+			else_if = {
+				limit = { TRM_Pepelyaev_coup = yes }
+				has_completed_focus = TRM_Legacy_Of_Old_Russia
+			}
+		}
+		visible = {
+			has_country_flag = TRM_oblastniki_operate
+			has_left_democratic_government = no
+		}
+		
+		cost = 0
+		fire_only_once = yes
+		
+		ai_will_do = {
+			factor = 100
+		}
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRM_oblastnik_council"
+			TRM_remove_oblastniki_influence = yes
+		}
 	}
 	TRM_revive_goldmining_bodaybo = {
 		icon = GFX_decision_steel
@@ -1362,7 +1522,7 @@ TRM_Spheres_Of_Influence = {
 		}
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove TRM_revive_goldmining_bodaybo target: [From.GetName]"
-			565 = { TRM_Increase_Kolchak_Support = yes }
+			565 = { TRM_increase_ruling_party_support = yes }
 			add_political_power = 50
 			add_resource = {
 				type = tungsten
@@ -1394,10 +1554,8 @@ TRM_Spheres_Of_Influence = {
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove TRM_improve_yakutian_tracts target: [From.GetName]"
 			activate_targeted_decision = { target = 574 decision = TRM_seek_for_blue_clay }
-			add_popularity = { ideology = social_liberal popularity = -0.03 }
 			FROM = {
-				TRM_Increase_Kolchak_Support = yes
-				TRM_Decrease_Oblastniki_Support = yes
+				TRM_increase_ruling_party_support = yes
 				add_building_construction = {
 					type = infrastructure
 					level = 1
@@ -1439,7 +1597,7 @@ TRM_Spheres_Of_Influence = {
 		
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove TRM_seek_for_blue_clay target: [From.GetName]"
-			FROM = { TRM_Increase_Kolchak_Support = yes }
+			FROM = { TRM_increase_ruling_party_support = yes }
 			TRM_clamp_spheres_of_influence = yes
 			TRM_recalculate_kolchak_variables = yes
 			custom_effect_tooltip = TRM_seek_for_blue_clay_tt
@@ -1464,7 +1622,7 @@ TRM_Spheres_Of_Influence = {
 			add_popularity = {ideology = authoritarian_democrat popularity = 0.03}
 			add_popularity = {ideology = social_conservative popularity = 0.03}
 			637 = {
-				TRM_Increase_Japanese_Support = yes
+				TRM_increase_ruling_party_support = yes
 				TRM_Decrease_Kolchak_Support = yes
 				add_building_construction = {
 					type = coastal_bunker
@@ -1506,6 +1664,9 @@ TRM_Spheres_Of_Influence = {
 				}
 			}
 			NOT = { has_country_flag = TRM_already_exercising }
+		}
+		visible = {
+			TRM_kolchak_in_power = yes
 		}
 		cost = 25
 		days_remove = 35
@@ -1723,6 +1884,9 @@ TRM_Spheres_Of_Influence = {
 				is_owned_and_controlled_by = ROOT 
 			}
 		}
+		visible = {
+			TRM_kolchak_in_power = yes
+		}
 		cost = 75
 		fire_only_once = yes
 		state_target = yes
@@ -1740,6 +1904,7 @@ TRM_Spheres_Of_Influence = {
 				}
 			}
 		}
+		cancel_if_not_visible = yes
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision TRM_make_chita_fully_cossack"
 			add_popularity = {
@@ -1794,6 +1959,9 @@ TRM_Spheres_Of_Influence = {
 				is_owned_and_controlled_by = ROOT 
 			}
 		}
+		visible = {
+			TRM_kolchak_in_power = yes
+		}
 		state_target = yes
 		cost = 75
 		days_remove = 15
@@ -1811,6 +1979,7 @@ TRM_Spheres_Of_Influence = {
 				}
 			}
 		}
+		cancel_if_not_visible = yes
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision TRM_make_blagoveschensk_fully_cossack"
 			add_popularity = {
@@ -2209,104 +2378,6 @@ TRM_japanese_influence = {
 			TRM_recalculate_kolchak_variables = yes
 		}
 	}
-	TRM_Seek_For_Entente_Support = {
-		icon = GFX_decision_eng_install_government
-		allowed = { always = no }
-		visible = {
-			TRM_has_japanese_influence = yes
-			NOT = { 
-				has_government = social_conservative 
-				has_government = authoritarian_democrat 
-			}
-			TRM_semyenov_in_power = no
-			has_socialist_government = no
-		}
-		available = {
-			NOT = { has_country_flag = TRM_Aid_From_Japan_completed }
-		}
-		cancel_if_not_visible = yes
-		
-		fixed_random_seed = no
-		cost = 0
-		days_remove = 70
-		fire_only_once = yes
-		
-		ai_will_do = {
-			factor = 10
-			modifier = {
-				factor = 10
-				has_game_rule = { rule = TRM_forpol option = TRM_FORPOL_ENT }
-			}
-		}
-		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove TRM_Seek_For_Entente_Support"
-			set_country_flag = TRM_Seek_For_Entente_Support_completed
-		}
-		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove TRM_Seek_For_Entente_Support"
-			activate_targeted_decision = { target = ENT decision = TRM_North_Pacific_Trade_Route }
-			add_popularity = {
-				ideology = social_conservative
-				popularity = -0.05
-			}
-			random_list = {
-				20 = { 
-					409 = { 
-						custom_effect_tooltip = TRM_Decrease_Japanese_Support 
-						custom_effect_tooltip = TRM_Increase_Kolchak_Support
-					}
-				}
-				20 = { 
-					637 = { 
-						custom_effect_tooltip = TRM_Decrease_Japanese_Support 
-						custom_effect_tooltip = TRM_Increase_Kolchak_Support
-					}
-				}
-				15 = { 
-					562 = { 
-						custom_effect_tooltip = TRM_Decrease_Japanese_Support 
-						custom_effect_tooltip = TRM_Increase_Kolchak_Support
-					}
-				}
-				15 = { 
-					560 = { 
-						custom_effect_tooltip = TRM_Decrease_Japanese_Support 
-						custom_effect_tooltip = TRM_Increase_Kolchak_Support
-					}
-				}
-				10 = { 
-					657 = { 
-						custom_effect_tooltip = TRM_Decrease_Japanese_Support 
-						custom_effect_tooltip = TRM_Increase_Kolchak_Support
-					}
-				}
-				10 = { 
-					561 = { 
-						custom_effect_tooltip = TRM_Decrease_Japanese_Support 
-						custom_effect_tooltip = TRM_Increase_Kolchak_Support
-					}
-				}
-				5 = { 
-					574 = { 
-						custom_effect_tooltip = TRM_Decrease_Japanese_Support 
-						custom_effect_tooltip = TRM_Increase_Kolchak_Support
-					}
-				}
-				5 = { 
-					563 = { 
-						custom_effect_tooltip = TRM_Decrease_Japanese_Support 
-						custom_effect_tooltip = TRM_Increase_Kolchak_Support
-					}
-				}
-			}
-			TRM_clamp_spheres_of_influence = yes
-			TRM_recalculate_kolchak_variables = yes
-			reverse_add_opinion_modifier = {
-				target = CAN
-				modifier = KR_approves_of_govt   
-			}
-		}
-	}
 	TRM_Increase_Trade_With_Japan = {
 		icon = GFX_decision_hand_out
 		visible = {
@@ -2463,205 +2534,7 @@ TRM_japanese_influence = {
 			}
 		}
 	}
-	TRM_North_Pacific_Trade_Route = {
-		icon = GFX_decision_global_trade
-		allowed = { always = no }
-		available = {
-			NOT = { has_country_flag = TRM_Aid_From_Japan_completed }
-		}
-		visible = {
-			NOT = { 
-				has_government = social_conservative 
-				has_government = authoritarian_democrat 
-			}
-			TRM_semyenov_in_power = no
-			has_socialist_government = no
-		}
-		
-		cancel_if_not_visible = yes
-		cost = 25
-		days_remove = 70
-		fire_only_once = yes
-		fixed_random_seed = no
-		modifier = {
-			consumer_goods_factor = -0.1
-		}
-		ai_will_do = {
-			base = 10
-			modifier = {
-				factor = 2
-				has_war = yes
-			}
-			modifier = {
-				factor = 10
-				has_game_rule = { rule = TRM_forpol option = TRM_FORPOL_ENT }
-			}
-		}
-		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision TRM_North_Pacific_Trade_Route"
-			add_popularity = {
-				ideology = social_conservative
-				popularity = -0.05
-			}
-			random_list = {
-				20 = { 
-					409 = { 
-						custom_effect_tooltip = TRM_Decrease_Japanese_Support 
-						custom_effect_tooltip = TRM_Increase_Kolchak_Support
-					}
-				}
-				20 = { 
-					637 = { 
-						custom_effect_tooltip = TRM_Decrease_Japanese_Support 
-						custom_effect_tooltip = TRM_Increase_Kolchak_Support
-					}
-				}
-				15 = { 
-					562 = { 
-						custom_effect_tooltip = TRM_Decrease_Japanese_Support 
-						custom_effect_tooltip = TRM_Increase_Kolchak_Support
-					}
-				}
-				15 = { 
-					560 = { 
-						custom_effect_tooltip = TRM_Decrease_Japanese_Support 
-						custom_effect_tooltip = TRM_Increase_Kolchak_Support
-					}
-				}
-				10 = { 
-					657 = { 
-						custom_effect_tooltip = TRM_Decrease_Japanese_Support 
-						custom_effect_tooltip = TRM_Increase_Kolchak_Support
-					}
-				}
-				10 = { 
-					561 = { 
-						custom_effect_tooltip = TRM_Decrease_Japanese_Support 
-						custom_effect_tooltip = TRM_Increase_Kolchak_Support
-					}
-				}
-				5 = { 
-					574 = { 
-						custom_effect_tooltip = TRM_Decrease_Japanese_Support 
-						custom_effect_tooltip = TRM_Increase_Kolchak_Support
-					}
-				}
-				5 = { 
-					563 = { 
-						custom_effect_tooltip = TRM_Decrease_Japanese_Support 
-						custom_effect_tooltip = TRM_Increase_Kolchak_Support
-					}
-				}
-			}
-			TRM_clamp_spheres_of_influence = yes
-			TRM_recalculate_kolchak_variables = yes
-		}
-		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove TRM_North_Pacific_Trade_Route"
-			country_event = tram.167
-		}
-	}
-	TRM_Open_British_Embassy = {
-		icon = GFX_decision_eng_install_government
-		allowed = { always = no }
-		available = {
-			NOT = { has_country_flag = TRM_Aid_From_Japan_completed }
-		}
-		visible = {
-			NOT = { 
-				has_government = social_conservative 
-				has_government = authoritarian_democrat 
-			}
-			TRM_semyenov_in_power = no
-			has_socialist_government = no
-		}
-		
-		cancel_if_not_visible = yes
-		cost = 25
-		days_remove = 30
-		fire_only_once = yes
-		fixed_random_seed = no
-		modifier = {
-			political_power_gain = 0.15
-		}
-		ai_will_do = {
-			base = 10
-			modifier = {
-				factor = 2
-				has_war = yes
-			}
-			modifier = {
-				factor = 10
-				has_game_rule = { rule = TRM_forpol option = TRM_FORPOL_ENT }
-			}
-		}
-		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove TRM_Open_British_Embassy"
-			add_popularity = {
-				ideology = social_conservative
-				popularity = -0.05
-			}
-			effect_tooltip = {
-				random_list = {
-					20 = { 409 = { custom_effect_tooltip = TRM_Decrease_Japanese_Support } }
-					20 = { 637 = { custom_effect_tooltip = TRM_Decrease_Japanese_Support } }
-					15 = { 562 = { custom_effect_tooltip = TRM_Decrease_Japanese_Support } }
-					15 = { 560 = { custom_effect_tooltip = TRM_Decrease_Japanese_Support } }
-					10 = { 657 = { custom_effect_tooltip = TRM_Decrease_Japanese_Support } }
-					10 = { 561 = { custom_effect_tooltip = TRM_Decrease_Japanese_Support } }
-					5 = { 574 = { custom_effect_tooltip = TRM_Decrease_Japanese_Support } }
-					5 = { 563 = { custom_effect_tooltip = TRM_Decrease_Japanese_Support } }
-				}
-				408 = {
-					custom_effect_tooltip = TRM_Decrease_Japanese_Support
-					TRM_Increase_Kolchak_Support = yes
-				}
-			}
-			hidden_effect = {
-				random_list = {
-					20 = {
-						409 = { add_to_variable = { Japanese_Authority = -0.05 } }
-						409 = { add_to_variable = { Kolchak_Authority = 0.05 } }
-					}
-					20 = {
-						637 = { add_to_variable = { Japanese_Authority = -0.05 } }
-						637 = { add_to_variable = { Kolchak_Authority = 0.05 } }
-					}
-					15 = {
-						562 = { add_to_variable = { Japanese_Authority = -0.05 } }
-						562 = { add_to_variable = { Kolchak_Authority = 0.05 } }
-					}
-					15 = {
-						560 = { add_to_variable = { Japanese_Authority = -0.05 } }
-						560 = { add_to_variable = { Kolchak_Authority = 0.05 } }
-					}
-					10 = {
-						657 = { add_to_variable = { Japanese_Authority = -0.05 } }
-						657 = { add_to_variable = { Kolchak_Authority = 0.05 } }
-					}
-					10 = {
-						561 = { add_to_variable = { Japanese_Authority = -0.05 } }
-						561 = { add_to_variable = { Kolchak_Authority = 0.05 } }
-					}
-					5 = {
-						574 = { add_to_variable = { Japanese_Authority = -0.05 } }
-						574 = { add_to_variable = { Kolchak_Authority = 0.05 } }
-					}
-					5 = { 
-						563 = { add_to_variable = { Japanese_Authority = -0.05 } }
-						563 = { add_to_variable = { Kolchak_Authority = 0.05 } }
-					}
-				}
-				408 = {
-					add_to_variable = { Japanese_Authority = -0.1 }
-					add_to_variable = { Kolchak_Authority = 0.05 }
-					add_to_variable = { Business_Authority = 0.05 }
-				}
-			}
-			TRM_clamp_spheres_of_influence = yes
-			TRM_recalculate_kolchak_variables = yes
-		}
-	}
+	
 	TRM_regain_port_vladivostok = {
 		icon = GFX_decision_generic_naval_base
 		visible = {
@@ -2683,6 +2556,7 @@ TRM_japanese_influence = {
 		modifier = {
 			political_power_gain = 0.15
 		}
+		cancel_if_not_visible = yes
 		ai_will_do = {
 			base = 100
 		}
@@ -3893,105 +3767,314 @@ TRM_japanese_influence = {
 		}
 	}
 }
-TRM_oblastniki_influence = {
-	
-	TRM_oblastniki_committee = {
-		allowed = { always = no } #manually activated
-		available = {
-			has_country_flag = TRM_oblastniki_banned
-		}
 
-		days_mission_timeout = 70
-
-		cancel_trigger = {
-			has_country_flag = TRM_oblastniki_banned
-		}
-
-		timeout_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision timeout TRM_oblastniki_committee"
-			add_stability = -0.01
-			add_popularity = {
-				ideology = social_liberal
-				popularity = 0.02
-			}
-			every_owned_state = {
-				TRM_Increase_Oblastniki_Support = yes
-			}
-			hidden_effect = {
-				TRM_clamp_spheres_of_influence = yes
-				TRM_recalculate_kolchak_variables = yes
-				TRM_recalculate_oblastniki_effects = yes
-				activate_mission = TRM_oblastniki_committee
-			}	
-		}
-	}
-	TRM_give_promises = {
-		icon = GFX_decision_kolchak
+TRM_russian_expansion = {
+	TRM_Seek_For_Entente_Support = {
+		icon = GFX_decision_eng_install_government
+		allowed = { always = no }
 		visible = {
-			has_country_flag = TRM_oblastniki_operate
-			NOT = { has_government = social_liberal }
-		}
-
-		cost = 25
-		days_remove = 14
-		days_re_enable = 50
-
-		ai_will_do = {
-			factor = 20
-			modifier = {
-				factor = 0
-				check_variable = { ROOT.party_popularity@social_liberal < 0.1 }
+			TRM_has_japanese_influence = yes
+			NOT = { 
+				has_government = social_conservative 
+				has_government = authoritarian_democrat 
 			}
+			TRM_semyenov_in_power = no
+			has_socialist_government = no
 		}
-
-		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove TRM_give_promises"
-			add_popularity = {
-				ideology = social_liberal
-				popularity = -0.03
-			}
-			add_to_variable = { OblastnikiPromises = 1 }
-			every_owned_state = {
-				TRM_Decrease_Oblastniki_Support = yes
-			}
-			hidden_effect = {
-				TRM_clamp_spheres_of_influence = yes
-				TRM_recalculate_kolchak_variables = yes
-				TRM_recalculate_oblastniki_effects = yes
-			}	
-		}
-	}
-	TRM_destroy_separatism = {
-		icon = GFX_decision_generic_prepare_civil_war
 		available = {
 			if = {
-				limit = { has_socialist_government = no }
-				custom_trigger_tooltip = {
-					tooltip = TRM_destroy_separatism_available
-					check_variable = { party_popularity@social_liberal < 0.05 }
-				}
-			}	
+				limit = { TRM_has_japanese_influence = yes }
+				NOT = { has_country_flag = TRM_Aid_From_Japan_completed }
+			}
 		}
-		visible = {
-			has_dynamic_modifier = { modifier = TRM_oblastniki_influence_modifier }
-			has_left_democratic_government = no
-		}
+		cancel_if_not_visible = yes
 		
+		fixed_random_seed = no
 		cost = 0
+		days_remove = 70
 		fire_only_once = yes
 		
 		ai_will_do = {
-			factor = 100
+			factor = 10
+			modifier = {
+				factor = 10
+				has_game_rule = { rule = TRM_forpol option = TRM_FORPOL_ENT }
+			}
 		}
-		
 		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision TRM_oblastnik_council"
-			TRM_remove_oblastniki_influence = yes
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRM_Seek_For_Entente_Support"
+			set_country_flag = TRM_Seek_For_Entente_Support_completed
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRM_Seek_For_Entente_Support"
+			activate_targeted_decision = { target = ENT decision = TRM_North_Pacific_Trade_Route }
+			add_popularity = {
+				ideology = social_conservative
+				popularity = -0.05
+			}
+			random_list = {
+				20 = { 
+					409 = { 
+						custom_effect_tooltip = TRM_Decrease_Japanese_Support 
+						custom_effect_tooltip = TRM_Increase_Kolchak_Support
+					}
+				}
+				20 = { 
+					637 = { 
+						custom_effect_tooltip = TRM_Decrease_Japanese_Support 
+						custom_effect_tooltip = TRM_Increase_Kolchak_Support
+					}
+				}
+				15 = { 
+					562 = { 
+						custom_effect_tooltip = TRM_Decrease_Japanese_Support 
+						custom_effect_tooltip = TRM_Increase_Kolchak_Support
+					}
+				}
+				15 = { 
+					560 = { 
+						custom_effect_tooltip = TRM_Decrease_Japanese_Support 
+						custom_effect_tooltip = TRM_Increase_Kolchak_Support
+					}
+				}
+				10 = { 
+					657 = { 
+						custom_effect_tooltip = TRM_Decrease_Japanese_Support 
+						custom_effect_tooltip = TRM_Increase_Kolchak_Support
+					}
+				}
+				10 = { 
+					561 = { 
+						custom_effect_tooltip = TRM_Decrease_Japanese_Support 
+						custom_effect_tooltip = TRM_Increase_Kolchak_Support
+					}
+				}
+				5 = { 
+					574 = { 
+						custom_effect_tooltip = TRM_Decrease_Japanese_Support 
+						custom_effect_tooltip = TRM_Increase_Kolchak_Support
+					}
+				}
+				5 = { 
+					563 = { 
+						custom_effect_tooltip = TRM_Decrease_Japanese_Support 
+						custom_effect_tooltip = TRM_Increase_Kolchak_Support
+					}
+				}
+			}
+			TRM_clamp_spheres_of_influence = yes
+			TRM_recalculate_kolchak_variables = yes
+			reverse_add_opinion_modifier = {
+				target = CAN
+				modifier = KR_approves_of_govt   
+			}
 		}
 	}
-}
-
-TRM_russian_expansion = {
+	TRM_North_Pacific_Trade_Route = {
+		icon = GFX_decision_global_trade
+		allowed = { always = no }
+		available = {
+			if = {
+				limit = { TRM_has_japanese_influence = yes }
+				NOT = { has_country_flag = TRM_Aid_From_Japan_completed }
+			}
+		}
+		visible = {
+			NOT = { 
+				has_government = social_conservative 
+				has_government = authoritarian_democrat 
+			}
+			TRM_semyenov_in_power = no
+			has_socialist_government = no
+		}
+		
+		cancel_if_not_visible = yes
+		cost = 25
+		days_remove = 70
+		fire_only_once = yes
+		fixed_random_seed = no
+		modifier = {
+			consumer_goods_factor = -0.1
+		}
+		ai_will_do = {
+			base = 10
+			modifier = {
+				factor = 2
+				has_war = yes
+			}
+			modifier = {
+				factor = 10
+				has_game_rule = { rule = TRM_forpol option = TRM_FORPOL_ENT }
+			}
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRM_North_Pacific_Trade_Route"
+			add_popularity = {
+				ideology = social_conservative
+				popularity = -0.05
+			}
+			random_list = {
+				20 = { 
+					409 = { 
+						custom_effect_tooltip = TRM_Decrease_Japanese_Support 
+						custom_effect_tooltip = TRM_Increase_Kolchak_Support
+					}
+				}
+				20 = { 
+					637 = { 
+						custom_effect_tooltip = TRM_Decrease_Japanese_Support 
+						custom_effect_tooltip = TRM_Increase_Kolchak_Support
+					}
+				}
+				15 = { 
+					562 = { 
+						custom_effect_tooltip = TRM_Decrease_Japanese_Support 
+						custom_effect_tooltip = TRM_Increase_Kolchak_Support
+					}
+				}
+				15 = { 
+					560 = { 
+						custom_effect_tooltip = TRM_Decrease_Japanese_Support 
+						custom_effect_tooltip = TRM_Increase_Kolchak_Support
+					}
+				}
+				10 = { 
+					657 = { 
+						custom_effect_tooltip = TRM_Decrease_Japanese_Support 
+						custom_effect_tooltip = TRM_Increase_Kolchak_Support
+					}
+				}
+				10 = { 
+					561 = { 
+						custom_effect_tooltip = TRM_Decrease_Japanese_Support 
+						custom_effect_tooltip = TRM_Increase_Kolchak_Support
+					}
+				}
+				5 = { 
+					574 = { 
+						custom_effect_tooltip = TRM_Decrease_Japanese_Support 
+						custom_effect_tooltip = TRM_Increase_Kolchak_Support
+					}
+				}
+				5 = { 
+					563 = { 
+						custom_effect_tooltip = TRM_Decrease_Japanese_Support 
+						custom_effect_tooltip = TRM_Increase_Kolchak_Support
+					}
+				}
+			}
+			TRM_clamp_spheres_of_influence = yes
+			TRM_recalculate_kolchak_variables = yes
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRM_North_Pacific_Trade_Route"
+			country_event = tram.167
+		}
+	}
+	TRM_Open_British_Embassy = {
+		icon = GFX_decision_eng_install_government
+		allowed = { always = no }
+		available = {
+			if = {
+				limit = { TRM_has_japanese_influence = yes }
+				NOT = { has_country_flag = TRM_Aid_From_Japan_completed }
+			}
+		}
+		visible = {
+			NOT = { 
+				has_government = social_conservative 
+				has_government = authoritarian_democrat 
+			}
+			TRM_semyenov_in_power = no
+			has_socialist_government = no
+		}
+		
+		cancel_if_not_visible = yes
+		cost = 25
+		days_remove = 30
+		fire_only_once = yes
+		fixed_random_seed = no
+		modifier = {
+			political_power_gain = 0.15
+		}
+		ai_will_do = {
+			base = 10
+			modifier = {
+				factor = 2
+				has_war = yes
+			}
+			modifier = {
+				factor = 10
+				has_game_rule = { rule = TRM_forpol option = TRM_FORPOL_ENT }
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRM_Open_British_Embassy"
+			add_popularity = {
+				ideology = social_conservative
+				popularity = -0.05
+			}
+			effect_tooltip = {
+				random_list = {
+					20 = { 409 = { custom_effect_tooltip = TRM_Decrease_Japanese_Support } }
+					20 = { 637 = { custom_effect_tooltip = TRM_Decrease_Japanese_Support } }
+					15 = { 562 = { custom_effect_tooltip = TRM_Decrease_Japanese_Support } }
+					15 = { 560 = { custom_effect_tooltip = TRM_Decrease_Japanese_Support } }
+					10 = { 657 = { custom_effect_tooltip = TRM_Decrease_Japanese_Support } }
+					10 = { 561 = { custom_effect_tooltip = TRM_Decrease_Japanese_Support } }
+					5 = { 574 = { custom_effect_tooltip = TRM_Decrease_Japanese_Support } }
+					5 = { 563 = { custom_effect_tooltip = TRM_Decrease_Japanese_Support } }
+				}
+				408 = {
+					custom_effect_tooltip = TRM_Decrease_Japanese_Support
+					TRM_Increase_Kolchak_Support = yes
+				}
+			}
+			hidden_effect = {
+				random_list = {
+					20 = {
+						409 = { add_to_variable = { Japanese_Authority = -0.05 } }
+						409 = { add_to_variable = { Kolchak_Authority = 0.05 } }
+					}
+					20 = {
+						637 = { add_to_variable = { Japanese_Authority = -0.05 } }
+						637 = { add_to_variable = { Kolchak_Authority = 0.05 } }
+					}
+					15 = {
+						562 = { add_to_variable = { Japanese_Authority = -0.05 } }
+						562 = { add_to_variable = { Kolchak_Authority = 0.05 } }
+					}
+					15 = {
+						560 = { add_to_variable = { Japanese_Authority = -0.05 } }
+						560 = { add_to_variable = { Kolchak_Authority = 0.05 } }
+					}
+					10 = {
+						657 = { add_to_variable = { Japanese_Authority = -0.05 } }
+						657 = { add_to_variable = { Kolchak_Authority = 0.05 } }
+					}
+					10 = {
+						561 = { add_to_variable = { Japanese_Authority = -0.05 } }
+						561 = { add_to_variable = { Kolchak_Authority = 0.05 } }
+					}
+					5 = {
+						574 = { add_to_variable = { Japanese_Authority = -0.05 } }
+						574 = { add_to_variable = { Kolchak_Authority = 0.05 } }
+					}
+					5 = { 
+						563 = { add_to_variable = { Japanese_Authority = -0.05 } }
+						563 = { add_to_variable = { Kolchak_Authority = 0.05 } }
+					}
+				}
+				408 = {
+					add_to_variable = { Japanese_Authority = -0.1 }
+					add_to_variable = { Kolchak_Authority = 0.05 }
+					add_to_variable = { Business_Authority = 0.05 }
+				}
+			}
+			TRM_clamp_spheres_of_influence = yes
+			TRM_recalculate_kolchak_variables = yes
+		}
+	}
 	TRM_Integrate_State = {
 		name = integrate_state
 		icon = eng_trade_unions_demand

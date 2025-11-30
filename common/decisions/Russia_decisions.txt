@@ -3168,10 +3168,6 @@ RUS_Alliance_decisions = {
 			OR = {
 				has_completed_focus = RUS_India_Policy
 				AND = {
-					has_completed_focus = TRM_on_our_own
-					has_completed_focus = TRM_India
-				}
-				AND = {
 					is_faction_leader = yes
 					has_completed_focus = RUS_KER_India_Policy
 				}
@@ -4425,6 +4421,7 @@ RUS_Foreign_Policy_decisions = {
 				has_completed_focus = RUS_Solving_Territorial_Disputes
 				has_completed_focus = ORE_Minsk_Mistakes
 				has_completed_focus = DKB_Minsk_Mistakes
+				has_completed_focus = TRM_Reclaim_Lands
 			}
 		}
 		target_trigger = {
@@ -4743,6 +4740,7 @@ RUS_Foreign_Policy_decisions = {
 					has_completed_focus = DKB_End_Germany
 					has_completed_focus = ORE_Minsk_Mistakes
 					has_completed_focus = DKB_Minsk_Mistakes
+					has_completed_focus = TRM_Reclaim_Lands
 				}
 			}
 		}
@@ -5410,7 +5408,10 @@ RUS_Foreign_Policy_decisions = {
 
 		targets = { INT }
 		target_root_trigger = {
-			has_completed_focus = RUS_The_Iron_Curtain
+			OR = {
+				has_completed_focus = RUS_The_Iron_Curtain
+				has_completed_focus = TRM_Crusade_Against_Socialism
+			}
 		}
 		target_trigger = {
 			can_declare_war_on = FROM
@@ -5485,8 +5486,13 @@ RUS_Foreign_Policy_decisions = {
 		}
 
 		visible = {
-			has_completed_focus = RUS_Open_The_Straits
-			has_completed_focus = RUS_Expansionism
+			OR = {
+				has_completed_focus = TRM_Finish_The_Turks
+				AND = {
+					has_completed_focus = RUS_Open_The_Straits
+					has_completed_focus = RUS_Expansionism
+				}
+			}
 			773 = { is_claim_or_core_of_ROOT = no } #Constantinople
 		}
 
@@ -5688,6 +5694,7 @@ RUS_Foreign_Policy_decisions = {
 		target_root_trigger = {
 			OR = {
 				has_completed_focus = RUS_Open_The_Straits
+				has_completed_focus = TRM_Finish_The_Turks
 				has_completed_focus = RUS_KER_Claim_The_Straits
 			}
 		}
@@ -9930,8 +9937,23 @@ RUS_Siberian_War = {
 				TRM = { has_country_flag = TRM_integration_with_russia }
 			}
 		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_fund_nra_partisans target: [From.GetName]"
+			hidden_effect = {
+				add_to_variable = { TRM.nra_infantry = 1000 }
+				add_to_variable = { TRM.support_equipment = 130 }
+				add_equipment_to_stockpile = {
+					type = infantry_equipment
+					amount = -1000
+				}
+				add_equipment_to_stockpile = {
+					type = support_equipment
+					amount = -130
+				}
+			}
+		}
 		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_propaganda_campaign target: [From.GetName]"
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_fund_nra_partisans target: [From.GetName]"
 			set_temp_variable_to_random = {
 				var = change_morale
 				min = -0.06
@@ -10064,9 +10086,9 @@ RUS_Siberian_War = {
 			has_tech = tech_maintenance_company
 		}
 		
-		custom_cost_text = army_experience_50
+		custom_cost_text = CP_40
 		custom_cost_trigger = {
-			has_army_experience > 49
+			command_power > 39.99
 		}
 				
 		fire_only_once = yes
@@ -10074,15 +10096,11 @@ RUS_Siberian_War = {
 		
 		ai_will_do = {
 			factor = 100
-			modifier = {
-				factor = 0
-				has_army_experience < 70
-			}
 		}
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision RUS_expand_railways_teams target: [From.GetName]"
 			hidden_effect = {
-				army_experience = -50
+				add_command_power = -40
 				set_technology = { tech_railway_troops = 1 popup = no }
 			}
 			custom_effect_tooltip = tech_railway_troops_effect			
@@ -10348,9 +10366,7 @@ RUS_Siberian_War = {
 	}
 	TRM_railway_maintenance = {
 		icon = GFX_decision_generic_train
-		allowed = {
-			tag = TRM
-		}		
+		allowed = { always = no }		
 		
 		cost = 15
 		
@@ -10424,6 +10440,198 @@ RUS_Siberian_War = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove TRM_boost_morale target: [From.GetName]"
 			set_temp_variable = { change_morale = 0.10 }
 			RUS_change_siberian_war_morale = yes
+		}
+	}
+	TRM_fund_oblastnik_movement = {
+		icon = GFX_decision_generic_protection
+		allowed = { original_tag = TRM }
+		available = {
+			RUS = {
+				set_temp_variable = { law_id = 12 }
+				RUS_has_law_accepted = no
+			}
+		}
+		targets = { SIB }
+		target_root_trigger = { 
+			NOT = { has_country_flag = TRM_oblastniki_banned }
+			russian_civil_war = no
+			has_capitulated = no
+			RUS = { 
+				is_subject = no
+				NOT = { has_war_with = ROOT }
+			}
+		}
+		target_trigger = {
+			NOT = { country_exists = FROM }
+		}
+		target_non_existing = yes
+		
+		custom_cost_trigger = {
+			has_equipment = { infantry_equipment > 999 }
+			has_equipment = { support_equipment > 129 }
+		}
+		custom_cost_text = UKR_forts_expansion_large
+		
+		days_remove = 15
+		days_re_enable = 100
+		fire_only_once = no
+		cancel_if_not_visible = yes
+		
+		ai_will_do = {
+			factor = 200
+			modifier = {
+				factor = 0
+				TRM = { has_country_flag = TRM_integration_with_russia }
+			}
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRM_fund_oblastnik_movement target: [From.GetName]"
+			effect_tooltip = {
+				send_equipment = { target = SIB type = infantry_equipment amount = 1000 }
+				send_equipment = { target = SIB type = support_equipment amount = 130 }
+			}
+			add_to_variable = { TRM.sib_infantry = 1000 }
+			add_to_variable = { TRM.sib_support_equipment = 130 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRM_fund_oblastnik_movement target: [From.GetName]"
+			if = {
+				limit = { is_hosting_exile = SIB }
+				SIB = { add_legitimacy = 2 }
+			}
+			set_temp_variable_to_random = {
+				var = change_morale
+				min = 0.02
+				max = 0.06
+			}
+			RUS_change_siberian_war_morale = yes
+			if = { 
+				limit = { check_variable = { TRM_fund_oblastnik_movement_var = 1 } }
+				TRM_increase_oblastniki_level = yes			
+				add_to_variable = { TRM_fund_oblastnik_movement_var = -1 }
+			}
+			else = {
+				add_to_variable = { TRM_fund_oblastnik_movement_var = 1 }
+				every_owned_state = {
+					TRM_Increase_Oblastniki_Support_Slightly = yes
+				}
+			}
+		}
+	}
+	TRM_raise_siberian_uprising = {
+		icon = GFX_decision_generic_civil_support
+		allowed = { original_tag = TRM }		
+		available = { 
+			has_war_with = RUS 
+			OR = { 
+				has_idea = TRM_OBL_INF_2
+				has_idea = TRM_OBL_INF_3
+			}
+		}
+		visible = { 
+			NOT = { 
+				has_country_flag = TRM_oblastniki_banned 
+				country_exists = SIB
+			}
+		}
+		
+		cost = 0		
+		days_remove = 100
+		
+		fire_only_once = yes
+		cancel_if_not_visible = yes
+				
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0.5
+				check_variable = { global.siberian_war_chance > 0.8 }
+				russian_civil_war = no
+				date > 1937.1.1
+			}
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRM_raise_siberian_uprising target: [From.GetName]"			
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRM_raise_siberian_uprising target: [From.GetName]"
+			set_variable = { TRM.sib_infantry = 0 }
+			set_variable = { TRM.sib_support_equipment = 0 }
+			add_equipment_to_stockpile = {
+				type = infantry_equipment
+				amount = var:TRM.sib_infantry
+				producer = ROOT
+			}
+			add_equipment_to_stockpile = {
+				type = support_equipment
+				amount = var:TRM.sib_support_equipment
+				producer = ROOT
+			}
+			TRM_increase_oblastniki_level = yes
+			if = {
+				limit = {
+					NOT = { has_template = "Sibirskiye Dobrovoltsy" }
+				}
+				division_template = {
+					name = "Sibirskiye Dobrovoltsy"
+					division_names_group = TRM_MIL_01 
+					regiments = {
+						militia = { x = 0 y = 0 }
+						militia = { x = 0 y = 1 }
+						militia = { x = 0 y = 2 }
+						militia = { x = 1 y = 0 }
+						militia = { x = 1 y = 1 }
+						militia = { x = 1 y = 2 }
+						militia = { x = 2 y = 0 }
+						militia = { x = 2 y = 1 }
+						militia = { x = 2 y = 2 }
+					}
+					priority = 0
+				}
+			}
+			random_state = {
+				prioritize = { 571 570 }
+				limit = { 
+					is_siberia = yes
+					is_owned_and_controlled_by = RUS 
+					NOT = { 
+						has_state_category = zero
+						has_state_category = one 
+						impassable = yes
+					}
+				}
+				create_unit = {
+					division = "division_template = \"Sibirskiye Dobrovoltsy\" start_experience_factor = 0.1 start_equipment_factor = 1"
+					allow_spawning_on_enemy_provs = yes
+					owner = ROOT
+					count = 4
+				}				
+			}
+			random_state = {
+				limit = { 
+					is_siberia = yes
+					is_owned_and_controlled_by = RUS 					
+					NOT = { 
+						state = 571
+						state = 570
+						has_state_category = zero
+						has_state_category = one 
+						impassable = yes
+					}
+				}
+				create_unit = {
+					division = "division_template = \"Sibirskiye Dobrovoltsy\" start_experience_factor = 0.1 start_equipment_factor = 1"
+					allow_spawning_on_enemy_provs = yes
+					owner = ROOT
+					count = 2
+				}				
+			}
+			if = {
+				limit = { is_hosting_exile = SIB }
+				SIB = { add_legitimacy = 10 }
+			}
+			set_temp_variable = { change_morale = 0.20 }
+			RUS_change_siberian_war_morale = yes	
 		}
 	}
 	TRM_increase_border_control_with_Russia = {
@@ -10854,13 +11062,18 @@ RUS_Siberian_War = {
 	TRM_message_annenkov = {
 		icon = GFX_decision_generic_army_support
 		allowed = { original_tag = TRM }
-		visible = {
+		
+		targets = { SQI }
+		target_root_trigger = { 
 			OR = {
 				TRM_do_rovs_in_power = yes
 				TRM_semyenov_in_power = yes
 			}
 			controls_state = 408 #Vladivostok
 			has_war_with = RUS
+		}
+		target_trigger = { 
+			FROM = { has_unit_leader = 454 }
 		}
 		
 		fire_only_once = yes
@@ -10991,6 +11204,7 @@ RUS_Siberian_War = {
 				target = FROM
 				type = annex_everything
 			}
+			set_country_flag = TRM_has_attacked_@FROM
 			hidden_effect = {
 				random_other_country = {
 					limit = {

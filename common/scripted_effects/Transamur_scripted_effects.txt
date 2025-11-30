@@ -1821,42 +1821,6 @@ TRM_recalculate_nra_effects = {
 		force_update_dynamic_modifier = yes
 	}
 }
-TRM_recalculate_oblastniki_effects = {
-	if = {
-		limit = {
-			has_country_flag = TRM_oblastniki_operate
-		}
-		#Max influence effects at 50% popularity
-		set_variable = { TRM_oblastniki_influence_var = TRM.party_popularity@social_liberal }
-		clamp_variable = {
-			var = TRM_oblastniki_influence_var
-			min = 0
-			max = 0.5
-		}
-		set_temp_variable = { TRM_oblastniki_negative_factor = TRM_oblastniki_influence_var }
-		multiply_temp_variable = { TRM_oblastniki_negative_factor = 2 }
-		
-		set_variable = { TRM.TRM_oblastniki_war_support = -0.2 }
-		set_variable = { TRM.TRM_oblastniki_resource_gain = -0.1 }
-				
-		multiply_variable = { TRM.TRM_oblastniki_war_support = TRM_oblastniki_negative_factor }
-		multiply_variable = { TRM.TRM_oblastniki_resource_gain = TRM_oblastniki_negative_factor }
-		
-		if = {
-			limit = { 
-				OR = {
-					has_government = social_liberal
-					has_government = social_democrat
-				}
-			}
-			divide_variable = { TRM.TRM_oblastniki_war_support = -1 }
-			divide_variable = { TRM.TRM_oblastniki_resource_gain = -1 }
-		}
-	}
-	clear_variable = TRM_oblastniki_influence_var
-	force_update_dynamic_modifier = yes
-}
-
 setup_soviet_transamur = {
 	clear_global_event_target = soviet_russia
 	ROOT = { save_global_event_target_as = soviet_russia }
@@ -2569,17 +2533,27 @@ TRM_nra_more_bolshevik = {
 }
 TRM_remove_oblastniki_influence = {
 	if = {
-		limit = {
-			has_dynamic_modifier = { modifier = TRM_oblastniki_influence_modifier }
-		}
-		remove_dynamic_modifier = { modifier = TRM_oblastniki_influence_modifier }
-		every_owned_state = {
-			TRM_Decrease_Oblastniki_Support_Greatly = yes
-		}
-		set_country_flag = TRM_oblastniki_banned
-		clr_country_flag = TRM_oblastniki_operate
-		set_temp_variable = { change_morale = -0.08 }
-		RUS_change_siberian_war_morale = yes
+		limit = { has_idea = TRM_OBL_INF_1 }
+		remove_ideas = TRM_OBL_INF_1
+	}
+	if = {
+		limit = { has_idea = TRM_OBL_INF_2 }
+		remove_ideas = TRM_OBL_INF_2
+	}
+	if = {
+		limit = { has_idea = TRM_OBL_INF_3 }
+		remove_ideas = TRM_OBL_INF_3
+	}
+	every_owned_state = {
+		TRM_Decrease_Oblastniki_Support_Greatly = yes
+	}
+	set_country_flag = TRM_oblastniki_banned
+	clr_country_flag = TRM_oblastniki_operate
+	set_temp_variable = { change_morale = -0.08 }
+	RUS_change_siberian_war_morale = yes
+	if = {
+		limit = { is_hosting_exile = SIB }
+		SIB = { end_exile = yes }
 	}
 }
 TRM_swap_legitimacy = {
@@ -2743,12 +2717,10 @@ TRM_become_russia_effect = {
 	if = {
 		limit = {
 			NOT = {
-				OR = {
-					has_completed_focus = TRM_Monarchy
-					has_completed_focus = TRM_tsar_soviets
-					TRM_nra_in_power = yes
-					TRM_japanese_in_power = yes
-				}
+				has_completed_focus = TRM_Monarchy
+				has_completed_focus = TRM_tsar_soviets
+				TRM_nra_in_power = yes
+				TRM_japanese_in_power = yes
 			}
 		}				
 		set_cosmetic_tag = TRM_RUS
@@ -2764,19 +2736,22 @@ TRM_become_russia_effect = {
 			TRM_kolchak_in_power = yes
 		}
 		set_cosmetic_tag = TRM_PROV
-		add_ideas = TRM_Aftermath_Sib_War
 	}
 	else_if = {
 		limit = {
-			has_country_flag = TRM_Nats_in_power
+			TRM_Nats_in_power = yes
+		}
+		set_cosmetic_tag = TRM_nats_empire
+	}
+	else_if = {
+		limit = {
+			TRM_Pepelyaev_coup = yes
 		}
 		set_cosmetic_tag = TRM_nats_empire
 	}
 	else_if = {
 		limit = { TRM_Mlad_in_power = yes }
 		custom_effect_tooltip = TRM_mlad_vicrory
-		add_political_power = 400
-		add_stability = 0.1
 		set_cosmetic_tag = TRM_Empire
 		hidden_effect = {
 			country_event = {
@@ -2786,23 +2761,12 @@ TRM_become_russia_effect = {
 			TRM_reset_legitimacy = yes
 		}
 	}
-	if = {
-		limit = {
-			NOT = { has_idea = TRM_Aftermath_Sib_War }
-		}
-		add_timed_idea = {
-			idea = TRM_Aftermath_Sib_War
-			days = 365
-		}
-	}
 	hidden_effect = {
 		for_each_scope_loop = {
-			array = RUS.RUS_starting_states_array					
-			if = {
-				limit = { is_claimed_by = TRM }
-				remove_claim_by = TRM
-			}
-			add_core_of = TRM
+			array = RUS.RUS_starting_states_array
+			add_core_of = RUS
+			remove_claim_by = ROOT
+			add_core_of = ROOT
 		}
 		every_owned_state = {
 			limit = {
@@ -2815,15 +2779,43 @@ TRM_become_russia_effect = {
 			}
 			add_core_of = TRM
 		}
+		every_state = {
+			limit = {
+				is_core_rrf_state = yes
+			}
+			add_core_of = RUS
+			remove_core_of = RRF
+			if = {
+				limit = { has_resistance = yes }
+				cancel_resistance = yes
+			}
+			force_disable_resistance = { clear = yes }
+		}
+		every_state = {
+			clr_state_flag = renamed_petrodvorets
+			clr_state_flag = renamed_state_apraksin
+			clr_state_flag = renamed_state_dmitri
+			clr_state_flag = renamed_state_imperial
+			clr_state_flag = renamed_state_leningrad
+			clr_state_flag = renamed_state_molotov
+			clr_state_flag = renamed_state_rykov
+			clr_state_flag = renamed_state_tsentrograd
+			clr_state_flag = renamed_state_zhdanovgrad
+			clr_state_flag = renamed_state_elizavetburg
+			clr_state_flag = renamed_state_frunzensk
+			clr_state_flag = renamed_state_kornilovsk
+			clr_state_flag = renamed_state_novooktyabrsk
+			clr_state_flag = renamed_state_rykov
+			clr_state_flag = renamed_state_saltykov
+			clr_state_flag = renamed_state_savinkovsk
+			clr_state_flag = renamed_state_tukhachevsk
+			clr_state_flag = renamed_state_vladimir
+			clr_state_flag = renamed_state_wrangelburg
+			clr_state_flag = renamed_state_zhukov
+			clr_state_flag = zhdanov_renamed
+		}
 		country_event = { id = tram.145 days = 7 }
 		set_country_flag = TRM_become_russia
-		if = {
-			limit = { has_idea = TRM_japanese_influence_idea }
-			country_event = {
-				id = tram.1491
-				days = 15
-			}
-		}
 		random_other_country = {
 			news_event = {
 				id = tramnews.4
@@ -3042,4 +3034,38 @@ TRM_czech_legion_effect = {
 			set_nationality = NSW
 		}
 	}
+}
+TRM_increase_oblastniki_level = {
+	if = {
+		limit = { has_idea = TRM_OBL_INF_1 }
+		swap_ideas = {
+			remove_idea = TRM_OBL_INF_1
+			add_idea = TRM_OBL_INF_2
+		}
+	}
+	else_if = {
+		limit = { has_idea = TRM_OBL_INF_2 }
+		swap_ideas = {
+			remove_idea = TRM_OBL_INF_2
+			add_idea = TRM_OBL_INF_3
+		}
+	}
+	every_owned_state = { TRM_Increase_Oblastniki_Support = yes }
+}
+TRM_decrease_oblastniki_level = {
+	if = {
+		limit = { has_idea = TRM_OBL_INF_3 }
+		swap_ideas = {
+			remove_idea = TRM_OBL_INF_3
+			add_idea = TRM_OBL_INF_2
+		}
+	}
+	else_if = {
+		limit = { has_idea = TRM_OBL_INF_2 }
+		swap_ideas = {
+			remove_idea = TRM_OBL_INF_2
+			add_idea = TRM_OBL_INF_1
+		}
+	}
+	every_owned_state = { TRM_Decrease_Oblastniki_Support = yes }
 }
