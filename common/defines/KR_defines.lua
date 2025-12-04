@@ -224,5 +224,5 @@ NDefines.NProduction.RESOURCE_TO_ENERGY_COEFFICIENT = 15.0	-- Vanilla is 9.0
 
 -- Factions
 NDefines.NFactions.FACTION_INTELLIGENCE_ALLOWED_ADVISOR_TRAIT  = {
-	"KR_head_of_intelligence",
+	"head_of_intelligence",
 }
