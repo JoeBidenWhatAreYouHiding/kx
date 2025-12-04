@@ -221,3 +221,8 @@ NDefines.NProject.BREAKTHROUGH_DAILY_SCIENTIST_SKILL_GAIN = 10
 
 --COAL
 NDefines.NProduction.RESOURCE_TO_ENERGY_COEFFICIENT = 15.0	-- Vanilla is 9.0
+
+-- Factions
+NDefines.NFactions.FACTION_INTELLIGENCE_ALLOWED_ADVISOR_TRAIT  = {
+	"head_of_intelligence",
+}
