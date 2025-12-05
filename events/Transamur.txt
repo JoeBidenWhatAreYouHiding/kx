@@ -715,6 +715,13 @@ country_event = { #Replace HOS - JAP event
 			remove_country_leader_trait = TRM_shaky_rule
 			remove_ideas = TRM_dream
 			hidden_effect = {
+				every_state = {
+					limit = { 
+						is_core_of = RUS
+						is_claim_or_core_of_ROOT = yes
+					}
+					remove_claim_by = ROOT
+				}
 				set_politics = {
 					ruling_party = social_conservative
 				}
@@ -1051,8 +1058,9 @@ country_event = { #
 			ideology = social_democrat
 			popularity = 0.05
 		}
+		add_radsoc_to_coalition = yes
 		add_socdem_to_coalition = yes
-		add_stability = 0.20
+		add_stability = 0.10
 		set_country_flag = TRM_NRA_crushed
 		hidden_effect = {
 			every_owned_state = {
@@ -1066,6 +1074,23 @@ country_event = { #
 			clear_variable = TRM_nra_stability
 			clear_variable = TRM_nra_industrial_capacity
 			clear_variable = TRM_nra_conscription
+			
+			set_party_name = {
+				ideology = totalist
+				name = TRM_NRA_party2
+				long_name = TRM_NRA_party2_long
+			}
+			set_party_name = {
+				ideology = radical_socialist
+				name = TRM_social_democrat_party
+				long_name = TRM_social_democrat_party_long
+			}
+			create_country_leader = {
+				name = "Yevgeniy Kolosov"
+				picture = "gfx/leaders/RUS/Portrait_RUS_Evgeniy_Kolosov.png"
+				expire = "1.1.1"
+				ideology = narodism_subtype
+			}
 		}
 		TRM_clamp_spheres_of_influence = yes
 		TRM_recalculate_kolchak_variables = yes
@@ -3697,13 +3722,19 @@ country_event = { #We can rest at last
 
 	option = {
 		name = tram.145.a
-
 		swap_ideas = {
 			remove_idea = TRM_dream
 			add_idea = TRM_dream_fulfilled
 		}
+		every_owned_state = {
+			limit = { 
+				is_russian_starting_claims = yes 
+				has_resistance = yes
+				NOT = { is_core_of = ROOT }
+			}
+			add_compliance = 10
+		}
 	}
-
 }
 
 country_event = { #Sevastopol is Russian!
@@ -7845,6 +7876,13 @@ country_event = {
 			remove_puppet_and_leave_faction = yes
 		}		
 		add_ideas = TRM_dream
+		every_state = {
+			limit = { 
+				is_core_of = RUS
+				is_claim_or_core_of_ROOT = no
+			}
+			add_claim_by = ROOT
+		}		
 		FROM = {
 			country_event = trmnra.105
 		}		
@@ -8037,6 +8075,13 @@ country_event = {
 			remove_puppet_and_leave_faction = yes
 		}		
 		add_ideas = TRM_dream
+		every_state = {
+			limit = { 
+				is_core_of = RUS
+				is_claim_or_core_of_ROOT = yes
+			}
+			remove_claim_by = ROOT
+		}
 		FROM = {
 			country_event = trmnra.105
 		}		
@@ -10530,6 +10575,7 @@ country_event = {
 			limit = { 
 				is_core_of = RUS
 				is_claim_or_core_of_ROOT = yes
+				is_siberia = no
 			}
 			remove_claim_by = ROOT
 		}
@@ -11219,6 +11265,9 @@ country_event = {
 			name = RUS_sgor_party
 			long_name = RUS_sgor_party_long
 		}
+		set_variable = { TRM_nps = 0 }
+		set_variable = { TRM_psr = 0 }
+		set_variable = { TRM_sgor = 0 }
 		if = {
 			limit = { TRM_kolchak_in_power = yes }
 			create_country_leader = {
@@ -11267,14 +11316,22 @@ country_event = {
 		}
 	}
 	title = tram.228.t
-	desc = tram.228.d
+	desc = {
+		text = tram.228.d
+		trigger = { is_in_coalition_with_social_democrat = no }
+	}
+	desc = {
+		text = tram.228.d2
+		trigger = { is_in_coalition_with_social_democrat = yes }
+	}
 	
 	is_triggered_only = yes
 	
 	option = {
 		name = tram.228.a
+		trigger = { is_in_coalition_with_social_democrat = no }
 		custom_effect_tooltip = TRM_sgor_grows_stronger
-		add_to_variable = { TRM_nps = -1 }
+		add_to_variable = { TRM_sgor = 1 }
 		add_stability = 0.05		
 		if = {
 			limit = {
@@ -11357,10 +11414,88 @@ country_event = {
 		}
 	}
 	option = {
+		name = tram.228.c
+		trigger = { is_in_coalition_with_social_democrat = yes }
+		custom_effect_tooltip = TRM_psr_grows_stronger
+		add_to_variable = { TRM_psr = 1 }
+		add_stability = 0.05		
+		if = {
+			limit = {
+				has_idea = RUS_socialist_resistance
+			}
+			swap_ideas = {
+				remove_idea = RUS_socialist_resistance
+				add_idea = RUS_socialist_resistance_2
+			}
+		}
+		else_if = {
+			limit = {
+				has_idea = RUS_socialist_resistance_1
+			}
+			remove_ideas = RUS_socialist_resistance_1
+		}
+		else = {
+			remove_ideas = RUS_socialist_resistance_2
+		}	
+		set_party_name = {
+			ideology = radical_socialist
+			name = TRM_psr_party
+			long_name = TRM_psr_party_long
+		}
+		set_party_name = {
+			ideology = social_democrat
+			name = TRM_psr_party
+			long_name = TRM_psr_party_long
+		}
+		hidden_effect = {
+			set_temp_variable = { UCH_new_socdem = party_popularity_100@social_democrat }
+			add_to_temp_variable = { UCH_new_socdem = party_popularity_100@radical_socialist  }
+			add_to_temp_variable = { UCH_new_socdem = party_popularity_100@syndicalist  }
+			add_to_temp_variable = { UCH_new_socdem = party_popularity_100@totalist  }
+
+			set_temp_variable = { sum = 100 }
+			subtract_from_temp_variable = { sum = UCH_new_socdem }
+			subtract_from_temp_variable = { sum = party_popularity_100@social_liberal }
+			subtract_from_temp_variable = { sum = party_popularity_100@market_liberal }
+			subtract_from_temp_variable = { sum = party_popularity_100@social_conservative }
+			subtract_from_temp_variable = { sum = party_popularity_100@authoritarian_democrat }
+			subtract_from_temp_variable = { sum = party_popularity_100@paternal_autocrat }
+			subtract_from_temp_variable = { sum = party_popularity_100@national_populist }
+
+			add_to_temp_variable = { UCH_new_socdem = sum } #avoid rounding errors
+
+			set_popularities = {
+				totalist = 0
+				syndicalist = 0
+				radical_socialist = 0
+				social_democrat = UCH_new_socdem
+				social_liberal = party_popularity_100@social_liberal
+				market_liberal = party_popularity_100@market_liberal
+				social_conservative = party_popularity_100@social_conservative
+				authoritarian_democrat = party_popularity_100@authoritarian_democrat
+				paternal_autocrat = party_popularity_100@paternal_autocrat
+				national_populist = party_popularity_100@national_populist
+			}
+		}
+		country_event = {
+			id = tram.229
+			days = 3
+		}
+	}
+	option = {
 		name = tram.228.b
 		custom_effect_tooltip = TRM_nps_grows_stronger
 		add_to_variable = { TRM_nps = 1 }
-		add_stability = -0.05
+		if = {
+			limit = { is_in_coalition_with_social_democrat = yes }
+			add_stability = -0.15
+			decrease_ruling_party_popularity_by_10 = yes
+			remove_radsoc_from_coalition = yes
+			remove_socdem_from_coalition = yes
+		}
+		else = {
+			add_stability = -0.05
+		}
 		if = {
 			limit = {
 				has_idea = RUS_socialist_resistance_1
@@ -11396,13 +11531,16 @@ country_event = {
 	option = {
 		name = tram.229.a		
 		custom_effect_tooltip = TRM_sgor_grows_stronger
-		add_to_variable = { TRM_nps = -1 }
+		add_to_variable = { TRM_sgor = 1 }
 		add_popularity = { ideology = national_populist popularity = 0.05 }
 		if = {
 			limit = { 
 				OR = {
 					TRM_kolchak_in_power = yes 
-					TRM_Pepelyaev_coup = yes
+					AND = {
+						TRM_Pepelyaev_coup = yes
+						has_country_flag = TRM_ally_monarchist_officers
+					}
 					has_right_democratic_government = yes
 				}
 			}
@@ -11435,6 +11573,11 @@ country_event = {
 		name = tram.229.b		
 		custom_effect_tooltip = TRM_nps_grows_stronger
 		add_to_variable = { TRM_nps = 1 }
+		if = {
+			limit = { is_in_coalition_with_social_democrat = yes }
+			custom_effect_tooltip = TRM_psr_grows_stronger
+			add_to_variable = { TRM_psr = 1 }
+		}
 		add_popularity = { ideology = national_populist popularity = -0.05 }
 		add_ideas = {
 			RUS_nationalist_resistance_2
@@ -11483,6 +11626,11 @@ country_event = {
 	
 	option = {
 		name = tram.230.a		
+		if = {
+			limit = { is_in_coalition_with_social_democrat = yes }
+			custom_effect_tooltip = TRM_psr_grows_stronger
+			add_to_variable = { TRM_psr = 1 }
+		}
 		add_ideas = {
 			RUS_monarchist_resistance_1
 		}
@@ -11509,6 +11657,11 @@ country_event = {
 	}
 	option = {
 		name = tram.230.b		
+		if = {
+			limit = { is_in_coalition_with_social_democrat = yes }
+			custom_effect_tooltip = TRM_sgor_grows_stronger
+			add_to_variable = { TRM_sgor = 1 }
+		}
 		set_country_flag = TRM_Monarchy_flag
 		add_popularity = { ideology = paternal_autocrat popularity = 0.05 }
 		if = {
@@ -11555,6 +11708,8 @@ country_event = {
 		add_to_variable = { TRM_nps = 1 }
 		add_ideas = one_and_indivisible
 		TRM_decrease_oblastniki_level = yes
+		remove_soclib_from_coalition = yes
+		TRM_remove_oblastniki_influence = yes
 		if = {
 			limit = { has_country_flag = TRM_Monarchy_flag }
 			if = {
@@ -11582,10 +11737,27 @@ country_event = {
 	}
 	option = {
 		name = tram.231.b		
-		custom_effect_tooltip = TRM_sgor_grows_stronger
+		if = {
+			limit = { is_in_coalition_with_social_democrat = yes }
+			custom_effect_tooltip = TRM_psr_grows_stronger
+			add_to_variable = { TRM_psr = 1 }
+		}
 		add_to_variable = { TRM_nps = -1 }
 		add_ideas = TRM_united_federation
 		if = {
+			limit = { 
+				OR = {
+					has_idea = TRM_OBL_INF_1
+					has_idea = TRM_OBL_INF_2
+					has_idea = TRM_OBL_INF_3
+				}
+			}
+			country_event = {
+				id = tram.235
+				days = 4
+			}
+		}
+		else_if = {
 			limit = { has_country_flag = TRM_Monarchy_flag }
 			if = {
 				limit = { 
@@ -11622,7 +11794,12 @@ country_event = {
 	option = {
 		name = tram.232.a		
 		custom_effect_tooltip = TRM_sgor_grows_stronger
-		add_to_variable = { TRM_nps = -1 }
+		add_to_variable = { TRM_sgor = 1 }
+		if = {
+			limit = { is_in_coalition_with_social_democrat = yes }
+			custom_effect_tooltip = TRM_psr_grows_stronger
+			add_to_variable = { TRM_psr = 1 }
+		}
 		if = {
 			limit = { 
 				OR = {
@@ -11773,7 +11950,7 @@ country_event = {
 		set_cosmetic_tag = TRM_TSAR_RUS
 		if = {
 			limit = { 
-				check_variable = { TRM_nps > 0 }
+				check_variable = { TRM_nps > TRM_sgor }
 			}
 			set_politics = { ruling_party = market_liberal }
 			if = {
@@ -11833,7 +12010,8 @@ country_event = {
 		}
 		if = {
 			limit = { 
-				check_variable = { TRM_nps > 0 }
+				check_variable = { TRM_nps > TRM_sgor }
+				check_variable = { TRM_nps > TRM_psr }
 			}
 			set_politics = { ruling_party = market_liberal }
 			if = {
@@ -11848,6 +12026,23 @@ country_event = {
 				TRM_Nikolay_Uhtomsky_for_mli
 				TRM_Stepan_V_Vostrotin_eco_mli
 				TRM_Leonid_A_Ustrugov_sec_mli
+			}
+		}
+		else_if = {
+			limit = { 
+				check_variable = { TRM_psr > TRM_sgor }
+				check_variable = { TRM_psr > TRM_nps }
+			}
+			set_politics = { ruling_party = social_democrat }
+			add_radsoc_to_coalition = yes
+			add_soclib_to_coalition = yes
+			add_popularity = { ideology = social_democrat popularity = 0.10 }
+			remove_all_ministers = yes
+			add_ideas = {
+				TRM_Florian_Fedorovich_hog_sde
+				TRM_Mikhail_B_Shatila_for_sde
+				TRM_Vladimir_M_Krutovsky_eco_sde
+				TRM_Alexander_E_Novoselov_sec_sde
 			}
 		}
 		else = {			
@@ -11886,7 +12081,8 @@ country_event = {
 		}
 		if = {
 			limit = { 
-				check_variable = { TRM_nps > 0 }
+				check_variable = { TRM_nps > TRM_sgor }
+				check_variable = { TRM_nps > TRM_psr }
 			}
 			set_politics = { ruling_party = market_liberal }
 			if = {
@@ -11901,6 +12097,23 @@ country_event = {
 				TRM_Nikolay_Uhtomsky_for_mli
 				TRM_Stepan_V_Vostrotin_eco_mli
 				TRM_Leonid_A_Ustrugov_sec_mli
+			}
+		}
+		else_if = {
+			limit = { 
+				check_variable = { TRM_psr > TRM_sgor }
+				check_variable = { TRM_psr > TRM_nps }
+			}
+			set_politics = { ruling_party = social_democrat }
+			add_radsoc_to_coalition = yes
+			add_soclib_to_coalition = yes
+			add_popularity = { ideology = social_democrat popularity = 0.10 }
+			remove_all_ministers = yes
+			add_ideas = {
+				TRM_Florian_Fedorovich_hog_sde
+				TRM_Mikhail_B_Shatila_for_sde
+				TRM_Vladimir_M_Krutovsky_eco_sde
+				TRM_Alexander_E_Novoselov_sec_sde
 			}
 		}
 		else = {			
@@ -11937,6 +12150,87 @@ country_event = {
 		country_event = { id = tram.233 days = 2 }
 		remove_ideas_with_trait = head_of_government
 		add_ideas = TRM_Viktor_N_Pepelyayev_hog_mli
+	}
+}
+country_event = {
+	id = tram.235
+	immediate = { log = "[GetDateText]: [Root.GetName]: event tram.235" }
+	title = tram.235.t
+	desc = tram.235.d
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = tram.235.a
+		custom_effect_tooltip = TRM_sgor_grows_stronger
+		add_to_variable = { TRM_sgor = 1 }
+		if = {
+			limit = { is_in_coalition_with_social_democrat = yes }
+			custom_effect_tooltip = TRM_psr_grows_stronger
+			add_to_variable = { TRM_psr = 1 }
+		}
+		if = {
+			limit = { is_hosting_exile = SIB }
+			SIB = { end_exile = yes }
+		}
+		every_owned_state = {
+			limit = { is_siberia = yes }
+			add_dynamic_modifier = { modifier = RUS_siberian_autonomous_republic }  
+		}
+		if = {
+			limit = { has_country_flag = TRM_Monarchy_flag }
+			if = {
+				limit = { 
+					OR = {
+						TRM_kolchak_in_power = yes 
+						TRM_Pepelyaev_coup = yes 
+					}
+				}
+				country_event = { id = tram.234 days = 2 }
+			}
+			else = {
+				country_event = {
+					id = tram.233
+					days = 4
+				}
+			}
+		}
+		else = {
+			country_event = {
+				id = tram.232
+				days = 4
+			}
+		}
+	}
+	option = {
+		name = tram.235.b
+		custom_effect_tooltip = TRM_nps_grows_stronger
+		add_to_variable = { TRM_nps = 1 }
+		TRM_remove_oblastniki_influence = yes
+		if = {
+			limit = { has_country_flag = TRM_Monarchy_flag }
+			if = {
+				limit = { 
+					OR = {
+						TRM_kolchak_in_power = yes 
+						TRM_Pepelyaev_coup = yes 
+					}
+				}
+				country_event = { id = tram.234 days = 2 }
+			}
+			else = {
+				country_event = {
+					id = tram.233
+					days = 4
+				}
+			}
+		}
+		else = {
+			country_event = {
+				id = tram.232
+				days = 4
+			}
+		}
 	}
 }
 country_event = {
