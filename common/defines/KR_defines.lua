@@ -221,3 +221,7 @@ NDefines.NProject.BREAKTHROUGH_DAILY_SCIENTIST_SKILL_GAIN = 10
 
 --COAL
 NDefines.NProduction.RESOURCE_TO_ENERGY_COEFFICIENT = 15.0	-- Vanilla is 9.0
+
+--Navy
+NDefines.NNavy.NAVAL_INVASION_PLAN_CAP = 2									-- Vanilla is 1
+NDefines.NNavy.BASE_NAVAL_INVASION_DIVISION_CAP = 6							-- Vanilla is 4
