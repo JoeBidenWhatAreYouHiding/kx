@@ -6069,12 +6069,12 @@ country_event = { #Initial event
 		}
 		if = {
 			limit = { is_faction_leader = yes }
-			set_faction_name = "Fergana Caliphate"
+			set_faction_name = faction_fergana
 		}
 		else = {
 		create_faction_from_template = { 
 			template = faction_template_generic_dominance 
-			name = "Fergana Caliphate"
+			name = faction_fergana
 			icon = GFX_faction_cairo_pact_alternate
 		}		
 		}
@@ -9919,7 +9919,7 @@ country_event = { #Alliance
 		FROM = {
 		create_faction_from_template = { 
 			template = faction_template_regional
-			name = "Tashkent-Kabul Pact"
+			name = faction_tashkent_kabul
 			icon = GFX_faction_kabul_pact
 		}		
 			add_to_faction = ROOT
@@ -10841,17 +10841,19 @@ country_event = {
 			base = 0
 		}
 		army_experience = 5
-		determine_where_basmachi_should_go = yes
-		every_unit_leader = {
-			limit = { has_unit_leader_flag = exiled_mujahideen }
-			set_nationality = var:target
-		}
-		var:target = { 
-			if = {
-				limit = { 
-					NOT = { tag = XXA }
+		hidden_effect = {
+			determine_where_basmachi_should_go = yes
+			every_unit_leader = {
+				limit = { has_unit_leader_flag = exiled_mujahideen }
+				set_nationality = var:target
+			}
+			var:target = { 
+				if = {
+					limit = { 
+						NOT = { tag = XXA }
+					}
+					country_event = turkestan_misc.200 
 				}
-				country_event = turkestan_misc.200 
 			}
 		}
 	}
@@ -11468,6 +11470,176 @@ country_event = { #Reaction to Bukhara
 		name = turkestan.129.b
 		TRK_pop_ruling_medium_effect = yes
 		#activate_targeted_decision = { target = UZB decision = turkestan_attack_decision }
+	}	
+}
+
+country_event = { #TVO asks for intervention
+	id = turkestan.130
+	immediate = { log = "[GetDateText]: [Root.GetName]: event turkestan.130" }
+	title = turkestan.130.t
+	desc = turkestan.130.d
+	
+	is_triggered_only = yes
+	picture = GFX_report_event_TRK_russian_garrison
+
+	option = {
+		name = turkestan.130.a
+		ai_chance = {
+			base = 100
+			modifier = {
+				factor = 0
+				RUS_dont_attack_if_vulnerable_or_preparing = yes
+			}
+		}
+		add_political_power = -15
+		add_stability = -0.01
+		effect_tooltip = { give_guarantee = FROM }
+		custom_effect_tooltip = TRK_call_for_russian_intervention_tt
+		if = {
+			limit = { has_country_flag = imminent_war }
+			modify_country_flag = { flag = imminent_war value = 1 }
+		}
+		else = {
+			set_country_flag = { flag = imminent_war value = 1 days = 50 }
+		}
+		hidden_effect = {
+			ALO = { incoming_war_notification_effect = yes }
+			if = {
+				limit = { NOT = { ALO = { has_country_flag = preparing_for_war_with_@ROOT } } }
+				add_to_array = { preparing_for_war_with_@ALO = ALO }
+				add_ai_strategy = {
+					type = prepare_for_war
+					id = ALO
+					value = 100
+				}
+				ALO = {
+					set_country_flag = preparing_for_war_with_@ROOT
+					add_ai_strategy = {
+						type = prepare_for_war
+						id = ROOT
+						value = 100
+					}
+					if = {
+						limit = {
+							is_in_faction = yes
+							is_faction_leader = no
+							faction_leader = { NOT = { has_country_flag = preparing_for_war_with_@ROOT } }
+						}
+						faction_leader = {
+							add_ai_strategy = {
+								type = prepare_for_war
+								id = ROOT
+								value = 100
+							}
+							set_country_flag = preparing_for_war_with_@ROOT
+							ROOT = {
+								add_to_array = { preparing_for_war_with_@ALO = PREV }
+								add_ai_strategy = {
+									type = prepare_for_war
+									id = PREV
+									value = 100
+								}
+							}
+						}
+					}
+					if = {
+						limit = {
+							is_subject = yes
+							overlord = { NOT = { has_country_flag = preparing_for_war_with_@ROOT } }
+						}
+						overlord = {
+							add_ai_strategy = {
+								type = prepare_for_war
+								id = ROOT
+								value = 100
+							}
+							set_country_flag = preparing_for_war_with_@ROOT
+							ROOT = {
+								add_to_array = { preparing_for_war_with_@ALO = PREV }
+								add_ai_strategy = {
+									type = prepare_for_war
+									id = PREV
+									value = 100
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		FROM = { 
+			country_event = { id = turkestan.132 days = 14 }
+		}
+	}
+	option = {
+		name = turkestan.130.b
+		FROM = { 
+			country_event = { id = turkestan.131 days = 8 }
+		}
+	}	
+}
+country_event = { #Turkestan
+	id = turkestan.131
+	immediate = { log = "[GetDateText]: [Root.GetName]: event turkestan.131" }
+	title = turkestan.131.t
+	desc = turkestan.131.d
+	
+	is_triggered_only = yes
+	picture = GFX_report_event_TRK_russian_garrison
+
+	option = {
+		name = turkestan.131.a
+		add_opinion_modifier = { target = FROM modifier = KR_disapproves_of_govt }
+		add_war_support = -0.01
+	}
+}
+country_event = { #Turkestan
+	id = turkestan.132
+	immediate = { log = "[GetDateText]: [Root.GetName]: event turkestan.132" }
+	title = turkestan.132.t
+	desc = turkestan.132.d
+	
+	is_triggered_only = yes
+	picture = GFX_report_event_TRK_russian_garrison
+
+	option = {
+		name = turkestan.132.a
+		add_opinion_modifier = { target = FROM modifier = large_increase }
+		FROM = {
+			give_guarantee = ROOT
+			if = {
+				limit = { has_country_flag = { flag = imminent_war value > 1 } }
+				modify_country_flag = { flag = imminent_war value = -1 }
+			}
+			else = {
+				clr_country_flag = imminent_war
+			}
+			hidden_effect = {
+				for_each_scope_loop = {
+					array = preparing_for_war_with_@ALO
+					clr_country_flag = preparing_for_war_with_@ROOT
+					add_ai_strategy = {
+						type = prepare_for_war
+						id = ALO
+						value = -100
+					}
+					ALO = {
+						add_ai_strategy = {
+							type = prepare_for_war
+							id = PREV
+							value = -100
+						}
+					}
+				}
+				clear_array = preparing_for_war_with_@ALO
+			}
+		}
+		FROM = { 
+			declare_war_on = {
+				target = ALO
+				type = annex_everything
+			}
+		}
 	}	
 }
 
@@ -12252,6 +12424,10 @@ country_event = { #Stalemate in the CA War
 		if = {
 			limit = { BKN = { has_capitulated = yes } }
 			annex_country = { target = BKN }
+		}
+		if = {
+			limit = { URL = { has_capitulated = yes } }
+			annex_country = { target = URL }
 		}
 		if = {
 			limit = { ALO = { has_capitulated = yes } }

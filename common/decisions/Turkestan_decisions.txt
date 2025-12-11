@@ -282,10 +282,7 @@ TRK_unite_central_asia = {
 			}
 			modifier = {
 				add = 100
-				OR = {
-					407 = { is_owned_by_ROOT_or_subject = yes }
-					original_tag = ALO
-				}
+				407 = { is_owned_by_ROOT_or_subject = yes }
 			}
 			modifier = {
 				add = 100
@@ -294,6 +291,7 @@ TRK_unite_central_asia = {
 						array = global.central_asian_tags_array
 						turkestan_is_potential_government = yes
 						exists = yes
+						turkestan_compatible_alignment_to_PREV = yes
 					}
 				}
 			}
@@ -703,18 +701,43 @@ TRK_unite_central_asia = {
 				limit = { NOT = { tag = TTR } }
 				is_subject = no
 			}
-			405 = {
-				is_owned_by_ROOT_or_ally  = yes
-			}
 			407 = {
 				is_owned_by_ROOT_or_ally  = yes
 			}
-			861 = {
-				is_owned_by_ROOT_or_ally  = yes
+			if = {
+				limit = { 
+					405 = {
+						NOT = { is_owned_by = RUS }
+					}
+				}
+				405 = {
+					is_owned_by_ROOT_or_ally  = yes
+				}
 			}
-			586 = {
-				is_owned_by_ROOT_or_ally  = yes
-			}			
+			if = {
+				limit = { 
+					861 = {
+						NOT = { is_owned_by = RUS }
+					}
+				}
+				861 = {
+					is_owned_by_ROOT_or_ally  = yes
+				}
+			}
+			if = {
+				limit = { 
+					586 = {
+						NOT = { 
+							is_owned_by = RUS 
+							is_owned_by = ALO 
+							is_owned_by = KAZ 
+						}
+					}
+				}
+				586 = {
+					is_owned_by_ROOT_or_ally  = yes
+				}
+			}
 			NOT = {
 				any_home_area_neighbor_country = {
 					OR = {
@@ -2501,6 +2524,73 @@ TRK_revolution_in_the_east_cat = {	### Revolution in the East ####
 	}	
 }
 TRK_foreign_policy = {
+	TRK_call_for_russian_intervention = {
+		icon = generic_prepare_civil_war
+		
+		available = {
+			FROM = {
+				is_owner_neighbor_of = ALO
+			}
+			ALO = {
+				ALO_has_russian_influence = no
+			}
+			surrender_progress > 0.05
+		}
+		targets = { RUS TRM }
+		target_root_trigger = {
+			is_subject = no
+			has_war_with = ALO
+			has_socialist_government = no
+			OR = {
+				#has_completed_focus = TRK_Revolution_In_The_East
+				TRK_monstrov_in_power = yes
+				AND = {
+					has_country_leader = {
+						name = "Ivan Zaitsev"
+						ruling_only = yes
+					}
+					has_completed_focus = TRK_Restore_Russian_Grandeur
+				}
+			}
+			NOT = { has_country_flag = @FROM_refused_alliance }
+		}
+		target_trigger = {
+			FROM = { 
+				is_faction_leader = yes 
+				owns_state = 219
+				has_socialist_government = no
+				has_left_democratic_government = no
+				NOT = { has_country_flag = soviet_russia_restored }
+				can_declare_war_on = ALO
+			}
+		}
+		
+		cost = 0
+		days_remove = 14
+		fire_only_once = yes
+		
+		ai_will_do = {
+			factor = 100
+		}
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_call_for_russian_intervention target: [From.GetName]"
+			FROM = { country_event = turkestan.130 }
+			custom_effect_tooltip = if_FROM_agrees
+			effect_tooltip = { 
+				FROM = { 
+					declare_war_on = {
+						target = ALO
+						type = annex_everything
+					}
+				}
+			}
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_call_for_russian_intervention target: [From.GetName]"
+		}
+	}
 	TRK_join_internationale = { # join the Third Internationale
 		icon = generic_agreement
 		available = {
@@ -2971,8 +3061,7 @@ TRK_foreign_policy = {
 	}
 	TRK_join_russia = {
 		icon = generic_agreement
-		name = TRK_join_russia
-
+		
 		available = {
 			is_faction_leader = no
 			is_in_faction = no
@@ -3055,7 +3144,7 @@ TRK_foreign_policy = {
 	}
 	TRK_join_russia_khiva_bukhara = {
 		icon = generic_agreement
-		name = TRK_join_internationale
+		name = TRK_join_russia
 		allowed = { always = no }
 		
 		available = {
@@ -3197,7 +3286,7 @@ TRK_foreign_policy = {
 				effect_tooltip = {
 			create_faction_from_template = { 
 				template = faction_template_generic_dominance      
-				name = "Tashkent-Kabul Pact"
+				name = faction_tashkent_kabul
 				icon = GFX_faction_kabul_pact
 			}				
 
@@ -3348,7 +3437,7 @@ TRK_foreign_policy = {
 				}
 			create_faction_from_template = { 
 				template = faction_template_generic_dominance      
-				name = "Central Asian Internationale"
+				name = faction_central_asian_int
 				icon = GFX_faction_central_asia_socialist
 			}				
 
@@ -3356,7 +3445,7 @@ TRK_foreign_policy = {
 			else = {
 			create_faction_from_template = { 
 				template = faction_template_generic_dominance      
-				name = "Turkestan Democratic Alliance"
+				name = faction_turkestani_dem
 				icon = GFX_faction_central_asia_democratic
 			}			
 
@@ -3408,16 +3497,15 @@ TRK_foreign_policy = {
 				}
 			}
 		}
-		cost = 25
 		
 		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision TRK_liberate_panturkist target: [From.GetName]"
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_liberate_panislamist target: [From.GetName]"
 			FROM = { incoming_war_notification_effect = yes }
 			setup_decision_attack_AI = yes			
 		}
 
 		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_liberate_panturkist target: [From.GetName]"
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_liberate_panislamist target: [From.GetName]"
 			clear_decision_attack_AI = yes
 			create_wargoal = {
 				target = FROM
@@ -3529,7 +3617,6 @@ TRK_foreign_policy = {
 				}
 			}
 		}
-		cost = 25
 		
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision TRK_liberate_panturkist target: [From.GetName]"
@@ -3653,7 +3740,6 @@ TRK_foreign_policy = {
 				}
 			}
 		}
-		cost = 25
 		
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision ALO_liberate_panturkist target: [From.GetName]"
@@ -3724,6 +3810,92 @@ TRK_foreign_policy = {
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove ALO_ally_panturkist target: [From.GetName]"
 			clr_country_flag = RUS_invited_country
+		}
+	}
+	TRK_liberate_turkic_peoples_in_russia = {
+		icon = generic_prepare_civil_war
+				
+		available = {
+			OR = {
+                is_owner_neighbor_of = FROM
+                any_allied_country = {
+                    is_owner_neighbor_of = FROM
+                }
+            }	
+			FROM = {
+				has_war_with = GER
+				surrender_progress > 0.1
+			}
+		}
+		targets = { RUS TRM }
+		target_root_trigger = {
+			has_global_flag = CA_turkestan_victorious
+			has_country_flag = TRK_turkestan_united
+			is_subject = no
+		}
+		target_trigger = {
+			FROM = { 
+				owns_state = 219 
+			}
+			can_declare_war_on = FROM
+		}
+		
+		cost = 0
+		days_remove = 25
+		fire_only_once = yes
+		war_with_target_on_remove = yes
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				OR = {
+					FROM = { dont_start_major_faction_wars = yes }
+					ROOT_is_threatened_cautious = yes
+					FROM = { default_attack_AI_trigger_FROM = yes }
+				}
+			}
+		}
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRK_liberate_turkic_peoples_in_russia target: [From.GetName]"
+			FROM = { incoming_war_notification_effect = yes }
+			setup_decision_attack_AI = yes			
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove TRK_liberate_turkic_peoples_in_russia target: [From.GetName]"
+			clear_decision_attack_AI = yes
+			every_state = {
+				limit = {
+					OR = {
+						state = 571
+						state = 582
+						state = 1185
+						state = 651
+						state = 1194
+						state = 652
+						state = 1207
+						state = 1224
+						state = 236
+						state = 1199
+						state = 249
+						state = 1197
+						state = 1198
+						state = 256
+						region = 244
+						region = 136
+						region = 243
+						region = 245
+					}
+					is_owned_by_ROOT_or_ally = no
+				}
+				add_claim_by = ROOT
+				enable_state_integration_50_compliance = yes
+			}
+			declare_war_on = {
+				target = FROM
+				type = annex_everything
+			}
 		}
 	}
 	TRK_all_russian_ambitions = {
@@ -6373,6 +6545,7 @@ operations = {
 			OR = {
 				TRK_ulema_in_power = yes
 				TRK_katta_ergash_in_power = yes 
+				TRK_tvo_in_power = yes
 				is_subject = yes
 			}
 		}
