@@ -1,16 +1,26 @@
 on_actions = {
-	on_capitulation = {
+	on_startup = {
+		effect = {			
+			RRF = {
+				add_radsoc_to_coalition = yes
+				add_authdem_to_coalition = yes
+				add_pataut_to_coalition = yes
+			}
+		}
+	}
+	# ROOT is capitulated country, FROM is winner
+	on_capitulation_immediate = {
 		effect = {
-			# Disable SOV civil war unit lock
+			### Transfer UCH ownership
 			if = {
-				limit = {
-					ROOT = {
-						has_idea = SOV_chaotic_revolution
-					}
-				}
-				ROOT = {
-					remove_ideas = SOV_chaotic_revolution
-					country_lock_all_division_template = no
+				limit = { tag = UCH }
+				UCH_move_to_next_cossack_leader = yes
+			}
+			if = {
+				limit = { tag = RVA }
+				if = {
+					limit = { is_in_faction = yes }
+					faction_leader = { dismantle_faction = yes }
 				}
 			}
 		}
@@ -38,7 +48,6 @@ on_actions = {
 					limit = {
 						OR = {
 							tag = RUS
-							tag = SOV
 							tag = RRF
 							tag = RVA
 						}
@@ -50,191 +59,105 @@ on_actions = {
 					}
 				}
 			}
+		}
+	}
+	#ROOT is winner #FROM gets annexed - For civil wars on_civil_war_end is also fired
+	on_annex = {
+		effect = {
 			if = {
 				limit = {
-					ROOT = { tag = SIB }
-					FROM = { tag = TRM }
-					has_global_flag = RCW_begun
-					NOT = { has_global_flag = RCW_over }
+					ROOT = {
+						tag = TRM
+						has_country_flag = SOV_restored_in_transamur
+					}
+					FROM = { tag = RUS }
 				}
-				ROOT = {
-					every_state = {
+				TRM = {
+					add_timed_idea = {
+						idea = TRM_Aftermath_Sib_War
+						days = 365
+					}
+					add_ideas = {
+						RUS_nationalist_resistance
+						RUS_monarchist_resistance
+						RUS_democrat_resistance
+						RUS_socialist_resistance
+					}
+					every_owned_state = {
 						limit = {
-							is_core_of = FROM
+							is_core_of = RUS
+							NOT = { is_core_of = TRM }
+							is_claimed_by = TRM
 						}
-						add_core_of = ROOT
+						remove_claim_by = TRM
+						add_core_of = TRM
+					}
+					if = {
+						limit = {
+							has_cosmetic_tag = TRM_NRA
+						}
+						drop_cosmetic_tag = yes
+					}
+				}
+			}
+			if = {
+				limit = {
+					ROOT = { tag = RUS }
+					FROM = { 
+						OR = {
+							tag = RVA
+							tag = RRF
+							tag = WRA
+						}
 					}
 				}
 				if = {
-					limit = {
-						has_government = social_liberal
+					limit = { 
+						ROOT = { owns_state = 220 }
 					}
-					every_owned_state = {
-						TRM = { transfer_state = PREV }
-						TRM = { add_state_core = PREV }
-					}
-					TRM = {
-						add_stability = 0.1
-						add_war_support = -0.1
-						add_popularity = {
-							ideology = social_liberal
-							popularity = 0.15
-						}
-						set_country_flag = TRM_Dem_coup
-						clr_country_flag = TRM_Yui
-						clr_country_flag = TRM_Moryaki_Coup
-						clr_country_flag = TRM_NRA_coup
-						clr_country_flag = TRM_Semyonov_Coup
-						clr_country_flag = TRM_Kolchak_alive
-						remove_ideas = TRM_anti_kolchak
-						remove_ideas = TRM_oblastniki_influence_idea
-						hidden_effect = {
-							remove_dynamic_modifier = { modifier = TRM_oblastniki_influence_modifier }
-							set_country_flag = TRM_oblastniki_banned
-							clr_country_flag = TRM_oblastniki_operate
-							clear_variable = TRM_oblastniki_stability
-							clear_variable = TRM_oblastniki_war_support
-							clear_variable = TRM_oblastniki_resource_gain
-							clear_variable = TRM_oblastniki_conscription
-						}
-						set_country_flag = Aleksandr_Kolchak_dead
-						set_politics = {
-							ruling_party = social_liberal
-						}
-						hidden_effect = {
-							remove_all_ministers = yes
-							add_ideas = SIB_Piotr_Yakovlevich_Derber_for_sco 
-							add_ideas = SIB_Viktor_N_Pepelyayev_for_ade 
-							add_ideas = TRM_Vladimir_M_Krutovsky_eco_sde
-							add_ideas = SIB_Alexander_E_Novoselov_eco_sde
-							country_event = {
-								id = tram.86
-								days = 50
-							}
-						}
-						if = {
-							limit = {
-								has_unit_leader = 50000
-							}
-							remove_unit_leader = 50000
-						}
-						if = {
-							limit = {
-								has_unit_leader = 50001
-							}
-							remove_unit_leader = 50001
-						}
-						change_tag_from = ROOT
-					}
-				}
-				else_if = {
-					limit = {
-						has_socialist_government = yes
-					}
-					every_owned_state = {
-						TRM = { transfer_state = PREV }
-						TRM = { add_state_core = PREV }
-					}
-					TRM = {
-						add_popularity = {
-							ideology = totalist
-							popularity = 0.15
-						}
-						remove_all_ministers = yes
-						add_ideas = {
-							SIB_Alexander_Krasnoshchyokov_hog_sde 
-							TRM_Genrich_Eiche_for_sde 
-							SIB_Boris_Shumyatsky_hog_syn 
-							SIB_Matvei_Berman_sec_syn
-						}			
-						remove_ideas = TRM_anti_kolchak
-						set_country_flag = Aleksandr_Kolchak_dead
-						set_country_flag = TRM_NRA_coup
-						clr_country_flag = TRM_Mil_coup
-						clr_country_flag = TRM_Dem_coup
-						clr_country_flag = TRM_Kolchak_alive
-						clr_country_flag = TRM_Moryaki_Coup
-						clr_country_flag = TRM_Semyonov_Coup
-						clr_country_flag = TRM_Yui
-						set_capital = { state = 563 }
-						set_politics = {
-							ruling_party = totalist
-						}
-						create_country_leader = {
-							name = "Vasily Blyukher"
-							desc = "POLITICS_BLYUKHER_DESC"
-							picture = "gfx/leaders/TRM/TRM_Vasily_Blyukher.png"
-							expire = "1965.1.1"
-							ideology = totalist_subtype
-						}
-						set_party_name = {
-							ideology = totalist
-							long_name = TRM_NRA_party_long
-							name = TRM_NRA_party
-						}
-						SIB = {
-							every_unit_leader = {
-								limit = {
-									OR = {
-										has_id = 505050
-										has_id = 505049
-									}
-								}
-								set_nationality = TRM
-							}
-						}
-						hidden_effect = {
-							RUS = {
-								country_event = {
-									id = tram.102
-									days = 1
-								}
-							}
-							SOV = {
-								country_event = {
-									id = tram.102
-									days = 1
-								}
-							}
-							JAP = {
-								country_event = {
-									id = trmnra.41
-									days = 3
-								}
-							}
-							set_cosmetic_tag = TRM_SOV
-							remove_ideas = TRM_Aleksandr_Kolchak_cnav_pau
-							add_popularity = {
-								ideology = radical_socialist
-								popularity = 0.05
-							}
-							add_popularity = {
-								ideology = syndicalist
-								popularity = 0.025
-							}
-							add_popularity = {
-								ideology = paternal_autocrat
-								popularity = -0.15
-							}
-						}
-						if = {
-							limit = {
-								has_unit_leader = 50000
-							}
-							remove_unit_leader = 50000
-						}
-						if = {
-							limit = {
-								has_unit_leader = 50001
-							}
-							remove_unit_leader = 50001
+					ROOT = {						
+						country_event = {
+							id = russoc.243
+							days = 90
+							random_days = 100
 						}
 					}
 				}
-			}			
+			}
+			if = {
+				limit = {
+					ROOT = { tag = RUS }
+					FROM = { 
+						OR = {
+							tag = RVA
+							tag = RRF
+							tag = WRA
+						}
+					}
+				}
+				if = {
+					limit = { 
+						ROOT = { 
+							has_war_with = TRM
+							NOT = { 
+								has_war_with = RVA
+								has_war_with = RRF
+								has_war_with = WRA
+							}
+						}
+					}
+					TRM = { 
+						if = {
+							limit = {
+								NOT = { has_active_mission = TRM_lose_morale_during_war }
+							}
+							activate_mission = TRM_lose_morale_during_war
+						}
+					}
+				}
+			}
 		}
 	}
-	
 	#ROOT is new controller #FROM is old controller #FROM.FROM is state ID
 	on_state_control_changed = {
 		effect = {
@@ -253,6 +176,24 @@ on_actions = {
 				}
 				set_country_flag = has_enemy_control_array
 				add_to_array = { ROOT.enemy_controlled_states = FROM.FROM }
+			}
+			if = {
+				limit = {
+					tag = RUS
+					ROOT = { controls_province = 3529 }
+					FROM.FROM = {
+						state = 217
+					}
+				}
+				if = {
+					limit = { country_exists = ALO }
+					ALO = { 
+						country_event = {
+							id = alash.391 
+							days = 4
+						}	
+					}
+				}
 			}
 		}				
 	}

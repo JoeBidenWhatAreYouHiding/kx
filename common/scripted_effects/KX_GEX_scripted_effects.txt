@@ -128,9 +128,9 @@ germany_flees_to_exile = {
 			country_exists = GEA
 			GEA = { is_subject_of = GER }
 		}
-		"GEA" = { get_current_government_type = yes }
-		puppet = "GEA"
-		"GEA" = { restore_previous_government_type = yes }
+		GEA = { get_current_government_type = yes }
+		puppet = GEA
+		GEA = { restore_previous_government_type = yes }
 	}
 	else = {
 		GER = {
@@ -146,9 +146,9 @@ germany_flees_to_exile = {
 			country_exists = LEP
 			LEP = { is_subject_of = GER }
 		}
-		"LEP" = { get_current_government_type = yes }
-		puppet = "LEP"
-		"LEP" = { restore_previous_government_type = yes }
+		LEP = { get_current_government_type = yes }
+		puppet = LEP
+		LEP = { restore_previous_government_type = yes }
 	}
 	else = {
 		GER = {
@@ -159,11 +159,6 @@ germany_flees_to_exile = {
 		}
 	}
 	change_tag_from = GER
-	if = {
-		limit = { is_faction_leader = yes }
-		set_faction_name = "Reichspakt Remnants"
-	}
-	else = { create_faction = "Reichspakt Remnants" }
 }
 
 german_ai_flees = {
@@ -511,7 +506,12 @@ germany_capitulates = {
 		}
 		AUS = {
 			leave_faction = yes
-			create_faction = austrian_sphere
+			create_faction_from_template = { 
+				template = faction_template_generic_dominance              
+				name = austrian_sphere
+				icon = "GFX_faction_donau_adriabund"
+			}			
+
 			clr_country_flag = AUS_intervened_in_weltkrieg
 			set_country_flag = former_reichspakt_member
 			country_event = { id = aus.tree.4016 hours = 8 }
@@ -529,7 +529,47 @@ germany_capitulates = {
 	}
 
 	# dissolve the Reichspakt
+	every_other_country = {
+		limit = {
+			OR = {
+				is_in_faction_with = GER
+				is_subject_of = GER
+			}
+		}
+		set_country_flag = former_reichspakt_member
+	}
 	dismantle_faction = yes
+
+	# free all puppets but MAF and GEA
+	every_country = {
+		limit = {
+			is_subject_of = GER
+			NOT = {
+				tag = GEA
+				tag = MAF
+			}
+		}
+		GER = {
+			set_autonomy = { target = PREV autonomy_state = autonomy_free }
+		}
+	}
+
+	GEX = {
+		mark_focus_tree_layout_dirty = yes
+		if = {
+			limit = { is_faction_leader = yes }
+			set_faction_name = "Reichspakt Remnants"
+		}
+		else = {
+			leave_faction = yes
+			create_faction_from_template = { 
+				template = faction_template_generic_dominance              
+				name = "Reichspakt Remnants"
+				icon = "GFX_faction_icon_reichspakt"
+			}			
+
+		}
+	}
 
 	# give Reichspakt members military access to each other
 	every_country = {
@@ -537,11 +577,10 @@ germany_capitulates = {
 			has_country_flag = former_reichspakt_member
 			has_capitulated = no
 		}
-		every_country = {
+		every_other_country = {
 			limit = {
 				has_country_flag = former_reichspakt_member
 				has_capitulated = no
-				NOT = { tag = PREV }
 			}
 			give_military_access = PREV
 		}
@@ -575,8 +614,8 @@ germany_capitulates = {
 	every_state = {
 		limit = {
 			OR = {
-				is_owned_and_controlled_by = GER
-				is_owned_and_controlled_by = GEA
+				is_owned_by = GER
+				is_owned_by = GEA
 			}
 			is_claimed_by = AST
 			country_exists = AST
@@ -607,8 +646,8 @@ germany_capitulates = {
 				controls_state = 285 #New South Wales
 			}
 			OR = {
-				is_owned_and_controlled_by = GER
-				is_owned_and_controlled_by = GEA
+				is_owned_by = GER
+				is_owned_by = GEA
 			}
 			OR = {
 				state = 711 #Christmas Island
@@ -625,8 +664,8 @@ germany_capitulates = {
 		every_state = {
 			limit = {
 				OR = {
-					is_owned_and_controlled_by = GER
-					is_owned_and_controlled_by = GEA
+					is_owned_by = GER
+					is_owned_by = GEA
 				}
 				OR = {
 					state = 647 #Pelew-Inseln
@@ -649,21 +688,14 @@ germany_capitulates = {
 		}
 	}
 	if = {
-		limit = { 753 = { is_owned_and_controlled_by = GER } }
-		random_country = {
-			limit = {
-				OR = {
-					tag = TUR
-					tag = EGY
-				}
-				owns_state = 453
-			}
-			transfer_state = 753
+		limit = { 
+			753 = { is_owned_by = GER } 
 		}
+		var:453.owner = { transfer_state = 753 }
 	}
 	if = {
 		limit = {
-			268 = { is_owned_and_controlled_by = GER } #Djibouti
+			268 = { is_owned_by = GER } #Djibouti
 		}
 		if = {
 			limit = { country_exists = SOM }
@@ -675,10 +707,27 @@ germany_capitulates = {
 		}
 	}
 	if = {
-		limit = { 
-			543 = { is_owned_and_controlled_by = GER } #Madagascar 
+		limit = {
+			118 = { is_owned_by = GER } #Gibraltar
 		}
-		MAG = { transfer_state = 543 }
+		var:169.owner = { transfer_state = 118 }
+	}
+	every_state = {
+			limit = {
+				is_owned_by = GER
+				OR = {
+					state = 710 #Diego Garcia
+					state = 709 #Seychelles
+					state = 708 #Comoros
+					state = 707 #Mauritius
+					state = 706 #Reunion
+					state = 543 #Madagascar
+					state = 1177 #West Madagascar
+					state = 1179 #South Madagascar
+					state = 1178 #East Madagascar
+				}
+			}
+			MAG = { transfer_state = PREV }
 	}
 	every_country = {
 		limit = {
@@ -708,29 +757,36 @@ germany_capitulates = {
 		}
 		country_event = capt.10
 	}
-	# Fire RUS postwar event if RUS exists, is at war with GER, at peace with FRA, and ENT exists
+	# fire post-collape events for GEX
 	if = {
-		limit = {
-			country_exists = RUS
-			RUS = { has_war_with = GER }
-		}
-		country_event = { id = rusd.126 days = 180 }
-	}
-	if = {
-		limit = { GEA = { is_subject_of = GER } }
-		GER = {
-			set_autonomy = {
-				target = GEA
-				autonomy_state = autonomy_free
+		limit = { country_exists = GEX }
+		# puppet GEA if it's not at war
+		if = {
+			limit = {
+				country_exists = GEA
+				GEA = { has_country_flag = repuppet_to_GEX }
 			}
+			GER = {
+				set_autonomy = { target = GEA autonomy_state = autonomy_free }
+			}
+			GEA = { country_event = { id = capt.23 hours = 1 } }
 		}
-	}
-	if = {
-		limit = { LEP = { is_subject_of = GER } }
-		GER = {
-			set_autonomy = {
-				target = LEP
-				autonomy_state = autonomy_free
+		# now fire post-war events for GEX
+		GEX = {
+			if = {
+				limit = {
+					has_country_flag = GEX_war_with_siam
+					NOT = { has_country_flag = GEX_war_with_japan }
+				}
+				country_event = { id = capt.5 days = 1 }
+			}
+			if = {
+				limit = { has_country_flag = GEX_war_with_japan }
+				country_event = { id = capt.7 days = 1 }
+			}
+			if = {
+				limit = { has_country_flag = GEX_war_with_natfrance }
+				NFA = { country_event = { id = capt.12 days = 2 } }
 			}
 		}
 	}

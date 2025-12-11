@@ -85,6 +85,18 @@ GEO_mission_decisions = {
 			add_stability = 0.1
 			231 = {
 				increase_state_category_by_two_levels = yes
+				add_building_construction = {
+					type = dam
+					level = 1
+					instant_build = yes
+					province = {
+						id = 11609
+					}
+				}
+				custom_effect_tooltip = {
+					localization_key = building_state_modifier|dam
+					INDENT = "    "
+				}
 			}
 		}
 	}
@@ -109,6 +121,7 @@ GEO_mission_decisions = {
 			231 = {
 				increase_state_category_by_two_levels = yes
 			}
+			add_resource = { type = coal amount = 6 state = 231 }
 		}
 	}
 }
@@ -140,6 +153,7 @@ GEO_foreign_policy_decisions = {
 				NOT = { has_war_with = ROOT }
 			}
 			has_socialist_government = no
+			NOT = { has_global_flag = GER_withdrew_from_caucasus }
 		}
 
 		fire_only_once = yes
@@ -206,9 +220,9 @@ GEO_foreign_policy_decisions = {
 				limit = {
 					FROM = { tag = RUS }
 				}
-				soviets_exist = yes
 				russian_civil_war = no
 				FROM = { 
+					has_country_flag = soviet_russia_restored
 					NOT = { is_in_faction_with = INT }
 					NOT = { has_war_with = ROOT }
 				}
@@ -232,6 +246,13 @@ GEO_foreign_policy_decisions = {
 			log = "[GetDateText]: [Root.GetName]: Decision GEO_join_internationale target: [From.GetName]"
 			set_country_flag = { flag = GEO_joining_faction days = 15 value = 1 }
 			FROM = { country_event = kx_geo.170  }
+			if = {
+				limit = {
+					FROM = { tag = RUS }
+				}
+				custom_effect_tooltip = if_FROM_agrees
+				effect_tooltip = { FROM = { SOV_puppet_ROOT_effect = yes } }
+			}
 		}
 	}
 	GEO_isolation = {
@@ -265,7 +286,10 @@ GEO_foreign_policy_decisions = {
 		allowed = { always = no }
 		available = {
 			has_war = no
-			NOT = { is_in_faction_with = GER }
+			NOT = { 
+				is_in_faction_with = GER 
+				has_non_aggression_pact_with = FROM
+			}
 			can_declare_war_on = FROM
 		}
 
@@ -379,8 +403,24 @@ GEO_foreign_policy_decisions = {
 		}
 
 		visible = {
-			is_subject = no
 			can_declare_war_on = FROM
+			1213 = { is_owned_and_controlled_by = FROM } #Batumi
+			is_subject = no
+		}
+
+		cancel_trigger = {
+			OR = {
+				NOT = { can_declare_war_on = FROM }
+				NOT = { 1213 = { is_owned_and_controlled_by = FROM } } #Batumi
+				is_subject = yes
+				is_in_faction_with = GER
+			}
+		}
+
+		target_trigger = {
+			can_declare_war_on = FROM
+			1213 = { is_owned_and_controlled_by = FROM } #Batumi
+			is_subject = no
 		}
 
 		cost = 0
@@ -393,32 +433,10 @@ GEO_foreign_policy_decisions = {
 			factor = 1
 			modifier = {
 				factor = 0
-				enemies_strength_ratio > 0.8
-			}
-			modifier = {
-				factor = 0
-				surrender_progress > 0
-			}
-			modifier = {
-				factor = 0
-				strength_ratio = { tag = FROM ratio < 1.0 }
-			}
-			modifier = {
-				factor = 0
-				FROM = {
-					is_subject = yes
-					overlord = {
-						strength_ratio = { tag = ROOT ratio > 0.8 }
-					}
-				}
-			}
-			modifier = {
-				factor = 0
-				FROM = {
-					is_in_faction = yes
-					faction_leader = {
-						strength_ratio = { tag = ROOT ratio > 0.8 }
-					}
+				OR = {
+					ROOT_is_threatened_cautious = yes
+					FROM = { dont_start_major_faction_wars = yes }
+					FROM = { default_attack_AI_trigger_FROM = yes }
 				}
 			}
 			modifier = {
@@ -581,23 +599,12 @@ GEO_foreign_policy_decisions = {
 			factor = 15
 			modifier = {
 				factor = 0
-				ROOT_is_threatened_cautious = yes
-			}
-			modifier = {
-				factor = 0
-				FROM = { is_stronger_than_ROOT_and_not_vulnerable = yes }
-			}
-			modifier = {
-				factor = 0
-				FROM = { overlord_is_stronger_than_ROOT_and_not_vulnerable = yes }
-			}
-			modifier = {
-				factor = 0
-				FROM = { faction_leader_is_stronger_than_ROOT_and_not_vulnerable = yes }
-			}
-			modifier = {
-				factor = 0
-				FROM = { guarantor_is_stronger_than_ROOT_and_not_vulnerable = yes }
+				OR = {
+					ROOT_is_threatened_cautious = yes
+					FROM = { dont_start_major_faction_wars = yes }
+					FROM = { default_attack_AI_trigger_FROM = yes }
+					has_country_flag = GEO_keep_treaty
+				}
 			}
 		}
 
@@ -656,23 +663,11 @@ GEO_foreign_policy_decisions = {
 			factor = 15
 			modifier = {
 				factor = 0
-				ROOT_is_threatened_cautious = yes
-			}
-			modifier = {
-				factor = 0
-				FROM = { is_stronger_than_ROOT_and_not_vulnerable = yes }
-			}
-			modifier = {
-				factor = 0
-				FROM = { overlord_is_stronger_than_ROOT_and_not_vulnerable = yes }
-			}
-			modifier = {
-				factor = 0
-				FROM = { faction_leader_is_stronger_than_ROOT_and_not_vulnerable = yes }
-			}
-			modifier = {
-				factor = 0
-				FROM = { guarantor_is_stronger_than_ROOT_and_not_vulnerable = yes }
+				OR = {
+					ROOT_is_threatened_cautious = yes
+					FROM = { dont_start_major_faction_wars = yes }
+					FROM = { default_attack_AI_trigger_FROM = yes }
+				}
 			}
 		}
 
@@ -714,7 +709,7 @@ GEO_foreign_policy_decisions = {
 					ruling_only = yes
 				}
 				has_country_leader = {
-					name = "Giorgi IX"
+					name = "Giorgi XIII"
 					ruling_only = yes
 				}
 			}
@@ -803,7 +798,7 @@ GEO_foreign_policy_decisions = {
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision GEO_SOV_Create_Soviet_Union"
 			add_stability = 0.1
-			set_country_flag = RUS_can_integrate
+			RUS_enable_integration = yes
 			ROOT = { save_global_event_target_as = soviet_russia }
 			set_country_flag = soviet_russia_restored
 			set_cosmetic_tag = SOV
@@ -824,7 +819,10 @@ GEO_foreign_policy_decisions = {
 					}
 					add_core_of = RUS
 					remove_core_of = RRF
-					cancel_resistance = yes
+					if = {
+						limit = { has_resistance = yes }
+						cancel_resistance = yes
+					}
 					force_disable_resistance = { clear = yes }
 				}
 			}
@@ -880,31 +878,20 @@ GEO_foreign_policy_decisions = {
 					long_name = RUS_totalist_party_long
 					name = RUS_totalist_party
 				}
-				every_country = {
-					limit = {
-						OR = {
-							tag = AST
-							tag = CAF
-							tag = CAN
-							tag = CAR
-							tag = COR
-							tag = FIN
-							tag = GER
-							tag = NFA
-							tag = SAF
-							tag = SPR
-							tag = TEX
-						}
-					}
-					add_opinion_modifier = {
-						modifier = embargo
-						target = SOV
-					}
-					reverse_add_opinion_modifier = {
-						modifier = embargo
-						target = SOV
-					}
+				for_each_scope_loop = {
+					array = CAN.faction_members
+					embargo_ROOT = yes
 				}
+				for_each_scope_loop = {
+					array = GER.faction_members
+					embargo_ROOT = yes
+				}
+				for_each_scope_loop = {
+					array = AUS.faction_members
+					embargo_ROOT = yes
+				}
+				FRP = { embargo_ROOT = yes }
+				GBR = { embargo_ROOT = yes }
 			}
 		}
 	}	
@@ -1310,7 +1297,7 @@ political_actions = {
 		cancel_if_not_visible = yes
 
 		state_target = yes
-		targets = { 230 229 998 1082 1081 1301 990 1082 1299 1302 1303 }
+		targets = { 230 229 990 998 1082 1081 1082 1267 1298 1299 1300 1301 1302 1303 1304 }
 		target_trigger = {
 			FROM = {
 				is_controlled_by = ROOT
@@ -1403,7 +1390,81 @@ political_actions = {
 		}
 	}
 }
-ABK_foreign_relations = {
+ABK_foreign_relations = {	
+	ABK_sochi_claims = {
+		icon = generic_civil_support
+		available = {
+			is_subject = no
+			can_declare_war_on = FROM
+		}
+		visible = {
+			FROM = {
+				NOT = { 
+					has_war_with = ROOT 
+					is_subject_of = ROOT
+					is_guaranteed_by = ROOT
+					has_non_aggression_pact_with = ROOT
+				}
+			}
+		}
+		targets = { 1190.OWNER }
+		target_root_trigger =  {
+			is_subject = no
+			OR = {
+				has_completed_focus = ABK_Chachba_Restoration
+				has_completed_focus = ABK_Basaria
+				has_completed_focus = ABK_SDPA
+				has_completed_focus = ABK_Kiaraz
+			}
+		}
+		target_trigger = {
+			can_declare_war_on = FROM
+			FROM = { 
+				owns_state = 1190
+			}
+		}
+
+		cost = 10
+		days_remove = 14
+		fire_only_once = yes
+		war_with_target_on_remove = yes
+
+		fire_only_once = yes
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				OR = {
+					FROM = { dont_start_major_faction_wars = yes }
+					ROOT_is_threatened_cautious = yes
+					FROM = { default_attack_AI_trigger_FROM = yes }
+				}
+			}
+		}
+		cost = 25
+		days_remove = 14
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision ABK_sochi_claims target: [From.GetName]"
+			if = {
+				limit = { 1190 = { is_claim_or_core_of_ROOT = no } }
+				1190 = { add_core_of = ROOT }
+			}
+			set_country_flag = { flag = imminent_war days = 20 value = 1 }
+			FROM = { incoming_war_notification_effect = yes }
+			setup_decision_attack_AI = yes
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove ABK_sochi_claims target: [From.GetName]"
+			clear_decision_attack_AI = yes
+			declare_war_on = {
+				target = FROM
+				type = take_core_state
+				generator = { 1190 }
+			}
+		}
+	}
 	ABK_join_phalanstere = {
 		name = FRA_join_phalanstere
 		icon = generic_research
@@ -1452,6 +1513,7 @@ ABK_foreign_relations = {
 			}
 			has_socialist_government = yes
 			is_in_faction = no
+			is_subject = no
 		}
 		
 		cost = 0
@@ -1470,6 +1532,8 @@ ABK_foreign_relations = {
 					}
 				}
 				RUS = { country_event = abk.46 }
+				custom_effect_tooltip = if_FROM_agrees
+				effect_tooltip = { FROM = { SOV_puppet_ROOT_effect = yes } }
 			}
 			else = {
 				INT = { country_event = abk.46 }
@@ -1487,6 +1551,7 @@ ABK_foreign_relations = {
 		}
 		visible = {
 			can_declare_war_on = FROM
+			is_subject = no
 		}
 		
 		cost = 0
@@ -1526,7 +1591,10 @@ ABK_foreign_relations = {
 			NOT = { country_exists = GEO }
 			231 = { is_owned_and_controlled_by = ROOT }
 		}
-		visible = { has_government = social_democrat }
+		visible = { 
+			has_government = social_democrat 
+			is_subject = no
+		}
 		
 		cost = 0
 		fire_only_once = yes
@@ -1560,8 +1628,8 @@ ABK_foreign_relations = {
 					name = "Arzakan Emukhvari"
 					desc = "POLITICS_EMUKHVARI_DESC"
 					picture = "gfx/leaders/ABK/Portrait_ABK_Arzakan_Emukhvari.png"
-					expire = "1965.1.1"
-					ideology = socdem_democratic_socialism_subtype 
+					expire = "1.1.1"
+					ideology = revisionist_marxism_subtype 
 				}
 				annex_country = {
 					target = ROOT
@@ -1680,6 +1748,7 @@ ABK_foreign_relations = {
 		target_array = global.MAF_collapse_tags
 		target_root_trigger = {
 			has_country_flag = ABK_has_formed_greater_afro_abkhazia
+			is_subject = no
 		}
 		target_trigger = {
 			can_declare_war_on = FROM

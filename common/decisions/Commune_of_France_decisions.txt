@@ -22,11 +22,17 @@ FRA_hydroelectricity_decisions = {
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove FRA_Savoy_Hydroelectricity_decision"
 			735 = {
-				add_extra_state_shared_building_slots = 2
 				add_building_construction = {
-					type = industrial_complex
-					level = 2
+					type = dam
+					level = 1
 					instant_build = yes
+					province = {
+						id = 11573
+					}
+				}
+				custom_effect_tooltip = {
+					localization_key = building_state_modifier|dam
+					INDENT = "    "
 				}
 			}
 		}
@@ -51,16 +57,17 @@ FRA_hydroelectricity_decisions = {
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove FRA_Haute_Savoie_Hydroelectricity_decision"
 			943 = {
-				add_extra_state_shared_building_slots = 2
 				add_building_construction = {
-					type = industrial_complex
+					type = dam
 					level = 1
 					instant_build = yes
+					province = {
+						id = 778
+					}
 				}
-				add_building_construction = {
-					type = infrastructure
-					level = 1
-					instant_build = yes
+				custom_effect_tooltip = {
+					localization_key = building_state_modifier|dam
+					INDENT = "    "
 				}
 			}
 		}
@@ -85,16 +92,17 @@ FRA_hydroelectricity_decisions = {
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove FRA_Romandy_Hydroelectricity_decision"
 			760 = {
-				add_extra_state_shared_building_slots = 2
 				add_building_construction = {
-					type = industrial_complex
-					level = 2
-					instant_build = yes
-				}
-				add_building_construction = {
-					type = infrastructure
+					type = dam
 					level = 1
 					instant_build = yes
+					province = {
+						id = 3612
+					}
+				}
+				custom_effect_tooltip = {
+					localization_key = building_state_modifier|dam
+					INDENT = "    "
 				}
 			}
 		}
@@ -212,26 +220,30 @@ FRA_internationale_category = {
 			has_equipment = { artillery_equipment > 49 }
 		}
 
-		visible = {
-			FROM = {
-				has_war_with = RVA
-				has_socialist_government = yes
-			}
-		}
-
 		cost = 0
 		fire_only_once = yes
+		days_remove = 7
 
 		targets = { RUS }
 		target_trigger = {
 			FROM = {
-				has_war_with = RVA
+				NOT = { has_idea = SOV_foreign_aid }				
+				OR = {
+					has_war_with = RVA
+					has_war_with = RRF
+					has_war_with = WRA
+					has_war_with = TRM
+				}
 				has_socialist_government = yes
 			}
 		}
 
 		ai_will_do = {
 			factor = 3
+			modifier = {
+				add = 100
+				FROM = { has_idea = RUS_Karl_Radek_for_tot }
+			}
 			modifier = {
 				factor = 0
 				has_equipment = { infantry_equipment < 5000 }
@@ -246,39 +258,31 @@ FRA_internationale_category = {
 			}
 		}
 
-		complete_effect = {
+		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision FRA_help_SOV target: [From.GetName]"
 			FROM = {
-				random_owned_controlled_state = {
-					limit = {
-						free_building_slots = {
-							building = industrial_complex
-							size > 0
-							include_locked = yes
-						}
-					}
-					add_extra_state_shared_building_slots = 1
-					add_building_construction = {
-						type = industrial_complex
-						level = 1
-						instant_build = yes
-					}
+				country_event = rcw.499
+				effect_tooltip = { 
+					add_ideas = SOV_foreign_aid		
+					add_one_random_civilian_factory = yes 
 				}
 			}
-			send_equipment = {
-				target = FROM
-				type = infantry_equipment
-				amount = 600
-			}
-			send_equipment = {
-				target = FROM
-				type = support_equipment
-				amount = 100
-			}
-			send_equipment = {
-				target = FROM
-				type = artillery_equipment
-				amount = 50
+			effect_tooltip = {
+				send_equipment = {
+					target = FROM
+					type = infantry_equipment
+					amount = 600
+				}
+				send_equipment = {
+					target = FROM
+					type = support_equipment
+					amount = 100
+				}
+				send_equipment = {
+					target = FROM
+					type = artillery_equipment
+					amount = 50
+				}
 			}
 		}
 	}
@@ -345,8 +349,13 @@ FRA_internationale_category = {
 				exists = yes
 				has_socialist_government = yes
 				is_in_faction = no
-				NOT = { has_country_flag = SRI_refused_intl_membership }
+				NOT = { 
+					has_country_flag = SRI_refused_intl_membership 
+					has_completed_focus = SRI_garibaldi_ii
+					has_country_flag = SRI_left_3i_over_claims
+				}
 			}
+			NOT = { has_war_with = SRI }
 		}
 
 		targets = { SRI }
@@ -463,4 +472,137 @@ FRA_liberate_europe_category = {
 			}
 		}
 	}
+
+	FRA_claim_deat_europe = {# 
+		icon = generic_form_nation
+		allowed = { original_tag = FRA }
+		visible = {
+			has_completed_focus = FRA_Pursue_European_Republicanism
+			is_ai = no
+		}
+		available = {
+			has_country_leader = {
+				ruling_only = yes
+				name = "Marcel Déat"
+			}
+		}
+		fire_only_once = yes
+		cost = 20
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision FRA_claim_deat_europe"
+			set_cosmetic_tag = FRA_Deat_Europe
+			leave_faction = yes
+			create_faction_from_template = { 
+				template = faction_template_generic_dominance              
+				name = "European People's Union"
+				icon = GFX_faction_socialist_europe
+			}			
+
+			every_country = {
+				limit = {
+					is_subject_of = FRA
+				}
+				leave_faction = yes 
+				FRA = { add_to_faction = PREV }
+			}
+			every_country = {
+				limit = {
+					is_in_europe = yes
+				}
+				FRA = {
+					create_wargoal = {
+						target = PREV
+						type = annex_everything
+				    }	
+				}
+			}
+		    every_state = {
+				limit = {
+					is_on_continent = europe
+				}
+				FRA = { 
+					add_state_claim = PREV 
+			    }
+			}
+	   }
+	   ai_will_do = {
+			factor = 0
+		}
+    }
+
+	FRA_core_deat_europe = {# 
+		icon = generic_form_nation
+		allowed = { original_tag = FRA }
+		visible = {
+			has_completed_focus = FRA_Pursue_European_Republicanism
+		}
+		available = {
+			has_country_leader = {
+				ruling_only = yes
+				name = "Marcel Déat"
+			}
+			16 = { is_owned_by_ROOT_or_ally = yes}
+			64 = { is_owned_by_ROOT_or_ally = yes}
+			6 = { is_owned_by_ROOT_or_ally = yes}
+			34 = { is_owned_by_ROOT_or_ally = yes}
+			7 = { is_owned_by_ROOT_or_ally = yes}
+			3 = { is_owned_by_ROOT_or_ally = yes}
+			1137 = { is_owned_by_ROOT_or_ally = yes}
+			41 = { is_owned_by_ROOT_or_ally = yes}
+			112 = { is_owned_by_ROOT_or_ally = yes}
+			117 = { is_owned_by_ROOT_or_ally = yes}
+			2 = { is_owned_by_ROOT_or_ally = yes}
+			1129 = { is_owned_by_ROOT_or_ally = yes}
+			43 = { is_owned_by_ROOT_or_ally = yes}
+			91 = { is_owned_by_ROOT_or_ally = yes}
+			10 = { is_owned_by_ROOT_or_ally = yes}
+			107 = { is_owned_by_ROOT_or_ally = yes}
+			109 = { is_owned_by_ROOT_or_ally = yes}
+			44 = { is_owned_by_ROOT_or_ally = yes}
+			46 = { is_owned_by_ROOT_or_ally = yes}
+			47 = { is_owned_by_ROOT_or_ally = yes}
+			48 = { is_owned_by_ROOT_or_ally = yes}
+			202 = { is_owned_by_ROOT_or_ally = yes}
+			206 = { is_owned_by_ROOT_or_ally = yes}
+			96 = { is_owned_by_ROOT_or_ally = yes}
+			1091 = { is_owned_by_ROOT_or_ally = yes}
+			840 = { is_owned_by_ROOT_or_ally = yes}
+			37 = { is_owned_by_ROOT_or_ally = yes}
+			110 = { is_owned_by_ROOT_or_ally = yes}
+			141 = { is_owned_by_ROOT_or_ally = yes}
+			219 = { is_owned_by_ROOT_or_ally = yes}
+			195 = { is_owned_by_ROOT_or_ally = yes}
+			100 = { is_owned_by_ROOT_or_ally = yes}
+		}
+		fire_only_once = yes
+		cost = 50
+		days_remove = 30
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision FRA_form_core_europe"
+			every_state = {
+				limit = {
+					is_on_continent = europe
+				}
+				FRA = { 
+					add_state_core = PREV 
+			    }
+		    }
+			every_other_country = {
+				limit = { 
+					AND = {
+					is_in_europe = yes
+					is_subject_of = FRA
+					}
+				}
+				FRA = {	
+					annex_country = {
+					target = PREV
+				}
+			    }
+	        }
+	   }	
+	   ai_will_do = {
+			factor = 0
+		}
+    }
 }

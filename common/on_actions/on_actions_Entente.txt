@@ -1,4 +1,11 @@
 on_actions = {
+	on_startup = {
+	   effect = {
+		   CAN = { save_global_event_target_as = NFL_benefactor }
+		   NFL = { save_global_event_target_as = Labrador_Owner }
+	   }
+    }
+
 	#ROOT is winner #FROM gets annexed - For civil wars on_civil_war_end is also fired
 	on_annex = {
 		effect = {
@@ -47,36 +54,45 @@ on_actions = {
 				country_event = austral.53
 			}
 			### West Indies ###
-			if = {
+			else_if = {
 				limit = { tag = CAF }
 				country_event = wifpol.30
 			}
 			### Canada ###
-			if = {
+			else_if = {
 				limit = { tag = CAN }
 				country_event = canada.50 #1936
 				country_event = canada.67 #runoff
 				country_event = canada.75 #after 1936
 			}
 			### UK ###
-			if = {
+			else_if = {
 				limit = { tag = GBR }
 				country_event = uk.34
 			}
+			### Newfoundland ###
+			else_if = {
+				limit = { tag = NFL }
+				country_event = newfoundland.100
+				country_event = canada_soc.59
+			}
 			### National France ###
-			if = {
-				limit = { tag = NFA }
-				country_event = nfa.12 #Cancelled
-				country_event = nfa.13 #Elections
-			}
+
+			# Invalid event id's @Tran
+
+			# else_if = {
+			# 	limit = { tag = NFA }
+			# 	country_event = nfa.12 #Cancelled
+			# 	country_event = nfa.13 #Elections
+			# }
 			### South Africa ###
-			if = {
-				limit = { tag = SAF }
-				#country_event = saf.26
-				#country_event = saf.90
-				#country_event = saf.91
-				#country_event = saf.93
-			}
+			# if = {
+				# limit = { tag = SAF }
+				# country_event = saf.26
+				# country_event = saf.90
+				# country_event = saf.91
+				# country_event = saf.93
+			# }
 		}
 	}
 
@@ -103,51 +119,56 @@ on_actions = {
 			if = {
 				limit = {
 					tag = NFA
-					owns_state = 21
-					controls_state = 21
-					21 = {
-						is_core_of = NFA
-					}
-					NOT = { owns_state = 16 }
-					capital_scope = {
-						NOT = { state = 21 }
-					}
 				}
-				set_capital = { state = 21 }
-			}
-			if = {
-				limit = {
-					tag = NFA
-					owns_state = 16
-					controls_state = 16
-					16 = {
-						is_core_of = NFA
+				if = {
+					limit = {
+						owns_state = 21
+						controls_state = 21
+						21 = {
+							is_core_of = NFA
+						}
+						NOT = { owns_state = 16 }
+						capital_scope = {
+							NOT = { state = 21 }
+						}
 					}
-					capital_scope = {
-						NOT = { state = 16 }
-					}
+					set_capital = { state = 21 }
 				}
-				set_capital = { state = 16 }
+				if = {
+					limit = {
+						owns_state = 16
+						controls_state = 16
+						16 = {
+							is_core_of = NFA
+						}
+						capital_scope = {
+							NOT = { state = 16 }
+						}
+					}
+					set_capital = { state = 16 }
+				}
 			}
 
 			### South African Civil War
 			if = {
 				limit = {
-					FROM.FROM = { state = 681 } #Cape Town
 					tag = SFR
-					has_authoritarian_government = yes
 					FROM = { tag = SAF }
 				}
-				FROM = { country_event = saf.76 }
-			}
-			if = {
-				limit = {
-					FROM.FROM = { state = 275 } #Transvaal
-					tag = SFR
-					has_authoritarian_government = no
-					FROM = { tag = SAF }
+				if = {
+					limit = {
+						FROM.FROM = { state = 681 } #Cape Town
+						has_authoritarian_government = yes
+					}
+					FROM = { country_event = saf.76 }
 				}
-				FROM = { country_event = saf.77 }
+				else_if = {
+					limit = {
+						FROM.FROM = { state = 275 } #Transvaal
+						has_authoritarian_government = no
+					}
+					FROM = { country_event = saf.77 }
+				}
 			}
 
 			### BHC Civil War
@@ -155,19 +176,20 @@ on_actions = {
 				limit = {
 					FROM.FROM = { state = 431 } #Calcutta
 					tag = INR
-					has_government = totalist
 					FROM = { tag = BHC }
 				}
-				FROM = { country_event = beng.83 }
-			}
-			if = {
-				limit = {
-					FROM.FROM = { state = 431 } #Calcutta
-					tag = INR
-					has_government = radical_socialist
-					FROM = { tag = BHC }
+				if = {
+					limit = {
+						has_government = totalist
+					}
+					FROM = { country_event = beng.83 }
 				}
-				FROM = { country_event = beng.90 }
+				else_if = {
+					limit = {
+						has_government = radical_socialist
+					}
+					FROM = { country_event = beng.90 }
+				}
 			}
 		}
 	}
@@ -176,18 +198,30 @@ on_actions = {
 		effect = {
 			if = {
 				limit = {
-						tag = ENT
-						FROM = { tag = ENG }
-					}
-					news_event = {
+					tag = ENT
+					FROM = { tag = ENG }
+				}
+				news_event = {
 					id = worldnews.471
 					days = 2
+				}
+			}
+			if = {
+				limit = {
+					tag = NFL
+					FROM = { tag = ENG }
+				}
+				NFL = {
+					country_event = {
+						id = newfoundland.50
+						days = 2
+					}
 				}
 			}
 			else_if = {
 				limit = {
 					tag = DEH
-					FROM = { tag = ENT } 
+					FROM = { tag = ENT }
 				}
 				DEH = {
 					country_event = {
@@ -198,69 +232,271 @@ on_actions = {
 			}
 		}
 	}
-	on_government_change = {
+
+	on_monthly_CAN = {
 		effect = {
 			if = {
 				limit = {
+					CAN = {
+						has_idea = CAN_expanded_training
+					}
+				}
+				CAN = { CAN_recalculate_monthly_unit_training_rate = yes }
+				CAN = { CAN_check_unit_progress = yes }
+			}
+		}
+	}
+	
+	on_weekly_NFL = {
+		effect = {
+			if = {
+				limit = {
+					NFL = {
+						has_country_flag = NFL_confed_progress_ticker
+					}
+				}
+				NFL = { add_to_variable = { var = NFL_confed_progress value = NFL_confed_progress_gain } }
+			}
+		}
+	}
+
+	on_war = {
+		effect = {
+			# New England Rebellion
+			if = {
+				limit = {
+					tag = NEE
+					has_war_with = CAN
+				}
+				set_global_flag = NEE_rebelled_from_canada
+			}
+		}
+		effect = {
+			# Shetland Rising Up
+			if = {
+				limit = {
+					tag = CAN
+					has_war_with = ENG
+					has_global_flag = CAN_shetland_will_rise_up
+				}
+				CAN = {
+					transfer_state = 938
+					load_oob = CAN_loyalist_shetland
+				}
+			}
+		}
+		effect = {
+			# Mann Rising Up
+			if = {
+				limit = {
+					tag = CAN
+					has_war_with = ENG
+					has_global_flag = CAN_mann_will_rise_up
+				}
+				CAN = {
+					transfer_state = 1317
+					load_oob = CAN_loyalist_mann
+				}
+			}
+		}
+		effect = {
+			# Channel Islands Rising Up
+			if = {
+				limit = {
+					tag = CAN
+					has_war_with = ENG
+					has_global_flag = CAN_channel_islands_will_rise_up
+				}
+				CAN = {
+					transfer_state = 1317
+					load_oob = CAN_loyalist_channel_islands
+				}
+			}
+		}
+		effect = {
+			# Flavour
+			if = {
+				limit = {
+					tag = CAN
+					has_war_with = ENG
+					has_idea = CAN_William_Lyon_Mackenzie_King_hog_mli
+				}
+				CAN = {
+					country_event = {
+						id = canada.702
+						days = 45
+						random_days = 12
+					}
+				}
+				CAN = {
+					country_event = {
+						id = entente.70
+						days = 45
+						random_days = 12
+					}
+				}
+				CAN = {
+					country_event = {
+						id = entente.73
+						days = 45
+						random_days = 12
+					}
+				}
+			}
+		}
+	}
+	on_peaceconference_ended = {
+		effect = {
+			# New England Dies
+			if = {
+				limit = {
+					tag = CAN
+					FROM = { tag = NEE }
+				}
+				country_event = { id = newengland.80 days = 20 }
+			}
+		}
+	}
+	on_government_change = {
+		effect = {
+			if = {
+				limit = { tag = CAN }
+				if = {
+					limit = {
+						CAN_leader_has_lost_subideology = yes
+					}
+					CAN_restore_leader_subtypes = yes
+				}
+			}
+			if = {
+				limit = {
 					has_country_leader = {
 						name = "Edward VIII"
 						ruling_only = yes
 					}
-					tag = CAN
 					OR = {
-						has_government = authoritarian_democrat
-						has_government = social_conservative
+						tag = CAN
+						tag = GBR
 					}
-					NOT = {
+				}
+				if = {
+					limit = {
 						has_country_flag = CAN_LEADER_CHANGE
 					}
+					if = {
+						limit = {
+							OR = {
+								has_government = social_conservative
+								has_government = authoritarian_democrat
+							}
+						}
+						country_event = portrait_changer.6000
+					}
+					else_if = {
+						limit = {
+							OR = {
+								has_government = social_liberal
+								has_government = social_democrat
+								has_government = market_liberal
+							}
+						}
+						country_event = portrait_changer.600
+					}
 				}
-				country_event = portrait_changer.6
+				else = {
+					if = {
+						limit = {
+							OR = {
+								has_government = authoritarian_democrat
+								has_government = social_conservative
+							}
+						}
+						country_event = portrait_changer.6
+					}
+					else_if = {
+						limit = {
+							OR = {
+								has_government = national_populist
+								has_government = paternal_autocrat
+							}
+						}
+						country_event = portrait_changer.601
+					}
+				}
 			}
+			
 			if = {
 				limit = {
 					has_country_leader = {
-						name = "Edward VIII"
+						name = "Albert I"
 						ruling_only = yes
 					}
-					tag = CAN
-					OR = {
-						has_government = social_conservative
-						has_government = authoritarian_democrat
-					}
-					has_country_flag = CAN_LEADER_CHANGE
+					has_country_flag = CAN_humble_trait_improved
+					has_country_leader_with_trait = CAN_humble
 				}
-				country_event = portrait_changer.6000
+				swap_ruler_traits = {
+					remove = CAN_humble
+					add = CAN_humble_improved
+				}
 			}
+			
 			if = {
-				limit = {
-					has_country_leader = {
-						name = "Edward VIII"
-						ruling_only = yes
+				limit = { tag = GBR }
+				if = {
+					limit = {
+						has_country_leader = {
+							name = "Edward VIII"
+							ruling_only = yes
+						}
 					}
-					tag = CAN
-					has_government = paternal_autocrat
-					NOT = {
-						has_country_flag = CAN_LEADER_CHANGE
+					set_country_leader_description = {
+						desc = "POLITICS_EDWARD_GBR_DESC"
 					}
 				}
-				country_event = portrait_changer.601
-			}
-			if = {
-				limit = {
-					has_country_leader = {
-						name = "Edward VIII"
-						ruling_only = yes
+				if = {
+					limit = {
+						has_country_leader = {
+							name = "George V"
+							ruling_only = yes
+						}
 					}
-					tag = CAN
-					OR = {
-						has_government = social_liberal
-						has_government = social_democrat
-						has_government = market_liberal
+					set_country_leader_description = {
+						desc = "POLITICS_GEORGE_GBR_DESC"
 					}
-					has_country_flag = CAN_LEADER_CHANGE
 				}
-				country_event = portrait_changer.600
+				if = {
+					limit = {
+						has_country_leader = {
+							name = "Albert I"
+							ruling_only = yes
+						}
+					}
+					set_country_leader_description = {
+						desc = "POLITICS_ALBERT_GBR_DESC"
+					}
+				}
+				if = {
+					limit = {
+						has_country_leader = {
+							name = "Henry IX"
+							ruling_only = yes
+						}
+					}
+					set_country_leader_description = {
+						desc = "POLITICS_KING_HENRY_GBR_DESC"
+					}
+				}
+				if = {
+					limit = {
+						has_country_leader = {
+							name = "George VI"
+							ruling_only = yes
+						}
+					}
+					set_country_leader_description = {
+						desc = "POLITICS_KING_GEORGE_GBR_DESC"
+					}
+				}
 			}
 		}
 	}

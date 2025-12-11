@@ -28,7 +28,6 @@ willing_to_send_volunteers_to_FROM = {
 		northwest_war_volunteers = yes
 		GEA_zhili_volunteers = yes
 		ANQ_volunteers = yes
-		siberian_war_volunteers = yes
 		assyrian_war_volunteers = yes
 		german_civil_war_volunteers = yes
 	}
@@ -112,7 +111,10 @@ american_civil_war_volunteers = {
 }
 
 russian_civil_war_volunteers = {
-	RVA = { has_war_with = RUS }
+	OR = {
+		RVA = { has_war_with = RUS }
+		TRM = { has_war_with = RUS }
+	}
 	OR = {
 		AND = {
 			FROM = { tag = RUS }
@@ -125,6 +127,12 @@ russian_civil_war_volunteers = {
 				tag = CAN
 				tag = NFA
 			}
+			TRM = {
+				NOT = { 
+					has_country_flag = TRM_entente_full_support
+					has_country_flag = TRM_entente_partial_support
+				}
+			}
 		}
 		AND = {
 			FROM = { tag = WRA }
@@ -132,62 +140,39 @@ russian_civil_war_volunteers = {
 				tag = FIN
 				tag = GER
 				tag = AUS
-				tag = UKR
+				AND = {
+					original_tag = UKR
+					NOT = { has_country_flag = UKR_dyrektoria_uprising_active }
+					UKR_is_hetmanate_or_monarchy = yes
+					date > 1937.6.6
+				}
 				tag = BAT
 			}
 		}
-	}
-}
-siberian_war_volunteers = {
-	RUS = { has_war_with = TRM }
-	OR = {
-		AND = {
-			FROM = { 
-				tag = TRM
-				has_socialist_government = yes
-			}
-			has_socialist_government = yes
-			num_of_military_factories > 8
-		}
-		AND = {
-			FROM = { 
-				tag = RUS
-				has_socialist_government = no
-			}
-			OR = {
-				tag = FIN
-				tag = GER
-				tag = CAN
-				tag = NFA
-				tag = AUS
-				tag = UKR
-			}
-		}
-		AND = {
-			FROM = { 
-				tag = RUS
-				RUS = { has_socialist_government = yes }
-			}
-			has_socialist_government = yes
-			num_of_military_factories > 8
-		}
+		
 		AND = {
 			FROM = { 
 				tag = TRM
 				has_socialist_government = no
-				NOT = { country_exists = RUS }
 			}
 			OR = {
-				tag = FIN
-				tag = CAN
-				tag = NFA
+				AND = {
+					OR = {
+						tag = CAN
+						tag = NFA
+					}
+					TRM = {
+						OR = {
+							has_country_flag = TRM_entente_full_support
+							has_country_flag = TRM_entente_partial_support
+						}
+					}
+				}
 				tag = JAP
-				tag = UKR				
 			}
 		}
 	}
 }
-
 korean_japanese_war_volunteers = {
 	JAP = { has_war_with = KOR }
 	FROM = { tag = KOR }
@@ -603,15 +588,11 @@ league_collapse_volunteers = {
 			}
 			tag = QIE
 			has_country_flag = wu_intervenes_proANQ
-		}
+		}		
 		AND = {
-			FROM = {
-				tag = CHI
-			}
-			OR = {
-				tag = BHC
-				tag = INC
-			}
+			FROM = { original_tag = CHI }
+			has_socialist_government = yes
+			num_of_military_factories > 8
 		}
 	}
 }
@@ -670,7 +651,6 @@ GEA_zhili_volunteers = {
 	}
 	tag = GEA
 }
-
 ANQ_volunteers = {
 	tag = ANQ
 	has_country_flag = ANQ_peace
@@ -690,6 +670,24 @@ ANQ_volunteers = {
 	}
 }
 
+liangguang_civil_war_volunteers = {
+	GXC = { has_civil_war = yes }
+	PREV = {
+		original_tag = GXC
+		china_compatible_alignment_to_PREV = yes
+		if = {
+			limit = { is_ruled_by_right_kmt = yes }
+			NOT = {
+				any_country_with_original_tag = {
+					original_tag_to_check = GXC
+					exists = yes
+					is_ruled_by_left_kmt = yes
+				}
+			}
+		}
+	}
+}
+
 
 ### Technology AI checks
 anti_submarine_strategy_required_trigger = {
@@ -704,22 +702,6 @@ anti_submarine_strategy_required_trigger = {
 				}
 			}
 		}
-	}
-}
-
-ai_air_doctrine_tier_1_trigger = {
-	OR = {
-		has_tech = naval_strike_tactics
-		has_tech = direct_ground_support
-		has_tech = low_echelon_support
-	}
-}
-
-ai_air_doctrine_tier_2_trigger = {
-	OR = {
-		has_tech = multialtitude_flying
-		has_tech = hunt_and_destroy
-		has_tech = operational_destruction
 	}
 }
 
@@ -866,7 +848,20 @@ has_unattained_important_goals = {
 	}
 }
 
+
 has_reached_maximum_divisions = {
+	has_variable = max_divisions #make sure the values have been initialised first
+	if = {
+		limit = { has_variable = num_actual_divisions }
+		check_variable = { var = num_actual_divisions value = max_divisions compare = greater_than_or_equals }
+	}
+	else = {
+		check_variable = { var = num_divisions value = max_divisions compare = greater_than_or_equals }
+	}
+}
+
+has_exceeded_maximum_divisions = {
+	has_variable = max_divisions #make sure the values have been initialised first
 	if = {
 		limit = { has_variable = num_actual_divisions }
 		check_variable = { num_actual_divisions > max_divisions }
@@ -876,22 +871,51 @@ has_reached_maximum_divisions = {
 	}
 }
 
+### Technology AI checks
+anti_submarine_strategy_required_trigger = {
+	OR = {
+		convoy_threat > 0.3
+		AND = {
+			has_war = yes
+			any_enemy_country = {
+				has_navy_size = {
+					type = submarine
+					size > 30
+				}
+			}
+		}
+	}
+}
+
+ai_is_naval_invader_trigger = {
+	OR = {
+		tag = CAN
+		tag = NFA
+		tag = JAP
+		tag = GBR
+		tag = ENG
+		tag = SRD
+	}
+}
+
 ### Common AI checks, for use in attack decisions
 ROOT_is_threatened_cautious = {
 	OR = {
 		has_war = yes
+		any_claim = yes
 		has_country_flag = imminent_war
 	}
 }
 
 ROOT_is_threatened = {
 	OR = {
-		enemies_strength_ratio > 0.5
-		surrender_progress > 0
+		has_civil_war = yes
+		any_claim = yes
+		alliance_strength_ratio < 1.25
+		surrender_progress > 0.05
 		has_country_flag = imminent_war
 	}
 }
-
 
 #on the target's scope
 dont_start_major_faction_wars = {
@@ -929,6 +953,31 @@ is_stronger_than_ROOT_and_not_vulnerable = {
 }
 
 #on the target's scope
+is_stronger_than_ROOT_and_not_vulnerable_consider_naval_strength = {
+	OR = {
+		strength_ratio = { tag = ROOT ratio > 1 }
+		AND = {
+			naval_strength_comparison = {
+				other = ROOT
+				ratio > 1
+				sub_unit_def_weights = {
+					submarine = 0.75
+					destroyer = 0.75
+					light_cruiser = 0.75
+					heavy_cruiser = 1
+					battle_cruiser = 1
+					battleship = 1
+					carrier = 1
+				}
+			}
+			enemies_naval_strength_ratio < 0.8
+		}
+	}
+	enemies_strength_ratio < 1
+	surrender_progress < 0.1
+}
+
+#on the target's scope
 faction_leader_is_stronger_than_ROOT_and_not_vulnerable = {
 	if = {
 		limit = { ROOT = { has_war = yes } }
@@ -955,10 +1004,95 @@ faction_leader_is_stronger_than_ROOT_and_not_vulnerable = {
 }
 
 #on the target's scope
+faction_leader_is_stronger_than_ROOT_and_not_vulnerable_consider_naval_strength = {
+	if = {
+		limit = { ROOT = { has_war = yes } }
+		is_in_faction = yes
+		is_faction_leader = no
+		faction_leader = {
+			OR = {
+				strength_ratio = { tag = ROOT ratio > 0.7 }
+				naval_strength_comparison = {
+					other = ROOT
+					ratio > 0.8
+					sub_unit_def_weights = {
+						submarine = 0.75
+						destroyer = 0.75
+						light_cruiser = 0.75
+						heavy_cruiser = 1
+						battle_cruiser = 1
+						battleship = 1
+						carrier = 1
+					}
+				}
+				is_actual_major = yes
+			}
+			enemies_strength_ratio < 1.5
+			surrender_progress < 0.2
+		}
+	}
+	else = {
+		is_in_faction = yes
+		is_faction_leader = no
+		faction_leader = {
+			OR = {
+				strength_ratio = { tag = ROOT ratio > 0.8 }
+				AND = {
+					naval_strength_comparison = {
+						other = ROOT
+						ratio > 1
+						sub_unit_def_weights = {
+							submarine = 0.75
+							destroyer = 0.75
+							light_cruiser = 0.75
+							heavy_cruiser = 1
+							battle_cruiser = 1
+							battleship = 1
+							carrier = 1
+						}
+					}
+					enemies_naval_strength_ratio < 0.8
+				}
+			}
+			enemies_strength_ratio < 1
+			surrender_progress < 0.1
+		}
+	}
+}
+
+#on the target's scope
 overlord_is_stronger_than_ROOT_and_not_vulnerable = {
 	is_subject = yes
 	overlord = {
 		strength_ratio = { tag = ROOT ratio > 0.8 }
+		enemies_strength_ratio < 1
+		surrender_progress < 0.1
+	}
+}
+
+#on the target's scope
+overlord_is_stronger_than_ROOT_and_not_vulnerable_consider_naval_strength = {
+	is_subject = yes
+	overlord = {
+		OR = {
+			strength_ratio = { tag = ROOT ratio > 0.8 }
+			AND = {
+				naval_strength_comparison = {
+					other = ROOT
+					ratio > 1
+					sub_unit_def_weights = {
+						submarine = 0.75
+						destroyer = 0.75
+						light_cruiser = 0.75
+						heavy_cruiser = 1
+						battle_cruiser = 1
+						battleship = 1
+						carrier = 1
+					}
+				}
+				enemies_naval_strength_ratio < 0.8
+			}
+		}
 		enemies_strength_ratio < 1
 		surrender_progress < 0.1
 	}
@@ -1002,5 +1136,25 @@ default_attack_AI_trigger_FROM = {
 		overlord_is_stronger_than_ROOT_and_not_vulnerable = yes
 		faction_leader_is_stronger_than_ROOT_and_not_vulnerable = yes
 		guarantor_is_stronger_than_ROOT_and_not_vulnerable = yes
+	}
+}
+
+default_attack_AI_trigger_FROM_consider_naval_strength = {
+	OR = {
+		is_stronger_than_ROOT_and_not_vulnerable_consider_naval_strength = yes
+		overlord_is_stronger_than_ROOT_and_not_vulnerable_consider_naval_strength = yes
+		faction_leader_is_stronger_than_ROOT_and_not_vulnerable_consider_naval_strength = yes
+		guarantor_is_stronger_than_ROOT_and_not_vulnerable = yes
+	}
+}
+
+
+country_is_in_dangerous_war = {
+	OR = {
+		has_civil_war = yes
+		any_claim = yes
+		alliance_strength_ratio < 1.25
+		surrender_progress > 0.05
+		has_country_flag = imminent_war
 	}
 }

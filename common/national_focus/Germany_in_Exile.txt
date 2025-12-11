@@ -48,6 +48,12 @@
 				tag = CEA
 			}
 		}
+
+		offset = {
+			x = -4
+			y = 3
+			trigger = { tag = TUR }
+		}
 		
 		available = {
 			custom_trigger_tooltip = {
@@ -55,13 +61,17 @@
 				GEX_fled_to_us = yes
 			}
 			OR = {
+				GEA = { exists = no }
 				has_global_flag = GEX_boo_hoo_no_asia
 				has_completed_focus = GEX_japan_wins_waaah
 				has_completed_focus = GEX_kill_japan
 			}
 		}
 
-		allow_branch = { NOT = { country_exists = GER } }
+		allow_branch = {
+			tag = event_target:current_german_exile_government
+			has_global_flag = GER_became_GEX
+		}
 
 		cost = 6
 
@@ -73,6 +83,10 @@
 			log = "[GetDateText]: [Root.GetName]: Focus GEX_darkest_hour"
 			add_stability = 0.05
 			add_war_support = 0.05
+			if = {
+				limit = { has_idea = MAF_Colonial_Nation }
+				remove_ideas = MAF_Colonial_Nation
+			}
 		}
 		search_filters = { FOCUS_FILTER_WAR_SUPPORT FOCUS_FILTER_STABILITY }
 	}
@@ -88,9 +102,8 @@
 		
 		allow_branch = {
 			tag = event_target:Mittelafrika_Target
-			NOT = {
-				country_exists = GER
-			}
+			tag = event_target:current_german_exile_government
+			has_global_flag = GER_became_GEX
 		}
 
 		ai_will_do = {
@@ -99,11 +112,22 @@
 
 		completion_reward = {
 			log = "[GetDateText]: [Root.GetName]: Focus GEX_kili"
-			add_tech_bonus = {
-				name = GEX_kili
-				bonus = 1
-				uses = 1
-				category = nuclear
+			if = {
+				limit = {
+					NOT = { has_tech = atomic_research }
+					NOT = { is_researching_technology = atomic_research }
+				}
+				add_tech_bonus = {
+					bonus = 0.5
+					uses = 1
+					technology = atomic_research
+				}
+			}
+			else = {
+				add_breakthrough_progress = {
+					specialization = specialization_nuclear
+					value = 0.5
+				}
 			}
 		}
 		search_filters = { FOCUS_FILTER_RESEARCH }
@@ -280,7 +304,7 @@
 					free_building_slots = {
 						building = infrastructure
 						size > 0
-						include_locked = yes
+						
 					}
 					OR = {
 						is_in_home_area = yes
@@ -290,7 +314,7 @@
 									free_building_slots = {
 										building = infrastructure
 										size > 0
-										include_locked = yes
+										
 									}
 									is_in_home_area = yes
 								}
@@ -384,9 +408,8 @@
 				tag = GEA
 				tag = LEP
 			}
-			NOT = {
-				country_exists = GER
-			}
+			tag = event_target:current_german_exile_government
+			has_global_flag = GER_became_GEX
 		}
 
 		completion_reward = {
@@ -512,18 +535,19 @@
 		completion_reward = {
 			if = {
 				limit = {
+					NOT = { tag = event_target:Mittelafrika_Target }
 					event_target:Mittelafrika_Target = {
 						exists = yes
-						NOT = { has_war_with = GEX }
-						NOT = { has_country_flag = GEX_rejected_exiles }
+						NOT = {
+							has_war_with = GEX
+							has_country_flag = GEX_rejected_exiles
+						}
 					}
 				}
 				event_target:Mittelafrika_Target = { country_event = GEX_foreign.1 }
 			}
 			every_state = {
-				limit = {
-					is_core_of = GER
-				}
+				limit = { is_core_of = GER }
 				add_core_of = GEX
 			}
 		}
@@ -540,6 +564,13 @@
 
 		ai_will_do = {
 			factor = 100
+			modifier = {
+				factor = 0
+				OR = {
+					ROOT_is_threatened = yes
+					FRA = { default_attack_AI_trigger_FROM = yes }
+				}
+			}
 		}
 		will_lead_to_war_with = FRA
 
@@ -633,7 +664,6 @@
 					has_war_with = FRA
 					has_war_with = RUS
 					has_war_with = TRM
-					has_war_with = SOV
 					has_war_with = GRU
 					has_war_with = BAY
 					has_war_with = WGR
@@ -765,7 +795,11 @@
 				limit = { is_faction_leader = yes }
 				set_faction_name = Mittelmacht
 			}
-			else = { create_faction = "Mittelmacht" }
+			else = { 			create_faction_from_template = { 
+				template = faction_template_generic_dominance              
+				name = "Mittelmacht"
+				icon = "GFX_faction_icon_reichspakt"
+			} }
 			add_political_power = 100
 			custom_effect_tooltip = GEX_Invite_Country_tt
 			custom_effect_tooltip = GEX_Invite_Country_tt2
@@ -786,9 +820,8 @@
 		
 		allow_branch = {
 			tag = event_target:Mittelafrika_Target
-			NOT = {
-				country_exists = GER
-			}
+			tag = event_target:current_german_exile_government
+			has_global_flag = GER_became_GEX
 		}
 
 		ai_will_do = {
@@ -820,6 +853,16 @@
 
 		ai_will_do = {
 			factor = 50
+			modifier = {
+				factor = 0
+				OR = {
+					ROOT_is_threatened = yes
+					ENT = { is_stronger_than_ROOT_and_not_vulnerable = yes }
+					NFA = { is_stronger_than_ROOT_and_not_vulnerable = yes }
+					NFA = { overlord_is_stronger_than_ROOT_and_not_vulnerable = yes }
+					NFA = { faction_leader_is_stronger_than_ROOT_and_not_vulnerable = yes }
+				}
+			}
 		}
 		will_lead_to_war_with = NFA
 
@@ -858,6 +901,16 @@
 
 		ai_will_do = {
 			factor = 50
+			modifier = {
+				factor = 0
+				OR = {
+					ROOT_is_threatened = yes
+					EGY = { dont_start_major_faction_wars = yes }
+					EGY = { is_stronger_than_ROOT_and_not_vulnerable = yes }
+					EGY = { overlord_is_stronger_than_ROOT_and_not_vulnerable = yes }
+					EGY = { faction_leader_is_stronger_than_ROOT_and_not_vulnerable = yes }
+				}
+			}
 		}
 		will_lead_to_war_with = EGY
 
@@ -897,9 +950,8 @@
 		
 		allow_branch = {
 			tag = GEA
-			NOT = {
-				country_exists = GER
-			}
+			tag = event_target:current_german_exile_government
+			has_global_flag = GER_became_GEX
 		}
 
 		ai_will_do = {
@@ -958,6 +1010,16 @@
 
 		ai_will_do = {
 			factor = 50
+			modifier = {
+				factor = 0
+				OR = {
+					ROOT_is_threatened = yes
+					var:335.owner = { dont_start_major_faction_wars = yes }
+					var:335.owner = { is_stronger_than_ROOT_and_not_vulnerable = yes }
+					var:335.owner = { overlord_is_stronger_than_ROOT_and_not_vulnerable = yes }
+					var:335.owner = { faction_leader_is_stronger_than_ROOT_and_not_vulnerable = yes }
+				}
+			}
 		}
 		will_lead_to_war_with = DEI
 		will_lead_to_war_with = INS
@@ -976,12 +1038,8 @@
 		completion_reward = {
 			log = "[GetDateText]: [Root.GetName]: Focus GEX_seize_the_straits"
 			declare_war_on = {
-				target = DEI
 				type = annex_everything
-			}
-			declare_war_on = {
-				target = INS
-				type = annex_everything
+				target = 335.owner
 			}
 		}
 		search_filters = { FOCUS_FILTER_ANNEXATION }
@@ -1011,6 +1069,13 @@
 
 		ai_will_do = {
 			factor = 50
+			modifier = {
+				factor = 0
+				OR = {
+					ROOT_is_threatened = yes
+					AST = { default_attack_AI_trigger_FROM = yes }
+				}
+			}
 		}
 		will_lead_to_war_with = AST
 
@@ -1044,9 +1109,8 @@
 		
 		allow_branch = {
 			tag = LEP
-			NOT = {
-				country_exists = GER
-			}
+			tag = event_target:current_german_exile_government
+			has_global_flag = GER_became_GEX
 		}
 
 		ai_will_do = {
@@ -1134,6 +1198,18 @@
 
 		ai_will_do = {
 			factor = 50
+			modifier = {
+				factor = 0
+				ROOT_is_threatened = yes
+			}
+			modifier = {
+				factor = 0
+				LEC = { dont_start_major_faction_wars = yes }
+			}
+			modifier = {
+				factor = 0
+				LEC = { default_attack_AI_trigger_FROM = yes }
+			}
 		}
 		will_lead_to_war_with = LEC
 
@@ -1169,9 +1245,8 @@
 		
 		allow_branch = {
 			tag = TUR
-			NOT = {
-				country_exists = GER
-			}
+			tag = event_target:current_german_exile_government
+			has_global_flag = GER_became_GEX
 		}
 
 		ai_will_do = {
@@ -1273,6 +1348,13 @@
 
 		ai_will_do = {
 			factor = 50
+			modifier = {
+				factor = 0
+				OR = {
+					ROOT_is_threatened = yes
+					AUS = { default_attack_AI_trigger_FROM = yes }
+				}
+			}
 		}
 		will_lead_to_war_with = AUS
 
@@ -1306,9 +1388,8 @@
 		
 		allow_branch = {
 			tag = TXS
-			NOT = {
-				country_exists = GER
-			}
+			tag = event_target:current_german_exile_government
+			has_global_flag = GER_became_GEX
 		}
 
 		ai_will_do = {
@@ -1346,6 +1427,16 @@
 
 		ai_will_do = {
 			factor = 50
+			modifier = {
+				factor = 0
+				OR = {
+					ROOT_is_threatened = yes
+					MEX = { dont_start_major_faction_wars = yes }
+					MEX = { is_stronger_than_ROOT_and_not_vulnerable = yes }
+					MEX = { overlord_is_stronger_than_ROOT_and_not_vulnerable = yes }
+					MEX = { faction_leader_is_stronger_than_ROOT_and_not_vulnerable = yes }
+				}
+			}
 		}
 		will_lead_to_war_with = MEX
 
@@ -1392,6 +1483,16 @@
 
 		ai_will_do = {
 			factor = 50
+			modifier = {
+				factor = 0
+				OR = {
+					ROOT_is_threatened = yes
+					VEN = { dont_start_major_faction_wars = yes }
+					VEN = { is_stronger_than_ROOT_and_not_vulnerable = yes }
+					VEN = { overlord_is_stronger_than_ROOT_and_not_vulnerable = yes }
+					VEN = { faction_leader_is_stronger_than_ROOT_and_not_vulnerable = yes }
+				}
+			}
 		}
 		will_lead_to_war_with = VEN
 
@@ -1586,9 +1687,8 @@
 				tag = TXS
 				tag = LEP
 			}
-			NOT = {
-				country_exists = GER
-			}
+			tag = event_target:current_german_exile_government
+			has_global_flag = GER_became_GEX
 		}
 
 		ai_will_do = {
@@ -1820,7 +1920,7 @@
 						tag = AUS
 						tag = TUR
 						tag = USA
-						tag = PSA
+						tag = CAL
 						tag = NEE
 						tag = TEX
 						tag = COR
