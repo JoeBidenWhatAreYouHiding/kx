@@ -8,7 +8,7 @@ faction_goal_unlock_research = {
 		FROM = { num_faction_members > 2 }
 	}
 	visible = {
-		FROM = { NOT = { has_faction_research_unlocked = yes } }
+		FROM = { has_faction_research_unlocked = no }
 	}
 	select_effect = {
 		set_temp_variable = { total_techs = 0 }
@@ -50,13 +50,17 @@ faction_goal_unlock_research = {
 					has_variable = unlock_military_techs_researched_target
 				}
 				check_variable = {
-					unlock_military_techs_researched_compare > unlock_military_techs_researched_target
+					var = unlock_military_techs_researched_compare
+					value = unlock_military_techs_researched_target
+					compare = greater_than
 					tooltip = "GOAL_T_TRIGGER_A"
 				}
 			}
 			else = {
 				check_variable = {
-					unlock_military_techs_researched_compare > unlock_military_techs_researched_compare_temp_target
+					var = unlock_military_techs_researched_compare
+					value = unlock_military_techs_researched_compare_temp_target
+					compare = greater_than
 					tooltip = "GOAL_T_TRIGGER_A"
 				}
 			}
@@ -66,7 +70,9 @@ faction_goal_unlock_research = {
 		set_faction_research_unlocked = yes
 		add_faction_initiative = 1
 	}
-	ai_will_do = { base = 950 }
+	ai_will_do = {
+		base = 1000 # They should always do this if they can
+	}
 }
 
 faction_goal_unlock_military = {
@@ -78,7 +84,7 @@ faction_goal_unlock_military = {
 		FROM = { num_faction_members > 2 }
 	}
 	visible = {
-		FROM = { NOT = { has_faction_military_unlocked = yes } }
+		FROM = { has_faction_military_unlocked = no }
 	}
 	select_effect = {
 		set_temp_variable = { total_divs = 0 }
@@ -120,14 +126,18 @@ faction_goal_unlock_military = {
 					has_variable = unlock_target
 				}
 				check_variable = {
-					unlock_compare > unlock_target
-					tooltip = GOAL_T_TRIGGER_B
+					var = unlock_compare
+					value = unlock_target
+					compare = greater_than
+					tooltip = "GOAL_T_TRIGGER_B"
 				}
 			}
 			else = {
 				check_variable = {
-					unlock_compare > unlock_military_techs_researched_compare_temp_target
-					tooltip = GOAL_T_TRIGGER_B
+					var = unlock_compare
+					value = unlock_military_techs_researched_compare_temp_target
+					compare = greater_than
+					tooltip = "GOAL_T_TRIGGER_B"
 				}
 			}
 		}
@@ -136,7 +146,9 @@ faction_goal_unlock_military = {
 		set_faction_military_unlocked = yes
 		add_faction_initiative = 1
 	}
-	ai_will_do = { base = 1000 }
+	ai_will_do = {
+		base = 1000 # They should always do this if they can
+	}
 }
 
 faction_goal_growing_the_faction = {
@@ -263,6 +275,81 @@ faction_goal_spy_master = {
 	}
 }
 
+
+faction_goal_convoy_sufficiency = {
+	name = convoy_sufficiency_goal_name
+	description = convoy_sufficiency_goal_desc
+	category = short_term
+	group = FOCUS_FILTER_INDUSTRY
+	completed = {
+		count_in_collection = {
+			collection = {
+				input = game:scope
+				operators = { faction_members }
+				name = FACTION_NAME
+			}
+			unit = convoy
+			size > 999
+		}
+	}
+	complete_effect = {
+		add_faction_power_projection = 100
+		custom_effect_tooltip = tooltip_white_line
+		custom_effect_tooltip = THE_FACTION_LEADER
+		add_faction_initiative = 1
+		custom_effect_tooltip = tooltip_white_line
+		every_faction_member = {
+			tooltip = AT_LEAST_200_CONVOYS
+			visible_when_empty = yes 
+			limit = {
+				has_navy_size = {
+				    size > 199
+				    type = convoy
+				}
+			}
+			navy_experience = 50
+		}
+	}
+	ai_will_do = {
+		base = 1
+		modifier = {  
+			add = -1
+			collection_size = {
+				input = {
+					input = game:all_states
+					operators = {
+						limit = {
+							is_coastal = yes
+							is_controlled_by_ROOT_or_ally = yes
+						}
+					}
+				}
+				value < 1
+			}
+		}
+		modifier = {  
+			add = 1
+			is_major = yes
+		}
+		modifier = {  
+			add = 1
+			collection_size = {
+				input = {
+					input = game:all_states
+					operators = {
+						limit = {
+							is_coastal = yes
+							is_controlled_by_ROOT_or_ally = yes
+						}
+					}
+				}
+				value > 19
+			}
+		}
+	}
+}
+
+
 faction_goal_ensure_military_r_d = {
 	name = ensure_military_r_d_goal_name
 	description = ensure_military_r_d_goal_desc
@@ -372,7 +459,7 @@ faction_goal_ensure_military_r_d = {
 				name = OWNS_LISTED_STATE
 			}
 			custom_effect_tooltip = OWNS_LISTED_STATE
-			add_faction_influence_ratio = 0.05
+			OWNER = { add_faction_influence_ratio = 0.05 }
 		}
 		every_faction_member = {
 			if = {
@@ -475,7 +562,7 @@ faction_goal_military_infrastructure = {
 								NOT = { is_in_faction_with = ROOT }
 							}
 						}
-						infrastructure < 5
+						infrastructure < 4
 					}
 				}
 				name = COLLECTION_FACTION_BORDER_STATES_FULL_INFRASTRUCTURE
@@ -495,12 +582,12 @@ faction_goal_military_infrastructure = {
 								NOT = { is_in_faction_with = ROOT }
 							}
 						}
-						infrastructure < 5
+						infrastructure < 4
 					}
 				}
 				name = COLLECTION_FACTION_BORDER_STATES_FULL_INFRASTRUCTURE
 			}
-			value < 1
+			value < 10
 		}
 	}
 	complete_effect = {
@@ -531,10 +618,12 @@ faction_goal_a_great_fortress = {
 		collection_size = {
 			input = {
 				input = collection:faction_owned_core_states
-				name = FACTION_CORE_STATES_NOT_FULLY_CONTROLLED
 				operators = {
-					limit = { NOT = { is_fully_controlled_by = owner } }
+					limit = {
+						NOT = { is_fully_controlled_by = OWNER }
+					}
 				}
+				name = FACTION_CORE_STATES_NOT_FULLY_CONTROLLED
 			}
 			value < 1
 		}
@@ -565,7 +654,9 @@ faction_goal_a_great_fortress = {
 		custom_effect_tooltip = tooltip_white_line
 		custom_effect_tooltip = ALL_FACTION_MEMBERS
 		every_faction_member = {
-			limit = { NOT = { has_idea = deterrence } }
+			limit = {
+				NOT = { has_idea = deterrence }
+			}
 			add_timed_idea = {
 				idea = deterrence
 				days = 360
@@ -599,7 +690,8 @@ faction_goal_an_armored_fist = {
 				name = FACTION
 			}
 			unit = armor
-			size > 14
+			equipment_ratio = 0.9
+			size > 49
 		}
 	}
 	complete_effect = {
@@ -613,6 +705,7 @@ faction_goal_an_armored_fist = {
 				limit = {
 					is_unit_leader = yes
 					OR = {
+						has_trait = armor_officer
 						has_trait = panzer_leader
 						has_trait = panzer_expert
 					}
@@ -622,7 +715,9 @@ faction_goal_an_armored_fist = {
 			}
 		}
 	}
-	ai_will_do = { base = 1 }
+	ai_will_do = {
+		base = 1
+	}
 }
 
 faction_goal_an_infantry_army = {
@@ -652,6 +747,7 @@ faction_goal_an_infantry_army = {
 				limit = {
 					is_unit_leader = yes
 					OR = {
+						has_trait = infantry_officer
 						has_trait = infantry_leader
 						has_trait = infantry_expert
 					}
@@ -661,7 +757,9 @@ faction_goal_an_infantry_army = {
 			}
 		}
 	}
-	ai_will_do = { base = 1 }
+	ai_will_do = {
+		base = 1
+	}
 }
 
 ### Strategic Resources
@@ -682,7 +780,7 @@ faction_goal_develop_ploiesti_oil_fields = {
 	}
 	completed = {
 		46 = {
-			controller = { has_tech = excavation3 }
+			CONTROLLER = { has_tech = excavation3 }
 			infrastructure > 4
 		}
 	}
@@ -738,7 +836,7 @@ faction_goal_develop_baku_oil_fields = {
 	}
 	completed = {
 		229 = {
-			controller = { has_tech = excavation3 }
+			CONTROLLER = { has_tech = excavation3 }
 			infrastructure > 4
 		}
 	}
