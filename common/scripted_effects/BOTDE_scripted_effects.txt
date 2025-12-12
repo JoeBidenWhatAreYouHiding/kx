@@ -440,14 +440,12 @@ AUS_do_revolt_rate_rise = {
 	add_to_temp_variable = { CONST_revolt_rate_rising = AUS.extra_value }
 	add_to_temp_variable = { CONST_revolt_rate_rising = global.extra_value_war_exhaust }
 	add_to_temp_variable = { CONST_revolt_rate_rising = global.extra_collapse_federalizing }
+	add_to_temp_variable = { revolt_rate_rising = modifier@BOTDE_revolt_rate_modifier }
 	add_to_temp_variable = { AUS.revolt_progress_change = revolt_rate_rising }
+	
 	if = {
 		limit = { has_global_flag = AUS_ausgleich_over }
 		subtract_from_temp_variable = { AUS.revolt_progress_change = 0.002 }
-	}
-	if = {
-		limit = { AUS = { has_idea = AUS_big_crisis_idea } }
-		add_to_temp_variable = { AUS.revolt_progress_change = 0.02 }
 	}
 	if = {
 		limit = {
@@ -485,6 +483,7 @@ CONST_do_additional_revolt_progress = {
 	add_to_temp_variable = { CONST_revolt_rate_rising = ROOT.extra_value }
 	add_to_temp_variable = { CONST_revolt_rate_rising = global.extra_value_war_exhaust }
 	add_to_temp_variable = { CONST_revolt_rate_rising = global.extra_collapse_federalizing }
+	add_to_temp_variable = { CONST_revolt_rate_rising = modifier@BOTDE_revolt_rate_modifier }
 	add_to_temp_variable = { ROOT.revolt_progress_change = CONST_revolt_rate_rising }
 	if = {
 		limit = {
@@ -1059,6 +1058,7 @@ BOTDE_check_for_constituent_revolt = {
 				check_variable = { THIS.subject_revolt_progress = 1 }
 				check_variable = { THIS.subject_revolt_progress > 1 }
 			}
+			NOT = { has_global_flag = AUS_liebenfels_civil_war }
 		}
 		if = {
 			limit = { tag = HUN }
@@ -1075,6 +1075,31 @@ BOTDE_check_for_constituent_revolt = {
 		else_if = {
 			limit = { tag = GAL }
 			country_event = revolt.4
+		}
+	}
+	if = {
+		limit = {
+			OR = {
+				check_variable = { THIS.subject_revolt_progress = 0.8 }
+				check_variable = { THIS.subject_revolt_progress > 0.8 }
+			}
+			has_global_flag = AUS_liebenfels_civil_war
+		}
+		if = {
+			limit = { tag = HUN }
+			AUS = { activate_mission = AUS_liebenfels_civil_war_HUN_leave_deadline }
+		}
+		if = {
+			limit = { tag = CRO }
+			AUS = { activate_mission = AUS_liebenfels_civil_war_CRO_leave_deadline }
+		}
+		if = {
+			limit = { tag = CZE }
+			AUS = { activate_mission = AUS_liebenfels_civil_war_CZE_leave_deadline }
+		}
+		if = {
+			limit = { tag = GAL }
+			AUS = { activate_mission = AUS_liebenfels_civil_war_GAL_leave_deadline }
 		}
 	}
 	set_variable = { global.AUS_tags_over_94_revolt = 0 }
@@ -4618,6 +4643,19 @@ AUS_blow_the_fuck_up_and_make_the_yugoslav_wars_look_like_a_joke = {
 					to_state_array = owned_states
 				}
 			}
+		}
+		
+		if = {
+			limit = {
+				has_global_flag = AUS_liebenfels_civil_war
+			}
+			AWR = {
+				annex_country = {
+					target = AUS
+					transfer_troops = yes
+				}
+			}
+			clr_global_flag = AUS_liebenfels_civil_war
 		}
 		
 		every_country = {
@@ -12694,7 +12732,7 @@ AUS_PNEO_coup_effect = {
 	add_pataut_to_coalition = yes
 }
 AUS_liebenfels_civil_war_prelude_setup = {
-	every_state = {
+	every_owned_state = {
 		limit = {
 			OR = {
 				state = 39
@@ -12733,5 +12771,55 @@ AUS_liebenfels_civil_war_prelude_setup = {
 			paternal_autocrat = 12
 			national_populist = 60
 		}
+		remove_ideas = {
+			AWR_kaisertreuen
+			AWR_leftist_disunity
+			AUS_postcollapse_army_idea
+			AUS_militias
+		}
 	}
+	AUS = {
+		activate_mission = AUS_liebenfels_civil_war_headsup
+		transfer_units_fraction = {
+			target = AWR
+			stockpile_ratio = 0.2
+			army_ratio = 0.2
+			navy_ratio = 0.2
+			air_ratio = 0.2
+			keep_unit_leaders_trigger = { always = yes }
+		}
+	}
+}
+AUS_liebenfels_civil_war_real_start_setup = {
+	AWR = {
+		every_country = {
+			limit = {
+				OR = {
+					tag = AUS
+					is_subject_of = AUS
+				}
+			}
+			declare_war_on = {
+				target = PREV
+				type = annex_everything
+			}
+		}
+		set_major = yes
+	}
+	every_country = {
+		limit = {
+			OR = {
+				tag = AUS
+				tag = AWR
+			}
+		}
+		add_ideas = AUS_liebenfels_civil_war_idea
+	}
+	AUS = {
+		add_ideas = AUS_liebenfels_civil_war_idea_AUS
+	}
+	AWR = {
+		add_ideas = AUS_liebenfels_civil_war_idea_AWR
+	}
+	set_global_flag = AUS_liebenfels_civil_war
 }
