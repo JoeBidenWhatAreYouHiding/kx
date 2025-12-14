@@ -428,7 +428,7 @@ AUS_do_revolt_rate_rise = {
 		limit = {
 			has_war = no
 		}
-		set_variable = { extra_value_war_exhaust = 0 }
+		set_variable = { global.extra_value_war_exhaust = 0 }
 	}
 	set_temp_variable = { revolt_rate_rising = stability }
 	subtract_from_temp_variable = { revolt_rate_rising = 1 }
@@ -436,9 +436,6 @@ AUS_do_revolt_rate_rise = {
 	set_temp_variable = { revolt_rate_party_pop_thing = party_popularity@ruling_party }
 	divide_temp_variable = { revolt_rate_party_pop_thing = 100 }
 	subtract_from_temp_variable = { revolt_rate_rising = revolt_rate_party_pop_thing }
-	add_to_temp_variable = { CONST_revolt_rate_rising = AUS.extra_value }
-	add_to_temp_variable = { CONST_revolt_rate_rising = global.extra_value_war_exhaust }
-	add_to_temp_variable = { CONST_revolt_rate_rising = global.extra_collapse_federalizing }
 	add_to_temp_variable = { revolt_rate_rising = modifier@BOTDE_revolt_rate_modifier }
 	add_to_temp_variable = { AUS.revolt_progress_change = revolt_rate_rising }
 	
@@ -457,6 +454,7 @@ AUS_do_revolt_rate_rise = {
 		}
 		subtract_from_temp_variable = { AUS.revolt_progress_change = 0.002 }
 	}
+	log = "[GetDateText]: [Root.GetName]: AUS_do_revolt_rate_rise: [?AUS.revolt_progress_change]"
 	BOTDE_add_collapse = yes
 }
 
@@ -478,27 +476,33 @@ CONST_do_additional_revolt_progress = {
 	divide_temp_variable = { CONST_revolt_rate_rising = 20 }
 	divide_temp_variable = { CONST_revolt_rate_rising_AUS = 5000 }
 	subtract_from_temp_variable = { CONST_revolt_rate_rising = CONST_revolt_rate_rising_battalion_AUS }
-	add_to_temp_variable = { CONST_revolt_rate_rising = ROOT.extra_value }
+	add_to_temp_variable = { CONST_revolt_rate_rising = THIS.extra_value }
+	add_to_temp_variable = { CONST_revolt_rate_rising = AUS.extra_value }
 	add_to_temp_variable = { CONST_revolt_rate_rising = global.extra_value_war_exhaust }
 	add_to_temp_variable = { CONST_revolt_rate_rising = global.extra_collapse_federalizing }
 	add_to_temp_variable = { CONST_revolt_rate_rising = modifier@BOTDE_revolt_rate_modifier }
-	add_to_temp_variable = { ROOT.revolt_progress_change = CONST_revolt_rate_rising }
+	add_to_temp_variable = { THIS.revolt_progress_change = CONST_revolt_rate_rising }
 	if = {
 		limit = {
 			has_global_flag = AUS_ausgleich_over
 		}
-		subtract_from_temp_variable = { ROOT.revolt_progress_change = 0.01 }
+		subtract_from_temp_variable = { THIS.revolt_progress_change = 0.01 }
 	}
+	add_to_variable = { ROOT.subject_revolt_progress = 0.01 }
+	if = {
+		limit = {
+			has_country_flag = AUS_evidenzbureau_focus
+		}
+		add_to_variable = { ROOT.subject_revolt_progress = -0.015 }
+	}
+	log = "[GetDateText]: [Root.GetName]: CONST_do_additional_revolt_progress: [?revolt_progress_change]"
 	BOTDE_add_collapse = yes
 }
 
 AUS_do_revolt_rate_rise_counterintel = {
 	set_temp_variable = { AUS_intel_subtract = modifier@intelligence_agency_defense }
 	divide_temp_variable = { AUS_intel_subtract = 750 }
-	subtract_from_temp_variable = {
-		var = ROOT.revolt_progress_change
-		value = AUS_intel_subtract
-	}
+	subtract_from_temp_variable = { ROOT.revolt_progress_change = AUS_intel_subtract }
 	BOTDE_add_collapse = yes
 }
 
@@ -517,10 +521,7 @@ AUS_do_revolt_rate_rise_operative_mission = {
 				}
 			}
 		}
-		add_to_temp_variable = {
-			var = ROOT.revolt_progress_change
-			value = -0.003
-		}
+		add_to_temp_variable = { ROOT.revolt_progress_change = -0.003 }
 		BOTDE_add_collapse = yes
 	}
 }
@@ -542,10 +543,7 @@ AUS_do_revolt_rate_rise_operative_mission_diplo_pressure = {
 				}
 			}
 		}
-		add_to_temp_variable = {
-			var = ROOT.subject_revolt_progress
-			value = -0.003
-		}
+		add_to_temp_variable = { ROOT.revolt_progress_change = -0.003 }
 		BOTDE_add_collapse = yes
 	}
 }
@@ -12853,4 +12851,143 @@ AUS_liebenfels_civil_war_real_start_setup = {
 		}
 	}
 	set_global_flag = AUS_liebenfels_civil_war
+}
+AUS_display_weekly_collpase_modifiers_effect_tooltip = { #uses a effect tooltip to display the below because hoi4 jank
+	custom_effect_tooltip = AUS_const_tooltip_modifiers
+	set_temp_variable = { current_modifier = 0 }
+	if = {
+		limit = {
+			THIS = { tag = AUS }
+		}
+		effect_tooltip = { AUS_display_weekly_collpase_modifiers_effect = yes }
+	}
+	else_if = {
+		limit = {
+			THIS = {
+				NOT = { tag = AUS }
+				AUS_is_constituent = yes
+			}
+		}
+		effect_tooltip = { AUS_display_weekly_const_revolt_modifiers_effect = yes }
+	}
+}
+AUS_display_weekly_collpase_modifiers_effect = {
+	if = {
+		limit = {
+			check_variable = { current_modifier < 10 }
+		}
+		if = { #base value
+			limit = { check_variable = { current_modifier = 0 } }
+			set_temp_variable = { modifier = 0 }
+			if = {
+				limit = { has_global_flag = AUS_ausgleich_over }
+				subtract_from_temp_variable = { modifier = 0.002 }
+			}
+			if = {
+				limit = {
+					OR = {
+						has_completed_focus = AUS_root_out_class_hatred
+						has_completed_focus = AUS_to_these_united_states
+						has_completed_focus = AUS_test_of_time
+						has_completed_focus = AUS_charity_and_unity
+					}
+				}
+				subtract_from_temp_variable = { AUS.revolt_progress_change = 0.002 }
+			}
+			custom_effect_tooltip = AUS_const_tooltip_modifier_base_value
+		}
+		if = { #ruling party pop
+			limit = { check_variable = { current_modifier = 1 } }
+			set_temp_variable = { modifier = party_popularity@ruling_party }
+			multiply_temp_variable = { modifier = -0.01 }
+			if = {
+				limit = { NOT = { check_variable = { modifier = 0 } } }
+				custom_effect_tooltip = AUS_const_tooltip_modifier_party_pop
+			}
+		}
+		if = { # stability
+			limit = { check_variable = { current_modifier = 2 } }
+			set_temp_variable = { modifier = stability }
+			subtract_from_temp_variable = { modifier = 1 }
+			multiply_temp_variable = { modifier = -0.03 }
+			if = {
+				limit = { NOT = { check_variable = { modifier = 0 } } }
+				custom_effect_tooltip = AUS_const_tooltip_modifier_stability
+			}
+		}
+		if = { #revolt rate modifier
+			limit = { check_variable = { current_modifier = 3 } }
+			set_temp_variable = { modifier = modifier@BOTDE_revolt_rate_modifier }
+			if = {
+				limit = { NOT = { check_variable = { modifier = 0 } } }
+				custom_effect_tooltip = AUS_const_tooltip_modifier_revolt_rate_modifier
+			}
+		}
+		if = { #war exhaust
+			limit = { check_variable = { current_modifier = 4 } }
+			set_temp_variable = { modifier = global.extra_value_war_exhaust }
+			if = {
+				limit = { NOT = { check_variable = { modifier = 0 } } }
+				custom_effect_tooltip = AUS_const_tooltip_modifier_war_exhaust
+			}
+		}
+		add_to_temp_variable = { current_modifier = 1 }
+		AUS_display_weekly_collpase_modifiers_effect = yes
+	}
+}
+AUS_display_weekly_const_revolt_modifiers_effect = {
+	if = {
+		limit = {
+			check_variable = { current_modifier < 10 }
+		}
+		if = { #base value
+			limit = { check_variable = { current_modifier = 0 } }
+			set_temp_variable = { modifier = 0 }
+			if = {
+				limit = { has_global_flag = AUS_ausgleich_over }
+				subtract_from_temp_variable = { modifier = 0.01 }
+			}
+			custom_effect_tooltip = AUS_const_tooltip_modifier_base_value
+		}
+		if = { #factories
+			limit = { check_variable = { current_modifier = 1 } }
+			set_temp_variable = { modifier = num_of_factories }
+			divide_temp_variable = { modifier = 2400 } # 120 * 20
+			if = {
+				limit = { NOT = { check_variable = { modifier = 0 } } }
+				custom_effect_tooltip = AUS_const_tooltip_modifier_factories
+			}
+		}
+		if = { # stability
+			limit = { check_variable = { current_modifier = 2 } }
+			set_temp_variable = { modifier = stability }
+			multiply_temp_variable = { modifier = 0.25 } # 5 / 20
+			if = {
+				limit = { NOT = { check_variable = { modifier = 0 } } }
+				custom_effect_tooltip = AUS_const_tooltip_modifier_stability
+			}
+		}
+		if = { # stability
+			limit = { check_variable = { current_modifier = 3 } }
+			set_temp_variable = { modifier = 0 }
+			if = {
+				limit = { has_country_flag = AUS_evidenzbureau_focus }
+				subtract_from_temp_variable = { modifier = 0.015 }
+			}
+			if = {
+				limit = { NOT = { check_variable = { modifier = 0 } } }
+				custom_effect_tooltip = AUS_const_tooltip_modifier_evidenzbureau
+			}
+		}
+		if = { #revolt rate modifier
+			limit = { check_variable = { current_modifier = 4 } }
+			set_temp_variable = { modifier = modifier@BOTDE_revolt_rate_modifier }
+			if = {
+				limit = { NOT = { check_variable = { modifier = 0 } } }
+				custom_effect_tooltip = AUS_const_tooltip_modifier_revolt_rate_modifier
+			}
+		}
+		add_to_temp_variable = { current_modifier = 1 }
+		AUS_display_weekly_const_revolt_modifiers_effect = yes
+	}
 }
