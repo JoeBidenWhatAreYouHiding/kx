@@ -12786,7 +12786,10 @@ RUS_dealing_with_revolution_cat = {
 		}
 
 		cancel_trigger = {
-			has_capitulated = yes
+			OR = {
+				has_capitulated = yes
+				NOT = { has_country_flag = RUS_revolutionary_ferment_minigame }
+			}
 		}
 		
 		ai_will_do = {
@@ -13858,7 +13861,9 @@ RUS_council_of_the_republic_cat = {
 		}
 
 		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_reinstate_civilian_administration"			
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_reinstate_civilian_administration"	
+			set_temp_variable = { RUS_rev_ferment_change = -5 }
+			RUS_change_rev_ferment = yes
 			FROM = {
 				clr_state_flag = RUS_increased_military_presence
 				custom_effect_tooltip = RUS_decrease_rovs_pop_small_tt
@@ -14130,13 +14135,19 @@ RUS_council_of_the_republic_cat = {
 	RUS_introduce_regional_autonomy_provisions = {
 		icon = GFX_decision_generic_political_discourse
 		available = {
-			has_completed_focus = RUS_Civil_Administration_Reform
+			if = {
+				limit = { RUS_denikin_in_power = yes }
+				has_completed_focus = RUS_Civil_Administration_Reform
+			}
 			all_owned_state = {
 				NOT = { has_state_flag = RUS_increased_military_presence }
 			}
 		}
 		visible = {
-			has_active_mission = RUS_constitutional_drafting_mission
+			OR = {
+				has_active_mission = RUS_constitutional_drafting_mission
+				RUS_boldyrev_in_power = yes
+			}
 		}
 
 		cost = 50
@@ -14155,6 +14166,11 @@ RUS_council_of_the_republic_cat = {
 
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_introduce_regional_autonomy_provisions"
+			if = {
+				limit = { RUS_boldyrev_in_power = yes }
+				set_temp_variable = { RUS_rev_ferment_change = -6 }
+				RUS_change_rev_ferment = yes
+			}
 			RUS_increase_autonomists_pop = yes
 			RUS_increase_federalists_pop = yes
 			set_temp_variable = { RUS_vvsr_rovs_unity_change = -0.05 }
@@ -14205,6 +14221,64 @@ RUS_council_of_the_republic_cat = {
 			}
 			set_temp_variable = { RUS_vvsr_rovs_unity_change = -0.10 }
 			RUS_change_rovs_unity = yes
+		}
+	}
+	RUS_convene_the_vsr = {
+		icon = GFX_decision_eng_trade_unions_demand
+		allowed = { always = no }
+		visible = {
+			RUS_boldyrev_in_power = yes			
+			NOT = { has_power_balance = { id = RUS_rovs_balance } }
+			RUS_rev_ferment_lower_15 = yes
+		}
+
+		cost = 25
+		days_remove = 35
+		fire_only_once = yes
+		
+		cancel_if_not_visible = yes
+
+
+		ai_will_do = {
+			factor = 100
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_convene_the_vsr"
+			if = {
+				limit = { 
+					check_variable = { RUS_boldyrev_dem = 1 }
+					check_variable = { RUS_boldyrev_pf = 1 }
+				}
+				set_temp_variable = { RUS_rev_ferment_change = -10 }
+				RUS_change_rev_ferment = yes
+				if = {
+					limit = { 
+						has_power_balance = { id = RUS_rovs_balance }
+					}
+					add_power_balance_value = {
+						id = RUS_rovs_balance
+						value = -0.10
+					}
+					set_temp_variable = { RUS_vvsr_rovs_unity_change = 0.05 }
+					RUS_change_rovs_unity = yes
+				}
+				country_event = { id = rusd.3256 days = 5 }
+			}
+			else = {
+				set_temp_variable = { RUS_rev_ferment_change = -5 }
+				RUS_change_rev_ferment = yes
+				if = {
+					limit = { 
+						has_power_balance = { id = RUS_rovs_balance }
+					}
+					add_power_balance_value = {
+						id = RUS_rovs_balance
+						value = -0.05
+					}
+				}
+				country_event = { id = rusd.3257 days = 5 }
+			}
 		}
 	}
 }
