@@ -1630,7 +1630,6 @@ TRM_Spheres_Of_Influence = {
 	TRM_final_stage_of_petropavlovks_dockyard = {
 		icon = GFX_decision_generic_naval_base
 		visible = {
-			NOT = { has_global_flag = TRM_relations_JAP_broke }
 			637 = { is_owned_and_controlled_by = ROOT }
 		}
 
@@ -1646,11 +1645,9 @@ TRM_Spheres_Of_Influence = {
 		fire_only_once = yes
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove TRM_final_stage_of_petropavlovks_dockyard target: [From.GetName]"
-			add_popularity = {ideology = authoritarian_democrat popularity = 0.03}
 			add_popularity = {ideology = social_conservative popularity = 0.03}
 			637 = {
 				TRM_increase_ruling_party_support = yes
-				TRM_Decrease_Kolchak_Support = yes
 				add_building_construction = {
 					type = coastal_bunker
 					level = 1
@@ -3579,9 +3576,20 @@ TRM_russian_expansion = {
 		available = {
 			can_declare_war_on = FROM
 			OR = {
-				is_owner_neighbor_of = FROM
-				any_allied_country = { is_owner_neighbor_of = FROM }
+				is_neighbor_of = FROM
+				any_allied_country = { is_neighbor_of = FROM }
 			}
+			if = {
+				limit = { tag = ALO }
+				NOT = {
+					country_exists = KAZ
+					country_exists = TTR
+					country_exists = BKN
+				}
+			}
+		}
+		visible = { 
+			russian_civil_war = yes
 		}
 
 		cost = 10
@@ -3654,13 +3662,29 @@ TRM_russian_expansion = {
 		target_root_trigger = {
 			OR = {
 				has_idea = TRM_dream
+				has_idea = TRM_dream_fulfilled
 				has_idea = TRM_Sib_Fed
 			}
-			219 = { NOT = { is_owned_and_controlled_by = ROOT } }
-			195 = { NOT = { is_owned_and_controlled_by = ROOT } }
 		}
 		target_trigger = {
 			if = {
+				limit = { 
+					OR = {
+						195 = { is_owned_and_controlled_by = ROOT }
+						219 = { is_owned_and_controlled_by = ROOT }
+					}
+				}
+				FROM = { 
+					NOT = { 
+						state = 653
+						state = 566 
+						state = 568
+						state = 570
+						state = 571
+					}
+				}
+			}
+			else_if = {
 				limit = { 
 					653 = { 
 						is_capital = yes 
@@ -3806,12 +3830,10 @@ TRM_russian_expansion = {
 					}
 				}
 				set_country_flag = TRM_relocated_capital
-				add_political_power = 100
-				add_stability = 0.10
+				add_political_power = 50
 			}
-			else = {
-				add_stability = 0.05				
-				set_temp_variable = { change_morale = 0.10 }
+			else = {		
+				set_temp_variable = { change_morale = 0.08 }
 				RUS_change_siberian_war_morale = yes	
 			}
 		}
@@ -3874,21 +3896,27 @@ TRM_russian_expansion = {
 TRM_Mlad_cat = {
 	TRM_Denounce_RUS = {
 		allowed = { tag = TRM }
+		icon = GFX_decision_eng_propaganda_campaigns
 		available = {
-			country_exists = RUS
 			NOT = { has_country_flag = TRM_already_denouncing_nation }
+		}
+		targets = { RUS WRA RVA RRF }
+		target_root_trigger = {
 			OR = {
 				has_completed_focus = TRM_modern_bog
 				has_government = social_democrat
 			}
 		}
-		visible = {
-			RUS = {
+		target_trigger = {
+			FROM = {
 				RUS_russian_monarch = no
+				OR = {
+					owns_state = 195
+					owns_state = 219
+				}
 			}
 		}
-		icon = GFX_decision_eng_propaganda_campaigns
-
+		
 		cost = 70
 		days_remove = 15
 		fire_only_once = yes
@@ -3913,20 +3941,27 @@ TRM_Mlad_cat = {
 	}
 	TRM_Denounce_false_tsar = {
 		allowed = { tag = TRM }
+		icon = GFX_decision_eng_propaganda_campaigns
 		available = {
-			country_exists = RUS
 			NOT = { has_country_flag = TRM_already_denouncing_nation }
+		}
+		targets = { RUS }
+		target_root_trigger = {
 			OR = {
 				has_completed_focus = TRM_modern_bog
 				has_government = social_democrat
 			}
 		}
-		visible = {
-			RUS = {
+		target_trigger = {
+			FROM = {
 				RUS_russian_monarch = yes
+				OR = {
+					owns_state = 195
+					owns_state = 219
+				}
 			}
 		}
-		icon = GFX_decision_eng_propaganda_campaigns
+		
 
 		cost = 70
 		days_remove = 15
@@ -3954,19 +3989,25 @@ TRM_Mlad_cat = {
 
 		cost = 70
 		days_remove = 15
-		days_re_enable = 29
+		days_re_enable = 45
 
 		ai_will_do = {
 			factor = 25
+			modifier = {
+				factor = 0
+				OR = {
+					totalist > 0.7
+					social_democrat > 0.7
+					war_support > 0.7
+				}
+			}
 		}
 
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove TRM_pro_imperial_propaganda"
 			add_war_support = 0.02
-			add_popularity = {
-				ideology = totalist
-				popularity = 0.02
-			}
+			increase_ruling_party_popularity_by_2 = yes
+			TRM_increase_legitmacy = yes
 		}
 	} 
 	TRM_massive_parties = {
@@ -4033,7 +4074,7 @@ TRM_Mlad_cat = {
 			}
 		}
 
-		days_mission_timeout = 50
+		days_mission_timeout = 100
 		is_good = no
 		fire_only_once = yes
 		
