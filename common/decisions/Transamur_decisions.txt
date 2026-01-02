@@ -1489,26 +1489,25 @@ TRM_Spheres_Of_Influence = {
 	TRM_destroy_separatism = {
 		icon = GFX_decision_generic_prepare_civil_war
 		available = {
-			custom_trigger_tooltip = {
-				tooltip = TRM_destroy_separatism_available
-				check_variable = { party_popularity@social_liberal < 0.05 }
-			}
-			if = {
-				limit = { TRM_kolchak_in_power = yes }
+			OR = {
+				custom_trigger_tooltip = {
+					tooltip = TRM_oblastniki_influence_less_10
+					check_variable = { TRM.TRM_Overall_Oblastniki_Support < 0.10 }
+				}
+				has_completed_focus = TRM_Devoted_Subjects_Of_The_Monarchy
+				has_completed_focus = TRM_The_Third_Constituent_Assembly
+				has_completed_focus = TRM_Democracy_Under_Guidance
 				has_completed_focus = TRM_Deal_With_Oblastniki
-			}
-			else_if = {
-				limit = { has_right_democratic_government = yes }
 				has_completed_focus = TRM_Continue_Kolchak_Policies
-			}
-			else_if = {
-				limit = { TRM_Pepelyaev_coup = yes }
 				has_completed_focus = TRM_Legacy_Of_Old_Russia
 			}
 		}
 		visible = {
 			has_country_flag = TRM_oblastniki_operate
-			has_left_democratic_government = no
+			NOT = { 
+				has_government = social_liberal
+				is_in_coalition_with_social_liberal = yes
+			}			
 		}
 		
 		cost = 0
@@ -1553,7 +1552,6 @@ TRM_Spheres_Of_Influence = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove TRM_revive_goldmining_bodaybo target: [From.GetName]"
 			565 = { TRM_increase_ruling_party_support = yes }
 			add_political_power = 50
-			add_ideas = TRM_goldmining
 		}
 	}
 	TRM_improve_yakutian_tracts = {
@@ -3451,18 +3449,86 @@ TRM_russian_expansion = {
 			1129 = { is_owned_and_controlled_by = ROOT }
 			70 = { is_owned_and_controlled_by = ROOT }
 			NOT = { country_exists = CZE }
+		}
+		visible = {
 			TRM_czech_legion_in_power = yes
 		}
 		cost = 0
 		fire_only_once = yes
-		days_remove = 35
 		ai_will_do = {
 			base = 1000
 		}
 		priority = 100
-		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision TRM_Become_Russia"
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRM_return_to_czechoslovakia"
 			TRM_become_czechoslovak_legion = yes
+		}
+	}
+	TRM_proclaim_slavic_federation = {
+		icon = GFX_decision_eng_install_government
+		allowed = { always = no }
+		available = {
+			10 = { is_owned_by_ROOT_or_ally = yes }
+			1129 = { is_owned_by_ROOT_or_ally = yes }
+			107 = { is_owned_by_ROOT_or_ally = yes }
+			109 = { is_owned_by_ROOT_or_ally = yes }
+			48 = { is_owned_by_ROOT_or_ally = yes }
+			202 = { is_owned_by_ROOT_or_ally = yes }
+			206 = { is_owned_by_ROOT_or_ally = yes }			
+			91 = { is_owned_by_ROOT_or_ally = yes }			
+		}
+		visible = {
+			TRM_czech_legion_in_power = yes
+		}
+		cost = 0
+		fire_only_once = yes
+		ai_will_do = {
+			base = 1000
+		}
+		priority = 100
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision TRM_proclaim_slavic_federation"
+			set_cosmetic_tag = TRM_slavia
+			every_other_country = {
+				limit = {
+					OR = {
+						is_south_slav_tag = yes
+						original_tag = POL
+						original_tag = CZE
+						original_tag = SVK
+						original_tag = WSU
+						original_tag = GAL
+						original_tag = UKR
+						original_tag = WHR
+						original_tag = BUL
+					}
+					is_ally_of_ROOT = yes
+				}
+				every_owned_state = { 
+					limit = { is_core_of = PREV }
+					add_core_of = ROOT
+				}
+				ROOT = { annex_country = { target = PREV } }
+			}
+			every_state = {
+				limit = {
+					OR = {
+						region = 22
+						region = 145
+						region = 155
+						region = 38
+						region = 39
+						region = 130
+						region = 165
+						region = 26
+						region = 143
+						is_core_of = SER
+					}
+				}
+				add_core_of = ROOT
+			}
 		}
 	}
 	TRM_Become_Russia = {
@@ -3495,12 +3561,12 @@ TRM_russian_expansion = {
 		}
 		cost = 0
 		fire_only_once = yes
-		days_remove = 35
 		ai_will_do = {
 			base = 1000
 		}
 		priority = 100
-		remove_effect = {
+		
+		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision TRM_Become_Russia"
 			TRM_become_russia_effect = yes
 		}
@@ -3554,6 +3620,23 @@ TRM_russian_expansion = {
 			log = "[GetDateText]: [Root.GetName]: Decision complete TRM_expand_south target: [From.GetName]"
 			FROM = { incoming_war_notification_effect = yes }
 			setup_decision_attack_AI = yes
+			if = {
+				limit = { 
+					turkestan_can_ally_russia_FROM = yes
+					FROM = {
+						original_tag = ALO
+						is_subject = no
+					}
+				}
+				FROM = { 
+					country_event = {
+						id = turkestan_events.185
+						days = 4
+					}
+				}
+				custom_effect_tooltip = if_FROM_agrees
+				effect_tooltip = { puppet = FROM }
+			}
 		}
 
 		remove_effect = {
@@ -3567,7 +3650,7 @@ TRM_russian_expansion = {
 	}	
 	TRM_relocate_capital = {
 		
-		targets = { 566 568 570 219 195 653 }
+		targets = { 566 568 570 219 195 653 571 }
 		target_root_trigger = {
 			OR = {
 				has_idea = TRM_dream
@@ -3580,6 +3663,22 @@ TRM_russian_expansion = {
 			if = {
 				limit = { 
 					653 = { 
+						is_capital = yes 
+						is_controlled_by = ROOT
+					} 
+				}
+				FROM = { 
+					NOT = { 
+						state = 566 
+						state = 568
+						state = 570
+						state = 571
+					}
+				}
+			}
+			else_if = {
+				limit = { 
+					571 = { 
 						is_capital = yes 
 						is_controlled_by = ROOT
 					} 
@@ -3625,8 +3724,7 @@ TRM_russian_expansion = {
 			}
 		}
 		visible = {
-			219 = { is_capital = no }
-			195 = { is_capital = no }
+			NOT = { has_country_flag = TRM_relocated_capital }
 		}
 		state_target = yes
 
@@ -3656,6 +3754,7 @@ TRM_russian_expansion = {
 				}
 				568 = { NOT = { is_owned_and_controlled_by = ROOT } }
 				570 = { NOT = { is_owned_and_controlled_by = ROOT } }
+				571 = { NOT = { is_owned_and_controlled_by = ROOT } }
 				653 = { NOT = { is_owned_and_controlled_by = ROOT } }
 			}
 			modifier = {
@@ -3665,12 +3764,22 @@ TRM_russian_expansion = {
 					is_owned_and_controlled_by = ROOT
 				}
 				570 = { NOT = { is_owned_and_controlled_by = ROOT } }
+				571 = { NOT = { is_owned_and_controlled_by = ROOT } }
 				653 = { NOT = { is_owned_and_controlled_by = ROOT } }
 			}
 			modifier = {
 				add = 100
 				FROM = { 
 					state = 570 
+					is_owned_and_controlled_by = ROOT
+				}
+				571 = { NOT = { is_owned_and_controlled_by = ROOT } }
+				653 = { NOT = { is_owned_and_controlled_by = ROOT } }
+			}
+			modifier = {
+				add = 100
+				FROM = { 
+					state = 571 
 					is_owned_and_controlled_by = ROOT
 				}
 				653 = { NOT = { is_owned_and_controlled_by = ROOT } }
@@ -3696,6 +3805,7 @@ TRM_russian_expansion = {
 						}
 					}
 				}
+				set_country_flag = TRM_relocated_capital
 				add_political_power = 100
 				add_stability = 0.10
 			}

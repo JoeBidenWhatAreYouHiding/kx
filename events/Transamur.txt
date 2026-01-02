@@ -974,6 +974,11 @@ country_event = { #
 		add_political_power = 100
 		TRM_do_after_coup_purge = yes
 		add_ideas = RUS_semyenov_loyalists_resistance		
+		every_owned_state = {
+			limit = { TRM_is_legitimate_state = yes }
+			TRM_Decrease_Semyonov_Support = yes
+			TRM_Decrease_Japanese_Support = yes
+		}
 		if = {
 			limit = { TRM_has_japanese_influence = yes }
 			set_global_flag = PRI_breaksaway
@@ -1148,6 +1153,10 @@ country_event = { #
 				owner = ROOT
 			}
 		}
+		every_owned_state = {
+			limit = { TRM_is_legitimate_state = yes }
+			TRM_Increase_ROVS_Support = yes
+		}
 	}
 	option = {
 		name = tram.61.b
@@ -1157,6 +1166,10 @@ country_event = { #
 		add_popularity = {
 			ideology = paternal_autocrat
 			popularity = -0.05
+		}
+		every_owned_state = {
+			limit = { TRM_is_legitimate_state = yes }
+			TRM_Decrease_ROVS_Support = yes
 		}
 	}	
 }
@@ -1379,37 +1392,26 @@ country_event = { #
 	
 	option = {
 		name = tram.67.a	
-		ai_chance = { base = 50 }
+		ai_chance = { 
+			base = 50 
+			modifier = {
+				factor = 0
+				has_game_rule = { rule = TRM_path option = RULE_OPTION_TRM_PEPEL_OBL }
+			}
+		}
 		add_ideas = TRM_big_federation
-		if = {
-			limit = { has_cosmetic_tag = TRM_SIB_PEPEL }
-			set_cosmetic_tag = TRM_SIB_PEPEL_usa
-		}
-		else_if = {
-			limit = { has_cosmetic_tag = TRM_SIB_PEPEL2 }
-			set_cosmetic_tag = TRM_SIB_PEPEL2_usa
-		}
+		set_cosmetic_tag = TRM_SIB_PEPEL_usa
 		add_soclib_to_coalition = yes
 		remove_marlib_from_coalition = yes
+		TRM_increase_oblastniki_level = yes
 	}	
 	option = {
 		name = tram.67.b	
 		ai_chance = { 
-			base = 50 
-			modifier = {
-				factor = 1000
-				has_game_rule = { rule = TRM_path option = RULE_OPTION_TRM_PEPEL_OBL }
-			}
+			base = 50
 		}
 		add_ideas = TRM_united_federation
-		if = {
-			limit = { has_cosmetic_tag = TRM_SIB_PEPEL }
-			set_cosmetic_tag = TRM_SIB_PEPEL_fed
-		}
-		else_if = {
-			limit = { has_cosmetic_tag = TRM_SIB_PEPEL2 }
-			set_cosmetic_tag = TRM_SIB_PEPEL2_fed
-		}		
+		set_cosmetic_tag = TRM_SIB_PEPEL_fed
 	}	
 }
 country_event = { #
@@ -1480,7 +1482,7 @@ country_event = { #
 				is_siberia = no
 			}
 			remove_claim_by = ROOT
-		}		
+		}
 	}	
 }
 country_event = { #
@@ -3757,9 +3759,15 @@ country_event = { #We can rest at last
 
 	option = {
 		name = tram.145.a
-		swap_ideas = {
-			remove_idea = TRM_dream
-			add_idea = TRM_dream_fulfilled
+		if = {
+			limit = { has_idea = TRM_dream }
+			swap_ideas = {
+				remove_idea = TRM_dream
+				add_idea = TRM_dream_fulfilled
+			}
+		}
+		else = {
+			add_ideas = TRM_dream_fulfilled
 		}
 		every_owned_state = {
 			limit = { 
@@ -4317,19 +4325,63 @@ country_event = { #japanese issue
 	is_triggered_only = yes
 	
 	option = {
+		name = tram.149.a
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 0
+				has_game_rule = { rule = TRM_forpol option = TRM_FORPOL_JAP }
+			}
+		}
+		add_stability = 0.15
+		add_manpower = -1500
+		add_political_power = 50
+		if = {
+			limit = { TRM_has_japanese_influence = yes }
+			set_global_flag = PRI_breaksaway
+			set_global_flag = TRM_relations_JAP_broke
+			hidden_effect = {
+				TRM = {
+					TRM_remove_japanese_influence = yes
+					set_temp_variable = { target = JAP }
+					clear_all_relations_with_TARGET = yes
+				}
+				JAP = {			
+					diplomatic_relation = {
+						country = TRM
+						relation = docking_rights
+						active = no
+					}
+				}
+			}
+			JAP = {
+				country_event = {
+					id = tram.150
+					days = 2
+				}
+			}
+		}
+	}
+	option = {
 		name = tram.149.b
+		ai_chance = {
+			factor = 50
+		}
 		add_stability = -0.025
 		add_political_power = -50
 		add_popularity = {
 			ideology = social_conservative
-			popularity = 0.02
+			popularity = 0.05
 		}
-		add_popularity = {
-			ideology = authoritarian_democrat
-			popularity = 0.03
+		if = {
+			limit = {
+				NOT = { is_in_faction_with = JAP }
+			}
+			JAP = {
+				country_event = tram.151
+			}
 		}
 	}
-	
 }
 country_event = { #cut ties with the japanese
 	id = tram.1491
@@ -6327,6 +6379,10 @@ country_event = { #Anti-japanese propaganda
 			ideology = social_conservative
 			popularity = -0.05
 		}
+		every_owned_state = {
+			limit = { TRM_is_legitimate_state = yes }
+			TRM_Decrease_Japanese_Support = yes
+		}
 	}
 }
 country_event = { #Anti-japanese propaganda
@@ -6344,14 +6400,11 @@ country_event = { #Anti-japanese propaganda
 			ideology = social_conservative
 			popularity = -0.05
 		}
-		set_temp_variable = { target = JAP }
-		clear_all_relations_with_TARGET = yes		
-		JAP = {			
-			diplomatic_relation = {
-				country = TRM
-				relation = docking_rights
-				active = no
-			}
+		every_owned_state = {
+			limit = { TRM_is_legitimate_state = yes }
+			TRM_Decrease_Japanese_Support = yes
+		}
+		JAP = {
 			country_event = {
 				id = trmnra.42
 				days = 2
@@ -6639,6 +6692,12 @@ country_event = { #ROVS
 			popularity = 0.025
 		}
 		TRM_do_after_coup_purge = yes
+		every_owned_state = {
+			limit = { TRM_is_legitimate_state = yes }
+			TRM_Increase_NRA_Resistance = yes
+			TRM_Decrease_Kolchak_Support = yes
+			TRM_Decrease_ROVS_Support = yes
+		}
 		country_event = {
 			id = trammlad.9 days = 2
 		}
@@ -8238,6 +8297,13 @@ country_event = { #Legion
 			name = TRM_czech_party
 			long_name = TRM_czech_party_long
 		}
+		if = {
+			limit = { TRM_Pepelyaev_coup = yes }
+			random_unit_leader = {
+				limit = { has_id = 505060 }
+				retire = yes
+			}
+		}
 		set_politics = {
 			ruling_party = paternal_autocrat
 			elections_allowed = no
@@ -8348,6 +8414,7 @@ country_event = { #Legion
 			TRM_Felix_Achille_Camara_sec_npo
 		}
 		TRM_do_after_coup_purge = yes
+		TRM_remove_oblastniki_influence = yes
 		set_politics = {
 			ruling_party = national_populist
 			elections_allowed = no
@@ -8510,7 +8577,7 @@ country_event = { #Ally Oblastniki
 	option = {
 		name = tramsem.5.a
 		add_stability = 0.10
-		
+		TRM_increase_oblastniki_level = yes
 	}
 }
 country_event = { #Ally Transamur?
@@ -11565,7 +11632,8 @@ country_event = {
 				set_cosmetic_tag = TRM_PEPEL_RUS_fed
 			}
 		}
-		else = {
+		else_if = {
+			limit = { has_cosmetic_tag = TRM_PROV }
 			set_cosmetic_tag = TRM_RUS
 		}
 		set_party_name = {
@@ -12497,6 +12565,7 @@ country_event = {
 			limit = { is_hosting_exile = SIB }
 			SIB = { end_exile = yes }
 		}
+		remove_ideas = TRM_Sib_Fed						
 		every_owned_state = {
 			limit = { is_siberia = yes }
 			add_dynamic_modifier = { modifier = RUS_siberian_autonomous_republic }  
@@ -12531,6 +12600,7 @@ country_event = {
 		custom_effect_tooltip = TRM_nps_grows_stronger
 		add_to_variable = { TRM_nps = 1 }
 		TRM_remove_oblastniki_influence = yes
+		remove_ideas = TRM_Sib_Fed
 		if = {
 			limit = { has_country_flag = TRM_Monarchy_flag }
 			if = {
@@ -12914,6 +12984,7 @@ country_event = {
 			}
 			add_core_of = TRM
 		}
+		add_country_leader_trait = TRM_liberator_of_siberia
 		activate_targeted_decision = { target = ORE decision = TRM_expand_south }
 		activate_targeted_decision = { target = URL decision = TRM_expand_south }
 		activate_targeted_decision = { target = BKN decision = TRM_expand_south }
