@@ -3677,6 +3677,101 @@ country_event = {
 }
 
 country_event = { #RCW
+	id = rcw.110
+	immediate = { log = "[GetDateText]: [Root.GetName]: event rcw.110" }
+	title = rcw.110.t
+	desc = rcw.110.d
+	fire_only_once = yes
+	is_triggered_only = yes
+			
+	option = {
+		name = rcw.110.a
+		ai_chance = {
+			base = 100
+			modifier = {
+				add = -100
+				FROM = { is_stronger_than_ROOT_and_not_vulnerable = no }
+			}
+		}
+		FROM = {
+			country_event = {
+				id = rcw.111
+				days = 2
+			}
+		}
+	}
+	option = {
+		name = rcw.110.b
+		ai_chance = {
+			base = 0
+			modifier = {
+				add = 100
+				FROM = { is_stronger_than_ROOT_and_not_vulnerable = no }
+			}
+		}
+		increase_ruling_party_popularity_by_10 = yes
+		add_stability = 0.1
+		add_war_support = 0.1
+		FROM = {
+			country_event = {
+				id = rcw.112
+				days = 2
+			}
+		}
+	}
+}
+country_event = { #RCW
+	id = rcw.111
+	immediate = { log = "[GetDateText]: [Root.GetName]: event rcw.111" }
+	title = rcw.111.t
+	desc = rcw.111.d
+	
+	fire_only_once = yes
+	is_triggered_only = yes
+			
+	option = {
+		name = rcw.111.a
+		FROM = {
+			every_unit_leader = {
+				set_nationality = ROOT
+			}
+			every_subject_country = {
+				get_current_government_type = yes
+				ROOT = { puppet = PREV }
+				restore_previous_government_type = yes
+			}
+			every_enemy_country = {
+				ROOT = { declare_war_on = { target = PREV type = annex_everything } }
+			}
+			transfer_units_fraction = {
+				target = ROOT
+				size = 1
+				keep_unit_leaders_trigger = { always = yes }
+			}
+			dismantle_faction = yes
+		}
+		annex_country = { target = FROM transfer_troops = yes }
+		if = {
+			limit = { FROM = { is_ai = no } }
+			ROOT = { change_tag_from = FROM }
+		}
+	}
+}
+country_event = { #RCW
+	id = rcw.112
+	immediate = { log = "[GetDateText]: [Root.GetName]: event rcw.112" }
+	title = rcw.112.t
+	desc = rcw.112.d
+	
+	fire_only_once = yes
+	is_triggered_only = yes
+			
+	option = {
+		name = rcw.112.a
+		add_opinion_modifier = { target = FROM modifier = KR_hostile }
+	}
+}
+country_event = { #RCW
 	id = rcw.200
 	immediate = { log = "[GetDateText]: [Root.GetName]: event rcw.200" }
 	title = rcw.200.t
@@ -5422,18 +5517,54 @@ country_event = { #RCW
 	
 	option = {
 		name = rcw.254.a
-		every_other_country = {
-			limit = { 
-				is_in_faction_with = ROOT 
-				OR = {
-					is_subject_of = ROOT
-					is_subject = no
-				}					
+		if = {
+			limit = {
+				TRM = {
+					is_in_faction_with = ROOT
+					OR = {
+						is_subject_of = ROOT
+						is_subject = no
+					}
+					has_idea = TRM_dream
+				}
 			}
-			country_event = {
-				id = rcw.255
-				days = 1
-				random = 24
+			TRM = {
+				country_event = {
+					id = rcw.258
+					days = 5
+					random = 24
+				}
+			}
+			every_other_country = {
+				limit = { 
+					is_in_faction_with = ROOT 
+					OR = {
+						is_subject_of = ROOT
+						is_subject = no
+					}		
+					NOT = { tag = TRM }
+				}
+				country_event = {
+					id = rcw.255
+					days = 1
+					random = 24
+				}
+			}
+		}
+		else = {
+			every_other_country = {
+				limit = { 
+					is_in_faction_with = ROOT 
+					OR = {
+						is_subject_of = ROOT
+						is_subject = no
+					}					
+				}
+				country_event = {
+					id = rcw.255
+					days = 1
+					random = 24
+				}
 			}
 		}
 	}
@@ -5448,49 +5579,64 @@ country_event = { #RCW
 	option = {
 		name = rcw.255.a
 		ai_chance = { 
-			base = 85
+			base = 50
 			modifier = {
-				factor = 0.5
+				factor = 0
+				FROM = { RUS_kornilov_in_power = yes }
+				NOT = { 
+					tag = RRF 
+					tag = ORE
+				}
+			}
+			modifier = {
+				factor = 0
+				FROM = { RUS_denikin_in_power = yes }
 				OR = {
-					tag = WRA
-					tag = KAR
-					tag = RRF
+					AND = {
+						tag = TRM
+						TRM_kolchak_in_power = no
+						TRM_Pepelyaev_coup = no
+					}
+					tag = WRA					
 				}
 			}
-		}
-		if = {
-			limit = {
-				NOT = {
-					has_country_leader = {
-						name = "Aleksandr Kolchak"
-						ruling_only = yes
+			modifier = {
+				factor = 0
+				FROM = { RUS_wrangel_in_power = yes }
+				OR = {
+					AND = {
+						tag = TRM
+						TRM_do_rovs_in_power = no
+						TRM_Nats_in_power = no
 					}
+					tag = RRF					
 				}
 			}
-			effect_tooltip = { 
-				FROM = {
-					annex_country = {
-						target = ROOT
-					}
-				}
+			modifier = {
+				factor = 0
+				is_russian_cw_tag = no
 			}
 		}
 		FROM = { 
 			country_event = {
 				id = rcw.256 
-				days = 2
-				random = 48
+				days = 1
+				random = 24
 			}
 		}
 	}
 	option = {
 		name = rcw.255.b
 		ai_chance = { 
-			base = 15
+			base = 50
 		}
 		effect_tooltip = { 
 			leave_faction = yes 
 			FROM = { declare_war_on = { target = ROOT } }
+		}
+		hidden_effect = {
+			set_temp_variable = { target = FROM }
+			clear_all_relations_with_TARGET = yes
 		}
 		FROM = { country_event = rcw.257 }
 	}
@@ -5504,55 +5650,30 @@ country_event = { #RCW
 	
 	option = {
 		name = rcw.256.a
-		if = {
-			limit = {
-				FROM = { 
-					NOT = { 
-						has_country_leader = {
-							name = "Aleksandr Kolchak"
-							ruling_only = yes
-						}
-					}
-				}
+		FROM = {
+			every_unit_leader = {
+				set_nationality = ROOT
 			}
-			FROM = {
-				every_unit_leader = { set_nationality = ROOT }
-			}
-			every_other_country = {
-				limit = { is_subject_of = FROM }
-				random_unit_leader = {
-					limit = { has_id = 747914 }
-					set_nationality = ROOT
-				}
-				random_unit_leader = {
-					limit = { has_id = 15016 }
-					set_nationality = ROOT
-				}
+			every_subject_country = {
 				ROOT = {
-					annex_country = {
-						target = PREV
-						transfer_troops = no
-					}
+					annex_country = { target = PREV transfer_troops = yes }
 				}
 			}
-			annex_country = {
-				target = FROM
-				transfer_troops = yes
+			every_enemy_country = {
+				ROOT = { declare_war_on = { target = PREV type = annex_everything } }
 			}
-			hidden_effect = { RCW_merge_popularities = yes }
-		}
-		else = {
-			country_event = {
-				id = rcw.258
-				days = 2
+			transfer_units_fraction = {
+				target = ROOT
+				size = 1
+				keep_unit_leaders_trigger = { always = yes }
 			}
 		}
+		annex_country = { target = FROM transfer_troops = yes }
 	}
 }
 country_event = { #RCW
 	id = rcw.257
 	immediate = { log = "[GetDateText]: [Root.GetName]: event rcw.257" }
-	immediate = { hidden_effect = { FROM = { leave_faction = yes } } }
 	title = rcw.257.t
 	desc = rcw.257.d	
 	is_triggered_only = yes
@@ -5571,25 +5692,16 @@ country_event = { #RCW
 	immediate = { log = "[GetDateText]: [Root.GetName]: event rcw.258" }
 	title = rcw.258.t
 	desc = rcw.258.d	
+	
 	is_triggered_only = yes
 	
 	option = {
 		name = rcw.258.a
-		ai_chance = { base = 1 }
-		TRM = {
+		FROM = {
 			country_event = {
 				id = rcw.259
-				days = 2
-			}
-		}
-	}
-	option = {
-		name = rcw.258.a
-		trigger = { TRM = { is_ai = no } }
-		TRM = {
-			country_event = {
-				id = rcw.260
-				days = 2
+				days = 1
+				random = 24
 			}
 		}
 	}
@@ -5597,21 +5709,64 @@ country_event = { #RCW
 country_event = { #RCW
 	id = rcw.259
 	immediate = { log = "[GetDateText]: [Root.GetName]: event rcw.259" }
-	title = rcw.259.t
+	title = rcw.258.t
 	desc = rcw.259.d	
+	
 	is_triggered_only = yes
 	
 	option = {
 		name = rcw.259.a
-		set_global_flag = RCW_amnesty_to_trm
-		every_unit_leader = { set_nationality = FROM }
-		FROM = {
-			annex_country = {
-				target = ROOT
-				transfer_troops = yes
-			}
-			hidden_effect = { RCW_merge_popularities = yes }
+		ai_chance = { 
+			base = 0 
 		}
+		set_temp_variable = { target = FROM }
+		clear_all_relations_with_TARGET = yes
+		hidden_effect = {
+			FROM = { leave_faction = yes }
+		}
+	}
+	option = {
+		name = rcw.259.b
+		ai_chance = {
+			base = 100
+			modifier = {
+				add = -100
+				RUS_denikin_in_power = yes
+				FROM = {
+					TRM_kolchak_in_power = no
+					TRM_Pepelyaev_coup = no
+				}
+			}
+			modifier = {
+				add = -100
+				RUS_wrangel_in_power = yes
+				FROM = {
+					TRM_do_rovs_in_power = no
+					TRM_Nats_in_power = no
+				}
+			}
+			modifier = {
+				add = 100
+				FROM = { is_ai = no }
+			}
+		}
+		effect_tooltip = {
+			every_unit_leader = {
+				set_nationality = FROM
+			}
+			every_subject_country = {
+				get_current_government_type = yes
+				FROM = { puppet = PREV }
+				restore_previous_government_type = yes
+			}
+			every_enemy_country = {
+				FROM = { declare_war_on = { target = PREV type = annex_everything } }
+			}
+			FROM = {
+				annex_country = { target = ROOT }
+			}
+		}
+		FROM = { country_event = rcw.260 }
 	}
 }
 country_event = { #RCW
@@ -5619,16 +5774,35 @@ country_event = { #RCW
 	immediate = { log = "[GetDateText]: [Root.GetName]: event rcw.260" }
 	title = rcw.260.t
 	desc = rcw.260.d	
+	
 	is_triggered_only = yes
 	
 	option = {
 		name = rcw.260.a
-		FROM = { every_unit_leader = { set_nationality = ROOT } }
-		annex_country = {
-			target = FROM
-			transfer_troops = yes
+		FROM = {
+			every_unit_leader = {
+				set_nationality = ROOT
+			}
+			every_subject_country = {
+				get_current_government_type = yes
+				ROOT = { puppet = PREV }
+				restore_previous_government_type = yes
+			}
+			every_enemy_country = {
+				ROOT = { declare_war_on = { target = PREV type = annex_everything } }
+			}
+			transfer_units_fraction = {
+				target = ROOT
+				size = 1
+				keep_unit_leaders_trigger = { always = yes }
+			}
+			dismantle_faction = yes
 		}
-		hidden_effect = { RCW_merge_popularities = yes }
+		annex_country = { target = FROM transfer_troops = yes }
+		if = {
+			limit = { FROM = { is_ai = no } }
+			ROOT = { change_tag_from = FROM }
+		}
 	}
 }
 country_event = { #Kornilov's Death
