@@ -8982,7 +8982,6 @@ BOTDE_5BW_peace = {
 		if = {
 			limit = {
 				OR = {
-					tag = SER
 					is_subject_of = SER
 				}
 				CRO = {
@@ -8994,43 +8993,66 @@ BOTDE_5BW_peace = {
 					target = PREV
 				}
 			}
-			else_if = {
+		}
+		else_if = {
+			limit = { tag = SER }
+			AUS = { AUS_occupy_SER_effect = yes }
+		}
+		else_if = {
+			limit = {
+				is_subject_of = ROM
+				NOT = {
+					tag = BUK
+				}
+				HUN = { is_in_faction_with = AUS }
+			}
+			HUN = {
+				annex_country = {
+					target = PREV
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				tag = BUK
+				GAL = { is_in_faction_with = AUS }
+			}
+			GAL = {
+				annex_country = {
+					target = PREV
+				}
+			}
+		}
+		else_if = {
+			limit = { tag = ROM }
+			if = {
+				limit = { UKR = { is_in_faction_with = AUS } }
+				every_owned_state = {
+					limit = { is_core_of = UKR }
+					transfer_state_to = UKR
+				}
+			}
+			if = {
 				limit = {
-					OR = {
-						tag = ROM
-						is_subject_of = ROM
-					}
-					NOT = {
-						tag = BUK
-					}
-					HUN = {
-						is_in_faction_with = AUS
-					}
-				}
-				HUN = {
-					annex_country = {
-						target = PREV
-					}
-				}
-				else_if = {
-					limit = {
-						tag = BUK
-						GAL = {
+					BUL = {
+						OR = {
 							is_in_faction_with = AUS
+							has_war_with = ROM
 						}
+						NOT = { has_war_with = AUS }
 					}
-					GAL = {
-						annex_country = {
-							target = PREV
-						}
-					}
-					else = {
-						AUS = {
-							annex_country = {
-								target = PREV
-							}
-						}
-					}
+				}
+				every_owned_state = {
+					limit = { is_core_of = BUL }
+					transfer_state_to = BUL
+				}
+			}
+			AUS = { AUS_occupy_ROM_effect = yes }
+		}
+		else = {
+			AUS = {
+				annex_country = {
+					target = PREV
 				}
 			}
 		}
@@ -9078,8 +9100,11 @@ BOTDE_5BW_init = {
 }
 
 THIS_minority_stop_revolt = {
-	custom_effect_tooltip = THIS_unable_to_revolt
-	set_country_flag = no_minority_revolt
+	custom_override_tooltip = {
+		tooltip = THIS_unable_to_revolt
+		set_country_flag = no_minority_revolt
+		set_variable = { THIS.subject_revolt_progress = 0 }
+	}
 }
 
 AUS_RUS_do_oil_upgrade = {
@@ -12002,27 +12027,21 @@ AUS_meta_BM_reduce = {
 	set_temp_variable = { AUS_BM_value_temp = AUS_BM_value }
 	add_to_variable = { AUS.AUS_BM_value = 1 }
 	if = {
-		limit = {
-			check_variable = {
-				var = AUS.AUS_BM_value
-				value = 6
-				compare = greater_than_or_equals
-			}
-		}
+		limit = { check_variable = { AUS.AUS_BM_value > 5 } }
 		remove_ideas = AUS_bm_5
-		else = {
-			custom_effect_tooltip = AUS_bm_reduce
-			hidden_effect = {
-				meta_effect = {
-					text = {
-						swap_ideas = {
-							add_idea = AUS_bm_[AUS_BM_value]
-							remove_idea = AUS_bm_[AUS_BM_value_temp]
-						}
+	}
+	else = {
+		custom_override_tooltip = {
+			tooltip = AUS_bm_reduce
+			meta_effect = {
+				text = {
+					swap_ideas = {
+						add_idea = AUS_bm_[AUS_BM_value]
+						remove_idea = AUS_bm_[AUS_BM_value_temp]
 					}
-					AUS_BM_value = "[?AUS_BM_value]"
-					AUS_BM_value_temp = "[?AUS_BM_value_temp]"
 				}
+				AUS_BM_value = "[?AUS_BM_value]"
+				AUS_BM_value_temp = "[?AUS_BM_value_temp]"
 			}
 		}
 	}
@@ -12032,27 +12051,21 @@ AUS_meta_army_reduce = {
 	set_temp_variable = { AUS_army_value_temp = AUS_army_value }
 	add_to_variable = { AUS.AUS_army_value = 1 }
 	if = {
-		limit = {
-			check_variable = {
-				var = AUS.AUS_army_value
-				value = 6
-				compare = greater_than_or_equals
-			}
-		}
+		limit = { check_variable = { AUS.AUS_army_value > 5 } }
 		remove_ideas = AUS_obsolete_military_5
-		else = {
-			custom_effect_tooltip = AUS_army_reduce
-			hidden_effect = {
-				meta_effect = {
-					text = {
-						swap_ideas = {
-							add_idea = AUS_obsolete_military_[AUS_army_value]
-							remove_idea = AUS_obsolete_military_[AUS_army_value_temp]
-						}
+	}
+	else = {
+		custom_override_tooltip = {
+			tooltip = AUS_army_reduce
+			meta_effect = {
+				text = {
+					swap_ideas = {
+						add_idea = AUS_obsolete_military_[AUS_army_value]
+						remove_idea = AUS_obsolete_military_[AUS_army_value_temp]
 					}
-					AUS_army_value = "[?AUS_army_value]"
-					AUS_army_value_temp = "[?AUS_army_value_temp]"
 				}
+				AUS_army_value = "[?AUS_army_value]"
+				AUS_army_value_temp = "[?AUS_army_value_temp]"
 			}
 		}
 	}
@@ -12779,10 +12792,6 @@ SER_revolt_mission_timeout_effect = {
 				id = bdeausfor.101
 				hours = 2
 				random_hours = 3
-			}
-			news_event = {
-				id = bdeausnews.7
-				days = 2
 			}
 		}
 	}
