@@ -6758,11 +6758,11 @@ country_event = { #Slovakia revolt
 				autonomy_state = autonomy_free
 			}
 			SVK = {
+				set_cosmetic_tag = SVK_collapse
 				REV_spawn_units = yes
 				transfer_technology_without_doctrines = yes
 				set_country_flag = AUS_collapse_hold_border_wars_flag
 			}
-			
 		}
 	}
 	
@@ -8330,18 +8330,20 @@ country_event = { #CONST - FROM asks for peace
 		}
 	}
 	
-	picture = GFX_event_AUS_reprisals
-
-	fire_only_once = no
+	picture = GFX_report_event_BAN_mass_gathering
 	
 	is_triggered_only = yes
 
 	option = { #Death waaaar!
 		name = constituents.57.a
-		ai_chance = { factor = 10 }
+		ai_chance = {
+			base = 10
+			modifier = {
+				has_country_flag = BOTDE_always_accept_post_collapse_peace_offers
+				factor = 0
+			}
+		}
 		custom_effect_tooltip = no_more_peace
-		#add_political_power = -50
-		#add_stability = -0.1
 		FROM = {
 			add_to_array = {
 				array = THIS.CONST_attempted_peace
@@ -8364,12 +8366,13 @@ country_event = { #CONST - FROM asks for peace
 	option = { #Peace is preferable.
 		name = constituents.57.b
 		ai_chance = {
-			factor = 50
+			base = 50
 			modifier = {
-				factor = 0
-				FROM = {
-					surrender_progress > 0.8
+				AND = {
+					FROM = { surrender_progress > 0.8 }
+					NOT = { has_country_flag = BOTDE_always_accept_post_collapse_peace_offers }
 				}
+				factor = 0
 			}
 		}
 		every_owned_state = {
@@ -8405,6 +8408,9 @@ country_event = { #CONST - FROM asks for peace
 				}
 				transfer_state_to = ROOT
 			}
+			hidden_effect = {
+				CONST_generic_peace_post = yes
+			}
 		}
 		white_peace = FROM
 	}
@@ -8417,15 +8423,15 @@ country_event = { #FROM denies peace overtures
 	title = constituents.58.t
 	desc = constituents.58.d
 	
-	picture = GFX_event_AUS_reprisals
+	picture = GFX_event_AUS_shits_going_down
 
-	fire_only_once = no
 	is_triggered_only = yes
 
 	option = { #Death waaaar!
 		name = constituents.58.a
 		ai_chance = { factor = 10 }
 		add_political_power = -15
+		add_war_support = 0.2
 	}
 }
 
@@ -9081,6 +9087,31 @@ country_event = { #ITA - take land?
 	fire_only_once = yes
 
 	is_triggered_only = yes
+	
+	immediate = {
+		hidden_effect = {
+			if = {
+				limit = { has_cosmetic_tag = ITA_LOMBARDY_VENITA }
+				AUS = {
+					set_autonomy = { target = ITA autonomy_state = autonomy_free }
+					remove_from_faction = ITA
+					diplomatic_relation = {
+						country = ITA 
+						relation = non_aggression_pact
+					}
+					remove_opinion_modifier = {
+						target = ITA
+						modifier = faction_traitor
+					}
+					if = {
+						limit = { ITA = { AUS_DWV_member = yes } }
+						ITA = { AUS_remove_from_DWV = yes }
+					}
+					ITA = { country_event = italianrepublic.151 }
+				}
+			}
+		}
+	}
 
 	option = { #Why not?
 		name = constituents.101.a
@@ -9192,7 +9223,8 @@ country_event = { #Austria Collapsed Event for GER
 		trigger = {
 			check_variable = { global.AUS_GER_tensions < 2 }
 		}
-		add_political_power = -5
+		decrease_ruling_party_popularity_by_5 = yes
+		add_stability = -0.05
 	}
 	option = { #eh
 		name = constituents.102.b
@@ -9200,14 +9232,14 @@ country_event = { #Austria Collapsed Event for GER
 			check_variable = { global.AUS_GER_tensions > 1 }
 			check_variable = { global.AUS_GER_tensions < 3 }
 		}
-		add_political_power = -5
+		add_stability = -0.02
 	}
 	option = { #rip bozo
 		name = constituents.102.c
 		trigger = {
 			check_variable = { global.AUS_GER_tensions > 2 }
 		}
-		add_political_power = -5
+		increase_ruling_party_popularity_by_5 = yes
 	}
 }
 
@@ -9216,6 +9248,8 @@ country_event = { #SER and ROM, Austria blows up lmao rip bozo
 	immediate = { log = "[GetDateText]: [Root.GetName]: event constituents.103" }
 	title = constituents.103.t
 	desc = constituents.103.d
+	
+	picture = GFX_event_AUS_franz_josef_throne
 
 	is_triggered_only = yes
 
@@ -9224,6 +9258,76 @@ country_event = { #SER and ROM, Austria blows up lmao rip bozo
 		ai_chance = { base = 100 }
 		increase_ruling_party_popularity_by_5 = yes
 		add_war_support = 0.1
+		add_stability = 0.1
+		if = {
+			limit = { has_idea = SER_austrias_watchful_eye }
+			remove_ideas = SER_austrias_watchful_eye
+		}
+	}
+}
+
+country_event = { #event that gives SER, ROM, CRO, etc. the event about unification because hoi4 jank
+	id = constituents.999
+	immediate = { log = "[GetDateText]: [Root.GetName]: event constituents.999" }
+	title = constituents.999.t
+	desc = constituents.999.d
+	
+	hidden = yes
+
+	is_triggered_only = yes
+
+	option = { #SER
+		name = constituents.999.a
+		trigger = {
+			OR = {
+				tag = MNT
+				tag = SKS
+			}
+		}
+		ai_chance = { base = 100 }
+		SER = {
+			country_event = {
+				id = constituents.1000
+				days = 1
+				random_days = 14
+				random_hours = 24
+			}
+		}
+	}
+	option = { #ROM
+		name = constituents.999.b
+		trigger = {
+			OR = {
+				tag = BUK
+				tag = TRS
+			}
+		}
+		ai_chance = { base = 100 }
+		ROM = {
+			country_event = {
+				id = constituents.1000
+				days = 1
+				random_days = 14
+				random_hours = 24
+			}
+		}
+	}
+	option = { #CRO
+		name = constituents.999.c
+		trigger = {
+			OR = {
+				tag = SLO
+			}
+		}
+		ai_chance = { base = 100 }
+		CRO = {
+			country_event = {
+				id = constituents.1000
+				days = 1
+				random_days = 14
+				random_hours = 24
+			}
+		}
 	}
 }
 
@@ -9238,7 +9342,7 @@ country_event = { #generic country that we can ask to annex didn't die in the 50
 	option = { #Attack!
 		name = constituents.1000.a
 		ai_chance = { base = 25 }
-		declare_war_on = {
+		create_wargoal = {
 			target = FROM
 			type = annex_everything
 		}
@@ -9270,7 +9374,16 @@ country_event = { #FROM proposes annexation
 
 	option = { #Yes.
 		name = constituents.1001.a
-		ai_chance = { base = 50 }
+		ai_chance = {
+			base = 50
+			modifier = {
+				OR = {
+					tag = SKS
+					tag = BUK
+				}
+				factor = 1.5
+			}
+		}
 		hidden_effect = {
 			every_scientist = { set_nationality = FROM }
 			every_unit_leader = { set_nationality = FROM }
@@ -9282,6 +9395,15 @@ country_event = { #FROM proposes annexation
 				limit = { is_claimed_by = ROOT }
 				add_claim_by = FROM
 			}
+			every_enemy_country = {
+				limit = {
+					NOT = {
+						has_war_with = FROM
+						is_in_faction_with = FROM
+					}
+				}
+				declare_war_on = FROM
+			}
 		}
 		FROM = {
 			annex_country = {
@@ -9292,10 +9414,19 @@ country_event = { #FROM proposes annexation
 	}
 	option = { #Hard earned independence for a new manager?!
 		name = constituents.1001.b
-		ai_chance = { base = 50 }
+		ai_chance = {
+			base = 50
+			modifier = {
+				OR = {
+					tag = SKS
+					tag = BUK
+				}
+				factor = 0.5
+			}
+		}
 		FROM = {
 			country_event = {
-				id = constituents.1001
+				id = constituents.1002
 				days = 1
 				random_hours = 24
 			}
@@ -9320,7 +9451,17 @@ country_event = { #FROM denies union
 				factor = 0.33
 			}
 		}
-		declare_war_on = {
+		every_state = {
+			limit = { 
+				is_core_of = FROM
+				NOT = {
+					is_core_of = ROOT
+					is_claimed_by = ROOT
+				}
+			}
+			add_state_claim = PREV
+		}
+		create_wargoal = {
 			target = FROM
 			type = annex_everything
 		}
