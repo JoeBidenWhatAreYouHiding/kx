@@ -9091,33 +9091,35 @@ country_event = { #Austria Proposes 'Anschluss'
 	
 	option = { #Of course! Our fatherland must be bigger!
 		name = bdeausfor.115.a
-		ai_chance = { factor = 100 }
+		ai_chance = { base = 100 }
 		add_stability = -0.05
-		AUS = {
-			every_owned_state = {
-				add_core_of = GER
+		hidden_effect = {
+			AUS = {
+				every_owned_state = {
+					add_core_of = GER
+				}
+				every_unit_leader = {
+					set_nationality = GER
+				}
+				every_scientist = {
+					set_nationality = GER
+				}
 			}
-			every_unit_leader = {
-				set_nationality = GER
+			if = {
+				limit = { AUS = { is_ai = no } }
+				change_tag_from = AUS 
 			}
-			every_scientist = {
-				set_nationality = GER
-			}
+			country_event = bdeausnews.3
 		}
 		annex_country = {
 			target = AUS
 			transfer_troops = yes
 		}
-		hidden_effect = {
-			country_event = {
-				id = bdeausnews.3
-			}
-		}
 	}
 	
 	option = { #No
 		name = bdeausfor.115.b
-		ai_chance = { factor = 1 }
+		ai_chance = { base = 1 }
 		add_political_power = -30
 		add_stability = 0.1
 		AUS = {
@@ -9874,6 +9876,7 @@ country_event = { #The Armeeoberkommando Demands Action!/Spreading the Revolutio
 		}
 	}
 	picture = GFX_event_AUS_war_materiel
+	
 	fire_only_once = yes
 
 	is_triggered_only = yes
@@ -9885,7 +9888,6 @@ country_event = { #The Armeeoberkommando Demands Action!/Spreading the Revolutio
 		unlock_decision_tooltip = AUS_borderwar_bohemia
 		unlock_decision_tooltip = AUS_borderwar_heizenland
 		add_ideas = AUS_militias
-		
 	}
 }
 
@@ -9902,13 +9904,20 @@ country_event = { #Attack on Southern German-Bohemia successful
 	option = { #We must fight
 		name = bdeausfor.131.a
 		ai_chance = { factor = 200 }
-		4 = {
-			owner = {
-				transfer_state = 71
-				transfer_state = 786
-				add_political_power = 30
-				army_experience = 10
+		set_temp_variable = { temp_tag = 786.owner }
+		var:4.owner = {
+			every_state = {
+				limit = {
+					is_owned_by = var:temp_tag
+					OR = {
+						state = 71
+						state = 786
+					}
+				}
+				transfer_state = PREV
 			}
+			add_political_power = 30
+			army_experience = 10
 		}
 	}
 }
@@ -9925,20 +9934,16 @@ country_event = { #Attack on Southern German-Bohemia failure
 	option = { #We must fight
 		name = bdeausfor.132.a
 		ai_chance = { factor = 200 }
-		786 = {
-			owner = {
-				add_war_support = 0.1
-				add_stability = 0.05
-				add_political_power = 50
-				army_experience = 10
-			}
+		var:786.owner = {
+			add_war_support = 0.1
+			add_stability = 0.05
+			add_political_power = 50
+			army_experience = 10
 		}
-		4 = {
-			owner = {
-				add_war_support = -0.05
-				add_stability = -0.05
-				add_political_power = -50
-			}
+		var:4.owner = {
+			add_war_support = -0.05
+			add_stability = -0.05
+			add_political_power = -50
 		}
 	}
 	
@@ -9971,17 +9976,13 @@ country_event = { #Attack on Southern German-Bohemia aborted
 	option = { #We must fight
 		name = bdeausfor.133.a
 		ai_chance = { factor = 200 }
-		786 = {
-			owner = {
-				add_political_power = -15
-				add_war_support = 0.02
-			}
+		var:786.owner = {
+			add_political_power = -15
+			add_war_support = 0.02
 		}
-		4 = {
-			owner = {
-				add_political_power = -15
-				add_war_support = 0.02
-			}
+		var:4.owner = {
+			add_political_power = -15
+			add_war_support = 0.02
 		}
 	}
 
@@ -25540,8 +25541,55 @@ country_event = { # (After collapse, war's end) Declaration of the Austrian Repu
 		}
 		if = {
 			limit = {
-				AUS_habsburg_in_charge = yes
+				NOT = { has_country_flag = AUS_compromise_republic }
 			}
+			country_event = {
+				id = bdeausint.103
+				days = 3
+			}
+		}
+		country_event = {
+			id = bdeausint.127
+			days = 10
+		}
+	}
+	
+}
+
+country_event = { # A Monarch's Role (for the republic)
+	id = bdeausint.103
+	immediate = { log = "[GetDateText]: [Root.GetName]: event bdeausint.103" }
+	title = bdeausint.103.t
+	desc = bdeausint.103.d
+	picture = GFX_event_AUS_karl_leaving_hungary
+
+	fire_only_once = yes
+
+	is_triggered_only = yes
+	
+	option = { #The Kaiser may remain a figurehead.
+		name = bdeausint.103.a
+		increase_ruling_party_popularity_by_5 = yes
+		add_political_power = -20
+		add_stability = 0.05
+		set_country_flag = AUS_republic_kaiser_figurehead
+		drop_cosmetic_tag = yes
+		if = {
+			limit = {
+				AUS_habsburg_in_charge = no
+			}
+			AUS_create_karl_i_post_collapse = yes
+		}
+	}
+	
+	option = { #The Kaiser will have no power or place, but may retire peacefully.
+		name = bdeausint.103.b
+		increase_ruling_party_popularity_by_3 = yes
+		add_political_power = 20
+		add_stability = -0.03
+		set_country_flag = AUS_republic_kaiser_retirement
+		if = {
+			limit = { AUS_habsburg_in_charge = yes }
 			create_country_leader = {
 				name = "Otto Bauer"
 				desc = "POLITICS_BAUER_DESC"
@@ -25592,55 +25640,6 @@ country_event = { # (After collapse, war's end) Declaration of the Austrian Repu
 				ideology = austropopulism_subtype
 			}
 		}
-		if = {
-			limit = {
-				NOT = { has_country_flag = AUS_compromise_republic }
-			}
-			country_event = {
-				id = bdeausint.103
-				days = 3
-			}
-		}
-		country_event = {
-			id = bdeausint.127
-			days = 10
-		}
-	}
-	
-}
-
-country_event = { # A Monarch's Role (for the republic)
-	id = bdeausint.103
-	immediate = { log = "[GetDateText]: [Root.GetName]: event bdeausint.103" }
-	title = bdeausint.103.t
-	desc = bdeausint.103.d
-	picture = GFX_event_AUS_karl_leaving_hungary
-
-	fire_only_once = yes
-
-	is_triggered_only = yes
-	
-	option = { #The Kaiser may remain a figurehead.
-		name = bdeausint.103.a
-		increase_ruling_party_popularity_by_5 = yes
-		add_political_power = -20
-		add_stability = 0.05
-		set_country_flag = AUS_republic_kaiser_figurehead
-		if = {
-			limit = {
-				AUS_habsburg_in_charge = no
-			}
-			AUS_create_karl_i_post_collapse = yes
-			drop_cosmetic_tag = yes
-		}
-	}
-	
-	option = { #The Kaiser will have no power or place, but may retire peacefully.
-		name = bdeausint.103.b
-		increase_ruling_party_popularity_by_3 = yes
-		add_political_power = 20
-		add_stability = -0.03
-		set_country_flag = AUS_republic_kaiser_retirement
 	}
 	
 	option = { #The Kaiser must leave!
@@ -25675,8 +25674,59 @@ country_event = { # A Monarch's Role (for the republic)
 				popularity = -0.05
 			}
 		}
+		if = {
+			limit = { AUS_habsburg_in_charge = yes }
+			create_country_leader = {
+				name = "Otto Bauer"
+				desc = "POLITICS_BAUER_DESC"
+				picture = "gfx/leaders/AUS/AUS_Otto_Bauer.png"
+				expire = "1965.1.1"
+				ideology = radsoc_austromarxism_subtype
+			}
+			create_country_leader = {
+				name = "Karl Renner"
+				desc = "POLITICS_RENNER_DESC"
+				picture = "gfx/leaders/AUS/Portrait_AUS_Karl_Renner.png"
+				expire = "1965.1.1"
+				ideology = austromarxism_subtype
+			}
+			create_country_leader = {
+				name = "Richard von Coudenhove-Kalergi"
+				desc = "POLITICS_KALERGI_DESC"
+				picture = "gfx/leaders/AUS/AUS_Richard_Kalergi.png"
+				expire = "1965.1.1"
+				ideology = paneuropeanism_subtype
+			}
+			create_country_leader = {
+				name = "Johannes Schober"
+				desc = "POLITICS_SCHOBER_DESC"
+				picture = "gfx/leaders/AUS/AUS_Johannes_Schober.png"
+				expire = "1965.1.1"
+				ideology = marlib_agrarianism_subtype
+			}
+			create_country_leader = {
+				name = "Wilhelm Miklas"
+				desc = "POLITICS_MIKLAS_DESC"
+				picture = "gfx/leaders/AUS/Portrait_AUS_Wilhelm_Miklas_KX.png"
+				expire = "1.1.1"
+				ideology = christian_democracy_subtype
+			}
+			create_country_leader = {
+				name = "Karl Buresch"
+				desc = "POLITICS_BURESCH_DESC"
+				picture = "gfx/leaders/AUS/AUS_Karl_Buresch.png"
+				expire = "1965.1.1"
+				ideology = autdem_christian_democracy_subtype
+			}
+			create_country_leader = {
+				name = "Engelbert Dollfuss"
+				desc = "POLITICS_DOLLFUSS_DESC"
+				picture = "gfx/leaders/AUS/AUS_Engelbert_Dollfuss.png"
+				expire = "1965.1.1"
+				ideology = austropopulism_subtype
+			}
+		}
 	}
-	
 }
 
 country_event = { #The Deutschnationale Bewegung Fragments
@@ -30422,6 +30472,9 @@ country_event = { #Collapse - Government Collapses
 		hidden_effect = {
 			decrease_ruling_party_popularity_by_50 = yes
 			remove_all_ministers = yes
+			add_ideas = {
+				AUS_karl_von_habsburg_hog_pau
+			}
 			set_politics = {
 				ruling_party = authoritarian_democrat
 				name = AUS_emergency_gov_party
@@ -30454,10 +30507,13 @@ country_event = { #check to fire bdeausint.102
 		name = bdeausint.165.a
 		if = {
 			limit = { has_war = no }
-			country_event = {
-				id = bdeausint.102
-				days = 3
-				random_hours = 72
+			if = {
+				limit = { NOT = { has_country_flag = AUS_revolution_collapse } }
+				country_event = {
+					id = bdeausint.102
+					days = 3
+					random_hours = 72
+				}
 			}
 		}
 		else = {
@@ -30469,7 +30525,28 @@ country_event = { #check to fire bdeausint.102
 	}
 }
 
+country_event = { #End of the Austrian Civil War - Non revolutionary victory
+	id = bdeausint.166
+	immediate = { log = "[GetDateText]: [Root.GetName]: event bdeausint.166" }
+	title = bdeausint.166.t
+	desc = bdeausint.166.d
+	
+	picture = GFX_event_AUS_HofburgDamage
+	
+	fire_only_once = yes
 
+	trigger = {
+		has_global_flag = AUS_civil_war
+		tag = AUS
+		AUS = { has_socialist_government = no }
+		AWR = { exists = no }
+		TYR = { exists = no }
+	}
+
+	option = { #damn
+		name = bdeausint.166.a
+	}
+}
 
 
 
