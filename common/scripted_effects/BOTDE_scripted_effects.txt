@@ -4459,18 +4459,17 @@ AUS_blow_the_fuck_up_and_make_the_yugoslav_wars_look_like_a_joke = {
 					}
 				}
 			}
-			AUS = { end_puppet = PREV }
+			overlord = {
+				set_autonomy = {
+					target = PREV
+					autonomous_state = autonomy_free
+				}
+			}
 			leave_faction = yes
 			drop_cosmetic_tag = yes
-			clear_all_relations = yes
 			set_country_flag = released_via_austrian_collapse
 			country_event = constituents.2
-			if = {
-				limit = {
-					has_subject = FIU
-				}
-				end_puppet = FIU
-			}
+			clear_all_relations = yes
 		}
 		
 		every_country = {
@@ -4484,8 +4483,11 @@ AUS_blow_the_fuck_up_and_make_the_yugoslav_wars_look_like_a_joke = {
 				}
 			}
 			set_country_flag = released_via_austrian_collapse
-			AUS = {
-				end_puppet = PREV
+			overlord = {
+				set_autonomy = {
+					target = PREV
+					autonomous_state = autonomy_free
+				}
 			}
 			if = {
 				limit = { tag = ALA }
@@ -4698,6 +4700,37 @@ AUS_blow_the_fuck_up_and_make_the_yugoslav_wars_look_like_a_joke = {
 					id = constituents.62 #Quiet Sounds the Guns (Stabilized Danube System)
 					days = 210
 					random_hours = 72
+				}
+			}
+		}
+		
+		for_each_scope_loop = {
+			array = global.AUS_all_possible_array
+			if = {
+				limit = { exists = yes }
+				if = {
+					limit = {
+						NOT = {
+							tag = AUS
+							tag = HUN
+							tag = CZE
+							tag = CRO
+							tag = GAL
+						}
+					}
+					clear_array = ROOT.CONST_state_attempt
+				}
+				if = {
+					limit = { tag = SVK }
+					set_cosmetic_tag = SVK_collapse
+				}
+				if = {
+					limit = { has_cosmetic_tag = TRS_kingdom }
+					set_cosmetic_tag = TRS_collapse
+				}
+				if = {
+					limit = { has_cosmetic_tag = BAN_kingdom }
+					drop_cosmetic_tag = yes
 				}
 			}
 		}
@@ -6928,60 +6961,41 @@ AUS_fed_speed_trialism_add = {
 }
 
 AUS_divide_hungary_effect = {
-	SVK = {
-		every_core_state = {
+	HUN = {
+		every_owned_state = {
 			limit = {
+				is_core_of = SVK
 				NOT = {
-					state = 1136
 					state = 1122
+					state = 1136
 				}
-				is_owned_by = HUN
 			}
-			transfer_state_to = SVK
+			SVK = { transfer_state = PREV }
 		}
-	}
-	TRS = {
-		every_core_state = {
+		every_owned_state = {
+			limit = { is_core_of = CPU }
+			CPU = { transfer_state = PREV }
+		}
+		every_owned_state = {
 			limit = {
-				NOT = {
-					state = 1117
-					state = 1118
-					state = 789
-					state = 76
-					state = 1112
-				}
-				is_owned_by = HUN
+				is_core_of = BAN
+				NOT = { state = 45 }
 			}
+			BAN = { transfer_state = PREV }
+		}
+		every_owned_state = {
+			limit = { is_core_of = TRS }
 			transfer_state_to = TRS
 		}
-		hidden_effect = { set_cosmetic_tag = TRS_kingdom }
-	}
-	if = {
-		limit = {
-			HUN = {
-				owns_state = 875
-			}
-		}
-		TRS = {
-			transfer_state = 875
-			add_state_core = 875
-		}
-	}
-	CPU = {
-		every_core_state = {
-			limit = {
-				is_owned_by = HUN
-			}
-			transfer_state_to = CPU
-		}
-		hidden_effect = { set_cosmetic_tag = CPU_kingdom }
 	}
 	every_country = {
 		limit = {
+			NOT = { has_war_with = HUN }
 			OR = {
-				tag = SVK
 				tag = TRS
 				tag = CPU
+				tag = SVK
+				tag = BAN
 			}
 		}
 		HUN = {
@@ -6990,26 +7004,29 @@ AUS_divide_hungary_effect = {
 				autonomous_state = botde_transleithania
 			}
 		}
-		add_ideas = {
-			AUS_part_of_the_Empire
-			AUS_transleithanian_sphere
-		}
 		set_politics = {
 			ruling_party = social_conservative
 		}
 		increase_ruling_party_popularity_by_30 = yes
 		if = {
-			limit = {
-				HUN = { AUS_DWV_member = yes }
-			}
+			limit = { HUN = { AUS_DWV_member = yes } }
 			AUS_add_to_DWV = yes
 		}
 		if = {
-			limit = {
-				has_global_flag = AUS_ausgleich_ongoing
-			}
-			set_country_flag = going_to_le_ausgleich
-			add_to_array = { global.ausgleich_attendants = THIS.id }
+			limit = { HUN = { is_in_tech_sharing_group = austrian_research } }
+			add_to_tech_sharing_group = austrian_research
+		}
+		if = {
+			limit = { tag = TRS }
+			set_cosmetic_tag = TRS_kingdom
+		}
+		if = {
+			limit = { tag = BAN }
+			set_cosmetic_tag = BAN_kingdom
+		}
+		add_ideas = {
+			AUS_part_of_the_Empire
+			AUS_transleithanian_sphere
 		}
 	}
 }
@@ -11158,6 +11175,17 @@ AUS_ausgleich_ending_effect = {
 			transfer_state_to = AUS
 		}
 		clr_global_flag = ausgleich_AUS_transfer_german_hungary
+	}
+	if = {
+		limit = { has_global_flag = AUS_autonomous_transleithania_minorities }
+		AUS_divide_hungary_effect = yes
+		AUS = {
+			country_event = {
+				id = bdeausgleich.59
+				hours = 12
+				random_hours = 24
+			}
+		}
 	}
 	if = {
 		limit = { has_global_flag = AUS_ausgleich_illyria_promoted_AUS }
