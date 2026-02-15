@@ -5997,13 +5997,13 @@ country_event = { #Empire at 100% Revolt Progress - AUS
 	option = { #Gott erhalte, gott beschutze...
 		name = constituents.1.a
 		activate_mission = BOTDE_collapse_headsup
-		clr_country_flag = AUS_collapse_HUN_stays
+		HUN = { clr_country_flag = AUS_collapse_HUN_stays }
 		if = {
 			limit = {
 				HUN = { is_in_faction_with = AUS }
 				check_variable = { HUN.subject_revolt_progress < 0.75 }
 			}
-			set_country_flag = AUS_collapse_HUN_stays
+			HUN = { set_country_flag = AUS_collapse_HUN_stays }
 		}		
 		#### Collapse type		
 		# Revolution		
@@ -6082,9 +6082,29 @@ country_event = { #Collapse of the Austrian Empire
 		hidden_effect = {
 			if = {
 				limit = {
-					NOT = { tag = AUS }
+					NOT = {
+						tag = AUS
+						has_country_flag = BOTDE_const_stays_during_collapse
+					}
 				}
+				overlord = {
+					set_autonomy = {
+						target = ROOT
+						autonomous_state = autonomy_free
+					}
+				}
+				leave_faction = yes
+				drop_cosmetic_tag = yes
 				clear_all_relations_except_wars = yes
+			}
+			else_if = {
+				limit = { has_country_flag = BOTDE_const_stays_during_collapse }
+				overlord = {
+					set_autonomy = {
+						target = ROOT
+						autonomous_state = kr_nominal_puppet
+					}
+				}
 			}
 		}
 	}
@@ -6093,6 +6113,7 @@ country_event = { #Collapse of the Austrian Empire
 		name = constituents.2.a
 		trigger = {
 			tag = HUN
+			NOT = { has_country_flag = BOTDE_const_stays_during_collapse }
 		}
 		hidden_effect = {
 			retire_country_leader = yes
@@ -6133,6 +6154,7 @@ country_event = { #Collapse of the Austrian Empire
 		name = constituents.2.b
 		trigger = {
 			tag = CRO
+			NOT = { has_country_flag = BOTDE_const_stays_during_collapse }
 		}
 		hidden_effect = {
 			set_stability = 0
@@ -6185,6 +6207,7 @@ country_event = { #Collapse of the Austrian Empire
 		name = constituents.2.c
 		trigger = {
 			tag = CZE
+			NOT = { has_country_flag = BOTDE_const_stays_during_collapse }
 		}
 		hidden_effect = {
 			set_stability = 0
@@ -6195,6 +6218,7 @@ country_event = { #Collapse of the Austrian Empire
 		name = constituents.2.d
 		trigger = {
 			tag = GAL
+			NOT = { has_country_flag = BOTDE_const_stays_during_collapse }
 		}
 		
 		hidden_effect = {
@@ -6215,6 +6239,15 @@ country_event = { #Collapse of the Austrian Empire
 				days = 4
 			}
 		}
+	}
+	
+	option = { #Stays loyal
+		name = constituents.2.e
+		trigger = {
+			has_country_flag = BOTDE_const_stays_during_collapse
+		}
+		set_stability = 0
+		set_political_power = 0
 	}
 }
 
@@ -8584,6 +8617,7 @@ country_event = { #SVK - Bohemia Asks for Unification
 	picture = GFX_event_AUS_reprisals
 
 	fire_only_once = yes
+	
 	is_triggered_only = yes
 
 	option = { #Accept
@@ -8928,87 +8962,96 @@ country_event = { #FROM Refuses
 
 #### Unification ####
 
-country_event = { #WSU - unification with Ukraine?
+country_event = { #WSU/CPU - unification with Ukraine?
 	id = constituents.700
 	immediate = { log = "[GetDateText]: [Root.GetName]: event constituents.700" }
 	title = constituents.700.t
 	desc = constituents.700.d
-
-	fire_only_once = yes
+	
+	picture = GFX_report_event_UKR_esperanto
 
 	is_triggered_only = yes
 
 	option = { #Sure!
 		name = constituents.700.a
-		ai_chance = { factor = 50 }
+		ai_chance = {
+			base = 75
+			modifier = {
+				UKR = { is_subject = yes }
+				factor = 0.5
+			}
+		}
 		UKR = {
-			country_event = constituents.701
+			country_event = {
+				id = constituents.701
+				days = 1
+				random_hours = 24
+			}
 		}
 	}
 	option = { #No
 		name = constituents.700.b
-		ai_chance = { factor = 50 }
+		ai_chance = {
+			base = 25
+			modifier = {
+				UKR = { is_subject = yes }
+				factor = 2
+			}
+		}
 	}
 }
 
-country_event = { #WSU - unification with Ukraine?
+country_event = { #UKR - unification with FROM?
 	id = constituents.701
-	immediate = { log = "[GetDateText]: [Root.GetName]: event constituents.701" }
+	immediate = { log = "[GetDateText]: [Root.GetName]: event constituents.701 FROM: [From.GetName]" }
 	title = constituents.701.t
 	desc = constituents.701.d
-
-	fire_only_once = yes
+	
+	picture = GFX_report_event_UKR_esperanto
 
 	is_triggered_only = yes
 
 	option = { #Sure!
 		name = constituents.701.a
-		ai_chance = { factor = 50 }
+		ai_chance = { factor = 100 }
+		hidden_effect = {
+			FROM = {
+				every_scientist = { set_nationality = ROOT }
+				every_unit_leader = { set_nationality = ROOT }
+				every_owned_state = {
+					add_core_of = ROOT
+					if = {
+						limit = { is_demilitarized_zone = yes }
+						set_demilitarized_zone = no
+					}
+				}
+			}
+			if = {
+				limit = { FROM = { is_ai = no } }
+				change_tag_from = FROM
+			}
+		}
 		annex_country = {
-			target = WSU
+			target = FROM
 			transfer_troops = yes
 		}
 		if = {
 			limit = {
+				FROM = { NOT = { tag = CPU } }
 				country_exists = CPU
-				CPU = {
-					has_war = no
-				}
+				CPU = { has_war = no }
 			}
 			CPU = {
-				country_event = constituents.702
+				country_event = {
+					id = constituents.700
+					days = 1
+					random_hours = 24
+				}
 			}
 		}
 	}
 	option = { #No
 		name = constituents.701.b
-		ai_chance = { factor = 0 }
-	}
-}
-
-
-country_event = { #CPU - unification with Ukraine?
-	id = constituents.702
-	immediate = { log = "[GetDateText]: [Root.GetName]: event constituents.702" }
-	title = constituents.702.t
-	desc = constituents.702.d
-
-	fire_only_once = yes
-
-	is_triggered_only = yes
-
-	option = { #Sure!
-		name = constituents.702.a
-		ai_chance = { factor = 50 }
-		UKR = {
-			annex_country = {
-				target = CPU
-				transfer_troops = yes
-			}
-		}
-	}
-	option = { #No
-		name = constituents.702.b
 		ai_chance = { factor = 0 }
 	}
 }
