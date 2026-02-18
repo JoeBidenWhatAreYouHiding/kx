@@ -227,7 +227,7 @@ ENG_Chaos_In_Union_BoP = {##government winning
 		available = {
 			has_completed_focus = ENG_sow_paranoia
 			check_variable = {
-				ENG.ENG_anarchist_momentum > 0
+				ENG.ENG_momentum > 0
 			}
 		}
 		cancel_trigger = {
@@ -242,9 +242,9 @@ ENG_Chaos_In_Union_BoP = {##government winning
 			political_power_factor = -0.1
 		}
 		remove_effect = {
-			custom_effect_tooltip = ENG_anarchist_momentum_lowered
+			custom_effect_tooltip = ENG_opposing_momentum_lowered
 			add_to_variable = {
-				ENG.ENG_anarchist_momentum = -1
+				ENG.ENG_momentum = -1
 			}
 			add_political_power = 10
 		}
@@ -259,7 +259,7 @@ ENG_Chaos_In_Union_BoP = {##government winning
 				id = ENG_Anarchist_Totalist_balance
 			}
 			check_variable = {
-				ENG.ENG_anarchist_momentum > 4
+				ENG.ENG_momentum > 4
 			}
 		}
 		cancel_if_not_visible = yes
@@ -267,7 +267,7 @@ ENG_Chaos_In_Union_BoP = {##government winning
 			custom_trigger_tooltip = {
 				tooltip = ENG_BOP_momentum_above_4_tt
 				check_variable = {
-					ENG.ENG_anarchist_momentum > 4
+					ENG.ENG_momentum > 4
 				}
 			} 
 		}
@@ -307,9 +307,9 @@ ENG_Chaos_In_Union_BoP = {##government winning
 			add_ideas = {
 				ENG_BOP_Curfew_idea
 			}
-			custom_effect_tooltip = ENG_anarchist_momentum_lowered
+			custom_effect_tooltip = ENG_opposing_momentum_lowered
 			add_to_variable = {
-				ENG.ENG_anarchist_momentum = -1
+				ENG.ENG_momentum = -1
 			}
 		}
 	}
@@ -582,12 +582,14 @@ ENG_Chaos_In_Union_BoP = {##government winning
 	#change this so momentum builds, with a chance of an activity that resets momentum, higher momentum = more destructive
 	#higher momentum = slower build but moves bop more
 	#lower momentum has higher chances of just building more when the timer runs out instead of doing a weak activity
-	ENG_Anarchist_activity_mission = {
+	ENG_opposition_activity_mission = {
 		activation = {
 			has_power_balance = {
 				id = ENG_Anarchist_Totalist_balance
 			}
-			has_completed_focus = ENG_side_with_government
+			NOT = {
+				has_completed_focus = ENG_side_with_anarchists
+			}
 		}
 		available = {
 			always = no
@@ -598,53 +600,53 @@ ENG_Chaos_In_Union_BoP = {##government winning
 			has_power_balance = {
 				id = ENG_Anarchist_Totalist_balance
 			}
-			has_completed_focus = ENG_side_with_government
+			NOT = {
+				has_completed_focus = ENG_side_with_anarchists
+			}
 		}
 		icon = generic_ignite_civil_war
 		is_good = no
-		days_mission_timeout = 45
+		days_mission_timeout = ENG.ENG_momentum_activity_timeout
 		days_re_enable = 7
 		selectable_mission = no
 		timeout_effect = {
 			if = {
 				limit = {
 					check_variable = {
-						var = ENG.ENG_anarchist_momentum
+						var = ENG.ENG_momentum
 						value = 4
 						compare = less_than_or_equals
 					}
 				}
-				ENG_anarchist_do_activity_low = yes
-			}
-			else_if = {
-				limit = {
-					AND = {
-						check_variable = {
-							var = ENG.ENG_anarchist_momentum
-							value = 5
-							compare = greater_than_or_equals
-						}
-						check_variable = {
-							var = ENG.ENG_anarchist_momentum
-							value = 7
-							compare = less_than_or_equals
-						}
-					}
-				}
-				ENG_anarchist_do_activity_med = yes
+				ENG_bop_do_activity_low = yes
 			}
 			else_if = {
 				limit = {
 					check_variable = {
-						ENG.ENG_anarchist_momentum > 7
+						var = ENG.ENG_momentum
+						value = 5
+						compare = greater_than_or_equals
+					}
+					check_variable = {
+						var = ENG.ENG_momentum
+						value = 7
+						compare = less_than_or_equals
 					}
 				}
-				ENG_anarchist_do_activity_high = yes
+				ENG_bop_do_activity_med = yes
+			}
+			else_if = {
+				limit = {
+					check_variable = {
+						ENG.ENG_momentum > 7
+					}
+				}
+				ENG_bop_do_activity_high = yes
 			}
 		}
 	}
 
-	ENG_Anarchist_build_momentum_mission = {
+	ENG_opposition_build_momentum_mission = {
 		activation = {
 			has_completed_focus = ENG_side_with_government
 			has_power_balance = {
@@ -664,29 +666,23 @@ ENG_Chaos_In_Union_BoP = {##government winning
 		}
 		icon = generic_ignite_civil_war
 		is_good = no
-		days_mission_timeout = 28
-		days_re_enable = 0
+		days_mission_timeout = ENG.ENG_momentum_build_timeout
 		selectable_mission = no
 		timeout_effect = {
-			add_political_power = 5
-			custom_effect_tooltip = ENG_anarchist_momentum_increased
-			custom_effect_tooltip = ENG_current_anarchist_momentum
-			add_to_variable = {
-				ENG.ENG_anarchist_momentum = 1
-			}
+			add_political_power = 10
+			ENG_bop_momentum_update = yes
 			if = {
 				limit = {
-					OR = {
-						check_variable = {
-							ENG.ENG_anarchist_momentum = 4
-						}
-						check_variable = {
-							ENG.ENG_anarchist_momentum = 7
-						}
-					}
+					check_variable = { ENG.ENG_momentum < 11 }
 				}
-				custom_effect_tooltip = ENG_BOP_anarchists_more_destructive
+				custom_effect_tooltip = ENG_BOP_opposition_more_destructive
+				custom_effect_tooltip = ENG_opposing_momentum_increased
+				add_to_variable = { ENG.ENG_momentum = 1 }
 			}
+			else = {
+				custom_effect_tooltip = ENG_momentum_maxed
+			}
+			custom_effect_tooltip = ENG_current_opposing_momentum
 		}
 	}
 	
