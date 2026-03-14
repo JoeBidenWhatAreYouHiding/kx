@@ -20476,7 +20476,7 @@ country_event = { #Kornilov's Death
 			limit = { NOT = { has_country_flag = RUS_revolutionary_ferment_dealt_with } }
 			### General Kutepov's Coup ###
 			country_event = {
-				id = rusd.3036
+				id = rusd.3039
 				days = 2
 			}
 		}
@@ -20489,7 +20489,12 @@ country_event = { #Kornilov's Death
 					}
 				}
 				if = {
-					limit = { has_idea = RUS_Pyetr_N_Vrangel_cos_ade }
+					limit = { 
+						is_power_balance_in_range = {
+							id = RUS_rovs_balance
+							range > RUS_rovs_republican_side_1
+						}
+					}
 					### General Wrangel Assumes Power ###
 					country_event = {
 						id = rusd.3037
@@ -20497,7 +20502,12 @@ country_event = { #Kornilov's Death
 					}
 				}
 				else_if = {
-					limit = { has_idea = RUS_Anton_I_Denikin_cos_ade }
+					limit = { 
+						is_power_balance_in_range = {
+							id = RUS_rovs_balance
+							range < RUS_rovs_monarchist_side_1
+						}
+					}
 					### General Denikin Assumes Power ###
 					country_event = {
 						id = rusd.3038
@@ -74414,6 +74424,7 @@ country_event = { #Kornilov coup
 			id = rusd.3001
 			days = 2
 		}		
+		add_stability = -0.15
 		set_country_flag = RUS_revolutionary_ferment_minigame
 		unlock_decision_category_tooltip = RUS_dealing_with_revolution_cat
 		set_temp_variable = { RUS_rev_ferment_change = 10 }
@@ -76277,6 +76288,7 @@ unit_leader_event = { #Kornilov coup
 			range > RUS_rovs_monarchist_side_1
 		}
 		has_power_balance = { id = RUS_rovs_balance }
+		has_country_flag = RUS_activate_republican_officer_retire
 	}
 	
 	option = {
@@ -76335,6 +76347,7 @@ unit_leader_event = { #Kornilov coup
 			range < RUS_rovs_republican_side_1
 		}
 		has_power_balance = { id = RUS_rovs_balance }
+		has_country_flag = RUS_activate_monarchist_officer_retire
 	}
 	
 	option = {
@@ -77671,6 +77684,47 @@ country_event = {
 	}
 }
 country_event = { 
+	id = rusd.3205
+	immediate = {log = "[GetDateText]: [Root.GetName]: event rusd.3205"}
+	title = rusd.3205.t 
+	desc = rusd.3205.d
+	
+	picture = GFX_report_event_RUS_boldyrev
+	is_triggered_only = yes
+	trigger = {
+		XXA = { 
+			any_unit_leader = { has_unit_leader_flag = RUS_arrested_general }
+		}
+	}
+	
+	option = {
+		name = rusd.3205.a
+		random_unit_leader = {
+			limit = { has_id = 50003 }
+			add_unit_leader_trait = RUS_denikin_officer
+			promote_to_marshal = yes
+		}
+		XXA = {
+			every_unit_leader = {
+				limit = { has_unit_leader_flag = RUS_arrested_general }
+				set_nationality = ROOT
+			}
+		}
+		RUS_increase_rsdrp_pop_large = yes
+		RUS_increase_psr_pop_large = yes
+		set_temp_variable = { RUS_rev_ferment_change = -10 }
+		RUS_change_rev_ferment = yes
+		add_political_power = -50			
+	}
+	option = {
+		name = rusd.3205.b
+		random_unit_leader = {
+			limit = { has_id = 50003 }
+			add_unit_leader_trait = RUS_sidelined
+		}		
+	}
+}
+country_event = { 
 	id = rusd.3206
 	immediate = {log = "[GetDateText]: [Root.GetName]: event rusd.3206"}
 	title = rusd.3206.t 
@@ -77793,6 +77847,7 @@ country_event = {
 		OR = {
 			AND = {
 				has_war = yes
+				any_enemy_country = { is_actual_major = yes }
 				OR = {
 					195 = { 
 						is_owned_by = ROOT
@@ -77807,18 +77862,6 @@ country_event = {
 						is_controlled_by_ROOT_or_ally = no 
 					}
 					242 = {  
-						is_owned_by = ROOT
-						is_controlled_by_ROOT_or_ally = no 
-					}
-					570 = {  
-						is_owned_by = ROOT
-						is_controlled_by_ROOT_or_ally = no 
-					}
-					571 = {  
-						is_owned_by = ROOT
-						is_controlled_by_ROOT_or_ally = no 
-					}
-					653 = {  
 						is_owned_by = ROOT
 						is_controlled_by_ROOT_or_ally = no 
 					}
@@ -77856,9 +77899,7 @@ country_event = {
 			set_politics = { ruling_party = paternal_autocrat }
 		}
 		if = {
-			limit = {
-				NOT = { has_country_leader = { name = "Ivan Romanovsky" ruling_only = yes } }
-			}
+			limit = { RUS_romanovsky_in_power = no }
 			create_country_leader = {
 				name = "Ivan Romanovsky"
 				desc = "POLITICS_IVAN_ROMANOVSKIY_DESC"
@@ -77885,12 +77926,60 @@ country_event = {
 			retire = yes
 		}
 		clr_country_flag = RUS_duma_dissolved
-		RUS_clear_all_preelection_coalitions = yes
-		RUS_calculate_polling_averages = yes
-		set_country_flag = RUS_early_elections
-		custom_effect_tooltip = elections_in_three_months
-		hidden_effect = {
-			activate_mission = RUS_early_elections_mission
+		if = {
+			limit = { has_idea = RUS_empowered_president }
+			RUS_setup_acting_president_senate = yes
+			custom_effect_tooltip = elections_in_six_months
+			hidden_effect = {			
+				RUS_clear_all_preelection_coalitions = yes
+				RUS_calculate_polling_averages = yes
+				set_variable = { RUS_early_elections_mission_timeout = 125 }
+				activate_mission = RUS_early_elections_mission
+				set_country_flag = RUS_president_elections_campaign
+				RUS_calculate_polling_presidential_averages = yes
+				activate_mission = RUS_early_elections_president_mission
+				country_event = { #rsdrp primaries
+					id = rusdem.53
+					days = 7
+				}
+				country_event = { #psr primaries
+					id = rusdem.54
+					days = 10
+				}
+				country_event = { #kdp primaries
+					id = rusdem.55
+					days = 14
+				}
+				country_event = { #rkdp primaries
+					id = rusdem.5501
+					days = 17
+				}
+				country_event = { #vns primaries
+					id = rusdem.56
+					days = 20
+				}
+				country_event = { #nsnp primaries
+					id = rusdem.58
+					days = 23
+				}
+			}
+		}
+		else = {
+			if = {
+				limit = { has_country_flag = RUS_rms_is_authdem }
+				set_country_flag = RUS_rms_is_authdem
+				set_politics = { ruling_party = authoritarian_democrat }
+				custom_effect_tooltip = authdem_authdem_national_conservative_subtype_swap_tt
+				set_country_leader_ideology = authdem_national_conservative_subtype
+			}
+			custom_effect_tooltip = elections_in_three_months
+			hidden_effect = {			
+				RUS_clear_all_preelection_coalitions = yes
+				RUS_calculate_polling_averages = yes
+				set_variable = { RUS_early_elections_mission_timeout = 90 }
+				activate_mission = RUS_early_elections_mission
+				country_event = rusdem.62
+			}
 		}
 		mark_focus_tree_layout_dirty = yes
 	}
@@ -79585,687 +79674,102 @@ country_event = {
 	
 	option = {
 		name = rusd.3251.a
-		set_temp_variable = { RUS_wrangel_change = 3 }
-		RUS_change_wrangels_ambitions = yes
+		ai_chance = { base = 0 }
+		add_stability = -0.1
+		add_war_support = -0.2
+	}
+	option = {
+		name = rusd.3251.b	
+		effect_tooltip = { retire_country_leader = yes }		
+		clr_country_flag = RUS_duma_dissolved
 		if = {
-			limit = { 
-				has_power_balance = { id = RUS_rovs_balance }
-			}
-			set_temp_variable = { RUS_vvsr_rovs_unity_change = -0.15 }
-			RUS_change_rovs_unity = yes
-			add_power_balance_value = {
-				id = RUS_rovs_balance
-				value = 0.20
-			}
-		}
-		activate_mission = RUS_wrangels_growing_ambitions
-		random_unit_leader = {
-			limit = { has_id = 400 }
-			add_unit_leader_trait = politically_connected
-		}
-	}
-}
-
-country_event = { 
-	id = rusd.3252
-	immediate = {log = "[GetDateText]: [Root.GetName]: event rusd.3252"}
-	title = rusd.3252.t 
-	desc = rusd.3252.d
-	
-	picture = GFX_report_event_RUS_boldyrev
-	
-	is_triggered_only = yes
-	
-	
-	option = {
-		name = rusd.3252.a
-		set_temp_variable = { RUS_rev_ferment_change = 2 }
-		RUS_change_rev_ferment = yes
-		RUS_increase_rsdrp_pop_small = yes
-		RUS_increase_rovs_pop_small = yes
-		country_event = { id = rusd.3253 days = 5 }
-		set_variable = { RUS_boldyrev_pf = 1 }
-		clr_country_flag = rsdrp_banned
-		remove_targeted_decision = { target = ROOT decision = RUS_arrest_lozovsky }	
-		remove_targeted_decision = { target = ROOT decision = RUS_anti_socialist_legislation_rsdrp }
-	}
-	option = {
-		name = rusd.3252.b
-		set_temp_variable = { RUS_rev_ferment_change = 3 }
-		RUS_change_rev_ferment = yes
-		RUS_increase_rovs_pop = yes
-		country_event = { id = rusd.3253 days = 5 }
-		clr_country_flag = rsdrp_banned
-		clr_country_flag = psr_banned
-		clr_country_flag = RUS_psr_united_with_plsr
-		remove_targeted_decision = { target = ROOT decision = RUS_arrest_chernov }	
-		remove_targeted_decision = { target = ROOT decision = RUS_arrest_lozovsky }	
-		remove_targeted_decision = { target = ROOT decision = RUS_anti_socialist_legislation_rsdrp }	
-		remove_targeted_decision = { target = ROOT decision = RUS_anti_socialist_legislation_psr }	
-	}
-	option = {
-		name = rusd.3252.c
-		set_temp_variable = { RUS_rev_ferment_change = 6 }
-		RUS_change_rev_ferment = yes
-		RUS_increase_rsdrp_pop_large = yes
-		set_temp_variable = { RUS_vvsr_rovs_unity_change = -0.05 }
-		RUS_change_rovs_unity = yes
-		country_event = { id = rusd.3253 days = 5 }
-		set_variable = { RUS_boldyrev_pf = 2 }
-		clr_country_flag = rsdrp_banned
-		set_country_flag = RUS_vi_congress_moderates
-		remove_targeted_decision = { target = ROOT decision = RUS_anti_socialist_legislation_rsdrp }
-	}
-	option = {
-		name = rusd.3252.e
-		if = {
-			limit = { 
-				has_power_balance = { id = RUS_rovs_balance }
-			}
-			add_power_balance_value = {
-				id = RUS_rovs_balance
-				value = -0.10
-			}
-		}
-		set_temp_variable = { RUS_vvsr_rovs_unity_change = 0.05 }
-		RUS_change_rovs_unity = yes
-		country_event = { id = rusd.3258 days = 5 }
-	}
-}
-country_event = { 
-	id = rusd.3253
-	immediate = {log = "[GetDateText]: [Root.GetName]: event rusd.3253"}
-	title = rusd.3253.t 
-	desc = rusd.3253.d
-	
-	picture = GFX_report_event_RUS_boldyrev
-	
-	is_triggered_only = yes
-	
-	
-	option = {
-		name = rusd.3253.a
-		custom_effect_tooltip = RUS_increase_revolutionary_activity_timer_50
-		add_to_variable = { RUS_revolutionary_activity_timeout = 50 }
-		if = {
-			limit = { has_active_mission = RUS_revolutionary_activity_timer }
-			add_days_mission_timeout = {
-				mission = RUS_revolutionary_activity_timer
-				days = 50
-			}
-		}
-		country_event = { id = rusd.3259 days = 5 }
-	}
-	option = {
-		name = rusd.3253.b
-		custom_effect_tooltip = RUS_increase_revolutionary_activity_timer_50
-		add_to_variable = { RUS_revolutionary_activity_timeout = 50 }
-		if = {
-			limit = { has_active_mission = RUS_revolutionary_activity_timer }
-			add_days_mission_timeout = {
-				mission = RUS_revolutionary_activity_timer
-				days = 50
-			}
-		}
-		set_country_flag = RUS_boldyrev_amnesty_1
-		country_event = { id = rusd.3259 days = 5 }
-	}
-	option = {
-		name = rusd.3253.c
-		custom_effect_tooltip = RUS_increase_revolutionary_activity_timer_50
-		add_to_variable = { RUS_revolutionary_activity_timeout = 50 }
-		if = {
-			limit = { has_active_mission = RUS_revolutionary_activity_timer }
-			add_days_mission_timeout = {
-				mission = RUS_revolutionary_activity_timer
-				days = 50
-			}
-		}
-		set_country_flag = RUS_boldyrev_amnesty_2
-		country_event = { id = rusd.3259 days = 5 }
-	}
-}
-country_event = { 
-	id = rusd.3254
-	immediate = {log = "[GetDateText]: [Root.GetName]: event rusd.3254"}
-	title = rusd.3254.t 
-	desc = rusd.3254.d
-	
-	picture = GFX_report_event_RUS_boldyrev
-	
-	is_triggered_only = yes
-	
-	
-	option = {
-		name = rusd.3254.a
-		country_event = { id = rusd.3255 days = 10 }
-		set_variable = { RUS_boldyrev_dem = 1 }
-	}
-	option = {
-		name = rusd.3254.b
-		country_event = { id = rusd.3255 days = 10 }
-	}
-	option = {
-		name = rusd.3254.c
-		country_event = { id = rusd.3255 days = 10 }
-		set_variable = { RUS_boldyrev_dem = 2 }
-	}
-}
-country_event = { 
-	id = rusd.3255
-	immediate = {log = "[GetDateText]: [Root.GetName]: event rusd.3255"}
-	title = rusd.3255.t 
-	desc = {
-		text = rusd.3255.d
-		trigger = { 
-			check_variable = { RUS_boldyrev_dem = 1 }
-			check_variable = { RUS_boldyrev_pf = 1 }
-		}
-	}
-	desc = {
-		text = rusd.3255.d3
-		trigger = { 
-			check_variable = { RUS_boldyrev_dem = 2 }
-			check_variable = { RUS_boldyrev_pf = 2 }
-		}
-	}
-	desc = {
-		text = rusd.3255.d2
-		trigger = { 
-			NOT = {
-				check_variable = { RUS_boldyrev_dem = 1 }
-				check_variable = { RUS_boldyrev_dem = 2 }
-				check_variable = { RUS_boldyrev_pf = 1 }
-				check_variable = { RUS_boldyrev_pf = 2 }
-			}
-		}
-	}
-	
-	picture = GFX_report_event_RUS_boldyrev
-	
-	is_triggered_only = yes
-	
-	
-	option = {
-		name = rusd.3255.a
-		set_temp_variable = { RUS_rev_ferment_change = 10 }
-		RUS_change_rev_ferment = yes
-		if = {
-			limit = { 
-				has_power_balance = { id = RUS_rovs_balance }
-			}
-			add_power_balance_value = {
-				id = RUS_rovs_balance
-				value = 0.10
-			}
-		}
-		set_temp_variable = { RUS_vvsr_rovs_unity_change = 0.10 }
-		RUS_change_rovs_unity = yes
-		country_event = { id = rusd.3258 days = 5 }
-	}
-	option = {
-		name = rusd.3255.b
-		activate_targeted_decision = { target = ROOT decision = RUS_convene_the_vsr }
-		if = {
-			limit = { 
-				check_variable = { RUS_boldyrev_dem = 2 }
-				check_variable = { RUS_boldyrev_pf = 2 }
-			}
-			set_temp_variable = { RUS_rev_ferment_change = 10 }
-			RUS_change_rev_ferment = yes
-			if = {
-				limit = { 
-					has_power_balance = { id = RUS_rovs_balance }
+			limit = { has_idea = RUS_empowered_president }
+			RUS_setup_acting_president_senate = yes
+			custom_effect_tooltip = elections_in_six_months
+			hidden_effect = {			
+				RUS_clear_all_preelection_coalitions = yes
+				RUS_calculate_polling_averages = yes
+				set_variable = { RUS_early_elections_mission_timeout = 125 }
+				activate_mission = RUS_early_elections_mission
+				set_country_flag = RUS_president_elections_campaign
+				RUS_calculate_polling_presidential_averages = yes
+				activate_mission = RUS_early_elections_president_mission
+				country_event = { #rsdrp primaries
+					id = rusdem.53
+					days = 7
 				}
-				add_power_balance_value = {
-					id = RUS_rovs_balance
-					value = 0.10
+				country_event = { #psr primaries
+					id = rusdem.54
+					days = 10
 				}
-			}
-			set_temp_variable = { RUS_vvsr_rovs_unity_change = 0.10 }
-			RUS_change_rovs_unity = yes
-			country_event = { id = rusd.3258 days = 5 }
-		}
-	}
-}
-country_event = { 
-	id = rusd.3256
-	immediate = {
-		log = "[GetDateText]: [Root.GetName]: event rusd.3256"
-		hidden_effect = {
-			if = {
-				limit = { has_country_flag = Aleksandr_N_Potresov_dead }
-				set_temp_variable = { RUS.menshevik_leader = token:RUS_Grigoriy_Aleksinskiy_hog_sde }
-			}
-			else = {
-				set_temp_variable = { RUS.menshevik_leader = token:RUS_Aleksandr_N_Potresov_hog_sde }
-			}
-		}
-	}
-	title = rusd.3256.t 
-	desc = rusd.3256.d
-	
-	picture = GFX_report_event_RUS_boldyrev
-	
-	is_triggered_only = yes
-	
-	
-	option = {
-		name = rusd.3256.a
-		clr_country_flag = RUS_popular_front_coalition
-		clr_country_flag = RUS_wide_popular_front_coalition
-		clr_country_flag = bolsheviks_allowed
-		set_country_flag = bolsheviks_banned
-		set_country_flag = bolsheviks_banned
-		if = {
-			limit = { check_variable = { RUS_boldyrev_pf = 1 } }
-			set_temp_variable = { RUS_rev_ferment_change = -10 }
-			RUS_change_rev_ferment = yes
-			if = {
-				limit = { has_country_flag = RUS_rsdrp_is_radsoc }
-				clr_country_flag = RUS_rsdrp_is_radsoc
-				set_party_name = { 
-					ideology = radical_socialist
-					name = SOV_rtssps_party
-					long_name = SOV_rtssps_party_long
+				country_event = { #kdp primaries
+					id = rusdem.55
+					days = 14
 				}
-				if = {
-					limit = { has_country_flag = Solomon_Lozovsky_dead }
-					create_country_leader = {
-						name = "Solomon Lozovsky"
-						picture = "gfx/leaders/RUS/Portrait_RUS_Solomon_Lozovsky.png"
-						expire = "1.1.1"
-						ideology = radsoc_revisionist_marxism_subtype
-						traits = { trade_union_boss }
-					}
+				country_event = { #rkdp primaries
+					id = rusdem.5501
+					days = 17
 				}
-				else = {
-					create_country_leader = {
-						name = "Rafail Abramovich"
-						picture = "gfx/leaders/RUS/Portrait_RUS_Rafail_Abramovich.png"
-						expire = "1.1.1"
-						ideology = radsoc_revisionist_marxism_subtype 
-					}
+				country_event = { #vns primaries
+					id = rusdem.56
+					days = 20
 				}
-			}
-			if = {
-				limit = { has_idea = banned_trade_unions }
-				swap_ideas = {
-					remove_idea = banned_trade_unions
-					add_idea = RUS_supervised_trade_unions
+				country_event = { #nsnp primaries
+					id = rusdem.58
+					days = 23
 				}
-			}
-			else_if = {
-				limit = { has_idea = RUS_non_socialist_trade_unions }
-				swap_ideas = {
-					remove_idea = RUS_non_socialist_trade_unions
-					add_idea = RUS_supervised_trade_unions
-				}
-			}
-			else_if = {
-				limit = { has_idea = RUS_trade_unions_impartiality }
-				swap_ideas = {
-					remove_idea = RUS_trade_unions_impartiality
-					add_idea = RUS_supervised_trade_unions
-				}
-			}
-			else_if = {
-				limit = { has_idea = RUS_free_trade_unions }
-				swap_ideas = {
-					remove_idea = RUS_free_trade_unions
-					add_idea = RUS_supervised_trade_unions
-				}
-			}
-			else = {
-				add_ideas = RUS_supervised_trade_unions
-			}
-		}
-		else_if = {
-			limit = { check_variable = { RUS_boldyrev_pf = 2 } }
-			set_temp_variable = { RUS_rev_ferment_change = -5 }
-			RUS_change_rev_ferment = yes
-			if = {
-				limit = { has_country_flag = RUS_rsdrp_is_radsoc }
-				clr_country_flag = RUS_rsdrp_is_radsoc
-				set_party_name = { 
-					ideology = radical_socialist
-					name = RUS_rsrpi_party
-					long_name = RUS_rsrpi_party_long
-				}
-				if = {
-					limit = { has_country_flag = Solomon_Lozovsky_dead }
-					create_country_leader = {
-						name = "Solomon Lozovsky"
-						picture = "gfx/leaders/RUS/Portrait_RUS_Solomon_Lozovsky.png"
-						expire = "1.1.1"
-						ideology = radsoc_revisionist_marxism_subtype
-						traits = { trade_union_boss }
-					}
-				}
-				else = {
-					create_country_leader = {
-						name = "Rafail Abramovich"
-						picture = "gfx/leaders/RUS/Portrait_RUS_Rafail_Abramovich.png"
-						expire = "1.1.1"
-						ideology = radsoc_revisionist_marxism_subtype 
-					}
-				}
-			}
-			if = {
-				limit = { has_idea = banned_trade_unions }
-				swap_ideas = {
-					remove_idea = banned_trade_unions
-					add_idea = RUS_trade_unions_impartiality
-				}
-			}
-			else_if = {
-				limit = { has_idea = RUS_non_socialist_trade_unions }
-				swap_ideas = {
-					remove_idea = RUS_non_socialist_trade_unions
-					add_idea = RUS_trade_unions_impartiality
-				}
-			}
-			else_if = {
-				limit = { has_idea = RUS_supervised_trade_unions }
-				swap_ideas = {
-					remove_idea = RUS_supervised_trade_unions
-					add_idea = RUS_trade_unions_impartiality
-				}
-			}
-			else_if = {
-				limit = { has_idea = RUS_free_trade_unions }
-				swap_ideas = {
-					remove_idea = RUS_free_trade_unions
-					add_idea = RUS_trade_unions_impartiality
-				}
-			}
-			else = {
-				add_ideas = RUS_trade_unions_impartiality
 			}
 		}
 		else = {
-			set_temp_variable = { RUS_rev_ferment_change = -15 }
-			RUS_change_rev_ferment = yes	
-		}
-		remove_all_ministers = yes
-		if = {
-			limit = { has_country_flag = Aleksandr_N_Potresov_dead }
-			add_ideas = RUS_Grigoriy_Aleksinskiy_hog_sde
-		}
-		else = {
-			add_ideas = RUS_Aleksandr_N_Potresov_hog_sde
-		}
-		add_ideas = {
-			RUS_Nikolay_Rybinsky_for_pau
-			RUS_Boris_I_Nikolayevsky_eco_sde
-			RUS_Irakliy_G_Tsereteli_sec_sde
-		}
-		create_country_leader = {
-			name = "Vasily Boldyrev"
-			desc = "POLITICS_VASILY_BOLDYREV_DESC"
-			picture = "gfx/leaders/RUS/Portrait_RUS_Vasiliy_Boldyrev.png"
-			expire = "1.1.1"
-			ideology = socdem_junta_subtype
-		}
-		set_politics = { ruling_party = social_democrat elections_allowed = no }
-		add_pataut_to_coalition = yes
-		set_party_name = {
-			ideology = social_democrat
-			name = RUS_vvsr_party
-			long_name = RUS_vvsr_party_long
-		}
-		set_party_name = {
-			ideology = paternal_autocrat
-			name = RUS_vvsr_party
-			long_name = RUS_vvsr_party_long
-		}
-		if = {
-			limit = { has_idea = RUS_political_instability_1 }
-			swap_ideas = {
-				remove_idea = RUS_political_instability_1
-				add_idea = RUS_political_instability_1_legacy
-				days = 650
+			if = {
+				limit = { has_country_flag = RUS_rms_is_authdem }
+				set_country_flag = RUS_rms_is_authdem
+				set_politics = { ruling_party = authoritarian_democrat }
+				custom_effect_tooltip = authdem_authdem_national_conservative_subtype_swap_tt
+				set_country_leader_ideology = authdem_national_conservative_subtype
+			}
+			custom_effect_tooltip = elections_in_three_months
+			hidden_effect = {			
+				RUS_clear_all_preelection_coalitions = yes
+				RUS_calculate_polling_averages = yes
+				set_variable = { RUS_early_elections_mission_timeout = 90 }
+				activate_mission = RUS_early_elections_mission
+				country_event = rusdem.62
 			}
 		}
-		else_if = {
-			limit = { has_idea = RUS_political_instability }
-			swap_ideas = {
-				remove_idea = RUS_political_instability
-				add_idea = RUS_political_instability_legacy
-				days = 650
-			}
-		}
-		hidden_effect = {
-			remove_targeted_decision = { target = ROOT decision = RUS_inner_line }
-			remove_targeted_decision = { decision = RUS_increase_military_presence_in_city target = 195 }
-			remove_targeted_decision = { decision = RUS_increase_military_presence_in_city target = 217 }
-			remove_targeted_decision = { decision = RUS_increase_military_presence_in_city target = 219 }
-			remove_targeted_decision = { decision = RUS_increase_military_presence_in_city target = 218 }
-			remove_targeted_decision = { decision = RUS_increase_military_presence_in_city target = 233 }
-			remove_targeted_decision = { decision = RUS_increase_military_presence_in_city target = 247 }
-			remove_targeted_decision = { decision = RUS_increase_military_presence_in_city target = 252 }
-			remove_targeted_decision = { decision = RUS_increase_military_presence_in_city target = 249 }
-			remove_targeted_decision = { decision = RUS_increase_military_presence_in_city target = 257 }
-			remove_targeted_decision = { decision = RUS_increase_military_presence_in_city target = 260 }
-			remove_targeted_decision = { decision = RUS_increase_military_presence_in_city target = 653 }
-			remove_targeted_decision = { decision = RUS_increase_military_presence_in_city target = 571 }
-			
-			set_country_flag = RUS_revolutionary_ferment_dealt_with			
-			remove_dynamic_modifier = { modifier = RUS_rev_ferment_modifier }
-			
-			set_temp_variable = { RUS_new_pataut = RUS.party_popularity_100@paternal_autocrat }
-			divide_temp_variable = { RUS_new_pataut = 2 }
-			
-			set_temp_variable = { RUS_new_socdem = RUS.party_popularity_100@social_democrat }
-			add_to_temp_variable = { RUS_new_socdem = RUS_new_pataut }
-		
-			set_temp_variable = { sum = 100 }
-			subtract_from_temp_variable = { sum = party_popularity_100@totalist }
-			subtract_from_temp_variable = { sum = party_popularity_100@syndicalist }
-			subtract_from_temp_variable = { sum = party_popularity_100@radical_socialist }
-			subtract_from_temp_variable = { sum = RUS_new_socdem }
-			subtract_from_temp_variable = { sum = party_popularity_100@social_liberal }
-			subtract_from_temp_variable = { sum = party_popularity_100@market_liberal }
-			subtract_from_temp_variable = { sum = party_popularity_100@social_conservative }
-			subtract_from_temp_variable = { sum = party_popularity_100@authoritarian_democrat }
-			subtract_from_temp_variable = { sum = RUS_new_pataut }
-			subtract_from_temp_variable = { sum = party_popularity_100@national_populist }
-		
-			add_to_temp_variable = { RUS_new_pataut = sum } #avoid rounding errors
-		
-			set_popularities = {
-				totalist = party_popularity_100@totalist
-				syndicalist = party_popularity_100@syndicalist
-				radical_socialist = party_popularity_100@radical_socialist
-				social_democrat = RUS_new_socdem
-				social_liberal = party_popularity_100@social_liberal
-				market_liberal = party_popularity_100@market_liberal
-				social_conservative = party_popularity_100@social_conservative
-				authoritarian_democrat = party_popularity_100@authoritarian_democrat
-				paternal_autocrat = RUS_new_pataut
-				national_populist = party_popularity_100@national_populist
-			}
-		}
+		mark_focus_tree_layout_dirty = yes
 	}
-}
-country_event = { 
-	id = rusd.3257
-	immediate = {log = "[GetDateText]: [Root.GetName]: event rusd.3257"}
-	title = rusd.3257.t 
-	desc = rusd.3257.d
-	
-	picture = GFX_report_event_RUS_boldyrev
-	
-	is_triggered_only = yes
-	
-	
 	option = {
-		name = rusd.3257.a
-		clr_country_flag = RUS_revolutionary_ferment_minigame
-		remove_all_ministers = yes
-		add_ideas = {
-			RUS_Vasily_Boldyrev_hog_pau
-			RUS_Nikolay_Rybinsky_for_pau
-			RUS_Boris_I_Nikolayevsky_eco_sde
-			RUS_Irakliy_G_Tsereteli_sec_sde			
+		name = rusd.3251.c
+		trigger = {
+			check_variable = { RUS_rovs_wrangel > 9 }
+			has_power_balance = { id = RUS_rovs_balance }
 		}
-		set_politics = { ruling_party = authoritarian_democrat elections_allowed = no }
-		add_socdem_to_coalition = yes
-		add_pataut_to_coalition = yes
-		set_party_name = {
-			ideology = authoritarian_democrat
-			name = RUS_vvsr_party
-			long_name = RUS_vvsr_party_long
-		}
-		set_party_name = {
-			ideology = paternal_autocrat
-			name = RUS_vvsr_party
-			long_name = RUS_vvsr_party_long
-		}	
-		create_country_leader = {
-			name = "Vasily Boldyrev"
-			desc = "POLITICS_VASILY_BOLDYREV_DESC"
-			picture = "gfx/leaders/RUS/Portrait_RUS_Vasiliy_Boldyrev.png"
-			expire = "1.1.1"
-			ideology = authdem_junta_subtype
-		}
+		effect_tooltip = { retire_country_leader = yes }
+		RUS_setup_russian_monarch = yes
+		set_country_flag = psr_banned
+		set_country_flag = rsdrp_banned
+		set_country_flag = nsp_banned
+		set_country_flag = bolsheviks_banned
 		if = {
-			limit = { has_idea = RUS_political_instability_1 }
-			swap_ideas = {
-				remove_idea = RUS_political_instability_1
-				add_idea = RUS_political_instability_1_legacy
-				days = 650
-			}
+			limit = { has_country_flag = RUS_rms_is_authdem }
+			set_country_flag = RUS_rms_is_authdem
+			set_politics = { ruling_party = authoritarian_democrat }
+			custom_effect_tooltip = authdem_authdem_national_conservative_subtype_swap_tt
+			set_country_leader_ideology = authdem_national_conservative_subtype
 		}
-		else_if = {
-			limit = { has_idea = RUS_political_instability }
-			swap_ideas = {
-				remove_idea = RUS_political_instability
-				add_idea = RUS_political_instability_legacy
-				days = 650
-			}
+		custom_effect_tooltip = elections_in_three_months
+		hidden_effect = {			
+			RUS_clear_all_preelection_coalitions = yes
+			RUS_calculate_polling_averages = yes
+			set_variable = { RUS_early_elections_mission_timeout = 90 }
+			activate_mission = RUS_early_elections_mission
+			country_event = rusdem.62
 		}
-		hidden_effect = {
-			remove_targeted_decision = { target = ROOT decision = RUS_inner_line }
-			remove_targeted_decision = { decision = RUS_increase_military_presence_in_city target = 195 }
-			remove_targeted_decision = { decision = RUS_increase_military_presence_in_city target = 217 }
-			remove_targeted_decision = { decision = RUS_increase_military_presence_in_city target = 219 }
-			remove_targeted_decision = { decision = RUS_increase_military_presence_in_city target = 218 }
-			remove_targeted_decision = { decision = RUS_increase_military_presence_in_city target = 233 }
-			remove_targeted_decision = { decision = RUS_increase_military_presence_in_city target = 247 }
-			remove_targeted_decision = { decision = RUS_increase_military_presence_in_city target = 252 }
-			remove_targeted_decision = { decision = RUS_increase_military_presence_in_city target = 249 }
-			remove_targeted_decision = { decision = RUS_increase_military_presence_in_city target = 257 }
-			remove_targeted_decision = { decision = RUS_increase_military_presence_in_city target = 260 }
-			remove_targeted_decision = { decision = RUS_increase_military_presence_in_city target = 653 }
-			remove_targeted_decision = { decision = RUS_increase_military_presence_in_city target = 571 }
-			
-			set_temp_variable = { RUS_new_pataut = RUS.party_popularity_100@paternal_autocrat }
-			divide_temp_variable = { RUS_new_pataut = 2 }
-			
-			set_temp_variable = { RUS_new_authdem = RUS.party_popularity_100@authoritarian_democrat }
-			add_to_temp_variable = { RUS_new_authdem = RUS_new_pataut }
-		
-			set_temp_variable = { sum = 100 }
-			subtract_from_temp_variable = { sum = party_popularity_100@totalist }
-			subtract_from_temp_variable = { sum = party_popularity_100@syndicalist }
-			subtract_from_temp_variable = { sum = party_popularity_100@radical_socialist }
-			subtract_from_temp_variable = { sum = party_popularity_100@social_democrat }
-			subtract_from_temp_variable = { sum = party_popularity_100@social_liberal }
-			subtract_from_temp_variable = { sum = party_popularity_100@market_liberal }
-			subtract_from_temp_variable = { sum = party_popularity_100@social_conservative }
-			subtract_from_temp_variable = { sum = RUS_new_authdem }
-			subtract_from_temp_variable = { sum = RUS_new_pataut }
-			subtract_from_temp_variable = { sum = party_popularity_100@national_populist }
-		
-			add_to_temp_variable = { RUS_new_pataut = sum } #avoid rounding errors
-		
-			set_popularities = {
-				totalist = party_popularity_100@totalist
-				syndicalist = party_popularity_100@syndicalist
-				radical_socialist = party_popularity_100@radical_socialist
-				social_democrat = party_popularity_100@social_democrat
-				social_liberal = party_popularity_100@social_liberal
-				market_liberal = party_popularity_100@market_liberal
-				social_conservative = party_popularity_100@social_conservative
-				authoritarian_democrat = RUS_new_authdem
-				paternal_autocrat = RUS_new_pataut
-				national_populist = party_popularity_100@national_populist
-			}	
-		}
+		mark_focus_tree_layout_dirty = yes
 	}
 }
 
-country_event = { 
-	id = rusd.3258
-	immediate = {log = "[GetDateText]: [Root.GetName]: event rusd.3258"}
-	title = rusd.3258.t 
-	desc = rusd.3258.d
-	
-	picture = GFX_report_event_RUS_arkhangelsky
-	
-	is_triggered_only = yes
-	
-	
-	option = {
-		name = rusd.3258.a
-		random_unit_leader = { 
-			limit = { has_id = 50003 }
-			retire = yes
-		}
-		create_country_leader = {
-			name = "Aleksey Arkhangelsky"
-			desc = "POLITICS_ALEKSEY_ARKHANGELSKY_DESC"
-			picture = "gfx/leaders/RUS/Portrait_RUS_Aleksey_Arkhangelsky_military.png"
-			expire = "1.1.1"
-			ideology = junta_subtype
-		}
-		set_country_flag = RUS_duma_dissolved
-		remove_all_ministers = yes
-		add_ideas = {
-			RUS_Aleksey_P_Arkhangelskiy_hog_pau
-			RUS_Aleksey_A_Ignatiev_for_pau
-			RUS_Ivan_G_Erdeli_eco_sco
-			RUS_Mikhail_Rodzyanko_sec_sco			
-		}
-		set_country_flag = RUS_arkhangelsky_leader
-		if = {
-			limit = {
-				NOT = { has_government = paternal_autocrat }
-			}
-			set_politics = { ruling_party = paternal_autocrat }
-		}
-		add_authdem_to_coalition = yes
-		add_soccon_to_coalition = yes
-	}
-}
-
-country_event = { 
-	id = rusd.3259
-	immediate = {log = "[GetDateText]: [Root.GetName]: event rusd.3259"}
-	title = rusd.3259.t 
-	desc = rusd.3259.d
-	
-	picture = GFX_report_event_RUS_boldyrev
-	
-	is_triggered_only = yes
-	
-	
-	option = {
-		name = rusd.3259.a
-		set_temp_variable = { RUS_wrangel_change = -2 }
-		RUS_change_wrangels_ambitions = yes
-		set_temp_variable = { RUS_vvsr_rovs_unity_change = -0.10 }
-		RUS_change_rovs_unity = yes
-		every_owned_state = {
-			limit = { has_state_flag = RUS_increased_military_presence }
-			ROOT = {
-				activate_targeted_decision = { target = PREV decision = RUS_reinstate_civilian_administration }
-			}
-		}
-		country_event = { id = rusd.3259 days = 8 }
-	}
-}
 
 country_event = { 
 	id = rusd.3300

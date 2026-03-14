@@ -1,6 +1,37 @@
 # made by soclibdictator 
 
 RUS_Economy_decisions = {
+	RUS_complete_land_reform = {
+		icon = GFX_decision_POL_looming_peasants_strike
+
+		allowed = { always = no } #activated by effect
+		available = { always = no }
+		cancel_trigger = { 
+			NOT = { has_idea = rus_unfinished_land_reform }
+		}
+
+		days_mission_timeout = 365
+
+		cost = 0
+		fire_only_once = yes
+		
+		ai_will_do = {
+			base = 2
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_complete_land_reform"
+			FROM = {
+				add_extra_state_shared_building_slots = 1
+				add_building_construction = {
+					type = industrial_complex
+					level = 1
+					instant_build = yes
+				}
+				increase_state_category_by_one_level = yes
+			}
+		}
+	}
 	RUS_Develop_Civilian_Industry_In_State = {
 		name = RUS_Develop_Industry_In_State
 		icon = generic_construction
@@ -6788,11 +6819,19 @@ RUS_Foreign_Policy_decisions = {
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_Attack_Buryatia target: [From.GetName]"
 			clear_decision_attack_AI = yes
-			country_event = {
-				id = rusfor.1466
-				days = 3
+			if = {
+				limit = { 
+					FROM = { tag = BRY }
+				}
+				country_event = {
+					id = rusfor.1466
+					days = 3
+				}
 			}
-		}
+			else = {
+				declare_war_on = { target = FROM type = annex_everything }
+			}
+		}		
 	}
 	RUS_Attack_Yakutia = {
 		name = RUS_Attack_Region
@@ -7606,6 +7645,19 @@ political_actions = {
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision RUS_superevent_trigger"
 			RUSSIAN_UNIFICATION_play_superevent = yes
+			hidden_effect = {
+				if = {
+					limit = {
+						OR = {
+							RUS_levitov_in_power = yes
+							RUS_romanovsky_in_power = yes
+							RUS_arkhangelsky_in_power = yes
+							RUS_boldyrev_in_power = yes
+						}
+					}
+					country_event = { id = rusd.3251 days = 14 }
+				}
+			}
 		}
 	}
 	RUS_Renaming_Peterburg = {
@@ -9743,6 +9795,10 @@ RUS_Siberian_War = {
 				}
 				OR = {
 					RUS_denikin_in_power = yes
+					AND = {
+						RUS_wrangel_in_power = yes
+						has_non_aggression_pact_with = TRM
+					}
 					vns_in_power = yes
 					nsnp_in_power = yes
 				}
@@ -9797,17 +9853,19 @@ RUS_Siberian_War = {
 			}
 		}		
 		visible = {
-			OR = {
-				AND = {
-					is_valid_peace_target = yes
-					FROM = { is_valid_peace_target = yes }
+			hidden_trigger = {
+				OR = {
+					AND = {
+						is_valid_peace_target = yes
+						FROM = { is_valid_peace_target = yes }
+					}
+					TRM = { is_ally_of_ROOT = yes }
 				}
-				TRM = { is_ally_of_ROOT = yes }
+				date > 1937.1.1
+				russian_civil_war = no
+				is_owner_neighbor_of = FROM
+				NOT = { has_war_with = FROM }
 			}
-			date > 1937.1.1
-			russian_civil_war = no
-			is_owner_neighbor_of = FROM
-			NOT = { has_war_with = FROM }
 		}
 
 		cost = 0
@@ -11627,6 +11685,10 @@ RUS_Siberian_War = {
 				RUS = {
 					OR = {
 						RUS_denikin_in_power = yes
+						AND = {
+							RUS_wrangel_in_power = yes
+							has_non_aggression_pact_with = TRM
+						}
 						vns_in_power = yes
 						nsnp_in_power = yes
 					}
@@ -11722,20 +11784,20 @@ RUS_Siberian_War = {
 		cancel_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision cancelled TRM_Propose_Peaceful_Reunification target: [From.GetName]"
 			clr_country_flag = RUS_negotiating_siberia
-			FROM = { clr_country_flag = RUS_negotiating_siberia }
+			RUS = { clr_country_flag = RUS_negotiating_siberia }
 		}
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision TRM_Propose_Peaceful_Reunification target: [From.GetName]"
 			set_country_flag = { flag = RUS_negotiating_siberia days = 14 value = 1 }
-			FROM = {
+			RUS = {
 				set_country_flag = { flag = RUS_negotiating_siberia days = 14 value = 1 }
 			}
 		}
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove TRM_Propose_Peaceful_Reunification target: [From.GetName]"
 			clr_country_flag = RUS_negotiating_siberia
-			FROM = { clr_country_flag = RUS_negotiating_siberia }
-			FROM = { country_event = rusfor.1479 }			
+			RUS = { clr_country_flag = RUS_negotiating_siberia }
+			RUS = { country_event = rusfor.1479 }			
 		}
 	}
 	TRM_Conduct_Border_Exercize = {
@@ -14288,7 +14350,6 @@ RUS_rovs_internal_faction = {
 			OR = {
 				RUS_wrangel_in_power = yes
 				RUS_denikin_in_power = no
-				RUS_boldyrev_in_power = no
 				NOT = {
 					has_power_balance = { id = RUS_rovs_balance }
 				}
@@ -14638,61 +14699,7 @@ RUS_rovs_internal_faction = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_appease_republicans_rovs"
 			RUS_bop_increase_republicans = yes
 		}
-	}
-	RUS_ban_the_rovs_decision = {
-		icon = GFX_decision_government_down
-		priority = 100
-		allowed = { always = no }
-		
-		available = {
-			RUS_boldyrev_in_power = yes
-			OR = {
-				has_government = social_democrat
-				has_government = authoritarian_democrat
-			}
-			is_power_balance_in_range = {
-				id = RUS_rovs_balance
-				range < RUS_rovs_republican_side_1
-			}
-		}
-		
-		visible = {
-			has_power_balance = { id = RUS_rovs_balance }
-			has_completed_focus = RUS_Ban_The_ROVS
-		}
-
-		cost = 30
-		days_remove = 15
-		fire_only_once = yes
-		cancel_if_not_visible = yes
-
-		modifier = {
-			political_power_cost = 0.05
-		}
-
-		ai_will_do = {
-			factor = 100
-		}
-
-		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_ban_the_rovs_decision"
-			set_country_flag = rovs_banned
-			set_country_flag = RUS_rovs_dissolved
-			if = {
-				limit = { has_power_balance = { id = RUS_rovs_balance } }
-				remove_power_balance = { id = RUS_rovs_balance }
-			}
-			set_party_name = {
-				ideology = paternal_autocrat
-				name = RUS_army_party
-				long_name = RUS_army_party_long
-			}
-			if = {
-				limit = { has_government = social_democrat }
-				remove_pataut_from_coalition = yes
-			}
-		}
-	}
+	}	
 }
 RUS_council_of_the_republic_cat = {	
 	RUS_reinstate_civilian_administration = {
@@ -15003,10 +15010,7 @@ RUS_council_of_the_republic_cat = {
 			}
 		}
 		visible = {
-			OR = {
-				has_active_mission = RUS_constitutional_drafting_mission
-				RUS_boldyrev_in_power = yes
-			}
+			has_active_mission = RUS_constitutional_drafting_mission
 		}
 
 		cost = 50
@@ -15025,11 +15029,6 @@ RUS_council_of_the_republic_cat = {
 
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_introduce_regional_autonomy_provisions"
-			if = {
-				limit = { RUS_boldyrev_in_power = yes }
-				set_temp_variable = { RUS_rev_ferment_change = -6 }
-				RUS_change_rev_ferment = yes
-			}
 			RUS_increase_autonomists_pop = yes
 			RUS_increase_federalists_pop = yes
 			set_temp_variable = { RUS_vvsr_rovs_unity_change = -0.05 }
@@ -15081,65 +15080,7 @@ RUS_council_of_the_republic_cat = {
 			set_temp_variable = { RUS_vvsr_rovs_unity_change = -0.10 }
 			RUS_change_rovs_unity = yes
 		}
-	}
-	RUS_convene_the_vsr = {
-		icon = GFX_decision_eng_trade_unions_demand
-		allowed = { always = no }
-		visible = {
-			RUS_boldyrev_in_power = yes			
-			NOT = { has_power_balance = { id = RUS_rovs_balance } }
-			RUS_rev_ferment_lower_15 = yes
-		}
-
-		cost = 25
-		days_remove = 35
-		fire_only_once = yes
-		
-		cancel_if_not_visible = yes
-
-
-		ai_will_do = {
-			factor = 100
-		}
-
-		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_convene_the_vsr"
-			if = {
-				limit = { 
-					check_variable = { RUS_boldyrev_dem = 1 }
-					check_variable = { RUS_boldyrev_pf = 1 }
-				}
-				set_temp_variable = { RUS_rev_ferment_change = -10 }
-				RUS_change_rev_ferment = yes
-				if = {
-					limit = { 
-						has_power_balance = { id = RUS_rovs_balance }
-					}
-					add_power_balance_value = {
-						id = RUS_rovs_balance
-						value = -0.10
-					}
-					set_temp_variable = { RUS_vvsr_rovs_unity_change = 0.05 }
-					RUS_change_rovs_unity = yes
-				}
-				country_event = { id = rusd.3256 days = 5 }
-			}
-			else = {
-				set_temp_variable = { RUS_rev_ferment_change = -5 }
-				RUS_change_rev_ferment = yes
-				if = {
-					limit = { 
-						has_power_balance = { id = RUS_rovs_balance }
-					}
-					add_power_balance_value = {
-						id = RUS_rovs_balance
-						value = -0.05
-					}
-				}
-				country_event = { id = rusd.3257 days = 5 }
-			}
-		}
-	}
+	}	
 }
 
 RUS_zemsky_sobor_cat = {	
