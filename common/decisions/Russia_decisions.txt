@@ -1583,7 +1583,7 @@ RUS_Resource_decisions = {
 RUS_Alliance_decisions = {
 	
 	RUS_Ally_Japan = {
-		icon = generic_form_nation
+		icon = GFX_decision_jap_pacific_guardian
 		priority = 100
 		available = {
 			FROM = {
@@ -1631,22 +1631,30 @@ RUS_Alliance_decisions = {
 	}
 	RUS_Join_Entente = {
 		allowed = { always = no }
-		icon = generic_form_nation
+		icon = GFX_decision_freedom
 		available = {
 			FROM = {
 				NOT = {
 					is_in_faction_with = GEX
 				}
-			}
-			at_peace_or_same_enemies_as_ENT = yes
-			OR = {
-				NOT = { country_exists = GER }
-				AND = {
-					GER = { has_idea = GER_danzig_treaty }
-					ENT = { 
-						NOT = { has_war_with = GER }
+				OR = {
+					has_war = no
+					AND = {
+						has_war_with = INT
+						ROOT = { has_war_with = INT }
 					}
 				}
+			}
+		}
+
+		visible = {
+			NOT = { has_war_with = FROM }
+			country_exists = FRA
+			country_exists = INT
+			has_socialist_government = no
+			FROM = {
+				is_faction_leader = yes
+				NOT = { is_ally_with = 361.owner } #Washington DC
 			}
 			OR = {
 				JAP = { is_subject_of = RUS }
@@ -1656,21 +1664,31 @@ RUS_Alliance_decisions = {
 				}
 			}
 		}
-				
-		cost = 0
+		
+		cost = 60
 		fire_only_once = yes
 
 		ai_will_do = {
-			factor = 2
+			factor = 1000
+			modifier = { #Don't do this if player is ENT member but not the leader
+				factor = 0
+				ENT = {
+					is_ai = yes
+					any_allied_country = { is_ai = no }
+				}
+			}
 			modifier = {
-				factor = 30
+				factor = 0
+				NOT = { has_war_with = INT }
 				OR = {
-					lkdp_in_power = yes
-					rkdp_in_power = yes
-					pp_in_power = yes
-					vns_in_power = yes
-					has_government = paternal_autocrat
-					RUS_russian_monarch = yes
+					AND = {
+						lkdp_in_power = no
+						rkdp_in_power = no
+						pp_in_power = no
+						vns_in_power = no
+						NOT = { has_government = paternal_autocrat }
+						RUS_russian_monarch = no
+					}
 				}
 			}		
 		}
@@ -1918,7 +1936,7 @@ RUS_Alliance_decisions = {
 			}
 			modifier = {
 				factor = 0
-				has_completed_focus = RUS_Expansionism
+				RUS_is_expansionist = yes
 			}
 			modifier = {
 				factor = 0
@@ -1986,16 +2004,18 @@ RUS_Alliance_decisions = {
 				TRM = { is_ally_of_ROOT = yes }
 				NOT = { country_exists = TRM }
 			}
+			FROM = { NOT = { has_completed_focus = MON_restore_the_mongolian_lands_in_the_west } }
 		}
 
 		targets = { MON }
 		target_root_trigger = {
 			OR = {
-				has_completed_focus = RUS_Realpolitik
+				RUS_is_open_to_diplomacy = yes
 				AND = {
 					is_faction_leader = yes
 					has_completed_focus = RUS_Negotiations_Fail
 				}
+				RUS_is_eurasia = yes
 				has_completed_focus = TRM_on_our_own
 				has_completed_focus = DKB_Devoted_Subjects_Of_The_Monarchy
 				has_completed_focus = DKB_Democracy_Under_Guidance
@@ -2032,7 +2052,7 @@ RUS_Alliance_decisions = {
 			}
 			modifier = {
 				factor = 0
-				has_completed_focus = RUS_Expansionism
+				RUS_is_expansionist = yes
 			}
 		}
 
@@ -2042,8 +2062,16 @@ RUS_Alliance_decisions = {
 
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_Invite_Mongolia target: [From.GetName]"
-			FROM = {
-				country_event = rusfor.52
+			if = {
+				limit = { RUS_is_eurasia = yes }
+				FROM = {
+					country_event = eurasiafor.50
+				}
+			}
+			else = {
+				FROM = {
+					country_event = rusfor.52
+				}
 			}
 		}
 	}
@@ -2075,7 +2103,10 @@ RUS_Alliance_decisions = {
 					is_faction_leader = yes
 					has_completed_focus = RUS_Negotiations_Fail
 				}
-				has_completed_focus = RUS_Realpolitik
+				AND = {
+					RUS_is_open_to_diplomacy = yes
+					has_completed_focus = RUS_Resettle_the_Last_Frontiers
+				}
 				has_completed_focus = TRM_on_our_own
 			}			
 			has_socialist_government = yes	
@@ -2112,7 +2143,7 @@ RUS_Alliance_decisions = {
 		name = RUS_Invite_Country
 		icon = generic_agreement
 
-		allowed = { tag = RUS }
+		allowed = { always = no }
 
 		available = {
 			NOT = { has_country_flag = RUS_invited_country }
@@ -2144,10 +2175,9 @@ RUS_Alliance_decisions = {
 			}
 		}
 
-		targets = { EST LAT LIT }
 		target_root_trigger = {
 			OR = {
-				has_completed_focus = RUS_Realpolitik
+				RUS_is_open_to_diplomacy = yes
 				AND = {
 					is_faction_leader = yes
 					has_completed_focus = RUS_Negotiations_Fail
@@ -2193,17 +2223,24 @@ RUS_Alliance_decisions = {
 			}
 		}
 	}
-	RUS_Invite_Georgia = {
+	RUS_invite_caucasus = {
 		name = RUS_Invite_Country
 		icon = generic_agreement
 
-		allowed = { tag = RUS }
+		allowed = { always = no }
 
 		available = {
 			NOT = { has_country_flag = RUS_invited_country }
 			FROM = {
-				has_country_flag = GEO_end_treaty
 				at_peace_or_same_enemies_as_ROOT = yes
+			}
+			if = {
+				limit = {
+					FROM = { original_tag = GEO }
+				}
+				FROM = {
+					has_country_flag = GEO_end_treaty
+				}
 			}
 		}
 
@@ -2217,14 +2254,13 @@ RUS_Alliance_decisions = {
 			}
 		}
 
-		targets = { GEO }
 		target_root_trigger = {
 			OR = {
 				AND = {
 					is_faction_leader = yes
 					has_completed_focus = RUS_Negotiations_Fail
 				}
-				has_completed_focus = RUS_Realpolitik
+				RUS_is_open_to_diplomacy = yes
 				has_country_flag = RUS_KER
 			}
 		}
@@ -2232,10 +2268,16 @@ RUS_Alliance_decisions = {
 			FROM = {
 				NOT = { has_war_with = ROOT }
 				is_valid_peace_target = yes
-				OR = {
-					has_government = social_democrat
-					has_government = radical_socialist
-					has_government = social_liberal
+				if = {
+					limit = { original_tag = GEO }
+					OR = {
+						has_government = social_democrat
+						has_government = radical_socialist
+						has_government = social_liberal
+					}
+				}
+				else = {
+					RUS_is_in_rostorg = yes
 				}
 			}
 		}
@@ -2256,72 +2298,10 @@ RUS_Alliance_decisions = {
 		}
 
 		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision RUS_Invite_Georgia target: [From.GetName]"
+			log = "[GetDateText]: [Root.GetName]: Decision RUS_invite_caucasus target: [From.GetName]"
 		}
 		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_Invite_Georgia target: [From.GetName]"
-			FROM = {
-				country_event = { id = rusfor.52 days = 8 }
-			}
-		}
-	}
-	RUS_Invite_Aze = {
-		name = RUS_Invite_Country
-		icon = generic_agreement
-
-		allowed = { tag = RUS }
-
-		available = {
-			NOT = { has_country_flag = RUS_invited_country }
-			FROM = {
-				at_peace_or_same_enemies_as_ROOT = yes
-			}
-		}
-
-		visible = {
-			is_faction_leader = yes
-			is_subject = no
-		}
-
-		targets = { AZE }
-		target_root_trigger = {
-			OR = {
-				has_completed_focus = RUS_Realpolitik
-				AND = {
-					is_faction_leader = yes
-					has_completed_focus = RUS_Negotiations_Fail
-				}
-			}
-		}
-		target_trigger = {
-			FROM = {
-				NOT = { has_war_with = ROOT }
-				is_valid_peace_target = yes
-				RUS_is_in_rostorg = yes
-			}
-		}
-
-		cost = 10
-		days_remove = 24
-		fire_only_once = yes
-		cancel_if_not_visible = yes
-
-		ai_will_do = {
-			factor = 1000
-			modifier = {
-				factor = 0
-				FROM = {
-					any_owned_state = { is_claim_or_core_of_ROOT = yes }
-				}
-			}
-		}
-		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision RUS_Invite_Aze target: [From.GetName]"
-
-		}
-
-		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_Invite_Aze target: [From.GetName]"
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_invite_caucasus target: [From.GetName]"
 			FROM = {
 				country_event = { id = rusfor.52 days = 8 }
 			}
@@ -2360,7 +2340,7 @@ RUS_Alliance_decisions = {
 					has_completed_focus = RUS_Negotiations_Fail
 				}
 				AND = {
-					has_completed_focus = RUS_Realpolitik
+					RUS_is_open_to_diplomacy = yes
 					has_completed_focus = RUS_Polish_Question
 				}
 				has_completed_focus = TRM_on_our_own
@@ -2902,7 +2882,7 @@ RUS_Alliance_decisions = {
 		targets = { FIN }
 		target_root_trigger = {
 			OR = {
-				has_completed_focus = RUS_Realpolitik
+				RUS_is_open_to_diplomacy = yes
 				AND = {
 					is_faction_leader = yes
 					has_completed_focus = RUS_Negotiations_Fail
@@ -3090,11 +3070,16 @@ RUS_Alliance_decisions = {
 		priority = 100
 		available = {
 			FROM = {
-				is_subject = no
-				is_in_faction = no
+				is_valid_peace_target = yes
 				at_peace_or_same_enemies_as_ROOT = yes
-				same_government_type_as_ROOT = yes 
-			}	
+			}
+			if = {
+				limit = { has_global_flag = USA_civil_war_over_flag }				
+				custom_override_tooltip = {
+					tooltip = ACW_has_supported_side
+					country_exists = var:ACW_supported_tag
+				}
+			}
 			OR = {
 				has_global_flag = USA_civil_war_over_flag
 				has_global_flag = USA_civil_war_avoided_flag
@@ -3107,20 +3092,28 @@ RUS_Alliance_decisions = {
 		targets = { USA CSA TEX CAL COR }
 		target_root_trigger = {
 			OR = {
-				has_completed_focus = RUS_Realpolitik
+				AND = {
+					RUS_is_open_to_diplomacy = yes
+					OR = {
+						has_idea = RUS_renewed_american_trade2 
+						has_idea = RUS_renewed_american_trade 
+					}
+				}
 				AND = {
 					is_faction_leader = yes
 					has_completed_focus = RUS_Negotiations_Fail
 				}
 				has_completed_focus = TRM_on_our_own
 			}
+			NOT = { 
+				463 = { is_claimed_by = ROOT }
+			}
 		}
 		target_trigger = {
-			country_exists = FROM
 			FROM = { 
-				is_in_faction = no
+				is_valid_peace_target = yes
 				at_peace_or_same_enemies_as_ROOT = yes
-				is_subject = no
+				both_socialist_or_both_not_socialist = yes
 			}
 		}
 
@@ -3461,40 +3454,6 @@ RUS_Alliance_decisions = {
 			}
 		}
 	}
-	### Economic Sphere ###
-	RUS_form_rostorg = {
-		visible = {
-			is_faction_leader = yes
-			OR = {
-				has_completed_focus = RUS_Expansionism
-				has_completed_focus = RUS_Realpolitik
-			}
-			is_member_of_economic_sphere = no
-			NOT = { has_country_flag = soviet_russia_restored }
-		}
-		available = {
-			has_war = no
-		}
-		
-		fire_only_once = yes
-		days_remove = 15
-		ai_will_do = {
-			factor = 100
-		}
-		cost = 15
-
-		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision RUS_form_rostorg target: [From.GetName]"
-			add_to_array = { RUS.RUS_rostorg_members = THIS }
-			if = {
-				limit = { has_completed_focus = RUS_Realpolitik }
-				add_ideas = RUS_moscow_accord_leader_realpolitik
-			}
-			else = {
-				add_ideas = RUS_moscow_accord_leader_expansionist
-			}
-		}
-	}
 	
 	RUS_invite_to_rostorg = {
 		icon = eng_trade_unions_support
@@ -3758,7 +3717,82 @@ RUS_Foreign_Policy_decisions = {
 			}
 		}
 	}
-	
+	RUS_restore_amtorg = {
+		icon = us_flag
+		available = {
+			FROM = {
+				is_valid_peace_target = yes
+				NOT = { has_war_with = ROOT }
+			}
+			if = {
+				limit = { has_global_flag = USA_civil_war_over_flag }				
+				custom_override_tooltip = {
+					tooltip = ACW_has_supported_side
+					country_exists = var:ACW_supported_tag
+				}
+			}
+			OR = {
+				has_global_flag = USA_civil_war_over_flag
+				has_global_flag = USA_civil_war_avoided_flag
+			}
+		}
+
+		targets = { USA CSA TEX CAL COR }
+		target_root_trigger = {
+			OR = {
+				AND = {
+					RUS_is_open_to_diplomacy = yes
+					has_completed_focus = RUS_Russo_American_Friendship
+				}
+				AND = {
+					is_faction_leader = yes
+					has_completed_focus = RUS_Negotiations_Fail
+				}
+				has_completed_focus = TRM_on_our_own
+			}
+			NOT = { 
+				463 = { is_claimed_by = ROOT }
+			}
+		}
+		target_trigger = {
+			FROM = { 
+				is_valid_peace_target = yes
+				NOT = { has_war_with = ROOT }
+				both_socialist_or_both_not_socialist = yes
+				owns_state = 361
+			}
+		}
+
+		cost = 0
+		days_remove = 35
+		fire_only_once = yes
+
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 5
+				has_political_power < 0
+			}			
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision RUS_Invite_America target: [From.GetName]"
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_Invite_America target: [From.GetName]"
+			add_political_power = 50
+			custom_effect_tooltip = tooltip_white_line
+			if = {
+				limit = { country_exists = var:ACW_supported_tag }
+				add_ideas = RUS_renewed_american_trade2
+			}
+			else = {
+				add_ideas = RUS_renewed_american_trade
+			}
+			#hidden_effect = { var:361.owner = { country_event = russia_flavour_events.173 } } #Washington DC
+		}
+	}
 	
 	
 	### Default decisions first ###
@@ -4233,7 +4267,7 @@ RUS_Foreign_Policy_decisions = {
 						is_faction_leader = yes
 						has_completed_focus = RUS_Negotiations_Fail
 					}
-					has_completed_focus = RUS_Realpolitik
+					RUS_is_open_to_diplomacy = yes
 					has_country_flag = RUS_KER
 				}
 			}
@@ -4245,7 +4279,7 @@ RUS_Foreign_Policy_decisions = {
 					RUS_is_in_rostorg = yes
 				}
 				OR = {
-					has_completed_focus = RUS_Realpolitik
+					RUS_is_open_to_diplomacy = yes
 					AND = {
 						is_faction_leader = yes
 						has_completed_focus = RUS_Negotiations_Fail
@@ -4734,7 +4768,7 @@ RUS_Foreign_Policy_decisions = {
 			}
 			modifier = {
 				factor = 0
-				has_completed_focus = RUS_Realpolitik
+				RUS_is_open_to_diplomacy = yes
 				FROM = {
 					OR = {
 						original_tag = LIT
@@ -4865,7 +4899,7 @@ RUS_Foreign_Policy_decisions = {
 		targets = { LAT }
 		target_root_trigger = {
 			has_completed_focus = RUS_Enemy_In_The_West
-			has_completed_focus = RUS_Expansionism
+			RUS_is_expansionist = yes
 			RUS_savinkov_in_power = yes
 		}
 		target_trigger = {
@@ -5193,7 +5227,6 @@ RUS_Foreign_Policy_decisions = {
 		targets = { 91.OWNER }
 		target_root_trigger = {
 			has_completed_focus = RUS_Protect_Ukranians_In_Galicia
-			has_completed_focus = RUS_Expansionism
 		}
 		target_trigger = {
 			can_declare_war_on = FROM
@@ -5445,6 +5478,7 @@ RUS_Foreign_Policy_decisions = {
 		target_root_trigger = {
 			OR = {
 				has_completed_focus = RUS_Demand_Bessarabia_Back
+				has_completed_focus = RUS_Eastern_Bloc
 				has_completed_focus = RUS_Destroy_German_Imperialists
 				has_completed_focus = RUS_Solving_Territorial_Disputes
 			}
@@ -5622,7 +5656,6 @@ RUS_Foreign_Policy_decisions = {
 		targets = { POL }
 		target_root_trigger = {
 			has_completed_focus = RUS_Polish_Question
-			has_completed_focus = RUS_Expansionism
 		}
 		target_trigger = {
 			can_declare_war_on = FROM
@@ -5770,10 +5803,7 @@ RUS_Foreign_Policy_decisions = {
 		visible = {
 			OR = {
 				has_completed_focus = TRM_Finish_The_Turks
-				AND = {
-					has_completed_focus = RUS_Open_The_Straits
-					has_completed_focus = RUS_Expansionism
-				}
+				has_completed_focus = RUS_Open_The_Straits
 			}
 			773 = { is_claim_or_core_of_ROOT = no } #Constantinople
 		}
@@ -6987,7 +7017,7 @@ RUS_Foreign_Policy_decisions = {
 				has_completed_focus = RUS_Assert_Our_Influence_Far_East
 				has_completed_focus = RUS_KER_Enemy_In_The_East
 			}			
-			NOT = { has_completed_focus = RUS_Realpolitik }
+			NOT = { RUS_is_open_to_diplomacy = yes }
 		}
 		target_trigger = {
 			can_declare_war_on = FROM
@@ -7260,7 +7290,6 @@ RUS_Foreign_Policy_decisions = {
 
 		visible = {
 			has_completed_focus = RUS_Resettle_the_Last_Frontiers
-			has_completed_focus = RUS_Expansionism
 			NOT = { 
 				has_country_flag = soviet_russia_restored 
 				has_government = social_democrat
@@ -9179,7 +9208,7 @@ RUS_Separate_Peace = {
 			modifier = {
 				add = 100
 				OR = {
-					has_completed_focus = RUS_Realpolitik
+					RUS_is_open_to_diplomacy = yes
 					has_global_flag = danzig_treaty_active
 				}
 			}
@@ -13951,7 +13980,12 @@ RUS_dealing_with_revolution_cat = {
 	RUS_reintroduce_gosstrazha = {
 		icon = GFX_decision_onmap_recruit_operative
 		
-		available = { has_completed_focus = RUS_High_Command_Reforms }
+		available = { 
+			OR = {
+				has_completed_focus = RUS_Study_German_Method
+				has_completed_focus = RUS_The_Russian_Tradition
+			}
+		}
 
 		custom_cost_text = CP_35
 		custom_cost_trigger = { command_power > 34.99 }
@@ -14025,12 +14059,6 @@ RUS_dealing_with_revolution_cat = {
 					add_to_variable = { RUS_state_nrpr_temp_pop = -0.01 }
 					add_to_variable = { RUS_state_nsnp_temp_pop = -0.01 }
 					add_to_variable = { RUS_state_independent_temp_pop = -0.01 }
-				}
-				ROOT = {
-					add_popularity = {
-						ideology = paternal_autocrat
-						popularity = 0.02
-					}
 				}
 			}
 		}
