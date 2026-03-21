@@ -1844,13 +1844,16 @@ save_austria = {
 					limit = { has_country_flag = AUS_evidenzbureau_focus }
 					clr_country_flag = AUS_evidenzbureau_focus
 				}
-				every_possible_country = {
-					limit = {
-						AUS_is_minority = yes
-						capital_scope = { is_owned_by = FROM }
-						has_country_flag = AUS_evidenzbureau_minority_focus
+				if = {
+					limit = { NOT = { has_global_flag = AUS_minorites_can_get_targeted_by_evidenz_anytime } }
+					every_possible_country = {
+						limit = {
+							AUS_is_minority = yes
+							capital_scope = { is_owned_by = FROM }
+							has_country_flag = AUS_evidenzbureau_minority_focus
+						}
+						clr_country_flag = AUS_evidenzbureau_minority_focus
 					}
-					clr_country_flag = AUS_evidenzbureau_minority_focus
 				}
 			}
 			set_global_flag = AUS_evidenzbureau_decision
@@ -1876,6 +1879,7 @@ save_austria = {
 		target_trigger = {
 			FROM = {
 				AUS_is_minority = yes
+				exists = no
 				OR = {
 					has_global_flag = AUS_minorites_can_get_targeted_by_evidenz_anytime
 					capital_scope.owner = {
@@ -1902,7 +1906,11 @@ save_austria = {
 						tag = VNC
 					}
 				}
-				NOT = { has_country_flag = AUS_evidenzbureau_minority_focus }
+				NOT = {
+					has_country_flag = AUS_evidenzbureau_minority_focus
+					has_country_flag = no_minority_revolt
+					has_war_with = AUS
+				}
 			}
 		}
 		target_non_existing = yes
@@ -1917,7 +1925,10 @@ save_austria = {
 			}
 		}
 		visible = {
-			any_country = { has_country_flag = AUS_evidenzbureau_focus }
+			OR = {
+				any_country = { has_country_flag = AUS_evidenzbureau_focus }
+				has_global_flag = AUS_minorites_can_get_targeted_by_evidenz_anytime
+			}
 		}
 		custom_cost_trigger = {
 			command_power > 4.9
@@ -1942,11 +1953,7 @@ save_austria = {
 		}
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove AUS_deploy_minority_evidenzbureau"
-			hidden_effect = {
-				FROM = {
-					set_country_flag = AUS_evidenzbureau_minority_focus
-				}
-			}
+			hidden_effect = { FROM = { set_country_flag = AUS_evidenzbureau_minority_focus } }
 			clr_global_flag = AUS_evidenzbureau_decision
 		}
 	}
@@ -2126,7 +2133,6 @@ save_austria = {
 		complete_effect = {
 			ALL_subtract_five_collapse = yes
 			AUS_5_fed = yes
-			
 		}
 		timeout_effect = {
 			add_political_power = -20
@@ -2326,10 +2332,10 @@ save_austria = {
 			NOT = { has_country_flag = paramilitary_decisions_hidden }
 		}
 		custom_cost_trigger = {
-			command_power > 25
-			has_army_experience	> 10
+			command_power > 9.9
+			has_army_experience	> 9
 		}
-		custom_cost_text = AUS_25_cp_10_xp
+		custom_cost_text = AUS_10_cp_10_xp
 		state_target = yes
 		on_map_mode = map_and_decisions_view
 		target_trigger = {
@@ -2496,12 +2502,33 @@ save_austria = {
 		}
 	}
 	
+	AUS_show_hide_dispel_opposition_decisions = {
+		icon = GFX_decision_investigation
+		priority = 6
+		ai_will_do = {
+			factor = 0
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove AUS_show_hide_dispel_opposition_decisions"
+			if = {
+				limit = { has_country_flag = dispel_opposition_decisions_hidden }
+				custom_effect_tooltip = shows_dispel_opposition_decisions
+				clr_country_flag = dispel_opposition_decisions_hidden
+			}
+			else = {
+				custom_effect_tooltip = hides_dispel_opposition_decisions
+				set_country_flag = dispel_opposition_decisions_hidden
+			}
+		}
+	}
+	
 	AUS_dispel_opposition = {
 		icon = GFX_decision_generic_arrest
 		priority = 5
 		allowed = {
 			OR = {
 				original_tag = AUS
+				original_tag = HUN
 				original_tag = CRO
 			}
 		}
@@ -2509,14 +2536,26 @@ save_austria = {
 			NOT = {
 				has_global_flag = AUS_investigation_underway
 				has_global_flag = AUS_investigation_done_SKS
+				has_country_flag = dispel_opposition_decisions_hidden
 			}
 			has_country_flag = AUS_resistance_networks_realized
-			SER = {
-				has_country_flag = SER_funded_seppies
-				NOT = {
-					is_subject_of = AUS
-					any_allied_country = {
-						has_subject = PREV
+			OR = {
+				SER = {
+					has_country_flag = SER_funded_seppies
+					NOT = {
+						is_subject_of = AUS
+						any_allied_country = {
+							has_subject = PREV
+						}
+					}
+				}
+				ROM = {
+					has_country_flag = ROM_funded_seppies
+					NOT = {
+						is_subject_of = AUS
+						any_allied_country = {
+							has_subject = PREV
+						}
 					}
 				}
 			}
@@ -2528,10 +2567,12 @@ save_austria = {
 		target_trigger = {
 			FROM = {
 				has_variable = FROM.success_value_opp
-				OR = {
-					compliance < 20
-					resistance > 50
-					has_resistance = yes
+				has_resistance = yes
+				resistance > 10
+				AUS = {
+					any_allied_country = {
+						controls_state = PREV.PREV
+					}
 				}
 			}
 		}
@@ -2827,16 +2868,13 @@ save_austria = {
 					owns_state = 789
 				}
 			}
+			NOT = { has_global_flag = szeklerland_solidified_global }
 		}
 		available = {
-			NOT = {
-				has_global_flag = szeklerland_solidified_global
-			}
+			NOT = { has_global_flag = szeklerland_solidified_global }
 		}
 		custom_cost_trigger = {
-			has_equipment = {
-				infantry_equipment > 599
-			}
+			has_equipment = { infantry_equipment > 599 }
 		}
 		custom_cost_text = AUS_600_gun
 		
