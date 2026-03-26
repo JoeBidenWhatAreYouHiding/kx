@@ -6868,8 +6868,7 @@ shared_focus = {
 		country_exists = TUR
 		OTT_cairo_pact_defeated = yes
 		TUR = {
-			is_subject = no
-			is_in_faction = no
+			is_valid_peace_target = yes
 			NOT = { has_war_with = ROOT }
 		}
 		custom_override_tooltip = {
@@ -7466,36 +7465,56 @@ shared_focus = {
 	prerequisite = { focus = RUS_Secure_Central_Asia }
 	ai_will_do = {
 		factor = 10
-		modifier = {
+		modifier = { # Avoid taking this before GER is dealt with
 			factor = 0
-			can_declare_war_on = 418.owner
-			var:418.owner = { default_attack_AI_trigger = yes }
+			has_war_with = GER
+		}
+		modifier = { # Avoid war with TUR before WW2
+			factor = 0
+			var:418.owner = {
+				OR = {
+					tag = TUR
+					is_subject_of = TUR
+				}
+			}
+			NOT = {
+				INT = { has_war_with = GER }
+			}
 		}
 		modifier = {
 			factor = 3.5
 			date > 1938.1.1
 			has_idea = volunteer_only
 		}
-		modifier = {
-			add = 15
-			PER = { has_war_with = TUR }
-		}
 	}
 	completion_reward = {
 		log = "[GetDateText]: [Root.GetName]: Focus RUS_Demand_North_Iran"
 		add_political_power = 15
-		army_experience = 10
 		if = {
 			limit = {
-				NOT = { has_country_flag = RUS_will_attack_persia }
+				PER = {
+					OR = {
+						both_socialist_or_both_not_socialist = no
+						is_subject = yes
+						any_owned_state = { 
+							OR = {
+								region = 134 
+								region = 136 
+								region = 243 
+								region = 245 
+								is_claim_or_core_of_ROOT = yes
+							}
+						}
+						has_country_flag = RUS_iranian_aid_refused
+					}
+				}
 			}
-			custom_effect_tooltip = unlocks_decision
-			custom_effect_tooltip = RUS_Ultimatum_To_Persia_tooltip
+			activate_targeted_decision = { decision = RUS_iranian_aid target = PER }				
 		}
 		else = {
 			custom_effect_tooltip = unlocks_decision
-			custom_effect_tooltip = RUS_Attack_Persia_tooltip
-		}				
+			custom_effect_tooltip = RUS_Ultimatum_To_Persia_tooltip
+		}			
 	}
 	search_filters = { FOCUS_FILTER_ARMY_BONUS FOCUS_FILTER_POLITICAL }
 }
@@ -8379,6 +8398,42 @@ shared_focus = {
 		army_experience = 50
 		add_faction_goal = faction_goal_RUS_defeat_internationale
 		add_faction_influence_score = 1		
+		every_other_country = {
+			limit = {
+				is_in_europe = yes
+				has_socialist_government = no
+				OR = {
+					is_subject = no
+					is_subject_of = RUS
+				}
+				NOT = {
+					has_non_aggression_pact_with = ENG
+					has_non_aggression_pact_with = FRA
+					has_war_with = INT
+					has_war_with = RUS
+					tag = GER
+					tag = PAP
+					tag = SIC
+					tag = SWI
+					tag = SRD
+					tag = FIN
+					tag = GRE
+					tag = SER
+					tag = ROM
+					tag = POL
+					tag = AZE
+					tag = GEO
+					tag = UKR
+					tag = WHR
+					tag = LAT
+					tag = EST
+					tag = GER
+					tag = CAN
+					tag = GBR
+				}
+			}
+			ROOT = { activate_targeted_decision = { target = PREV decision = RUS_invite_rest_of_europe_after_german_defeat } }
+		}
 		every_other_country = {
 			limit = {
 				is_in_europe = yes
@@ -21742,15 +21797,29 @@ focus_tree = {
 			army_experience = 10
 			if = {
 				limit = {
-					PER = { same_government_type_as_ROOT = yes }
+					PER = {
+						OR = {
+							both_socialist_or_both_not_socialist = no
+							is_subject = yes
+							any_owned_state = { 
+								OR = {
+									region = 134 
+									region = 136 
+									region = 243 
+									region = 245 
+									is_claim_or_core_of_ROOT = yes
+								}
+							}
+							has_country_flag = RUS_iranian_aid_refused
+						}
+					}
 				}
-				custom_effect_tooltip = unlocks_decision
-				custom_effect_tooltip = RUS_Ultimatum_To_Persia_tooltip
+				activate_targeted_decision = { decision = RUS_iranian_aid target = PER }				
 			}
 			else = {
 				custom_effect_tooltip = unlocks_decision
-				custom_effect_tooltip = RUS_Attack_Persia_tooltip
-			}				
+				custom_effect_tooltip = RUS_Ultimatum_To_Persia_tooltip
+			}					
 		}
 	}
 	focus = {
@@ -21951,18 +22020,27 @@ focus_tree = {
 			log = "[GetDateText]: [Root.GetName]: Focus RUS_Localize_Pockets_Of_Rebellion"
 			set_temp_variable = { RUS_rev_ferment_change = -5 }
 			RUS_change_rev_ferment = yes
-			activate_targeted_decision = { decision = RUS_increase_military_presence_in_city target = 195 }
-			activate_targeted_decision = { decision = RUS_increase_military_presence_in_city target = 217 }
-			activate_targeted_decision = { decision = RUS_increase_military_presence_in_city target = 219 }
-			activate_targeted_decision = { decision = RUS_increase_military_presence_in_city target = 218 }
-			activate_targeted_decision = { decision = RUS_increase_military_presence_in_city target = 233 }
-			activate_targeted_decision = { decision = RUS_increase_military_presence_in_city target = 247 }
-			activate_targeted_decision = { decision = RUS_increase_military_presence_in_city target = 252 }
-			activate_targeted_decision = { decision = RUS_increase_military_presence_in_city target = 249 }
-			activate_targeted_decision = { decision = RUS_increase_military_presence_in_city target = 257 }
-			activate_targeted_decision = { decision = RUS_increase_military_presence_in_city target = 260 }
-			activate_targeted_decision = { decision = RUS_increase_military_presence_in_city target = 653 }
-			activate_targeted_decision = { decision = RUS_increase_military_presence_in_city target = 571 }
+			every_state = {
+				limit = {
+					OR = {
+						state = 195
+						state = 217
+						state = 219
+						state = 218
+						state = 233
+						state = 247
+						state = 252
+						state = 249
+						state = 257
+						state = 260
+						state = 653
+						state = 573
+					}
+				}
+				ROOT = {
+					activate_targeted_decision = { decision = RUS_increase_military_presence_in_city target = PREV }
+				}
+			}
 		}
 	}	
 	focus = {
@@ -22376,14 +22454,8 @@ focus_tree = {
 			log = "[GetDateText]: [Root.GetName]: Focus RUS_Squeeze_Out_the_SR_Movement"
 			RUS_decrease_plsr_pop = yes
 			RUS_decrease_psr_pop = yes
-			set_temp_variable = { RUS_rev_ferment_change = -20 }
+			set_temp_variable = { RUS_rev_ferment_change = -15 }
 			RUS_change_rev_ferment = yes
-			if = {
-				limit = { 
-					NOT = { has_country_flag = Maria_Spiridonova_dead }
-				}
-				country_event = { id = rusd.3116 days = 10 }
-			}
 			if = {
 				limit = { 
 					NOT = { has_country_flag = Viktor_Chernov_dead }
@@ -24444,15 +24516,6 @@ focus_tree = {
 		y = 3
 		available = {
 			RUS_denikin_in_power = yes
-			if = {
-				limit = {
-					is_ai = yes
-					has_game_rule = { rule = RUS_aftermath_of_kornilov option = RUS_AFTERMATH_OF_KORNILOV_DENIKIN_PRESIDENT }
-				}
-			}
-			else = {
-				social_liberal > 0.2
-			}
 		}
 		ai_will_do = {
 			factor = 100
@@ -24479,15 +24542,6 @@ focus_tree = {
 		y = 3
 		available = {
 			RUS_denikin_in_power = yes
-			if = {
-				limit = {
-					is_ai = yes
-					has_game_rule = { rule = RUS_aftermath_of_kornilov option = RUS_AFTERMATH_OF_KORNILOV_DENIKIN_SUPREME_RULER }
-				}
-			}
-			else = {
-				social_liberal < 0.2
-			}
 		}
 		ai_will_do = {
 			factor = 100
