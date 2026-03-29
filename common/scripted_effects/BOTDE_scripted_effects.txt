@@ -6,32 +6,18 @@ d_botde_add_revolt_progress = {
 }
 
 d_ausd1 = {
-	SER = { AUS_5bw_SER_victory_SER_peacedeal = yes }
-	ROM = { AUS_5bw_SER_victory_ROM_peacedeal = yes }
 	every_country = {
-		limit = {
-			OR = {
-				tag = AUS
-				is_in_faction_with = SER
-			}
-		}
-		country_event = {
-			id = bdeausfor.1070
-			hours = 2
+		limit = { has_active_mission = AUS_ROM_revolt_mission }
+		add_days_mission_timeout = {
+			mission = AUS_ROM_revolt_mission
+			days = -14
 		}
 	}
-	every_enemy_country = {
-		limit = {
-			OR = {
-				tag = SER
-				tag = ROM
-				is_in_faction_with = SER
-				is_in_faction_with = ROM
-			}
-		}
-		white_peace = {
-			tag = PREV
-			message = WHITE_PEACE_MESSAGE_AUS_LOSS_5BW
+	every_country = {
+		limit = { has_active_mission = ROM_revolt_mission }
+		add_days_mission_timeout = {
+			mission = ROM_revolt_mission
+			days = -14
 		}
 	}
 }
@@ -5446,6 +5432,8 @@ do_minority_revolt_setup = {
 			THIS_add_five_collapse = yes
 			end_puppet = PREV
 			PREV = {
+				separate_peace_all_wars = yes
+				drop_cosmetic_tag = yes
 				declare_war_on = {
 					target = PREV
 					type = annex_everything
@@ -5466,6 +5454,11 @@ do_minority_revolt_setup = {
 	if = {
 		limit = { REV = { AUS_DWV_member = yes } }
 		AUS_remove_from_DWV =  yes
+	}
+	remove_ideas = {
+		AUS_part_of_the_Empire
+		AUS_transleithanian_sphere
+		AUS_cisleithanian_sphere
 	}
 	#hidden_effect = {
 	#	country_event = {
@@ -13086,6 +13079,7 @@ SER_revolt_mission_timeout_effect = {
 				set_politics = { ruling_party = national_populist }
 			}
 			else = { set_politics = { ruling_party = paternal_autocrat } }
+			increase_ruling_party_popularity_by_50 = yes
 		}
 	}
 	clear_global_event_target = BOTDE_backer_revolt_tag
@@ -13189,9 +13183,16 @@ ROM_invent_banat_effect = {
 ROM_revolt_mission_timeout_effect = {
 	event_target:BOTDE_backer_revolt_tag = {
 		set_country_flag = BOTDE_imminent_minority_revolt
-		capital_scope = {
-			owner = {
-				set_country_flag = BOTDE_imminent_minority_revolt_owner
+		if = {
+			limit = { exists = yes }
+			set_country_flag = BOTDE_revolt_target_already_exists
+			HUN = { set_country_flag = BOTDE_imminent_minority_revolt_owner }
+		}
+		else = {
+			capital_scope = {
+				owner = {
+					set_country_flag = BOTDE_imminent_minority_revolt_owner
+				}
 			}
 		}
 		do_minority_revolt_setup = yes
@@ -13199,9 +13200,12 @@ ROM_revolt_mission_timeout_effect = {
 		get_current_government_type = yes
 		ROOT = {
 			puppet = PREV
-			declare_war_on = {
-				target = 43.owner
-				type = annex_everything
+			if = {
+				limit = { NOT = { event_target:BOTDE_backer_revolt_tag = { has_country_flag = BOTDE_revolt_target_already_exists } } }
+				declare_war_on = {
+					target = 43.owner
+					type = annex_everything
+				}
 			}
 			if = {
 				limit = { NOT = { has_idea = BOTDE_delenda_est } }
