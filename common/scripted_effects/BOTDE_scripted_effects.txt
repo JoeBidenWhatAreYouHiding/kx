@@ -277,21 +277,23 @@ AUS_warning_check = {
 AUS_do_revolt_rate_rise = {
 	if = {
 		limit = {
-			has_war = no
+			OR = {
+				has_war = no
+				fifth_balkan_war = yes
+			}
 		}
 		set_variable = { global.extra_value_war_exhaust = 0 }
 	}
 	set_temp_variable = { revolt_rate_rising = stability }
+	set_temp_variable = { revolt_rate_party_pop_thing = party_popularity@ruling_party }
 	subtract_from_temp_variable = { revolt_rate_rising = 1 }
 	multiply_temp_variable  = { revolt_rate_rising = -0.03 }
-	set_temp_variable = { revolt_rate_party_pop_thing = party_popularity@ruling_party }
 	divide_temp_variable = { revolt_rate_party_pop_thing = 100 }
 	subtract_from_temp_variable = { revolt_rate_rising = revolt_rate_party_pop_thing }
 	add_to_temp_variable = { revolt_rate_rising = AUS.extra_value }
 	add_to_temp_variable = { revolt_rate_rising = global.extra_value_war_exhaust }
 	add_to_temp_variable = { revolt_rate_rising = global.extra_collapse_federalizing }
 	add_to_temp_variable = { revolt_rate_rising = modifier@BOTDE_revolt_rate_modifier }
-	add_to_temp_variable = { AUS.revolt_progress_change = revolt_rate_rising }
 	if = {
 		limit = {
 			OR = {
@@ -301,10 +303,18 @@ AUS_do_revolt_rate_rise = {
 				has_completed_focus = AUS_charity_and_unity
 			}
 		}
-		subtract_from_temp_variable = { AUS.revolt_progress_change = 0.002 }
+		subtract_from_temp_variable = { revolt_rate_rising = 0.002 }
 	}
-	log = "[GetDateText]: [Root.GetName]: AUS_do_revolt_rate_rise: [?AUS.revolt_progress_change]"
-	BOTDE_add_collapse = yes
+	if = {
+		limit = { fifth_balkan_war = yes }
+		subtract_from_temp_variable = { revolt_rate_rising = 0.005 }
+	}
+	add_to_temp_variable = { AUS.revolt_progress_change = revolt_rate_rising }
+	if = {
+		limit = { check_variable = { do_not_apply_revolt_change < 1 } } #for modifier tooltips
+		log = "[GetDateText]: [Root.GetName]: AUS_do_revolt_rate_rise: [?AUS.revolt_progress_change]"
+		BOTDE_add_collapse = yes
+	}
 }
 
 CONST_do_additional_revolt_progress = {
@@ -312,13 +322,16 @@ CONST_do_additional_revolt_progress = {
 	set_temp_variable = { CONST_revolt_rate_rising_battalion_ROOT = num_battalions }
 	set_temp_variable = { CONST_revolt_rate_rising_battalion_AUS = AUS.num_battalions }
 	set_temp_variable = { CONST_revolt_rate_rising_stability = AUS.stability }
-	add_to_temp_variable = { CONST_revolt_rate_rising_stability = -1.2 }
+	set_temp_variable = { CONST_revolt_rate_rising_THIS_stability = stability }
 	set_temp_variable = { CONST_revolt_rate_rising_AUS = AUS.num_of_factories }
+	divide_temp_variable = { CONST_revolt_rate_rising_THIS_stability = 2 }
+	add_to_temp_variable = { CONST_revolt_rate_rising_stability = CONST_revolt_rate_rising_THIS_stability }
+	add_to_temp_variable = { CONST_revolt_rate_rising_stability = -1.2 }
 	
 	divide_temp_variable = { CONST_revolt_rate_rising = 120 }
 	divide_temp_variable = { CONST_revolt_rate_rising_battalion_ROOT = 10000 }
 	divide_temp_variable = { CONST_revolt_rate_rising_battalion_AUS = 50000 }
-	multiply_temp_variable = { CONST_revolt_rate_rising_stability = -4 }
+	multiply_temp_variable = { CONST_revolt_rate_rising_stability = -3.5 }
 	add_to_temp_variable = { CONST_revolt_rate_rising = CONST_revolt_rate_rising_battalion_ROOT }
 	
 	multiply_temp_variable = { CONST_revolt_rate_rising = CONST_revolt_rate_rising_stability }
@@ -330,14 +343,20 @@ CONST_do_additional_revolt_progress = {
 	add_to_temp_variable = { CONST_revolt_rate_rising = global.extra_value_war_exhaust }
 	add_to_temp_variable = { CONST_revolt_rate_rising = global.extra_collapse_federalizing }
 	add_to_temp_variable = { CONST_revolt_rate_rising = modifier@BOTDE_revolt_rate_modifier }
-	add_to_temp_variable = { THIS.revolt_progress_change = CONST_revolt_rate_rising }
-	add_to_variable = { THIS.subject_revolt_progress = 0.01 }
 	if = {
 		limit = { has_country_flag = AUS_evidenzbureau_focus }
-		add_to_variable = { THIS.subject_revolt_progress = -0.015 }
+		add_to_temp_variable = { CONST_revolt_rate_rising = -0.015 }
 	}
-	log = "[GetDateText]: [THIS.GetName]: CONST_do_additional_revolt_progress: [?revolt_progress_change]"
-	BOTDE_add_collapse = yes
+	if = {
+		limit = { fifth_balkan_war = yes }
+		add_to_temp_variable = { CONST_revolt_rate_rising = -0.005 }
+	}
+	add_to_temp_variable = { THIS.revolt_progress_change = CONST_revolt_rate_rising }
+	if = {
+		limit = { check_variable = { do_not_apply_revolt_change < 1 } } #for modifier tooltips
+		log = "[GetDateText]: [THIS.GetName]: CONST_do_additional_revolt_progress: [?revolt_progress_change] CONST_revolt_rate_rising_stability: [?CONST_revolt_rate_rising_stability] CONST_revolt_rate_rising_THIS_stability: [?CONST_revolt_rate_rising_THIS_stability] CONST_revolt_rate_rising_battalion_ROOT: [?CONST_revolt_rate_rising_battalion_ROOT] CONST_revolt_rate_rising_battalion_AUS: [?CONST_revolt_rate_rising_battalion_AUS]"
+		BOTDE_add_collapse = yes
+	}
 }
 
 AUS_do_revolt_rate_rise_counterintel = {
@@ -4069,6 +4088,13 @@ AUS_5BW_peace_collapse = {
 	set_global_flag = fifth_balkan_war_ended
 	AUS_remove_all_SER_state_revolt_target_modifiers = yes
 	AUS_remove_all_ROM_state_revolt_target_modifiers = yes
+	every_country = {
+		limit = { is_ally_with = SER }
+		country_event = {
+			id = bdeausfor.1070
+			hours = 1
+		}
+	}
 	SER = {
 		if = {
 			limit = {
@@ -4094,6 +4120,7 @@ AUS_5BW_peace_collapse = {
 			limit = {
 				owns_state = 1103
 				check_variable = { SLO.subject_revolt_progress > 0.49 }
+				NOT = { has_completed_focus = SER_slavic_federation }
 			}
 			country_event = {
 				id = constituents.7
@@ -4136,7 +4163,6 @@ AUS_blow_the_fuck_up_and_make_the_yugoslav_wars_look_like_a_joke = {
 			limit = { fifth_balkan_war = yes }
 			AUS_5BW_peace_collapse = yes
 		}
-		
 		
 		if = {
 			limit = {
@@ -4374,13 +4400,7 @@ AUS_blow_the_fuck_up_and_make_the_yugoslav_wars_look_like_a_joke = {
 			}
 		}
 		
-		AUS = {
-			every_state = {
-				teleport_armies = {
-					to_state_array = owned_states
-				}
-			}
-		}
+		AUS = { every_state = { teleport_armies = { to_state_array = owned_states } } }
 		
 		if = {
 			limit = {
@@ -4395,6 +4415,7 @@ AUS_blow_the_fuck_up_and_make_the_yugoslav_wars_look_like_a_joke = {
 				}
 				annex_country = {
 					target = AWR
+					transfer_troops = yes
 				}
 				set_politics = {
 					ruling_party = national_populist
@@ -4429,9 +4450,7 @@ AUS_blow_the_fuck_up_and_make_the_yugoslav_wars_look_like_a_joke = {
 				}
 				exists = yes
 				is_ally_with = AUS
-				NOT = {
-					has_war_with = AUS
-				}
+				NOT = { has_war_with = AUS }
 			}
 			if = {
 				limit = {
@@ -4709,6 +4728,14 @@ AUS_blow_the_fuck_up_and_make_the_yugoslav_wars_look_like_a_joke = {
 		every_possible_country = {
 			limit = { has_country_flag = AUS_szekler_sztuff }
 			clr_country_flag = AUS_szekler_sztuff
+		}
+		every_possible_country = {
+			limit = { has_country_flag = AUS_undergoing_operation }
+			clr_country_flag = AUS_undergoing_operation
+		}
+		every_possible_country = {
+			limit = { has_country_flag = AUS_resistance_networks_realized }
+			clr_country_flag = AUS_resistance_networks_realized
 		}
 		
 		every_possible_country = {
@@ -5432,7 +5459,9 @@ do_minority_revolt_setup = {
 			THIS_add_five_collapse = yes
 			end_puppet = PREV
 			PREV = {
+				leave_faction = yes
 				separate_peace_all_wars = yes
+				every_state = { teleport_armies = { to_state_array = owned_states } }
 				drop_cosmetic_tag = yes
 				declare_war_on = {
 					target = PREV
@@ -5460,17 +5489,6 @@ do_minority_revolt_setup = {
 		AUS_transleithanian_sphere
 		AUS_cisleithanian_sphere
 	}
-	#hidden_effect = {
-	#	country_event = {
-	#		id = revolt.200
-	#		days = 720
-	#	}
-	#	#Put in a diff scripted effect
-	#	SLO = {
-	#		load_oob = SLO_collapse_oob 
-	#	}
-	#	set_global_flag = recent_slovene_revolt
-	#}
 }
 
 do_minority_revolt_basic = {
@@ -13859,9 +13877,7 @@ AUS_display_weekly_collpase_modifiers_effect_tooltip = { #uses a effect tooltip 
 	custom_effect_tooltip = AUS_const_tooltip_modifiers
 	set_temp_variable = { current_modifier = 0 }
 	if = {
-		limit = {
-			THIS = { tag = AUS }
-		}
+		limit = { THIS = { tag = AUS } }
 		effect_tooltip = { AUS_display_weekly_collpase_modifiers_effect = yes }
 	}
 	else_if = {
@@ -14108,9 +14124,7 @@ AUS_steal_ENG_from_LIC_effect = {
 }
 AUS_display_weekly_collpase_modifiers_effect = {
 	if = {
-		limit = {
-			check_variable = { current_modifier < 10 }
-		}
+		limit = { check_variable = { current_modifier < 10 } }
 		if = { #base value
 			limit = { check_variable = { current_modifier = 0 } }
 			set_temp_variable = { modifier = 0 }
@@ -14127,7 +14141,7 @@ AUS_display_weekly_collpase_modifiers_effect = {
 						has_completed_focus = AUS_charity_and_unity
 					}
 				}
-				subtract_from_temp_variable = { AUS.revolt_progress_change = 0.002 }
+				subtract_from_temp_variable = { modifier = 0.002 }
 			}
 			custom_effect_tooltip = AUS_const_tooltip_modifier_base_value
 		}
@@ -14175,15 +14189,36 @@ AUS_display_weekly_collpase_modifiers_effect = {
 				custom_effect_tooltip = AUS_const_tooltip_modifier_revolt_rate_modifier
 			}
 		}
+		if = { #fifth balkan war
+			limit = { check_variable = { current_modifier = 6 } }
+			set_temp_variable = { modifier = 0 }
+			if = {
+				limit = { fifth_balkan_war = yes }
+				add_to_temp_variable = { modifier = -0.005 }
+			}
+			if = {
+				limit = { NOT = { check_variable = { modifier = 0 } } }
+				custom_effect_tooltip = AUS_const_tooltip_modifier_fifth_balkan_war
+			}
+		}
+		if = { #result (uses actual calculation)
+			limit = { check_variable = { current_modifier = 7 } }
+			set_temp_variable = { modifier = 0 }
+			set_temp_variable = { do_not_apply_revolt_change = 1 }
+			THIS = { AUS_do_revolt_rate_rise = yes }
+			add_to_temp_variable = { modifier = revolt_progress_change }
+			if = {
+				limit = { NOT = { check_variable = { modifier = 0 } } }
+				custom_effect_tooltip = AUS_const_tooltip_modifier_total
+			}
+		}
 		add_to_temp_variable = { current_modifier = 1 }
 		AUS_display_weekly_collpase_modifiers_effect = yes
 	}
 }
 AUS_display_weekly_const_revolt_modifiers_effect = {
 	if = {
-		limit = {
-			check_variable = { current_modifier < 10 }
-		}
+		limit = { check_variable = { current_modifier < 12 } }
 		if = { #base value
 			limit = { check_variable = { current_modifier = 0 } }
 			set_temp_variable = { modifier = 0 }
@@ -14197,11 +14232,14 @@ AUS_display_weekly_const_revolt_modifiers_effect = {
 			limit = { check_variable = { current_modifier = 1 } }
 			set_temp_variable = { modifier = num_of_factories }
 			set_temp_variable = { temp_var = num_battalions }
-			set_temp_variable = { temp_var_2 = stability }
+			set_temp_variable = { temp_var_2 = AUS.stability }
+			set_temp_variable = { temp_var_3 = stability }
 			add_to_temp_variable = { temp_var_2 = -1.2 }
+			divide_temp_variable = { temp_var_3 = 2 }
+			add_to_temp_variable = { temp_var_2 = temp_var_3 }
 			divide_temp_variable = { modifier = 120 }
 			divide_temp_variable = { temp_var = 10000 }
-			multiply_temp_variable = { temp_var_2 = -4 }
+			multiply_temp_variable = { temp_var_2 = -3.5 }
 			add_to_temp_variable = { modifier = temp_var }
 			multiply_temp_variable = { modifier = temp_var_2 }
 			divide_temp_variable = { modifier = 20 }
@@ -14296,6 +14334,29 @@ AUS_display_weekly_const_revolt_modifiers_effect = {
 			if = {
 				limit = { NOT = { check_variable = { modifier = 0 } } }
 				custom_effect_tooltip = AUS_const_tooltip_modifier_counter_intel
+			}
+		}
+		if = { #fifth balkan war
+			limit = { check_variable = { current_modifier = 10 } }
+			set_temp_variable = { modifier = 0 }
+			if = {
+				limit = { fifth_balkan_war = yes }
+				add_to_temp_variable = { modifier = -0.005 }
+			}
+			if = {
+				limit = { NOT = { check_variable = { modifier = 0 } } }
+				custom_effect_tooltip = AUS_const_tooltip_modifier_fifth_balkan_war
+			}
+		}
+		if = { #result (uses actual calculation)
+			limit = { check_variable = { current_modifier = 11 } }
+			set_temp_variable = { modifier = 0 }
+			set_temp_variable = { do_not_apply_revolt_change = 1 }
+			CONST_do_additional_revolt_progress = yes
+			add_to_temp_variable = { modifier = CONST_revolt_rate_rising }
+			if = {
+				limit = { NOT = { check_variable = { modifier = 0 } } }
+				custom_effect_tooltip = AUS_const_tooltip_modifier_total
 			}
 		}
 		add_to_temp_variable = { current_modifier = 1 }
