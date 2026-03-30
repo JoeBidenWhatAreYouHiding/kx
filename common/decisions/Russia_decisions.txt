@@ -2048,7 +2048,7 @@ RUS_Alliance_decisions = {
 			}
 		}
 
-		target_root_trigger = {
+		visible = {
 			NOT = { has_country_flag = soviet_russia_restored }
 			OR = {
 				RUS_is_open_to_diplomacy = yes
@@ -2058,13 +2058,11 @@ RUS_Alliance_decisions = {
 				}
 				has_completed_focus = TRM_on_our_own
 			}
-			
-		}
-		target_trigger = {
 			FROM = {
-				is_subject = no
-				is_in_faction = no
+				exists = yes
+				is_valid_peace_target = yes
 				has_socialist_government = no
+				NOT = { has_war_with = ROOT }
 			}
 		}
 
@@ -2111,7 +2109,7 @@ RUS_Alliance_decisions = {
 			at_peace_or_same_enemies_as_FROM = yes			
 		}
 
-		target_root_trigger = {
+		visible = {
 			NOT = { has_country_flag = soviet_russia_restored }
 			OR = {
 				AND = {
@@ -2121,8 +2119,6 @@ RUS_Alliance_decisions = {
 				RUS_is_open_to_diplomacy = yes
 				has_country_flag = RUS_KER
 			}
-		}
-		target_trigger = {
 			FROM = {
 				exists = yes
 				NOT = { has_war_with = ROOT }
@@ -2469,7 +2465,6 @@ RUS_Alliance_decisions = {
 			}
 		}
 		target_trigger = {
-			target_trigger = {
 			FROM = {
 				exists = yes
 				is_valid_peace_target = yes
@@ -2907,7 +2902,7 @@ RUS_Alliance_decisions = {
 					has_completed_focus = ETS_uyghur_independence
 				}
 				else = {
-					has_completed_decision = TAN_flexible_diplomacy
+					has_completed_focus = TAN_flexible_diplomacy
 				}
 				at_peace_or_same_enemies_as_ROOT = yes
 			}
@@ -6063,7 +6058,6 @@ RUS_Foreign_Policy_decisions = {
 				has_completed_focus = RUS_Demand_North_Iran
 				has_completed_focus = RUS_KER_Demand_North_Iran
 			}
-			NOT = { has_country_flag = RUS_will_attack_persia }
 		}
 		target_trigger = {
 			can_declare_war_on = FROM
@@ -6557,45 +6551,143 @@ RUS_Foreign_Policy_decisions = {
 		}
 	}
 	RUS_support_chinese_faction = {
-		icon = generic_civil_support
-		allowed = { always = no }
-		visible = { 
+		icon = GFX_decision_jap_conquer_china
+
+		allowed = { original_tag = RUS }
+
+		available = {
 			FROM = { has_capitulated = no }
-			any_other_country = {
-				is_chinese_tag = yes
-				NOT = { has_country_flag = Russia_Supports_Us }
+		}
+
+		visible = {
+			country_exists = FROM
+			FROM = {
+				china_is_potential_government = yes
+				both_socialist_or_both_not_socialist = yes
+				is_working_with_JAP = no
+				NOT = { has_war_with = ROOT }
 			}
 		}
-		
-		cost = 10
-		days_remove = 1
+
+		cost = 35
 		fire_only_once = yes
+
+		targets = { CHI GXC SZC QIE FNG NPA }
+		target_root_trigger = {
+			OR = {
+				has_completed_focus = RUS_China_Policy
+				has_completed_focus = TRM_China_Policy
+			}
+		}
+		target_trigger = {			
+			FROM = {
+				china_is_potential_government = yes
+				both_socialist_or_both_not_socialist = yes
+				is_working_with_JAP = no
+				NOT = { has_war_with = ROOT }
+			}
+		}
+
 		ai_will_do = {
-			factor = 100
+			base = 200
+			modifier = {
+				factor = 5
+				FROM = { is_ruled_by_right_kmt = yes }
+			}
+			modifier = {
+				factor = 2.5
+				FROM = {
+					OR = {
+						is_ruled_by_pro_zhili = yes
+						is_ruled_by_pro_manchu = yes
+					}
+				}
+			}
+			modifier = {
+				factor = 0
+				has_socialist_government = yes
+				FROM = { is_ruled_by_left_kmt = no }
+			}
 		}
 
 		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_support_chinese_faction target: [From.GetName]"
-			FROM = { 
-				save_event_target_as = china_ally_target 
-				set_country_flag = Russia_Supports_Us
-				add_political_power = 50
-				add_opinion_modifier = {
-					target = ROOT
-					modifier = KR_approves_of_govt 
-				}
-				reverse_add_opinion_modifier = {
-					target = ROOT
-					modifier = KR_approves_of_govt 
-				}
-			}
-			activate_targeted_decision = { target = FROM decision = RUS_Send_Equipment_China }
-			activate_targeted_decision = { target = FROM decision = RUS_Send_Attache }
-			hidden_effect = {
-				activate_targeted_decision = { target = CHN decision = RUS_sino_russian_relations }
+			log = "[GetDateText]: [Root.GetName]: Decision RUS_support_chinese_faction target: [From.GetName]"
+			add_named_threat = {
+				threat = 1
+				name = RUS_support_chinese_faction
 			}
 		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_support_chinese_faction target: [From.GetName]"
+			FROM = { country_event = rusfor.1136 }
+			custom_effect_tooltip = if_FROM_agrees
+			effect_tooltip = {
+				FROM = { add_ideas = RUS_chinese_military_mission_idea }
+				add_relation_modifier = {
+					target = FROM
+					modifier = volunteer_limit_plus_two
+				}
+				activate_targeted_decision = { target = FROM decision = RUS_Send_Equipment_China }
+				activate_targeted_decision = { target = FROM decision = RUS_Send_Attache }
+			}
+		}
+		fixed_random_seed = no
 	}
+	RUS_trade_deal_china = {
+		icon = GFX_decision_generic_agreement
+
+		available = {
+			FROM = {
+				owns_any_state_of = {
+					608 #Beijing
+					613 #Nanjing
+				}
+			}
+			NOT = {
+				JAP = {
+					is_ally_with = FROM
+					is_subject = no
+				}
+			}
+		}
+
+		visible = {
+			country_exists = FROM
+			FROM = {
+				china_is_potential_government = yes
+				both_socialist_or_both_not_socialist = yes
+				NOT = { has_war_with = ROOT }
+			}
+		}
+
+		targets = { CHN }
+		target_root_trigger = {
+			has_country_flag = RUS_sino_russian_relations_peaceful
+		}
+		target_trigger = {
+			FROM = {
+				china_is_potential_government = yes
+				both_socialist_or_both_not_socialist = yes
+				NOT = { has_war_with = ROOT }
+			}
+		}
+
+		cost = 40
+
+		fire_only_once = yes
+
+		ai_will_do = { base = 1000 }
+
+		complete_effect = {
+			log = "[GetLogRoot][GetLogFrom]: Decision complete RUS_trade_deal_china"
+			FROM = { country_event = rusfor.1126 } #Russians Propose Trade Deal
+			custom_effect_tooltip = if_FROM_agrees
+			event_option_tooltip = rusfor.1126.a
+		}
+		fixed_random_seed = no
+	}
+	
 	RUS_sino_russian_relations = {
 		icon = generic_civil_support
 		allowed = { always = no }
@@ -7905,6 +7997,37 @@ political_actions = {
 		}
 		complete_effect = {
 			country_event = russia.2015
+		}
+	}	
+	RUS_empire_Flag_Changer = {
+		name = RUS_Savinkov_Flag_Changer
+		icon = rus_flag
+		
+		allowed = {
+			tag = RUS
+		}
+		visible = {
+			OR = { 
+				has_cosmetic_tag = RUS_empire
+				has_cosmetic_tag = RTS
+			}
+			RUS_russian_monarch = yes
+			OR = {
+				has_government = paternal_autocrat
+				has_government = national_populist
+				has_country_leader_ideology = absolute_monarchy_subtype
+			}
+		}
+		
+		cost = 0
+		fire_only_once = no
+		days_re_enable = 5
+		
+		ai_will_do = {
+			factor = 0
+		}
+		complete_effect = {
+			country_event = russia.2018
 		}
 	}	
 	RUS_Soviet_Labor_Union_Flag_Changer = {
@@ -9787,7 +9910,7 @@ RUS_Siberian_War = {
 			TRM = { TRM_Mlad_in_power = no }
 			if = {
 				limit = { 
-					country_event = DKB
+					country_exists = DKB
 					DKB = { DKB_vlasov_in_power = yes }
 				}
 				TRM = { 
@@ -11716,7 +11839,7 @@ RUS_Siberian_War = {
 			at_peace_or_same_enemies_as_FROM = yes
 			if = {
 				limit = { 
-					country_event = DKB
+					country_exists = DKB
 					DKB = { DKB_vlasov_in_power = yes }
 				}
 				NOT = { has_country_flag = DKB_vlasov_kolchak_coalition }
@@ -13797,7 +13920,10 @@ RUS_dealing_with_revolution_cat = {
 		allowed = { always = no } #manually activated
 
 		available = {
-			has_completed_focus = RUS_Social_Ferment
+			OR = {
+				has_completed_focus = RUS_Social_Ferment
+				has_completed_focus = RUS_Settle_Our_Scores_With_Socialists
+			}
 			RUS_rev_ferment_lower_15 = yes
 		}
 
@@ -13952,6 +14078,14 @@ RUS_dealing_with_revolution_cat = {
 
 		ai_will_do = {
 			factor = 100
+			modifier = {
+				factor = 10
+				has_active_mission = RUS_drozd_zemsky_sobor
+			}
+			modifier = {
+				factor = 0
+				RUS_rev_ferment_lower_15 = yes
+			}
 		}
 
 		remove_effect = {
@@ -13964,7 +14098,7 @@ RUS_dealing_with_revolution_cat = {
 		icon = GFX_decision_onmap_recruit_operative
 		allowed = { always = no }
 		available = { has_completed_focus = RUS_Reintroduce_Okhranka }
-
+		visible = { has_dlc_lar = yes }
 		custom_cost_text = CP_25
 		custom_cost_trigger = { command_power > 24.99 }
 		days_remove = 20
@@ -15575,6 +15709,190 @@ RUS_zemsky_sobor_cat = {
 	}
 }
 RUS_drozdovite_russia_cat = {
+	RUS_drozd_zemsky_sobor = {
+		icon = GFX_decision_generic_monarchy
+		priority = 100
+
+		allowed = { always = no } #manually activated
+
+		available = {
+			hidden_trigger = { always = no }
+		}
+
+		cancel_trigger = {
+			RUS_drozdovites_in_power = no
+		}
+		
+		cancel_if_not_visible = yes
+		
+		is_good = no
+		selectable_mission = no
+		days_mission_timeout = 200
+		
+		timeout_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision timeout RUS_drozd_zemsky_sobor"
+			custom_effect_tooltip = RUS_drozd_zemsky_sobor_tt
+			if = {
+				limit = {
+					is_ai = yes
+					has_game_rule = { rule = RUS_aftermath_of_kornilov option = RUS_AFTERMATH_OF_KORNILOV_DROZDOVSKY_MONARCHY }
+				}
+				country_event = rusd.3374
+			}
+			else_if = {
+				limit = {
+					check_variable = { RUS_drozd_officer < 0 }
+					has_country_flag = RUS_revolutionary_ferment_dealt_with
+				}
+				country_event = rusd.3374
+			}
+			else = {
+				country_event = rusd.3375
+			}
+		}
+	}
+	RUS_purge_the_rovs_republicans = {
+		icon = GFX_decision_generic_army_support
+				
+		visible = {
+			any_unit_leader = { 
+				OR = {
+					has_trait = RUS_denikin_officer 
+					has_trait = RUS_savinkov_officer
+					has_trait = RUS_kornilov_officer
+					has_trait = hidden_sympathies
+					has_id = 412
+					has_id = 395
+					has_id = 50003
+					has_id = 505055
+					has_id = 406
+				}
+			}			
+		}
+		
+		cancel_if_not_visible = yes
+		
+		custom_cost_text = CP_50
+		custom_cost_trigger = {
+			command_power > 49.99
+		}
+		fire_only_once = yes
+		days_remove = 15
+		
+		
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel RUS_purge_the_rovs_republicans"			
+			hidden_effect = { 
+				add_command_power = 50
+			}
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision RUS_purge_the_rovs_republicans"			
+			hidden_effect = { 
+				add_command_power = -50
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_purge_the_rovs_republicans"			
+			effect_tooltip = {
+				every_unit_leader = {
+					limit = { 
+						OR = {
+							has_trait = RUS_denikin_officer 
+							has_trait = RUS_savinkov_officer
+							has_trait = RUS_kornilov_officer
+							has_trait = hidden_sympathies
+							has_id = 412
+							has_id = 395
+							has_id = 50003
+							has_id = 505055
+							has_id = 406
+						}
+					}
+					retire = yes
+				}
+			}
+			hidden_effect = {
+				every_unit_leader = {
+					limit = { 
+						OR = {
+							has_trait = RUS_denikin_officer 
+							has_trait = RUS_savinkov_officer
+							has_trait = hidden_sympathies
+							has_id = 412
+							has_id = 395
+							has_id = 50003
+							has_id = 505055
+							has_id = 406
+						}
+					}
+					set_unit_leader_flag = RUS_arrested_general
+					set_nationality = XXA
+				}
+			}
+		}
+	}
+	RUS_purge_the_rovs_monarchists = {
+		icon = GFX_decision_generic_army_support
+				
+		visible = {
+			any_unit_leader = { 
+				OR = {
+					has_trait = RUS_wrangel_officer 
+					has_trait = RUS_markov_officer
+				}
+			}
+		}
+		
+		cancel_if_not_visible = yes
+		
+		custom_cost_text = CP_50
+		custom_cost_trigger = {
+			command_power > 49.99
+		}
+		fire_only_once = yes
+		days_remove = 15
+		
+		
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel RUS_purge_the_rovs_monarchists"			
+			hidden_effect = { 
+				add_command_power = 50
+			}
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision RUS_purge_the_rovs_monarchists"			
+			hidden_effect = { 
+				add_command_power = -50
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_purge_the_rovs_monarchists"			
+			effect_tooltip = {
+				every_unit_leader = {
+					limit = { 
+						OR = {
+							has_trait = RUS_wrangel_officer 
+							has_trait = RUS_markov_officer
+						}
+					}
+					retire = yes
+				}
+			}
+			hidden_effect = {
+				every_unit_leader = {
+					limit = { 
+						OR = {
+							has_trait = RUS_wrangel_officer 
+							has_trait = RUS_markov_officer
+						}
+					}
+					set_unit_leader_flag = RUS_arrested_general
+					set_nationality = XXA
+				}
+			}
+		}
+	}
 	RUS_drozd_ally_vns = {
 		icon = GFX_decision_government_up
 		allowed = { always = no }
@@ -15694,7 +16012,11 @@ RUS_drozdovite_russia_cat = {
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_drozd_ally_diterikhs"
 			clr_country_flag = RUS_drozd_seeking_alliances
-			country_event = rusd.3362
+			if = {
+				limit = { has_country_flag = RUS_drozd_aligned_vonsyatsky }
+				country_event = rusd.3382
+			}
+			else = { country_event = rusd.3362 }
 		}
 	}
 	RUS_drozd_ally_black_hundred = {
@@ -15725,6 +16047,39 @@ RUS_drozdovite_russia_cat = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_drozd_ally_black_hundred"
 			clr_country_flag = RUS_drozd_seeking_alliances
 			country_event = rusd.3358
+		}
+	}
+	RUS_drozd_ally_nsnp = {
+		icon = GFX_decision_government_up
+		allowed = { always = no }
+		
+		available = {
+			NOT = { has_country_flag = RUS_drozd_seeking_alliances }
+		}
+		visible = {
+			NOT = { has_country_flag = nsnp_banned }
+		}
+		
+		cost = 25
+		days_remove = 20
+		fire_only_once = yes
+				
+		ai_will_do = {
+			factor = 100
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel RUS_drozd_ally_nsnp"			
+			clr_country_flag = RUS_drozd_seeking_alliances
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision RUS_drozd_ally_nsnp"			
+			set_country_flag = { flag = RUS_drozd_seeking_alliances value = 1 days = 20 }
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_drozd_ally_nsnp"
+			clr_country_flag = RUS_drozd_seeking_alliances
+			country_event = rusd.3380
 		}
 	}
 	RUS_drozd_ally_brp = {
