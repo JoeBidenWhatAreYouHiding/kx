@@ -369,16 +369,10 @@ AUS_do_revolt_rate_rise_counterintel = {
 AUS_do_revolt_rate_rise_operative_mission = {
 	if = {
 		limit = {
-			any_operative_leader = {
-				operative_leader_mission = counter_intelligence
-			}
+			any_operative_leader = { operative_leader_mission = counter_intelligence }
 			NOT = {
-				is_preparing_operation = {
-					target = any_country
-				}
-				is_running_operation  = {
-					target = any_country
-				}
+				is_preparing_operation = { target = any_country }
+				is_running_operation  = { target = any_country }
 			}
 		}
 		add_to_temp_variable = { ROOT.revolt_progress_change = -0.003 }
@@ -3947,8 +3941,9 @@ AUS_5BW_peace_collapse = {
 		limit = { AUS = { has_country_flag = collapse_5bw_war_with_SER } }
 		every_country = {
 			limit = {
-				is_in_faction_with = AUS
+				is_ally_with = AUS
 				has_war_with = SER
+				NOT = { tag = FIU }
 			}
 			if = {
 				limit = {
@@ -3982,6 +3977,23 @@ AUS_5BW_peace_collapse = {
 						}
 					}
 					transfer_state_to = BOS
+				}
+			}
+			if = {
+				limit = {
+					SLO = {
+						exists = yes
+						is_subject_of = SER
+					}
+				}
+				every_owned_state = {
+					limit = {
+						OR = {
+							is_claimed_by = SLO
+							is_core_of = SLO
+						}
+					}
+					transfer_state_to = SLO
 				}
 			}
 			every_owned_state = {
@@ -4035,6 +4047,23 @@ AUS_5BW_peace_collapse = {
 						}
 					}
 					transfer_state_to = BAN
+				}
+			}
+			if = {
+				limit = {
+					BUK = {
+						exists = yes
+						is_subject_of = ROM
+					}
+				}
+				every_owned_state = {
+					limit = {
+						OR = {
+							is_claimed_by = BUK
+							is_core_of = BUK
+						}
+					}
+					transfer_state_to = BUK
 				}
 			}
 			every_owned_state = {
@@ -4737,6 +4766,10 @@ AUS_blow_the_fuck_up_and_make_the_yugoslav_wars_look_like_a_joke = {
 			limit = { has_country_flag = AUS_resistance_networks_realized }
 			clr_country_flag = AUS_resistance_networks_realized
 		}
+		every_possible_country = {
+			limit = { has_country_flag = BOTDE_display_on_gui_even_if_it_exists }
+			clr_country_flag = BOTDE_display_on_gui_even_if_it_exists
+		}
 		
 		every_possible_country = {
 			limit = { has_idea = AUS_part_of_the_Empire }
@@ -4943,7 +4976,6 @@ AUS_blow_the_fuck_up_and_make_the_yugoslav_wars_look_like_a_joke = {
 			AUS_gleich_payments
 			AUS_gleich_payments_small
 			AUS_big_crisis_idea
-			AUS_german_debts
 			AUS_vienna_circle
 			AUS_vienna_circle-1
 			AUS_vienna_circle_2_idea
@@ -4980,10 +5012,10 @@ AUS_blow_the_fuck_up_and_make_the_yugoslav_wars_look_like_a_joke = {
 					target = PREV
 					modifier = BOTDE_collapsed_empire_opinion
 				}
-			}
-			add_opinion_modifier = {
-				target = AUS
-				modifier = BOTDE_collapsed_empire_opinion
+				add_opinion_modifier = {
+					target = PREV
+					modifier = BOTDE_collapsed_empire_opinion
+				}
 			}
 			remove_opinion_modifier = {
 				target = SER
@@ -5059,6 +5091,14 @@ AUS_blow_the_fuck_up_and_make_the_yugoslav_wars_look_like_a_joke = {
 				random_days = 14
 				random_hours = 24
 			}
+		}
+		if = {
+			limit = { has_idea = AUS_german_debts }
+			country_event = {
+				id = bdeaus.34
+				days = 7
+			}
+			remove_ideas = AUS_german_debts
 		}
 	}
 }
@@ -6726,11 +6766,14 @@ do_minority_rise_advanced_calc = {
 	add_to_temp_variable = { additional_value = global.extra_collapse_federalizing }
 	add_to_temp_variable = { additional_value = modifier@BOTDE_revolt_rate_modifier }
 	subtract_from_temp_variable = { additional_value = subtractive_value }
+	add_to_temp_variable = { additional_value = resistance_value }
+	multiply_temp_variable = { additional_value = 0.8 }
 	add_to_temp_variable = { revolt_progress_change = additional_value }
-	add_to_temp_variable = { revolt_progress_change = resistance_value }
-	multiply_temp_variable = { revolt_progress_change = 0.8 }
-	log = "[GetDateText]: [Root.GetName]: do_minority_rise_advanced_calc: [?revolt_progress_change]"
-	BOTDE_add_collapse = yes
+	if = {
+		limit = { check_variable = { do_not_apply_revolt_change < 1 } } #for modifier tooltips
+		log = "[GetDateText]: [Root.GetName]: do_minority_rise_advanced_calc: [?revolt_progress_change]"
+		BOTDE_add_collapse = yes
+	}
 }
 
 AUS_do_schizo_test = {
@@ -13873,32 +13916,6 @@ AUS_liebenfels_civil_war_liebenfels_win_after_capping_AUS_effect = {
 	}
 	clr_global_flag = AUS_liebenfels_civil_war
 }
-AUS_display_weekly_collpase_modifiers_effect_tooltip = { #uses a effect tooltip to display the below because hoi4 jank
-	custom_effect_tooltip = AUS_const_tooltip_modifiers
-	set_temp_variable = { current_modifier = 0 }
-	if = {
-		limit = { THIS = { tag = AUS } }
-		effect_tooltip = { AUS_display_weekly_collpase_modifiers_effect = yes }
-	}
-	else_if = {
-		limit = {
-			THIS = {
-				NOT = { tag = AUS }
-				AUS_is_constituent = yes
-			}
-		}
-		effect_tooltip = { AUS_display_weekly_const_revolt_modifiers_effect = yes }
-	}
-	else_if = {
-		limit = {
-			THIS = {
-				NOT = { tag = AUS }
-				AUS_is_minority = yes
-			}
-		}
-		effect_tooltip = { AUS_display_weekly_minority_revolt_modifiers_effect = yes }
-	}
-}
 AUS_start_civil_war_effect = {
 	every_owned_state = {
 		add_core_of = AWR
@@ -14317,16 +14334,10 @@ AUS_display_weekly_const_revolt_modifiers_effect = {
 			set_temp_variable = { modifier = 0 }
 			if = {
 				limit = {
-					any_operative_leader = {
-						operative_leader_mission = counter_intelligence
-					}
+					any_operative_leader = { operative_leader_mission = counter_intelligence }
 					NOT = {
-						is_preparing_operation = {
-							target = any_country
-						}
-						is_running_operation  = {
-							target = any_country
-						}
+						is_preparing_operation = { target = any_country }
+						is_running_operation  = { target = any_country }
 					}
 				}
 				add_to_temp_variable = { modifier = -0.03 }
@@ -14365,9 +14376,7 @@ AUS_display_weekly_const_revolt_modifiers_effect = {
 }
 AUS_display_weekly_minority_revolt_modifiers_effect = {
 	if = {
-		limit = {
-			check_variable = { current_modifier < 10 }
-		}
+		limit = { check_variable = { current_modifier < 10 } }
 		if = { #base value
 			limit = { check_variable = { current_modifier = 0 } }
 			set_temp_variable = { modifier = 0 }
@@ -14404,11 +14413,14 @@ AUS_display_weekly_minority_revolt_modifiers_effect = {
 			limit = { check_variable = { current_modifier = 4 } }
 			set_temp_variable = { modifier = 0 }
 			if = {
-				limit = { capital_scope.owner = { has_country_flag = AUS_evidenzbureau_focus } }
+				limit = {
+					exists = no
+					capital_scope.owner = { has_country_flag = AUS_evidenzbureau_focus }
+				}
 				subtract_from_temp_variable = { modifier = 0.005 }
 			}
 			if = {
-				limit = { has_country_flag = AUS_evidenzbureau_minority_focus }
+				limit = { has_country_flag = AUS_evidenzbureau_focus }
 				subtract_from_temp_variable = { modifier = 0.025 }
 			}
 			if = {
@@ -14416,11 +14428,47 @@ AUS_display_weekly_minority_revolt_modifiers_effect = {
 				custom_effect_tooltip = AUS_const_tooltip_modifier_evidenzbureau
 			}
 		}
+		if = { #result (uses actual calculation)
+			limit = { check_variable = { current_modifier = 5 } }
+			set_temp_variable = { modifier = 0 }
+			set_temp_variable = { do_not_apply_revolt_change = 1 }
+			CONST_do_additional_revolt_progress = yes
+			add_to_temp_variable = { modifier = additional_value }
+			if = {
+				limit = { NOT = { check_variable = { modifier = 0 } } }
+				custom_effect_tooltip = AUS_const_tooltip_modifier_total
+			}
+		}
 		add_to_temp_variable = { current_modifier = 1 }
 		AUS_display_weekly_minority_revolt_modifiers_effect = yes
 	}
 }
-
+AUS_display_weekly_collpase_modifiers_effect_tooltip = { #uses a effect tooltip to display the below because hoi4 jank
+	custom_effect_tooltip = AUS_const_tooltip_modifiers
+	set_temp_variable = { current_modifier = 0 }
+	if = {
+		limit = { THIS = { tag = AUS } }
+		effect_tooltip = { AUS_display_weekly_collpase_modifiers_effect = yes }
+	}
+	else_if = {
+		limit = {
+			THIS = {
+				NOT = { tag = AUS }
+				AUS_is_constituent = yes
+			}
+		}
+		effect_tooltip = { AUS_display_weekly_const_revolt_modifiers_effect = yes }
+	}
+	else_if = {
+		limit = {
+			THIS = {
+				NOT = { tag = AUS }
+				AUS_is_minority = yes
+			}
+		}
+		effect_tooltip = { AUS_display_weekly_minority_revolt_modifiers_effect = yes }
+	}
+}
 AUS_THE_KALERGI_PLAN_CAST_THY_BREAD = {
 	create_dynamic_country = {
 		original_tag = PAL
