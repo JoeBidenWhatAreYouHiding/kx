@@ -13922,6 +13922,10 @@ country_event = { #PSR
 	desc = rusdem.417.d
 	is_triggered_only = yes
 	
+	trigger = {
+		psr_in_power = yes
+	}
+	
 	option = {
 		name = rusdem.417.a
 		if = {
@@ -15757,9 +15761,26 @@ country_event = { #VNS
 		RUS_increase_vns_pop_small = yes
 		set_country_flag = VNS_aristocratic
 		complete_national_focus = RUS_Aristocrats_Triumphant
+		if = {
+			limit = { has_coalition = yes }
+			for_each_loop = {
+				array = coalition_partners
+				add_to_array = { original_coalitions = v }
+			}
+		}
 		set_politics = {
 			ruling_party = authoritarian_democrat
 			elections_allowed = yes
+		}
+		
+		if = {
+			limit = { check_variable = { original_coalitions^num > 0 } }
+			for_each_loop = {
+				array = original_coalitions
+				set_temp_variable = { coalition_partner_var = v }
+				add_to_coalition = yes
+			}
+			clear_array = original_coalitions
 		}
 		add_soccon_to_coalition = yes
 	}
@@ -15870,31 +15891,6 @@ country_event = { #VNS
 	
 }
 country_event = { #VNS
-	id = rusdem.529
-	title = rusdem.529.t
-	desc = rusdem.529.d
-	is_triggered_only = yes
-	fire_only_once = yes
-		
-	option = {
-		name = rusdem.529.a
-		set_country_flag = RUS_vns_is_rms
-		RUS_increase_rms_pop = yes
-		set_party_name = {
-			ideology = social_conservative
-			name = RUS_tsar_party
-			long_name = RUS_tsar_party_long
-		}
-		set_party_name = {
-			ideology = authoritarian_democrat
-			name = RUS_tsar_party
-			long_name = RUS_tsar_party_long
-		}
-		set_country_leader_ideology = moderate_authoritarianism_subtype 
-		custom_effect_tooltip = soccon_moderate_authoritarianism_subtype_swap_tt
-	}
-}
-country_event = { #VNS
 	id = rusdem.530
 	immediate = {log = "[GetDateText]: [Root.GetName]: event rusdem.530"}
 	title = rusdem.530.t
@@ -15905,26 +15901,15 @@ country_event = { #VNS
 	option = {
 		name = rusdem.530.a
 		ai_chance = {
-			factor = 50
+			factor = 70
 		}
 		add_stability = 0.03
 		add_political_power = 25
 	}
 	option = {
-		name = rusdem.530.b
-		ai_chance = {
-			factor = 40
-		}
-		trigger = {
-			RUS_russian_monarch = yes
-		}
-		set_country_flag = RUS_black_hundredists_are_ready_to_join
-		set_country_flag = rnsma_evolves
-	}
-	option = {
 		name = rusdem.530.c
 		ai_chance = {
-			factor = 10
+			factor = 30
 		}
 		trigger = {
 			RUS_russian_monarch = yes
@@ -15943,17 +15928,7 @@ country_event = { #VNS
 		set_country_leader_ideology = moderate_authoritarianism_subtype 
 		custom_effect_tooltip = soccon_moderate_authoritarianism_subtype_swap_tt
 		remove_ideas_with_trait = security_minister
-		if = {
-			limit = {
-				NOT = {
-					has_country_flag = RUS_Purishkevich_dead
-				}
-			}
-			add_ideas = RUS_Vladimir_M_Purishkevich_sec_pau
-		}
-		else = {
-			add_ideas = RUS_Mikhail_Govorukho_Otrok_sec_npo
-		}		
+		add_ideas = RUS_Pyotr_Apraksin_sec_pau
 	}
 }
 country_event = { #VNS
@@ -16191,26 +16166,11 @@ country_event = { #Monarchy Referendum
 		activate_mission = RUS_Monarchy_Referendum_deadline
 		hidden_effect = {
 			set_variable = { RUS_state_monarchy_referendum_turnout = 0.37 }
-			set_temp_variable = { temp1 = party_popularity@ruling_party }
-			set_temp_variable = { temp3 = 1 }
-			subtract_from_temp_variable = { temp3 = modifier@consumer_goods_factor }
-			multiply_temp_variable = { temp1 = temp3 }
-			set_temp_variable = { temp2 = RUS.stability }
-			if = {
-				limit = {
-					check_variable = { temp2 < 0.5 }
-				}
-				set_temp_variable = { temp2 = 0.5 }
-			}
-			add_to_temp_variable = { temp2 = 1 }
-			multiply_temp_variable = { temp1 = temp2 }
-			multiply_temp_variable = { temp1 = 2 }
-			clamp_variable = { var = temp1 min = 0 max = 1 }
-			set_variable = { RUS_monarchy_popular_support = temp1 }		
-			set_variable = { RUS_monarchy_popular_support_bonus = 0 }
-			set_variable = { RUS_monarchy_candidate_legitimacy = 0 }
-			set_variable = { RUS_monarchy_referendum_legitimacy = party_popularity@ruling_party }
-			set_variable = { RUS_monarchy_referendum_legitimacy_bonus = 0 }
+			set_variable = { RUS_monarchy_popular_support = party_popularity@authoritarian_democrat }
+			add_to_variable = { RUS_monarchy_popular_support = party_popularity@market_liberal }
+			add_to_variable = { RUS_monarchy_popular_support = party_popularity@social_conservative }
+			add_to_variable = { RUS_monarchy_popular_support = party_popularity@paternal_autocrat }
+			clamp_variable = { var = RUS_monarchy_popular_support min = 0 max = 1 }
 			RUS_calculate_expected_monarchy_referendum = yes
 			if = {
 				limit = { has_country_flag = RUS_monarchist_heir_chosen }
@@ -16263,7 +16223,7 @@ country_event = { #Monarchy Referendum
 		}
 		set_country_flag = RUS_monarchist_heir_chosen
 		set_country_flag = RUS_TSAR_VSEV
-		custom_effect_tooltip = RUS_TSAR_VSEV
+		custom_effect_tooltip = RUS_TSAR_VSEV_TT
 		set_temp_variable = { RUS_change_monarchy_popular_support = 0.05 }
 		RUS_change_monarchy_referendum_support = yes
 		hidden_effect = {
@@ -16346,6 +16306,7 @@ country_event = { #Monarchy Referendum
 				has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_MIKHAIL }
 			}
 		}
+		RUS_monarch_decrease_romanovs = yes
 		set_temp_variable = { RUS_change_monarchy_referendum_turnout = -0.05 }
 		RUS_change_expected_turnout_referendum = yes
 		if = {
@@ -16554,7 +16515,6 @@ country_event = { #Monarchy Referendum
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_VSEVOLOD }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_ANDREI }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_ANASTASIA }
-					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_BORIS }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_MIKHAIL }
 				}
 			}
@@ -16564,7 +16524,7 @@ country_event = { #Monarchy Referendum
 		custom_effect_tooltip = RUS_TSAR_ROMAN_TT
 		RUS_monarch_increase_romanovs = yes
 		RUS_increase_rovs_pop = yes
-		set_temp_variable = { RUS_change_monarchy_referendum_support = 0.07 }
+		set_temp_variable = { RUS_change_monarchy_popular_support = 0.07 }
 		RUS_change_monarchy_referendum_support = yes
 		hidden_effect = {
 			country_event = { id = rusdem.564 days = 5 }
@@ -17506,7 +17466,6 @@ country_event = { #Referendum
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_ROMAN }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_ANDREI }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_ANASTASIA }
-					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_BORIS }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_MIKHAIL }
 				}
 			}
@@ -17527,7 +17486,6 @@ country_event = { #Referendum
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_ROMAN }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_ANDREI }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_ANASTASIA }
-					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_BORIS }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_MIKHAIL }
 				}
 			}
@@ -17594,7 +17552,6 @@ country_event = { #Referendum
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_ROMAN }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_ANDREI }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_ANASTASIA }
-					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_BORIS }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_MIKHAIL }
 				}
 			}
@@ -17744,7 +17701,6 @@ country_event = { #Tsar flavor
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_ROMAN }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_ANDREI }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_ANASTASIA }
-					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_BORIS }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_MIKHAIL }
 				}
 			}
@@ -20582,6 +20538,7 @@ country_event = { #Kornilov's Death
 		trigger = { has_country_flag = soviet_russia_restored }
 		set_country_flag = Lavr_G_Kornilov_dead
 		add_war_support = 0.02
+		add_stability = 0.01
 	}
 }
 
@@ -21700,17 +21657,6 @@ country_event = { #Boris Romanov dies
 				ruling_only = yes
 				name = "Boris II"
 			}
-			has_completed_focus = RUS_A_Clear_Line_Of_Succession
-		}
-	}
-	desc = {
-		text = rusd.94.d.no_heir
-		trigger = {
-			has_country_leader = {
-				ruling_only = yes
-				name = "Boris II"
-			}
-			NOT = {	has_completed_focus = RUS_A_Clear_Line_Of_Succession }
 		}
 	}
 	desc = {
@@ -21845,7 +21791,6 @@ country_event = { #Boris Romanov dies
 				name = "Boris II"
 			}
 			NOT = { has_completed_focus = RUS_God_Save_the_Tsar }
-			has_completed_focus = RUS_A_Clear_Line_Of_Succession
 		}
 		effect_tooltip = {
 			kill_country_leader = yes
@@ -21862,7 +21807,6 @@ country_event = { #Boris Romanov dies
 				name = "Boris II"
 			}
 			NOT = { has_completed_focus = RUS_God_Save_the_Tsar }
-			has_completed_focus = RUS_A_Clear_Line_Of_Succession
 		}
 		effect_tooltip = {
 			kill_country_leader = yes
@@ -24053,12 +23997,7 @@ country_event = { #A New Contender
 	}
 
 	option = {
-		name = russia.1956.a
-		set_party_name = {
-			ideology = paternal_autocrat
-			long_name = RUS_tsar_party_long
-			name = RUS_tsar_party
-		}
+		name = russia.1956.a		
 		set_cosmetic_tag = RUS_empire
 		set_country_flag = RUS_monarchy_restored
 		mark_focus_tree_layout_dirty = yes
@@ -77531,9 +77470,6 @@ country_event = { #Kornilov coup
 		set_temp_variable = { RUS_rev_ferment_change = 10 }
 		RUS_change_rev_ferment = yes
 		activate_mission = RUS_revolutionary_activity_timer
-		set_variable = { RUS_revolutionary_activity_timeout = 15 }
-		set_variable = { RUS_infiltrate_revolutionary_cells_cost = 25 }
-		set_variable = { RUS_infiltrate_revolutionary_cells_days_remove = 20 }
 		add_dynamic_modifier = {
 			modifier = RUS_rev_ferment_modifier
 		}
@@ -77576,7 +77512,7 @@ country_event = { #Kornilov coup
 		set_temp_variable = { RUS_rev_ferment_change = 10 }
 		RUS_change_rev_ferment = yes
 		custom_effect_tooltip = rusd_3010_army
-		add_to_variable = { RUS_infiltrate_revolutionary_cells_cost = -10 }
+		add_to_variable = { RUS_infiltrate_revolutionary_cells_days_remove = -10 }
 	}
 	option = {
 		name = rusd.3010.b
@@ -77585,7 +77521,7 @@ country_event = { #Kornilov coup
 		}
 		add_political_power = -20		
 		custom_effect_tooltip = rusd_3010_okhranka	
-		add_to_variable = { RUS_infiltrate_revolutionary_cells_days_remove = -10 }
+		add_to_variable = { RUS_infiltrate_revolutionary_cells_cost = -10 }
 	}
 	option = {
 		name = rusd.3010.c	
@@ -77660,10 +77596,6 @@ country_event = { #Kornilov coup
 			country_event = {
 				id = rusdem.104
 				days = 15
-			}
-			country_event = {
-				id = rusdem.30
-				days = 90
 			}
 		}		
 	}
@@ -79204,7 +79136,6 @@ country_event = { #Kornilov coup
 				OR = {
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_DMITRIY }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_ANDREI }
-					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_BORIS }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_MIKHAIL }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_ROMAN }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_VSEVOLOD }
@@ -79233,7 +79164,6 @@ country_event = { #Kornilov coup
 				OR = {
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_KIRILL }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_ANDREI }
-					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_BORIS }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_MIKHAIL }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_ROMAN }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_VSEVOLOD }
@@ -79260,7 +79190,6 @@ country_event = { #Kornilov coup
 				OR = {
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_DMITRIY }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_ANDREI }
-					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_BORIS }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_MIKHAIL }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_KIRILL }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_VSEVOLOD }
@@ -79325,7 +79254,6 @@ country_event = { #Kornilov coup
 				factor = 0
 				OR = {
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_ANDREI }
-					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_BORIS }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_MIKHAIL }
 				}
 			}
@@ -79357,7 +79285,6 @@ country_event = { #Kornilov coup
 				factor = 0
 				OR = {
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_VSEVOLOD }
-					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_BORIS }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_MIKHAIL }
 				}
 			}
@@ -79402,7 +79329,6 @@ country_event = { #Kornilov coup
 				OR = {
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_VSEVOLOD }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_ANDREI }
-					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_BORIS }
 				}
 			}
 			modifier = {
@@ -82704,7 +82630,7 @@ country_event = {
 	title = rusd.3388.t 
 	desc = rusd.3388.d
 	
-	picture = GFX_report_event_RUS_manshteyn
+	picture = GFX_report_event_RUS_orthodox
 	is_triggered_only = yes
 	
 	option = {
@@ -86016,7 +85942,6 @@ country_event = { #Kornilov coup
 				OR = {
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_DMITRIY }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_ANDREI }
-					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_BORIS }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_MIKHAIL }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_ROMAN }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_VSEVOLOD }
@@ -86043,7 +85968,7 @@ country_event = { #Kornilov coup
 				NOT = {
 					has_country_leader = {
 						ruling_only = yes
-						name = "Kirill I"
+						name = "Vladimir III"
 					}
 				}
 			}
@@ -86055,7 +85980,6 @@ country_event = { #Kornilov coup
 				OR = {
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_DMITRIY }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_ANDREI }
-					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_BORIS }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_MIKHAIL }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_ROMAN }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_VSEVOLOD }
@@ -86086,7 +86010,6 @@ country_event = { #Kornilov coup
 				OR = {
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_KIRILL }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_ANDREI }
-					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_BORIS }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_MIKHAIL }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_ROMAN }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_VSEVOLOD }
@@ -86110,7 +86033,6 @@ country_event = { #Kornilov coup
 				OR = {
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_DMITRIY }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_ANDREI }
-					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_BORIS }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_MIKHAIL }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_KIRILL }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_VSEVOLOD }
@@ -86177,7 +86099,6 @@ country_event = { #Kornilov coup
 				factor = 0
 				OR = {
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_ANDREI }
-					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_BORIS }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_MIKHAIL }
 				}
 			}
@@ -86210,7 +86131,6 @@ country_event = { #Kornilov coup
 				factor = 0
 				OR = {
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_VSEVOLOD }
-					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_BORIS }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_MIKHAIL }
 				}
 			}
@@ -86228,39 +86148,14 @@ country_event = { #Kornilov coup
 		custom_effect_tooltip = RUS_TSAR_AND_TT		
 	}
 	option = {
-		name = rusd.3055.e		
-		ai_chance = {
-			base = 5
-			modifier = {
-				factor = 0
-				OR = {
-					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_VSEVOLOD }
-					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_ANDREI }
-					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_MIKHAIL }
-				}
-			}
-			modifier = {
-				factor = 0
-				has_game_rule = { rule = RUS_aftermath_of_kornilov option = RUS_AFTERMATH_OF_KORNILOV_WRANGEL_TSAR }
-			}
-		}
-		set_temp_variable = { RUS_zs_change = 0.12 }
-		RUS_change_zs_blackhundred = yes
-		RUS_decrease_rovs_pop_small = yes
-		set_country_flag = RUS_monarchist_heir_chosen
-		set_country_flag = RUS_TSAR_BORIS
-		custom_effect_tooltip = RUS_TSAR_BORIS_TT
-	}
-	option = {
 		name = rusd.3055.c		
 		ai_chance = {
-			base = 3
+			base = 8
 			modifier = {
 				factor = 0
 				OR = {
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_VSEVOLOD }
 					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_ANDREI }
-					has_game_rule = { rule = RUS_Monarch option = RUS_MONARCH_TSAR_BORIS }
 				}
 			}
 			modifier = {
