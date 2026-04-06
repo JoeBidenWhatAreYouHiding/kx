@@ -17,34 +17,9 @@ country_event = { #debug
 
 	option = { #Egads!
 		name = licdebug.0.a
-		add_political_power = d03.portrait_stat
-		D03 = {
-			if = {
-				limit = {
-					check_variable = {
-						var = THIS.portrait_stat
-						value = 0
-						compare = equals
-					}
-				}
-				LIC_FIVE_MILLION_ISONZO_BATTLES = yes
-				add_to_variable = { var = THIS.portrait_stat value = 1 }
-				else_if = {
-					limit = {
-						check_variable = {
-							var = THIS.portrait_stat
-							value = 1
-							compare = equals
-						}
-					}
-					LIC_SIX_MILLION_ISONZO_BATTLES = yes
-					add_to_variable = { var = THIS.portrait_stat value = 1 }
-					else = {
-						LIC_EIGHT_MILLION_ISONZO_BATTLES = yes
-						set_variable = { var = THIS.portrait_stat value = 0 }
-					}
-				}
-			}
+		set_variable = {
+			var = LIC.LIC_quota_num
+			value = 1
 		}
 	}
 }
@@ -851,7 +826,25 @@ country_event = { #Famine in the Weltkrieg
 		name = lic.20.a
 		custom_effect_tooltip = LIC_stockpiling_tt
 		set_country_flag = LIC_stockpiling_flag
+		set_variable = {
+			var = LIC.govt_readiness
+			value = 0.03
+		}
+		set_variable = {
+			var = LIC.weekly_readiness
+			value = -0.005
+		}
+		set_variable = {
+			var = LIC.LIC_quota_num
+			value = 1
+		}
 		activate_mission = LIC_quota_mission
+		hidden_effect = {
+			country_event = {
+				id = lic.38 #fuck on actions
+				days = 7
+			}
+		}
 	}
 }
 
@@ -1522,6 +1515,7 @@ country_event = { #Russo-German War
 		RUS = {
 			has_war_with = GER
 		}
+		tag = LIC
 	}
 	
 	picture = GFX_event_LIC_kieber
@@ -1547,6 +1541,7 @@ country_event = { #Second Weltkrieg
 		INT = {
 			has_war_with = GER
 		}
+		tag = LIC
 	}
 	
 	picture = GFX_event_LIC_kieber
@@ -1559,6 +1554,7 @@ country_event = { #Second Weltkrieg
 		name = lic.35.a
 		LIC_readiness_take_15 = yes
 		LIC_readiness_weekly_decrease_2 = yes
+		set_country_flag = LIC_2wk
 	}
 }
 
@@ -1574,7 +1570,8 @@ country_event = { #Second Weltkrieg Ended
 				has_war_with = GER
 			}
 		}
-		second_weltkrieg_has_started = yes
+		has_country_flag = LIC_2wk
+		tag = LIC
 	}
 	
 	picture = GFX_event_LIC_kieber
@@ -1587,6 +1584,101 @@ country_event = { #Second Weltkrieg Ended
 		name = lic.36.a
 		add_stability = 0.1
 		LIC_readiness_weekly_increase_2 = yes
+	}
+}
+
+country_event = { #Ukrainian Breadbasket Crisis
+	id = lic.37
+	immediate = { log = "[GetDateText]: [Root.GetName]: event licflavor.35" }
+	title = lic.37.t
+	desc = lic.37.d
+	
+	#trigger = {
+	#	INT = {
+	#		NOT = {
+	#			has_war_with = GER
+	#		}
+	#	}
+	#	second_weltkrieg_has_started = yes
+	#}
+	
+	picture = GFX_event_LIC_kieber
+
+	fire_only_once = yes
+
+	is_triggered_only = yes
+
+	option = { #Good
+		name = lic.37.a
+		LIC_readiness_take_15 = yes
+	}
+}
+
+country_event = { #Ukrainian Breadbasket Crisis
+	id = lic.38
+	immediate = { log = "[GetDateText]: [Root.GetName]: event licflavor.35" }
+	title = lic.38.t
+	desc = lic.38.d
+	
+	hidden = yes
+	
+	picture = GFX_event_LIC_kieber
+
+	fire_only_once = no
+
+	is_triggered_only = yes
+
+	option = { #Good
+		name = lic.38.a
+		log = "[GetDateText]: [THIS.GetName]: Running stockpile weekly check"
+		if = {
+			limit = {
+				has_country_flag = LIC_stockpiling_flag
+			}
+			add_to_variable = {
+				var = LIC.govt_readiness
+				value = LIC.weekly_readiness
+			}
+			LIC_vibe_check_famine = yes
+			if = {
+				limit = {
+					has_dynamic_modifier = {
+						modifier = LIC_famine
+					}
+				}
+				add_to_variable = {
+					var = LIC.famine_value
+					value = 0.005
+				}
+				clamp_variable = { var = LIC.famine_value max = LIC.govt_readiness }
+			}
+		}
+		country_event = {
+			id = lic.38
+			days = 7
+		}
+	}
+}
+
+country_event = { #henry stickmin
+	id = lic.39
+	immediate = { log = "[GetDateText]: [Root.GetName]: event licflavor.35" }
+	title = lic.39.t
+	desc = lic.39.d
+	
+	hidden = yes
+	
+	picture = GFX_event_LIC_kieber
+
+	fire_only_once = no
+
+	is_triggered_only = yes
+
+	option = { #Good
+		name = lic.39.a
+		log = "[GetDateText]: [THIS.GetName]: Running stockpile weekly check"
+		add_to_variable = { var = LIC.GetQuotaYear value = 1 }
+		activate_mission = LIC_quota_mission
 	}
 }
 
@@ -1701,6 +1793,7 @@ country_event = { #The Department of Department Stores
 	option = { #The vote parts!
 		name = licflavor.5.a
 		add_ideas = LIC_department_store_ban
+		LIC_readiness_increase_4 = yes
 	}
 	
 	option = { #The vote departs!
@@ -5769,6 +5862,7 @@ country_event = { #Austria dood wat nou
 		name = licfor.59.a
 		add_political_power = -100
 		add_stability = -0.1
+		LIC_readiness_weekly_decrease_1 = yes
 		if = {
 			limit = { has_power_balance = { id = LIC_austro_swiss } }
 			add_power_balance_value = {
