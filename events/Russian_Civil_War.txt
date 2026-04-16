@@ -3037,7 +3037,7 @@ country_event = { #RCW
 			country_lock_all_division_template = yes
 			add_named_threat = {
 				threat = 10
-				name = "2nd Russian Civil War"
+				name = RCW_begun
 			}
 			set_global_flag = RCW_begun
 			country_event = super.6
@@ -3069,10 +3069,14 @@ country_event = { #RCW
 	option = {
 		name = rcw.101.a
 		ai_chance = {
-			base = 99
+			base = 100
 			modifier = {
 				factor = 0
 				tag = RRF
+			}
+			modifier = {
+				factor = 0
+				TRM = { is_ai = yes }
 			}
 		}
 		TRM = {
@@ -3081,18 +3085,17 @@ country_event = { #RCW
 				days = 2
 			}
 		}
-		add_war_support = 0.1
 	}
 	option = {
 		name = rcw.101.b
 		ai_chance = {
-			base = 1
+			base = 0
 			modifier = {
-				factor = 99
+				add = 100
 				tag = RRF
 			}
 		}
-		increase_ruling_party_popularity_by_10 = yes
+		RUS_increase_ruling_party_pop = yes
 		add_stability = 0.1
 		add_war_support = -0.1
 	}
@@ -3105,14 +3108,39 @@ country_event = { #RCW
 	fire_only_once = yes
 	is_triggered_only = yes
 			
+	
 	option = {
 		name = rcw.102.a
 		ai_chance = {
-			base = 99
+			base = 0
+			modifier = {
+				add = 100
+				FROM = { is_stronger_than_ROOT_and_not_vulnerable = no }
+				has_idea = TRM_dream
+			}
+			modifier = {
+				factor = 0
+				NOT = { has_idea = TRM_dream }			
+			}
+		}
+		increase_ruling_party_popularity_by_10 = yes
+		add_stability = 0.1
+		add_war_support = 0.1
+		FROM = {
+			country_event = {
+				id = rcw.104
+				days = 2
+			}
+		}
+	}
+	option = {
+		name = rcw.102.b
+		trigger = { has_idea = TRM_dream }
+		ai_chance = {
+			base = 100
 			modifier = {
 				factor = 0
 				FROM = { is_stronger_than_ROOT_and_not_vulnerable = no }
-				ROOT = { has_idea = TRM_dream }
 			}
 		}
 		FROM = {
@@ -3123,21 +3151,14 @@ country_event = { #RCW
 		}
 	}
 	option = {
-		name = rcw.102.b
+		name = rcw.102.c
+		trigger = { NOT = { has_idea = TRM_dream } }
 		ai_chance = {
-			base = 1
-			modifier = {
-				factor = 100
-				FROM = { is_stronger_than_ROOT_and_not_vulnerable = no }
-				ROOT = { has_idea = TRM_dream }
-			}
+			base = 100
 		}
-		increase_ruling_party_popularity_by_10 = yes
-		add_stability = 0.1
-		add_war_support = 0.1
 		FROM = {
 			country_event = {
-				id = rcw.104
+				id = rcw.103
 				days = 2
 			}
 		}
@@ -3153,25 +3174,25 @@ country_event = { #RCW
 			
 	option = {
 		name = rcw.103.a
-		custom_effect_tooltip = KR_separate_peace
-		hidden_effect = {
-			# first peace out with faction leaders
-			every_enemy_country = {
-				limit = {
-					OR = {
-						tag = TRM
-						is_subject_of = TRM
-						is_in_faction_with = TRM
-					}
-				}
-				ROOT = { white_peace = PREV }
-			}
-		}
+		FROM = { white_peace_with_ROOT = yes }
 		every_owned_state = {
 			limit = {
 				is_siberia = yes
+				is_claim_or_core_of_FROM = yes
 			}
-			TRM = { transfer_state = PREV }
+			transfer_state_to = FROM
+		}
+		diplomatic_relation = {
+			country = FROM
+			relation = non_aggression_pact
+		}
+		set_truce = {
+			target = FROM
+			days = 730
+		}
+		set_country_flag = { flag = RUS_negotiating_siberia days = 730 value = 1 }
+		RUS = {
+			set_country_flag = { flag = RUS_negotiating_siberia days = 730 value = 1 }
 		}
 	}
 }
@@ -3649,14 +3670,11 @@ country_event = { #RCW
 			base = 15
 			modifier = {
 				factor = 0
-				has_game_rule = {
-					rule = RUS_post_assassination
-					option = RUS_POST_ASSASSINATION_JUNTA
-				}
+				has_game_rule = { rule = RUS_post_assassination option = RUS_POST_ASSASSINATION_JUNTA }
 			}
 			modifier = {
-				factor = 1.5
-				has_country_flag = bolsheviks_banned	
+				factor = 0
+				has_country_flag = RUS_junta_ai
 			}
 		}
 		setup_rcw_workers_initial = yes
@@ -3691,10 +3709,11 @@ country_event = { #RCW
 			base = 85
 			modifier = {
 				factor = 0
-				has_game_rule = {
-					rule = RUS_post_assassination
-					option = RUS_POST_ASSASSINATION_REVOLUTION
-				}
+				has_game_rule = { rule = RUS_post_assassination option = RUS_POST_ASSASSINATION_REVOLUTION }
+			}
+			modifier = {
+				factor = 0
+				has_country_flag = RUS_revolution_ai
 			}
 		}
 		add_to_variable = { RUS_rev_ferment = 40 }
@@ -6320,7 +6339,16 @@ country_event = { #RCW
 			base = 70
 			modifier = {
 				factor = 0
-				has_game_rule = { rule = SOV_path option = RULE_OPTION_SOV_PATH_BOLSHEVIKS }
+				OR = {
+					has_game_rule = { rule = SOV_path option = RULE_OPTION_SOV_PATH_BOLSHEVIKS }
+					has_game_rule = { rule = SOV_path option = RULE_OPTION_SOV_PATH_TSENTROBALT }
+					has_game_rule = { rule = SOV_path option = RULE_OPTION_SOV_PATH_ZHUKOV }
+					has_game_rule = { rule = SOV_path option = RULE_OPTION_SOV_PATH_TUKHA }
+					has_game_rule = { rule = SOV_path option = RULE_OPTION_SOV_PATH_FRUNZE }
+					has_country_flag = RUS_revolution_bolsheviks_ai
+					has_country_flag = RUS_revolution_red_junta_ai
+					has_country_flag = RUS_revolution_anarchists_ai
+				}
 			}
 		}
 		add_political_power = -50
@@ -6339,9 +6367,10 @@ country_event = { #RCW
 					has_game_rule = { rule = SOV_path option = RULE_OPTION_SOV_PATH_NSP }
 					has_game_rule = { rule = SOV_path option = RULE_OPTION_SOV_PATH_PSR }
 					has_game_rule = { rule = SOV_path option = RULE_OPTION_SOV_PATH_MENSHEVIKS }
-					has_game_rule = { rule = SOV_path option = RULE_OPTION_SOV_PATH_ZHUKOV }
-					has_game_rule = { rule = SOV_path option = RULE_OPTION_SOV_PATH_TUKHA }
-					has_game_rule = { rule = SOV_path option = RULE_OPTION_SOV_PATH_FRUNZE }
+					has_country_flag = RUS_nsp_ai
+					has_country_flag = RUS_revolution_left_sr_ai
+					has_country_flag = RUS_revolution_psr_ai
+					has_country_flag = RUS_revolution_mensheviks_ai
 				}
 			}
 		}
@@ -6599,7 +6628,14 @@ country_event = { #RCW
 			base = 20
 			modifier = {
 				factor = 0
-				has_game_rule = { rule = SOV_path option = RULE_OPTION_SOV_PATH_BOLSHEVIKS }
+				OR = {
+					has_game_rule = { rule = SOV_path option = RULE_OPTION_SOV_PATH_BOLSHEVIKS }
+					has_game_rule = { rule = SOV_path option = RULE_OPTION_SOV_PATH_ZHUKOV }
+					has_game_rule = { rule = SOV_path option = RULE_OPTION_SOV_PATH_TUKHA }
+					has_game_rule = { rule = SOV_path option = RULE_OPTION_SOV_PATH_FRUNZE }
+					has_country_flag = RUS_revolution_bolsheviks_ai
+					has_country_flag = RUS_revolution_red_junta_ai
+				}
 			}
 		}
 		add_stability = 0.05
@@ -6617,7 +6653,10 @@ country_event = { #RCW
 			base = 80
 			modifier = {
 				factor = 0
-				has_game_rule = { rule = SOV_path option = RULE_OPTION_SOV_PATH_TSENTROBALT }
+				OR = {
+					has_game_rule = { rule = SOV_path option = RULE_OPTION_SOV_PATH_TSENTROBALT }
+					has_country_flag = RUS_revolution_anarchists_ai
+				}
 			}
 		}
 		hidden_effect = {

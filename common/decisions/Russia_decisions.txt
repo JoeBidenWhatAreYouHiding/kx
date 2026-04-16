@@ -4576,8 +4576,11 @@ RUS_Foreign_Policy_decisions = {
 			}
 			if = {
 				limit = { FROM = { tag = UKR } }
-				NOT = { has_global_flag = UKR_secret_collusion_with_russia }		
-			}		
+				NOT = { 
+					has_global_flag = UKR_secret_collusion_with_russia
+					has_civil_war = yes
+				}
+			}
 			if = {
 				limit = { FROM = { tag = KAR } }
 				KAR = {
@@ -5070,43 +5073,142 @@ RUS_Foreign_Policy_decisions = {
 					}
 				}
 			}			
+			if = {
+				limit = { 
+					original_tag = RUS
+					OTT_ottomans_defeated = no 
+					NOT = { has_idea = rus_brest_litovsk_renegotiated }
+				}
+				OTT = { country_event = ottfor.51 }
+			}
 		}
 
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_Attack_Germany target: [From.GetName]"
 			news_event = worldnews.472
 			clr_country_flag = RUS_GER_blocks_caucasus
-			effect_tooltip = {
-				every_other_country = {
-					limit = {
-						OR = {
-							is_in_europe = yes
-							tag = DKB
-							tag = KLY
-							tag = KUB
-							tag = MTR
-							tag = GEO
-							tag = ABK
-							tag = AZE
-						}
-						is_in_faction_with = GER
-						ROOT = {
-							can_declare_war_on = PREV
-							is_neighbor_of = PREV
-						}
-						if = {
-							limit = { tag = UKR }
-							NOT = { has_global_flag = UKR_secret_collusion_with_russia }
-						}
+			if = {
+				limit = { can_declare_war_on = GER }
+				declare_war_on = {
+					target = GER
+					type = annex_everything
+				}
+			}
+			if = {
+				limit = {
+					can_declare_war_on = WHR
+					WHR = { NOT = { is_in_faction_with = INT } }
+				}
+				declare_war_on = {
+					target = WHR
+					type = annex_everything
+				}
+			}
+			if = {
+				limit = {
+					can_declare_war_on = UKR
+					UKR = { 
+						NOT = { 
+							is_in_faction_with = INT 
+							has_global_flag = UKR_secret_collusion_with_russia
+						}							
 					}
-					ROOT = {
-						declare_war_on = {
-							target = PREV
-							type = annex_everything
+				}
+				declare_war_on = {
+					target = UKR
+					type = annex_everything
+				}
+			}
+			if = {
+				limit = {
+					can_declare_war_on = BAT
+				}
+				declare_war_on = {
+					target = BAT
+					type = annex_everything
+				}
+			}
+			if = {
+				limit = {
+					can_declare_war_on = GEO
+					OR = {
+						has_global_flag = RUSSIAN_OTTOMAN_DEAL_GEO_ANNEX
+						NOT = { has_global_flag = RUSSIAN_OTTOMAN_DEAL }
+					}
+					GEO = {
+						OR = {
+							is_subject = no
+							is_ally_with = GER
+							is_guaranteed_by = GER
+						}
+						NOT = { is_guaranteed_by = ROOT }
+					}
+				}
+				declare_war_on = {
+					target = GEO
+					type = annex_everything
+				}
+			}
+			if = {
+				limit = {
+					can_declare_war_on = AZE
+					NOT = { has_global_flag = RUSSIAN_OTTOMAN_DEAL }
+					AZE = {
+						OR = {
+							is_subject = no
+							is_ally_with = GER
+							is_guaranteed_by = GER
+						}
+						NOT = {
+							OR = {
+								is_guaranteed_by = TUR								
+								AND = {
+									is_in_faction_with = TUR
+									TUR = { is_faction_leader = yes }
+								}
+							}
 						}
 					}
 				}
+				declare_war_on = {
+					target = AZR
+					type = annex_everything
+				}
 			}
+			hidden_effect = {
+				every_other_country = {
+					limit = {
+						is_in_faction_with = GER
+						OR = {
+							original_tag = FIN
+							original_tag = EST
+							original_tag = LAT
+							original_tag = LIT
+							original_tag = WHR
+							original_tag = UKR
+							original_tag = POL
+							original_tag = DKB
+							original_tag = KLY
+							original_tag = KUB
+							original_tag = MTR
+							original_tag = ABK
+						}
+						ROOT = { can_declare_war_on = PREV }
+					}
+					add_to_war = {
+						targeted_alliance = GER
+						enemy = ROOT
+					}
+				}
+			}
+			if = {
+				limit = { 
+					has_global_flag = RUSSIAN_OTTOMAN_DEAL 
+					original_tag = RUS
+				}
+				custom_effect_tooltip = tooltip_white_line
+				ott_russo_ottoman_convention = yes
+			}			
 			every_other_country = {
 				limit = {
 					ROOT = { has_country_flag = RUS_prepare_for_war_@PREV }
@@ -6180,7 +6282,10 @@ RUS_Foreign_Policy_decisions = {
 
 		targets = { AFG }
 		target_root_trigger = {
-			has_completed_focus = RUS_Secure_Afghanistan
+			OR = {
+				has_completed_focus = RUS_Secure_Afghanistan
+				has_country_flag = RUS_will_attack_afghanistan
+			}
 		}
 		target_trigger = {
 			can_declare_war_on = FROM
@@ -9843,6 +9948,7 @@ RUS_Siberian_War = {
 		}
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision RUS_Start_The_Offensive target: [From.GetName]"
+			FROM = { incoming_war_notification_effect = yes }
 			setup_decision_attack_AI = yes
 		}
 
@@ -12426,6 +12532,7 @@ RUS_Siberian_War = {
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision RUS_Start_The_Offensive_TRM target: [From.GetName]"
 			setup_decision_attack_AI = yes
+			FROM = { incoming_war_notification_effect = yes }
 			set_country_flag = TRM_decision_to_attack_russia
 		}
 
@@ -14846,7 +14953,10 @@ RUS_rovs_internal_faction = {
 				}
 				RUS_wrangel_tree_unlocked = yes
 				has_active_mission = RUS_convene_the_zemsky_sobor
-				has_game_rule = { rule = RUS_aftermath_of_kornilov option = RUS_AFTERMATH_OF_KORNILOV_WRANGEL_TSAR }
+				OR = {
+					has_game_rule = { rule = RUS_aftermath_of_kornilov option = RUS_AFTERMATH_OF_KORNILOV_WRANGEL_TSAR }
+					has_country_flag = RUS_wrangel_tsar_ai
+				}
 			}
 			modifier = {
 				factor = 10
@@ -14875,6 +14985,9 @@ RUS_rovs_internal_faction = {
 					has_game_rule = { rule = RUS_aftermath_of_kornilov option = RUS_AFTERMATH_OF_KORNILOV_WRANGEL_MONARCHY }
 					has_game_rule = { rule = RUS_aftermath_of_kornilov option = RUS_AFTERMATH_OF_KORNILOV_ABSOLUTE_MONARCHY }
 					has_game_rule = { rule = RUS_aftermath_of_kornilov option = RUS_AFTERMATH_OF_KORNILOV_CLERICS }
+					has_country_flag = RUS_wrangel_ai
+					has_country_flag = RUS_blackhundred_ai
+					has_country_flag = RUS_clerics_ai
 				}
 			}
 			modifier = {
@@ -14997,6 +15110,9 @@ RUS_rovs_internal_faction = {
 					has_game_rule = { rule = RUS_aftermath_of_kornilov option = RUS_AFTERMATH_OF_KORNILOV_WRANGEL_MONARCHY }
 					has_game_rule = { rule = RUS_aftermath_of_kornilov option = RUS_AFTERMATH_OF_KORNILOV_ABSOLUTE_MONARCHY }
 					has_game_rule = { rule = RUS_aftermath_of_kornilov option = RUS_AFTERMATH_OF_KORNILOV_CLERICS }
+					has_country_flag = RUS_wrangel_ai
+					has_country_flag = RUS_blackhundred_ai
+					has_country_flag = RUS_clerics_ai
 				}
 			}
 		}
@@ -15505,6 +15621,8 @@ RUS_zemsky_sobor_cat = {
 					OR = {
 						has_game_rule = { rule = RUS_aftermath_of_kornilov option = RUS_AFTERMATH_OF_KORNILOV_ABSOLUTE_MONARCHY }
 						has_game_rule = { rule = RUS_aftermath_of_kornilov option = RUS_AFTERMATH_OF_KORNILOV_CLERICS }
+						has_country_flag = RUS_blackhundred_ai
+						has_country_flag = RUS_clerics_ai
 					}
 				}
 				country_event = rusd.19
@@ -15517,6 +15635,7 @@ RUS_zemsky_sobor_cat = {
 						has_game_rule = { rule = RUS_aftermath_of_kornilov option = RUS_AFTERMATH_OF_KORNILOV_WRANGEL_MONARCHY }
 						has_game_rule = { rule = RUS_aftermath_of_kornilov option = RUS_AFTERMATH_OF_KORNILOV_WRANGEL_SUPREME_RULER }
 						has_game_rule = { rule = RUS_aftermath_of_kornilov option = RUS_AFTERMATH_OF_KORNILOV_WRANGEL_TSAR }
+						has_country_flag = RUS_wrangel_ai
 					}
 				}
 				country_event = rusd.3320
@@ -15706,7 +15825,10 @@ RUS_zemsky_sobor_cat = {
 			factor = 100
 			modifier = {
 				factor = 0
-				has_game_rule = { rule = RUS_aftermath_of_kornilov option = RUS_AFTERMATH_OF_KORNILOV_WRANGEL_TSAR }
+				OR = {
+					has_game_rule = { rule = RUS_aftermath_of_kornilov option = RUS_AFTERMATH_OF_KORNILOV_WRANGEL_TSAR }
+					has_country_flag = RUS_wrangel_tsar_ai
+				}
 			}
 		}
 
@@ -15740,7 +15862,10 @@ RUS_zemsky_sobor_cat = {
 			factor = 100
 			modifier = {
 				factor = 0
-				has_game_rule = { rule = RUS_aftermath_of_kornilov option = RUS_AFTERMATH_OF_KORNILOV_WRANGEL_TSAR }
+				OR = {
+					has_game_rule = { rule = RUS_aftermath_of_kornilov option = RUS_AFTERMATH_OF_KORNILOV_WRANGEL_TSAR }
+					has_country_flag = RUS_wrangel_tsar_ai
+				}
 			}
 		}
 
@@ -15861,7 +15986,10 @@ RUS_zemsky_sobor_cat = {
 			factor = 100
 			modifier = {
 				factor = 0
-				has_game_rule = { rule = RUS_aftermath_of_kornilov option = RUS_AFTERMATH_OF_KORNILOV_WRANGEL_TSAR }
+				OR = {
+					has_game_rule = { rule = RUS_aftermath_of_kornilov option = RUS_AFTERMATH_OF_KORNILOV_WRANGEL_TSAR }
+					has_country_flag = RUS_wrangel_tsar_ai
+				}
 			}
 		}
 
@@ -15944,9 +16072,19 @@ RUS_drozdovite_russia_cat = {
 			if = {
 				limit = {
 					is_ai = yes
-					has_game_rule = { rule = RUS_aftermath_of_kornilov option = RUS_AFTERMATH_OF_KORNILOV_DROZDOVSKY_MONARCHY }
+					OR = {
+						has_game_rule = { rule = RUS_aftermath_of_kornilov option = RUS_AFTERMATH_OF_KORNILOV_DROZDOVSKY_MONARCHY }
+						has_country_flag = RUS_drozdovsky_monarchy_ai
+					}
 				}
 				country_event = rusd.3374
+			}
+			else_if = {
+				limit = {
+					is_ai = yes
+					has_game_rule = { rule = RUS_aftermath_of_kornilov option = RUS_AFTERMATH_OF_KORNILOV_DROZDOVSKY_ALONE }
+				}
+				country_event = rusd.3375
 			}
 			else_if = {
 				limit = {
