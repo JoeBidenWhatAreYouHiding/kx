@@ -1689,6 +1689,55 @@ RUS_Alliance_decisions = {
 			FROM = { country_event = rusfor.1700 }
 		}
 	}
+	
+
+	RUS_Invite_Country = {
+		icon = GFX_decision_generic_agreement
+		allowed = { always = no } #activated by effect
+
+		available = {
+			FROM = { at_peace_or_same_major_enemies_as_ROOT = yes }
+		}
+
+		visible = {
+			is_faction_leader = yes
+			FROM = {
+				exists = yes
+				is_valid_peace_target = yes
+				NOT = { has_war_with = ROOT }
+				both_socialist_or_both_not_socialist = yes
+			}
+		}
+		cost = 10
+		fire_only_once = yes
+
+		ai_will_do = {
+			factor = 1000
+			modifier = {
+				factor = 0
+				FROM = { any_owned_state = { is_claim_or_core_of_ROOT = yes } }
+			}
+			modifier = {
+				factor = 0
+				surrender_progress > 0.05
+			}
+			modifier = {
+				factor = 0
+				FROM = {
+					OR = {
+						has_war_with = INT
+						has_war_with = ENT
+					}
+				}
+			}
+		}
+
+		complete_effect = {
+			log = "[GetLogRoot][GetLogFrom]: Decision complete RUS_Invite_Country"
+			FROM = { country_event = { id = rusfor.52 days = 3 random_days = 3 } }
+		}
+		fixed_random_seed = no
+	}
 	RUS_Invite_Serbia = {
 		name = RUS_Invite_Country
 		allowed = { always = no }
@@ -1988,17 +2037,20 @@ RUS_Alliance_decisions = {
 			}
 		}
 		target_trigger = {
-			has_global_flag = northwest_conflict_ended
+			OR = {
+				has_global_flag = northwest_conflict_ended
+				MON = { has_country_flag = mon_no_expansion }
+			}
 			FROM = {
 				exists = yes
+				is_valid_peace_target = yes
 				OR = {
 					has_completed_focus = MON_russia_friendship
-					has_country_flag = MON_can_be_invited_to_alliance
+					has_country_flag = MON_can_be_invited_to_alliance				
 				}
 				NOT = { 
 					has_completed_focus = MON_restore_the_mongolian_lands_in_the_west 
 				} 
-				is_valid_peace_target = yes
 			}
 		}
 
@@ -2944,6 +2996,10 @@ RUS_Alliance_decisions = {
 				limit = { FROM = { tag = ETS } }
 				NOT = { has_country_flag = ETS_no_support }
 			}
+			if = {
+				limit = { FROM = { tag = TAN } }
+				NOT = { has_global_flag = RUS_CHN_postwar_agreement }
+			}
 			FROM = {
 				exists = yes
 				is_valid_peace_target = yes
@@ -3004,10 +3060,10 @@ RUS_Alliance_decisions = {
 			NOT = {
 				has_global_flag = PSA_rockies_ceasefire
 			}
+			NOT = { country_exists = GER }
 		}
 
-		targets = { USA CSA TEX CAL COR }
-		target_root_trigger = {
+		visible = {
 			NOT = { has_country_flag = soviet_russia_restored }
 			OR = {
 				AND = {
@@ -3022,8 +3078,6 @@ RUS_Alliance_decisions = {
 			NOT = { 
 				463 = { is_claimed_by = ROOT }
 			}
-		}
-		target_trigger = {
 			FROM = { 
 				is_valid_peace_target = yes
 				at_peace_or_same_enemies_as_ROOT = yes
@@ -3654,11 +3708,11 @@ RUS_Foreign_Policy_decisions = {
 		}
 
 		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision RUS_Invite_America target: [From.GetName]"
+			log = "[GetDateText]: [Root.GetName]: Decision RUS_restore_amtorg target: [From.GetName]"
 		}
 
 		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_Invite_America target: [From.GetName]"
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_restore_amtorg target: [From.GetName]"
 			add_political_power = 50
 			custom_effect_tooltip = tooltip_white_line
 			if = {
@@ -3668,6 +3722,7 @@ RUS_Foreign_Policy_decisions = {
 			else = {
 				add_ideas = RUS_renewed_american_trade
 			}
+			activate_targeted_decision = { target = FROM decision = RUS_Invite_America }
 			hidden_effect = { var:361.owner = { country_event = rusfor.20 } } #Washington DC
 		}
 	}
@@ -3732,6 +3787,16 @@ RUS_Foreign_Policy_decisions = {
 				FROM = { tag = PER }
 				country_exists = GER
 				NOT = { FROM = { has_war_with = TUR } }
+			}
+			modifier = {
+				factor = 0
+				FROM = { tag = AFG }
+				country_exists = GER
+			}
+			modifier = {
+				factor = 0
+				FROM = { tag = POL }
+				has_game_rule = { rule = POL_foreign_policy option = POL_FOREIGN_POLICY_RUSSIA }
 			}
 		}
 
@@ -5666,76 +5731,6 @@ RUS_Foreign_Policy_decisions = {
 			custom_effect_tooltip = if_they_accept_tt
 			effect_tooltip = {
 				78 = { transfer_state_to = ROOT } #Bessarabia
-			}
-		}
-	}
-	
-	RUS_Attack_Poland = {
-		icon = hol_draw_up_staff_plans
-
-		available = {
-			OR = {
-				is_owner_neighbor_of = FROM
-				any_allied_country = { is_owner_neighbor_of = FROM }
-			}
-			NOT = { has_non_aggression_pact_with = FROM }
-		}
-
-		cancel_trigger = {
-			OR = {
-				NOT = { can_declare_war_on = FROM }
-				has_non_aggression_pact_with = FROM
-			}
-		}
-
-		targets = { POL }
-		target_root_trigger = {
-			has_completed_focus = RUS_Polish_Question
-		}
-		target_trigger = {
-			can_declare_war_on = FROM
-		}
-
-		cost = 10
-		days_remove = 40
-		fire_only_once = yes
-		war_with_target_on_remove = yes
-
-		ai_will_do = {
-			factor = 100
-			# don't invade possible allies
-			modifier = {
-				factor = 0
-				has_game_rule = { rule = POL_foreign_policy option = POL_FOREIGN_POLICY_RUSSIA }
-			}
-			modifier = {
-				factor = 0
-				OR = {
-					FROM = { RUS_dont_attack_if_target_is_stronger = yes }
-					FROM = { RUS_dont_attack_if_faction_is_stronger = yes }
-					FROM = { RUS_dont_attack_if_overlord_is_stronger = yes }
-				}
-			}
-		}
-
-		cancel_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision cancel RUS_Attack_Poland target: [From.GetName]"
-			clear_decision_attack_AI = yes
-			add_political_power = 10
-		}
-
-		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision complete RUS_Attack_Poland target: [From.GetName]"
-			FROM = { incoming_war_notification_effect = yes }
-			setup_decision_attack_AI = yes
-		}
-
-		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_Attack_Poland target: [From.GetName]"
-			clear_decision_attack_AI = yes
-			declare_war_on = {
-				target = FROM
-				type = annex_everything
 			}
 		}
 	}
@@ -14522,10 +14517,6 @@ RUS_rovs_internal_faction = {
 
 		allowed = { always = no } #manually activated
 
-		available = {
-			hidden_trigger = { command_power > 39.99 }
-		}
-
 		cancel_trigger = {
 			OR = {
 				RUS_wrangel_in_power = yes
@@ -14592,7 +14583,12 @@ RUS_rovs_internal_faction = {
 		icon = GFX_decision_generic_army_support
 				
 		available = {
-			has_completed_focus = RUS_Neutralize_The_Monarchist_Threat
+			if = {
+				limit = {
+					NOT = { has_completed_focus = RUS_Neutralize_The_Monarchist_Threat }
+				}
+				has_completed_focus = RUS_Army_Above_Politics
+			}
 		}		
 		visible = {
 			OR = {
@@ -14606,6 +14602,10 @@ RUS_rovs_internal_faction = {
 		cost = 25		
 		days_remove = 15
 		days_re_enable = 90
+		
+		ai_will_do = { 
+			factor = 100
+		}
 		
 		
 		remove_effect = {
@@ -14648,6 +14648,10 @@ RUS_rovs_internal_faction = {
 		}
 		fire_only_once = yes
 		days_remove = 15
+		
+		ai_will_do = { 
+			factor = 100
+		}
 		
 		
 		cancel_effect = {
@@ -14733,6 +14737,10 @@ RUS_rovs_internal_faction = {
 		}
 		fire_only_once = yes
 		days_remove = 15
+		
+		ai_will_do = { 
+			factor = 100
+		}
 		
 		
 		cancel_effect = {

@@ -6270,6 +6270,14 @@ shared_focus = {
 		RUS_focus_blocked_for_non_decided_socialists = yes
 		is_member_of_economic_sphere = no
 	}
+	bypass = {
+		hidden_trigger = {
+			OR = {
+				has_idea = RUS_moscow_accord_leader_realpolitik
+				has_idea = RUS_moscow_accord_leader_expansionist
+			}
+		}
+	}
 	prerequisite = {
 		focus = RUS_Enemy_In_The_West
 		focus = RUS_Try_To_Change_Terms
@@ -7174,8 +7182,6 @@ shared_focus = {
 	available = {
 		is_subject = no
 		RUS_focus_blocked_for_non_decided_socialists = yes
-		has_right_democratic_government = no
-		has_authoritarian_government = no
 		OR = {
 			has_global_flag = balkan_war_ended
 			SER = { has_country_flag = BUL_surrender_no_war }
@@ -7241,21 +7247,10 @@ shared_focus = {
 		log = "[GetDateText]: [Root.GetName]: Focus RUS_Russo-Serbian_Friendship"
 		add_faction_power_projection = -25
 		if = {
-			limit = { BUL = { both_socialist_or_both_not_socialist = yes } }
-			effect_tooltip = {
-				activate_targeted_decision = { target = BUL decision = RUS_Invite_Bulgaria }
-			}
-		}
-		else_if = {
 			limit = { has_country_flag = soviet_russia_restored }
-			effect_tooltip = {
-				activate_targeted_decision = { target = BUL decision = SOV_prepare_coup_in_bulgaria }
-			}
-		}
-		hidden_effect = {
-			activate_targeted_decision = { target = BUL decision = RUS_Invite_Bulgaria }
 			activate_targeted_decision = { target = BUL decision = SOV_prepare_coup_in_bulgaria }
 		}
+		activate_targeted_decision = { target = BUL decision = RUS_Invite_Bulgaria }
 	}
 	search_filters = { FOCUS_FILTER_POLITICAL }
 }
@@ -7302,7 +7297,11 @@ shared_focus = {
 		}
 	}
 	bypass = {
-		is_in_faction_with = ENT
+		OR = {
+			is_in_faction_with = ENT
+			ENT = { exists = no }
+			ENT = { is_subject = yes }
+		}
 	}
 	prerequisite = {
 		focus = RUS_Enemy_In_The_West
@@ -7378,12 +7377,6 @@ shared_focus = {
 			date > 1939.5.1 #probably won't get much use out of the effects here
 		}
 	}
-	bypass = {
-		OR = {
-			has_war_with = GER
-			NOT = { country_exists = FRA }
-		}
-	}
 	prerequisite = { focus = RUS_Enemy_In_The_West }
 	mutually_exclusive = { focus = RUS_Approach_Our_Old_Allies }
 	completion_reward = {
@@ -7434,16 +7427,11 @@ shared_focus = {
 	}
 	available = {
 		is_subject = no
-		if = {
-			limit = {
-				NOT = { has_global_flag = RUSSIAN_OTTOMAN_DEAL_PER_BUFFER }
-			}
-			OR = {
-				TUR = { is_subject = yes }
-				has_global_flag = AXIS_VICTORY
-			}
+		OR = {
+			owns_state = 584 #Karakum
+			var:584.owner = { is_ally_of_ROOT = yes } #Karakum
 		}
-		else_if = {
+		if = {
 			limit = { has_global_flag = RUSSIAN_OTTOMAN_DEAL_PER_BUFFER }
 			NOT = { has_non_aggression_pact_with = TUR }
 		}
@@ -7451,6 +7439,7 @@ shared_focus = {
 	}
 	prerequisite = { focus = RUS_Into_The_Caucasus }
 	prerequisite = { focus = RUS_Secure_Central_Asia }
+	will_lead_to_war_with = PER
 	ai_will_do = {
 		factor = 10
 		modifier = { # Avoid taking this before GER is dealt with
@@ -7576,7 +7565,7 @@ shared_focus = {
 	}
 	mutually_exclusive = { focus = RUS_Reclaim_Arabia }
 	ai_will_do = {
-		factor = 80
+		factor = 150
 	}
 	completion_reward = {
 		log = "[GetDateText]: [Root.GetName]: Focus RUS_Harmony_Amidst_the_Sands"
@@ -7609,6 +7598,7 @@ shared_focus = {
 	completion_reward = {
 		log = "[GetDateText]: [Root.GetName]: Focus RUS_Reclaim_Arabia"
 		add_political_power = 60
+		activate_targeted_decision = { decision = RUS_Invite_Middle_East target = EGY }
 		activate_targeted_decision = { decision = RUS_Invite_Middle_East target = JBS }
 		activate_targeted_decision = { decision = RUS_Invite_Middle_East target = SAU }
 		activate_targeted_decision = { decision = RUS_Invite_Middle_East target = TRU }
@@ -8050,9 +8040,6 @@ shared_focus = {
 		}
 		RUS_focus_blocked_for_non_decided_socialists = yes
 	}
-	bypass = {
-			hidden_trigger = { has_war_with = POL }
-		}
 	prerequisite = {
 		focus = RUS_The_Final_Battle
 	}
@@ -8076,8 +8063,25 @@ shared_focus = {
 	}
 	completion_reward = {
 		log = "[GetDateText]: [Root.GetName]: Focus RUS_Polish_Question"
-		add_stability = -0.025
-		unlock_decision_tooltip = RUS_Attack_Poland
+		activate_targeted_decision = { target = POL decision = RUS_Attack_Country_default }
+		effect_tooltip = {
+			if = {
+				limit = {
+					OR = {
+						RUS_is_open_to_diplomacy = yes
+						RUS_savinkov_in_power = yes
+						POL = { POL_nationalists_power = yes }
+					}
+					POL = {
+						exists = yes
+						is_valid_peace_target = yes
+						NOT = { has_war_with = ROOT }
+						both_socialist_or_both_not_socialist = yes
+					}
+				}
+				activate_targeted_decision = { target = POL decision = RUS_Invite_Poland }
+			}
+		}		
 	}
 }
 shared_focus = {
@@ -8147,17 +8151,19 @@ shared_focus = {
 		hidden_trigger = { 
 			OR = {
 				has_war_with = MON
-				MON = {
-					is_in_faction_with = ROOT
-				}
+				MON = { is_ally_of_ROOT = yes }
+				MON = { exists = no }
+				owns_state = 329
 			}
 			OR = {
 				has_war_with = BRY
-				BRY = {
-					is_in_faction_with = ROOT
-				}
+				BRY = { is_ally_of_ROOT = yes }
+				BRY = { exists = no }
 			}
 		}
+	}
+	bypass_effect = {
+		MON = { set_country_flag = MON_can_be_invited_to_alliance }
 	}
 	prerequisite = { 
 		focus = RUS_Secure_Central_Asia
@@ -8381,19 +8387,32 @@ shared_focus = {
 	search_filters = { FOCUS_FILTER_POLITICAL }
 }
 
+
 shared_focus = {
-	id = RUS_The_Iron_Curtain
-	icon = GFX_focus_rus_iron_curtain
+	id = RUS_Anti_Internationale
+	icon = GFX_focus_ger_break_anglo_french_colonial_hegemony
+	cost = 5
 	relative_position_id = RUS_The_Final_Battle
 	x = -3
 	y = 1
-	cost = 5
 	available = {
 		NOT = { has_global_flag = tilsit_peace_success }
 		NOT = { has_non_aggression_pact_with = INT }
 		country_exists = INT
 		NOT = { country_exists = GER }
 	}
+
+	bypass = {
+		OR = {
+			OR = {
+				has_war_with = FRA
+				has_war_with = ENG
+			}
+			NOT = { country_exists = FRA }
+			NOT = { country_exists = ENG }
+		}
+	}
+
 	allow_branch = {
 		NOT = { 
 			has_country_flag = soviet_russia_restored 
@@ -8406,21 +8425,6 @@ shared_focus = {
 			}
 		}
 	}
-	bypass = {
-		FRA = { exists = no }
-		ENG = {
-			OR = {
-				exists = no
-				has_country_flag = BRG_new_britain
-			}
-		}
-		SRI = {
-			OR = {
-				exists = no
-				has_completed_focus = SRI_garibaldi_ii
-			}
-		}
-	}
 	prerequisite = {
 		focus = RUS_The_Final_Battle
 	}
@@ -8430,37 +8434,12 @@ shared_focus = {
 	}
 	mutually_exclusive = {
 		focus = RUS_Feast_In_Time_Of_Plague
-		focus = RUS_European_Ambitions
 	}
-	ai_will_do = {
-		factor = 60
-		modifier = {
-			factor = 0
-			has_socialist_government = yes
-		}
-		modifier = {
-			add = 10
-			OR = {
-				POL = { is_in_faction_with = INT }
-				LIT = { is_in_faction_with = INT }
-				LAT = { is_in_faction_with = INT }
-				EST = { is_in_faction_with = INT }
-				UKR = { is_in_faction_with = INT }
-				WHR = { is_in_faction_with = INT }
-				FIN = { is_in_faction_with = INT }
-			}
-		}
-	}
-	select_effect = {
-		country_event = {
-			id = rusd.126
-			days = 1
-		}
-	}
+
+	ai_will_do = { factor = 250 }
+
 	completion_reward = {
-		log = "[GetDateText]: [Root.GetName]: Focus RUS_The_Iron_Curtain"
-		add_war_support = 0.05
-		army_experience = 50
+		log = "[GetLogRoot]: Focus Completed RUS_Anti_Internationale"
 		add_faction_goal = faction_goal_RUS_defeat_internationale
 		add_faction_influence_score = 1		
 		every_other_country = {
@@ -8540,6 +8519,61 @@ shared_focus = {
 				}
 			}
 		}
+	}
+	search_filters = { FOCUS_FILTER_POLITICAL FOCUS_FILTER_RUS_POWER_PROJECTION }
+}
+
+shared_focus = {
+	id = RUS_The_Iron_Curtain
+	icon = GFX_focus_rus_iron_curtain
+	relative_position_id = RUS_The_Final_Battle
+	x = -4
+	y = 2
+	cost = 5
+	available = {
+		NOT = { has_global_flag = tilsit_peace_success }
+		NOT = { has_non_aggression_pact_with = INT }
+		country_exists = INT
+		NOT = { country_exists = GER }
+	}
+	prerequisite = {
+		focus = RUS_Anti_Internationale
+	}
+	prerequisite = {
+		focus = RUS_Approach_Our_Old_Allies
+	}
+	mutually_exclusive = {
+		focus = RUS_European_Ambitions
+	}
+	ai_will_do = {
+		factor = 60
+		modifier = {
+			factor = 0
+			has_socialist_government = yes
+		}
+		modifier = {
+			add = 10
+			OR = {
+				POL = { is_in_faction_with = INT }
+				LIT = { is_in_faction_with = INT }
+				LAT = { is_in_faction_with = INT }
+				EST = { is_in_faction_with = INT }
+				UKR = { is_in_faction_with = INT }
+				WHR = { is_in_faction_with = INT }
+				FIN = { is_in_faction_with = INT }
+			}
+		}
+	}
+	select_effect = {
+		country_event = {
+			id = rusd.126
+			days = 1
+		}
+	}
+	completion_reward = {
+		log = "[GetDateText]: [Root.GetName]: Focus RUS_The_Iron_Curtain"
+		add_war_support = 0.05
+		army_experience = 50		
 		if = {
 			limit = {
 				ENT = {
@@ -8564,10 +8598,7 @@ shared_focus = {
 	available = {
 		NOT = { has_global_flag = tilsit_peace_collapsed }
 		is_subject = no
-		OR = {
-			RUS_is_open_to_diplomacy = yes		
-			RUS_savinkov_in_power = yes
-		}
+		RUS_is_open_to_diplomacy = yes		
 		NOT = { country_exists = GER }
 		country_exists = INT
 	}	
@@ -8590,8 +8621,7 @@ shared_focus = {
 		focus = RUS_Franco_Russian_Treaty
 	}
 	mutually_exclusive = {
-		focus = RUS_The_Iron_Curtain
-		focus = RUS_European_Ambitions
+		focus = RUS_Anti_Internationale
 	}
 	ai_will_do = {
 		factor = 250
@@ -8985,6 +9015,10 @@ shared_focus = {
 	available = {
 		is_subject = no
 		RUS_focus_blocked_for_non_decided_socialists = yes
+		OR = {
+			is_neighbor_of = AFG
+			AFG = { any_neighbor_country = { is_subject_of = yes } }
+		}
 		if = {
 			limit = { has_idea = rus_brest_litovsk_renegotiated }
 			AFG = {
@@ -8997,14 +9031,11 @@ shared_focus = {
 	}
 	bypass = {
 		OR = {
-			hidden_trigger = { has_war_with = AFG }
+			has_war_with = AFG
 			owns_state = 267
-			AFG = {
-				OR = {
-					is_in_faction_with = RUS
-					is_subject_of = RUS
-				}
-			}
+			NOT = { country_exists = AFG }
+			is_ally_with = AFG
+			has_global_flag = RUSSIAN_OTTOMAN_DEAL
 		}
 	}
 	ai_will_do = {
@@ -9017,8 +9048,13 @@ shared_focus = {
 	will_lead_to_war_with = AFG
 	completion_reward = {
 		log = "[GetDateText]: [Root.GetName]: Focus RUS_Secure_Afghanistan"
-		custom_effect_tooltip = unlocks_decision
-		custom_effect_tooltip = RUS_Attack_Afghanistan_tooltip
+		if = {
+			limit = { 
+				NOT = { has_country_flag = soviet_russia_restored }
+			}
+			activate_targeted_decision = { target = AFG decision = RUS_Invite_Country }
+		}
+		activate_targeted_decision = { target = AFG decision = RUS_Attack_Country_default }
 	}
 }
 
@@ -9062,42 +9098,39 @@ shared_focus = {
 	id = RUS_European_Ambitions
 	icon = GFX_goal_UMN_european_artillery
 	relative_position_id = RUS_The_Final_Battle
-	x = -5
-	y = 1
+	x = -2
+	y = 2
 	cost = 6
 	available = {
-		NOT = { has_global_flag = tilsit_peace_success }
+		if = {
+			limit = { has_global_flag = tilsit_peace_success }
+			OR = {
+				OR = {
+					has_war_with = FRA
+					has_war_with = ENG
+				}
+				NOT = { country_exists = FRA }
+				NOT = { country_exists = ENG }
+			}
+		}
+		else = {
+			NOT = { has_global_flag = tilsit_peace_success }
+		}
 		is_subject = no
 		OR = {
 			NOT = { country_exists = GER }
 			GER = { has_idea = GER_danzig_treaty }
 		}
 	}
-	allow_branch = {
-		NOT = { 
-			has_country_flag = soviet_russia_restored 
-		}
-		if = {
-			limit = { RUS_kerensky_in_power = yes }
-			NOT = {
-				has_idea = rus_brest_litovsk
-				has_idea = rus_brest_litovsk_renegotiated
-			}
-		}
-	}
 	prerequisite = {
-		focus = RUS_The_Final_Battle
-	}
-	prerequisite = {
-		focus = RUS_Franco_Russian_Treaty
-		focus = RUS_Approach_Our_Old_Allies
+		focus = RUS_Anti_Internationale
+		focus = RUS_Feast_In_Time_Of_Plague
 	}
 	mutually_exclusive = {
-		focus = RUS_Feast_In_Time_Of_Plague
 		focus = RUS_The_Iron_Curtain
 	}
 	ai_will_do = {
-		factor = 10
+		factor = 60
 		modifier = {
 			factor = 0
 			has_left_democratic_government = yes
@@ -9105,7 +9138,7 @@ shared_focus = {
 		modifier = {
 			factor = 0
 			has_right_democratic_government = yes
-			num_faction_members < 16
+			num_faction_members < 10
 		}
 		modifier = {
 			add = 10
@@ -9129,6 +9162,7 @@ shared_focus = {
 		every_other_country = {
 			limit = {
 				is_in_europe = yes
+				is_subject = no
 				NOT = {
 					original_tag = BUL
 					original_tag = GRE
@@ -24135,7 +24169,7 @@ focus_tree = {
 		}
 	}
 	focus = {
-		id = RUS_Bring_Prosperity_To_Peasants
+		id = RUS_Peasant_Land_Commissions
 		icon = GFX_RUS_Peasant_Land_Commissions
 		cost = 5
 		prerequisite = {
@@ -24156,7 +24190,7 @@ focus_tree = {
 			}
 		}
 		completion_reward = {
-			log = "[GetDateText]: [Root.GetName]: Focus RUS_Bring_Prosperity_To_Peasants"
+			log = "[GetDateText]: [Root.GetName]: Focus RUS_Peasant_Land_Commissions"
 			if = {
 				limit = { 
 					check_variable = { Duma_Bill_Status^22 = 1 }
@@ -24235,7 +24269,7 @@ focus_tree = {
 		id = RUS_Army_Above_Politics
 		icon = GFX_RUS_Army_Above_Politics
 		cost = 5
-		prerequisite = { focus = RUS_Bring_Prosperity_To_Peasants }
+		prerequisite = { focus = RUS_Peasant_Land_Commissions }
 		prerequisite = { focus = RUS_Order_In_The_Workshops }
 		relative_position_id = RUS_The_Peasant_Marshal_Reign
 		x = 0
@@ -24363,6 +24397,11 @@ focus_tree = {
 		y = 7
 		available = {
 			RUS_denikin_in_power = yes
+			OR = {
+				NOT = { country_exists = GER }
+				GER = { has_idea = GER_danzig_treaty }
+			}
+			NOT = { has_war_with = GER }
 		}
 		ai_will_do = {
 			factor = 10
@@ -24495,7 +24534,7 @@ focus_tree = {
 	}
 	
 	focus = {
-		id = RUS_True_Patriot
+		id = RUS_True_Patriot_Motherland
 		icon = GFX_RUS_True_Patriot_Motherland
 		cost = 5
 		prerequisite = { focus = RUS_Anti_Speculation_Laws }
