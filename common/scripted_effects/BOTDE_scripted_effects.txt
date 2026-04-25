@@ -2599,37 +2599,55 @@ AUS_add_to_DWV = {
 			add_to_array = { AUS.DWV_members = THIS }
 		}
 		if = {
-			limit = {
-				check_variable = { AUS.DWV_upgrade = 5 }
+			limit = { has_global_flag = DWV_alt_enabled }
+			if = {
+				limit = { check_variable = { AUS.DWV_upgrade = 5 } }
+				add_ideas = AUS_DWV_5_alt
 			}
-			add_ideas = AUS_DWV_5
-		}
-		else_if = {
-			limit = {
-				check_variable = { AUS.DWV_upgrade = 4 }
+			else_if = {
+				limit = { check_variable = { AUS.DWV_upgrade = 4 } }
+				add_ideas = AUS_DWV_4_alt
 			}
-			add_ideas = AUS_DWV_4
-		}
-		else_if = {
-			limit = {
-				check_variable = { AUS.DWV_upgrade = 3 }
+			else_if = {
+				limit = { check_variable = { AUS.DWV_upgrade = 3 } }
+				add_ideas = AUS_DWV_3_alt
 			}
-			add_ideas = AUS_DWV_3
-		}
-		else_if = {
-			limit = {
-				check_variable = { AUS.DWV_upgrade = 2 }
+			else_if = {
+				limit = { check_variable = { AUS.DWV_upgrade = 2 } }
+				add_ideas = AUS_DWV_2_alt
 			}
-			add_ideas = AUS_DWV_2
-		}
-		else_if = {
-			limit = {
-				check_variable = { AUS.DWV_upgrade = 1 }
+			else_if = {
+				limit = { check_variable = { AUS.DWV_upgrade = 1 } }
+				add_ideas = AUS_DWV_1_alt
 			}
-			add_ideas = AUS_DWV_1
+			else = {
+				add_ideas = AUS_DWV_0_alt
+			}
 		}
 		else = {
-			add_ideas = AUS_DWV_0
+			if = {
+				limit = { check_variable = { AUS.DWV_upgrade = 5 } }
+				add_ideas = AUS_DWV_5
+			}
+			else_if = {
+				limit = { check_variable = { AUS.DWV_upgrade = 4 } }
+				add_ideas = AUS_DWV_4
+			}
+			else_if = {
+				limit = { check_variable = { AUS.DWV_upgrade = 3 } }
+				add_ideas = AUS_DWV_3
+			}
+			else_if = {
+				limit = { check_variable = { AUS.DWV_upgrade = 2 } }
+				add_ideas = AUS_DWV_2
+			}
+			else_if = {
+				limit = { check_variable = { AUS.DWV_upgrade = 1 } }
+				add_ideas = AUS_DWV_1
+			}
+			else = {
+				add_ideas = AUS_DWV_0
+			}
 		}
 	}
 }
@@ -12326,6 +12344,33 @@ AUS_occupy_BUL_effect = {
 		}
 	}
 }
+AUS_occupy_MCD_effect = {
+	MCD = { get_current_government_type = yes }
+	AUS = {
+		set_autonomy = {
+			target = BUL
+			autonomous_state = botde_occupied
+		}
+	}
+	MCD = {
+		restore_previous_government_type = yes
+		set_cosmetic_tag = MCD_occupied
+		set_politics = {
+			ruling_party = paternal_autocrat
+			name = MCD_occupied_paternal_autocrat_party
+			long_name = MCD_occupied_paternal_autocrat_party_long
+		}
+		increase_ruling_party_popularity_by_50 = yes
+		if = {
+			limit = { AUS = { AUS_DWV_member = yes } }
+			AUS_add_to_DWV = yes
+		}
+		if = {
+			limit = { has_global_flag = MCD_didnt_exist_before_5BW_peace }
+			clr_global_flag = MCD_didnt_exist_before_5BW_peace
+		}
+	}
+}
 AUS_5bw_AUS_victory_SER_peacedeal = {
 	AUS_remove_all_SER_state_revolt_target_modifiers = yes
 	every_state = {
@@ -12423,6 +12468,43 @@ AUS_5bw_AUS_victory_SER_peacedeal = {
 			}
 			transfer_state_to = BUL
 		}
+	}
+	if = {
+		limit = { is_ally_with = BUL }
+		if = {
+			limit = { MCD = { exists = no } }
+			set_global_flag = MCD_didnt_exist_before_5BW_peace
+		}
+		every_state = {
+			limit = {
+				OR = {
+					state = 106
+					state = 731
+					state = 1271
+				}
+			}
+			add_core_of = MCD
+		}
+		every_state = {
+			limit = { state = 841 }
+			add_claim_by = MCD
+		}
+		every_owned_state = {
+			limit = {
+				OR = {
+					is_core_of = MCD
+					is_claimed_by = MCD
+				}
+			}
+			transfer_state_to = MCD
+		}
+	}
+	if = {
+		limit = {
+			any_state = { is_owned_by = MCD }
+			has_global_flag = MCD_didnt_exist_before_5BW_peace
+		}
+		AUS_occupy_MCD_effect = yes
 	}
 	if = {
 		limit = {
@@ -12565,6 +12647,21 @@ AUS_5bw_AUS_victory_GRE_peacedeal = {
 			}
 			transfer_state_to = BUL
 		}
+	}
+}
+AUS_5bw_AUS_victory_BUL_peacedeal = {
+	every_owned_state = {
+		limit = {
+			OR = {
+				is_core_of = MCD
+				is_claimed_by = MCD
+			}
+		}
+		transfer_state_to = MCD
+	}
+	if = {
+		limit = { any_state = { is_owned_by = MCD } }
+		AUS_occupy_MCD_effect = yes
 	}
 }
 AUS_5bw_SER_victory_SER_peacedeal = {
@@ -12988,18 +13085,31 @@ AUS_meta_DWV_improve = {
 		set_temp_variable = { AUS.DWV_upgrade_temp = AUS.DWV_upgrade }
 		add_to_variable = { AUS.DWV_upgrade = 1 }
 		every_country = {
-			limit = {
-				AUS_DWV_member = yes
-			}
-			meta_effect = {
-				text = {
-					swap_ideas = {
-						add_idea = AUS_DWV_[AUS_DMV_value]
-						remove_idea = AUS_DWV_[AUS_DMV_value_temp]
+			limit = { AUS_DWV_member = yes }
+			if = {
+				limit = { has_global_flag = DWV_alt_enabled }
+				meta_effect = {
+					text = {
+						swap_ideas = {
+							add_idea = AUS_DWV_[AUS_DMV_value]_alt
+							remove_idea = AUS_DWV_[AUS_DMV_value_temp]_alt
+						}
 					}
+					AUS_DMV_value = "[?AUS.DWV_upgrade]"
+					AUS_DMV_value_temp = "[?AUS.DWV_upgrade_temp]"
 				}
-				AUS_DMV_value = "[?AUS.DWV_upgrade]"
-				AUS_DMV_value_temp = "[?AUS.DWV_upgrade_temp]"
+			}
+			else = {
+				meta_effect = {
+					text = {
+						swap_ideas = {
+							add_idea = AUS_DWV_[AUS_DMV_value]
+							remove_idea = AUS_DWV_[AUS_DMV_value_temp]
+						}
+					}
+					AUS_DMV_value = "[?AUS.DWV_upgrade]"
+					AUS_DMV_value_temp = "[?AUS.DWV_upgrade_temp]"
+				}
 			}
 		}
 	}
