@@ -5818,7 +5818,7 @@ REV_spawn_units = {
 			}
 		}
 	}
-	if = {
+	else_if = {
 		limit = { tag = PGU }
 		if = {
 			limit = { NOT = { has_template = "Infanteriedivision" } }
@@ -6699,6 +6699,80 @@ REV_spawn_units = {
 				limit = { check_variable = { PREV.paramilitary_value > 0 } }
 				create_unit = { 
 					division = "name = \"Milicja\" division_template = \"Milicja\" start_experience_factor = 0.5" 
+					owner = PREV
+					count = PREV.paramilitary_value
+					allow_spawning_on_enemy_provs = yes
+				}
+			}
+		}
+	}
+	else_if = {
+		limit = { tag = MCD }
+		if = {
+			limit = { NOT = { has_template = "Oobrovolni Cheta" } }
+			division_template = {
+				name = "Oobrovolni Cheta"
+				regiments = {
+					infantry = { x = 0 y = 0 }
+					infantry = { x = 0 y = 1 }
+					infantry = { x = 0 y = 2 }
+					infantry = { x = 1 y = 0 }
+					infantry = { x = 1 y = 1 }
+					infantry = { x = 1 y = 2 }
+					infantry = { x = 2 y = 0 }
+					infantry = { x = 2 y = 1 }
+					infantry = { x = 2 y = 2 }
+				}
+			}
+		}
+		if = {
+			limit = { NOT = { has_template = "Cheta" } }
+			division_template = {
+				name = "Cheta"
+				regiments = {
+					militia = { x = 0 y = 0 }
+					militia = { x = 0 y = 1 }
+					militia = { x = 0 y = 2 }
+					militia = { x = 1 y = 0 }
+					militia = { x = 1 y = 1 }
+					militia = { x = 1 y = 2 }
+					militia = { x = 2 y = 0 }
+					militia = { x = 2 y = 1 }
+					militia = { x = 2 y = 2 }
+				}
+			}
+		}
+		for_loop_effect = {
+			end = num_owned_states
+			random_owned_state = {
+				create_unit = { 
+					division = "name = \"Cheta\" division_template = \"Cheta\" start_experience_factor = 0.4" 
+					owner = PREV
+					allow_spawning_on_enemy_provs = yes
+				}
+				random_list = {
+					33 = {
+						create_unit = { 
+							division = "name = \"Oobrovolni Cheta\" division_template = \"Oobrovolni Cheta\" start_experience_factor = 0.3" 
+							owner = PREV
+							allow_spawning_on_enemy_provs = yes
+						}
+					}
+					67 = {}
+				}
+			}
+		}
+		random_owned_state = {
+			create_unit = { 
+				division = "name = \"Cheta\" division_template = \"Cheta\" start_experience_factor = 0.2" 
+				owner = PREV
+				count = 2
+				allow_spawning_on_enemy_provs = yes
+			}
+			if = {
+				limit = { check_variable = { PREV.paramilitary_value > 0 } }
+				create_unit = { 
+					division = "name = \"Cheta\" division_template = \"Cheta\" start_experience_factor = 0.5" 
 					owner = PREV
 					count = PREV.paramilitary_value
 					allow_spawning_on_enemy_provs = yes
@@ -13655,6 +13729,56 @@ ROM_revolt_mission_timeout_effect = {
 	}
 	clear_global_event_target = BOTDE_backer_revolt_tag
 	clr_global_flag = BPTROLL_revolt_incoming
+}
+SER_MCD_revolt_mission_timeout_effect = {
+	every_state = {
+		limit = {
+			OR = {
+				state = 106
+				state = 731
+				state = 1271
+			}
+		}
+		add_core_of = MCD
+	}
+	every_state = {
+		limit = { state = 841 }
+		add_claim_by = MCD
+	}
+	every_owned_state = {
+		limit = { is_core_of = MCD }
+		transfer_state_to = MCD
+		set_state_controller_to = MCD
+	}
+	MCD = {
+		set_variable = { MCD.paramilitary_value = 5 }
+		REV_spawn_units = yes
+		set_politics = {
+			ruling_party = national_populist
+		}
+		add_popularity = {
+			ideology = national_populist
+			popularity = 0.3
+		}
+		set_war_support = 0.75
+		set_stability = 0.5
+		get_current_government_type = yes
+		AUS = {
+			set_autonomy = {
+				target = PREV
+				autonomous_state = kr_nominal_puppet
+			}
+			every_enemy_country = {
+				MCD = {
+					declare_war_on = {
+						target = PREV
+						type = annex_everything
+					}
+				}
+			}
+		}
+		restore_previous_government_type = yes
+	}
 }
 AUS_create_franz_joseph_ii_effect = {
 	create_country_leader = {
