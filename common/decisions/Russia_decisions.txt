@@ -1651,7 +1651,6 @@ RUS_Resource_decisions = {
 					state = 1212
 				}
 			}
-			RUS_industry_effect = yes
 		}
 		fixed_random_seed = no
 	}
@@ -3705,6 +3704,42 @@ RUS_Foreign_Policy_decisions = {
 		}
 		fixed_random_seed = no
 	}
+	
+	RUS_oncoming_war = {
+		icon = GFX_decision_generic_operation
+		allowed = { always = no }
+		available = {
+			OR = {
+				has_war_with = GER
+				GER = { exists = no }
+			}
+		}
+		selectable_mission = no
+		is_good = no
+		days_mission_timeout = 365
+		complete_effect = {
+			log = "[GetLogRoot]: Decision complete RUS_oncoming_war"
+			add_political_power = 50
+		}
+		timeout_effect = {
+			log = "[GetLogRoot]: Decision timeout RUS_oncoming_war"
+			set_country_flag = RUS_prewar_coup
+			if = {
+				limit = {
+					NOT = { has_country_flag = RUS_mil_anger_coup }
+					RUS_russian_monarch = yes
+				}
+				country_event = { id = rusd.3253 days = 4 } #Coup in the Kremlin (Monarchy)
+			}
+			else_if = {
+				limit = {
+					NOT = { has_country_flag = RUS_mil_anger_coup }
+				}
+				country_event = { id = rusd.3254 days = 4 } #Coup in the Kremlin
+			}
+		}
+		fixed_random_seed = no
+	}
 	RUS_fortify_the_petrograd_approaches = {
 		icon = fortress
 		allowed = { always = no }
@@ -3978,7 +4013,7 @@ RUS_Foreign_Policy_decisions = {
 			}
 		}
 
-		targets = { DKB KUB KLY }
+		targets = { DKB KUB KLY MTR DAG }
 		target_root_trigger = {
 			has_completed_focus = RUS_Bring_Back_Cossacks
 		}
@@ -4237,7 +4272,6 @@ RUS_Foreign_Policy_decisions = {
 					is_neighbor_of = FROM
 				}
 			}
-			NOT = { has_country_flag = RUS_GER_blocks_caucasus }
 			if = {
 				limit = { has_global_flag = RUS_caucasus_victorious }
 				NOT = { country_exists = GER }
@@ -4279,7 +4313,7 @@ RUS_Foreign_Policy_decisions = {
 			}
 		}
 		
-		targets = { ABK MTR DAG GEO AZE ARM }
+		targets = { ABK GEO AZE ARM }
 		target_root_trigger = {
 			has_completed_focus = RUS_Into_The_Caucasus
 		}
@@ -4571,7 +4605,7 @@ RUS_Foreign_Policy_decisions = {
 		}
 
 		cost = 10
-		days_remove = 14
+		days_remove = 30
 		fire_only_once = yes
 		war_with_target_on_remove = yes
 
@@ -4875,7 +4909,7 @@ RUS_Foreign_Policy_decisions = {
 				NOT = { has_global_flag = second_weltkrieg_has_started }
 			}
 			modifier = {
-				factor = 20
+				add = 100
 				FROM = { original_tag = WHR }
 			}
 		}
@@ -4982,7 +5016,7 @@ RUS_Foreign_Policy_decisions = {
 			}
 		}
 		cost = 10
-		days_remove = 14
+		days_remove = 30
 		fire_only_once = yes
 		war_with_target_on_remove = yes
 
@@ -5172,35 +5206,6 @@ RUS_Foreign_Policy_decisions = {
 			modifier = {
 				factor = 0
 				has_war_with = TRM
-			}
-			modifier = {
-				factor = 0
-				FROM = { RUS_dont_attack_if_target_is_stronger = yes }
-			}
-			modifier = {
-				factor = 0
-				FROM = { RUS_dont_attack_if_faction_is_stronger = yes }
-			}
-			modifier = {
-				factor = 0
-				FROM = { RUS_dont_attack_if_overlord_is_stronger = yes }
-			}
-			modifier = {
-				factor = 0
-				OR = {
-					AND = {
-						can_declare_war_on = GEO
-						GEO = { is_valid_peace_target = yes }
-					}
-					AND = {
-						can_declare_war_on = AZE
-						AZE = { is_valid_peace_target = yes }
-					}
-					AND = {
-						can_declare_war_on = MTR
-						MTR = { is_valid_peace_target = yes }
-					}
-				}
 			}
 		}
 
@@ -5874,7 +5879,7 @@ RUS_Foreign_Policy_decisions = {
 		}
 		
 		cost = 10
-		days_remove = 14
+		days_remove = 30
 		fire_only_once = yes
 		war_with_target_on_remove = yes
 
@@ -7308,6 +7313,10 @@ RUS_Foreign_Policy_decisions = {
 					var:329.owner = { RUS_dont_attack_if_overlord_is_stronger = yes }
 				}
 			}
+			modifier = {
+				add = 100
+				var:329.owner = { surrender_progress > 0.10 }
+			}
 		}
 
 		cancel_effect = {
@@ -7700,13 +7709,7 @@ RUS_Foreign_Policy_decisions = {
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision RUS_Discuss_Alaska target: [From.GetName]"
 			set_country_flag = { flag = imminent_war days = 20 value = 1 }
-			FROM = {
-				add_ai_strategy = {
-					type = prepare_for_war
-					id = ROOT
-					value = 1000
-				}
-			}
+			setup_decision_attack_AI = yes
 			ROOT = {
 				country_event = {
 					id = rusfor.1423
@@ -7718,13 +7721,7 @@ RUS_Foreign_Policy_decisions = {
 
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_Discuss_Alaska target: [From.GetName]"
-			FROM = {
-				add_ai_strategy = {
-					type = prepare_for_war
-					id = ROOT
-					value = -1000
-				}
-			}
+			clear_decision_attack_AI = yes
 		}
 	}
 	RUS_Declare_War_On_Internationale = {
@@ -10160,17 +10157,18 @@ RUS_Siberian_War = {
 				TRB = { does_not_exist_or_ally_of_ROOT = yes }
 			}
 		}
-		visible = {
-			TRM = { 
+		targets = { TRM }
+		target_root_trigger = { has_completed_focus = RUS_Reclaim_Far_East }
+		target_trigger = {
+			FROM = {
 				exists = yes 
 				is_ally_of_ROOT = no 
 			}
-			has_completed_focus = RUS_Reclaim_Far_East
-			can_declare_war_on = TRM
+			can_declare_war_on = FROM
 		}
 
 		cost = 10
-		days_remove = 14
+		days_remove = 30
 		fire_only_once = yes
 		cancel_if_not_visible = yes
 		war_with_target_on_remove = yes
@@ -10209,7 +10207,7 @@ RUS_Siberian_War = {
 		}
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision RUS_Start_The_Offensive target: [From.GetName]"
-			TRM = { incoming_war_notification_effect = yes }
+			FROM = { incoming_war_notification_effect = yes }
 			setup_decision_attack_AI = yes
 		}
 
@@ -10217,7 +10215,7 @@ RUS_Siberian_War = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_Start_The_Offensive target: [From.GetName]"
 			clear_decision_attack_AI = yes			
 			declare_war_on = {
-				target = TRM
+				target = FROM
 				type = annex_everything
 			}
 			effect_tooltip = {
@@ -10882,7 +10880,7 @@ RUS_Siberian_War = {
 			}
 			random_state = {
 				prioritize = { 563 564 566 409 }
-				limit = { is_owned_and_controlled_by = TRM }
+				limit = { is_fully_controlled_by = TRM }
 				create_unit = {
 					division = "division_template = \"Partizanskiy Otryad\" start_experience_factor = 0.1 start_equipment_factor = 1"
 					allow_spawning_on_enemy_provs = yes
@@ -11271,7 +11269,7 @@ RUS_Siberian_War = {
 			random_state = {
 				prioritize = { 578 580 }
 				limit = { 
-					is_owned_and_controlled_by = RUS 
+					is_fully_controlled_by = RUS 
 				}
 				create_unit = {
 					division = "division_template = \"Partizanskiy Otryad\" start_experience_factor = 0.1 start_equipment_factor = 1"
@@ -12580,7 +12578,7 @@ RUS_Siberian_War = {
 		cancel_if_not_visible = yes
 
 		cost = 10
-		days_remove = 14
+		days_remove = 30
 		fire_only_once = yes
 		cancel_if_not_visible = yes
 		war_with_target_on_remove = yes
@@ -14229,7 +14227,11 @@ RUS_dealing_with_revolution_cat = {
 		}
 		
 		ai_will_do = {
-			factor = 100
+			factor = 1000
+			modifier = {
+				factor = 0
+				has_country_flag = RUS_drozdovsky_ai
+			}
 		}
 		
 		cost = 0
@@ -14375,6 +14377,14 @@ RUS_dealing_with_revolution_cat = {
 			modifier = {
 				factor = 10
 				has_active_mission = RUS_drozd_zemsky_sobor
+			}
+			modifier = {
+				add = 100
+				RUS_rev_ferment_lower_15 = no
+				RUS_kornilov_in_power = yes
+				NOT = {					
+					has_country_flag = RUS_drozdovsky_ai
+				}
 			}
 			modifier = {
 				factor = 0
@@ -14830,7 +14840,7 @@ RUS_rovs_internal_faction = {
 		}
 	}
 	RUS_placate_wrangels_allies = {
-		icon = GFX_decision_generic_army_support
+		icon = GFX_decision_RUS_wrangel
 				
 		available = {
 			if = {
