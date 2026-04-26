@@ -4352,7 +4352,7 @@ country_event = { #Austria Proposes Crete Deal
 
 country_event = { #Austria Proposes Alliance (Imperial faction merge)
 	id = bdeausfor.5
-	immediate = { log = "[GetDateText]: [Root.GetName]: event bdeausfor.5" }
+	immediate = { log = "[GetDateText]: [Root.GetName]: event bdeausfor.5 FROM: [From.GetName]" }
 	title = bdeausfor.5.t
 	desc = bdeausfor.5.d
 	
@@ -4363,28 +4363,117 @@ country_event = { #Austria Proposes Alliance (Imperial faction merge)
 	option = { #This will benefit us.
 		name = bdeausfor.5.a
 		ai_chance = { base = 100 }
-		every_country = {
+		if = {
+			limit = { FROM = { has_faction_research_unlocked = yes } }
+			set_faction_research_unlocked = yes
+		}
+		if = {
+			limit = { FROM = { has_faction_military_unlocked = yes } }
+			set_faction_military_unlocked = yes
+		}
+		add_faction_goal_slot = {
+			category = short_term
+			value = 1
+		}
+		add_faction_goal_slot = {
+			category = medium_term
+			value = 1
+		}
+		add_faction_goal_slot = {
+			category = long_term
+			value = 1
+		}
+		if = {
 			limit = {
-				is_in_faction_with = FROM
+				FROM = {
+					has_faction_goal = faction_goal_federalize_empire
+					NOT = { has_completed_faction_goal = faction_goal_federalize_empire }
+				}
 			}
+			add_faction_goal = faction_goal_federalize_empire
+		}
+		if = {
+			limit = {
+				FROM = {
+					has_faction_goal = faction_goal_good_ausgleich
+					NOT = { has_completed_faction_goal = faction_goal_good_ausgleich }
+				}
+			}
+			add_faction_goal = faction_goal_good_ausgleich
+		}
+		if = {
+			limit = {
+				FROM = {
+					has_faction_goal = faction_goal_low_empire_revolt_progress
+					NOT = { has_completed_faction_goal = faction_goal_low_empire_revolt_progress }
+				}
+			}
+			add_faction_goal = faction_goal_low_empire_revolt_progress
+		}
+		every_country = {
+			limit = { is_in_faction_with = FROM }
 			set_country_flag = AUS_faction_switch
 		}
 		ROOT = {
 			add_to_faction = FROM
+			if = {
+				limit = { has_idea = ACW_support_usa }
+				FROM = { add_ideas = ACW_support_usa }
+			}
+			else_if = {
+				limit = { has_idea = ACW_support_psa }
+				FROM = { add_ideas = ACW_support_psa }
+			}
+			else_if = {
+				limit = { has_idea = ACW_support_aus }
+				FROM = { add_ideas = ACW_support_aus }
+			}
+			else_if = {
+				limit = { has_idea = ACW_support_cor }
+				FROM = { add_ideas = ACW_support_cor }
+			}
 			every_country = {
-				limit = {
-					has_country_flag = AUS_faction_switch
-				}
-				clr_country_flag = AUS_faction_switch
+				limit = { has_country_flag = AUS_faction_switch }
 				set_country_flag = AUS_faction_OGs
 				PREV = {
 					add_to_faction = PREV
+					if = {
+						limit = { ROOT = { has_idea = ACW_support_usa } }
+						add_ideas = ACW_support_usa
+					}
+					else_if = {
+						limit = { ROOT = { has_idea = ACW_support_psa } }
+						add_ideas = ACW_support_psa
+					}
+					else_if = {
+						limit = { ROOT = { has_idea = ACW_support_aus } }
+						add_ideas = ACW_support_aus
+					}
+					else_if = {
+						limit = { ROOT = { has_idea = ACW_support_cor } }
+						add_ideas = ACW_support_cor
+					}
 				}
 			}
 			save_global_event_target_as = AUS_alliance_partner
 			if = {
 				limit = { tag = GER }
 				set_global_flag = AUS_joined_reichspakt
+			}
+			if = {
+				limit = { tag = ENT }
+				set_global_flag = AUS_joined_entente
+			}
+		}
+		FROM = {
+			every_country = {
+				limit = { has_country_flag = AUS_faction_switch }
+				PREV.PREV = {
+					remove_opinion_modifier = {
+						target = PREV
+						modifier = faction_traitor
+					}
+				}
 			}
 		}
 		if = {
@@ -4399,15 +4488,36 @@ country_event = { #Austria Proposes Alliance (Imperial faction merge)
 				}
 			}
 		}
+		every_possible_country = {
+			limit = { has_country_flag = AUS_faction_switch }
+			clr_country_flag = AUS_faction_switch
+		}
 	}
 	
 	option = { #We have no need for this.
 		name = bdeausfor.5.b
-		ai_chance = { base = 0 }
+		ai_chance = {
+			base = 0
+			modifier = {
+				tag = ENT
+				FROM = { has_government = radical_socialist }
+				add = 10
+			}
+			modifier = {
+				tag = GER
+				check_variable = { global.AUS_GER_tensions > 2 }
+				add = 10
+			}
+			modifier = {
+				FROM = { is_ai = no }
+				factor = 0
+			}
+		}
+		set_country_flag = rejected_AUS_joining_faction
 		FROM = {
 			country_event = {
 				id = bdeausfor.6
-				days = 2
+				days = 1
 			}
 		}
 	}
@@ -4415,18 +4525,47 @@ country_event = { #Austria Proposes Alliance (Imperial faction merge)
 
 country_event = { #FROM denies our request
 	id = bdeausfor.6
-	immediate = { log = "[GetDateText]: [Root.GetName]: event bdeausfor.6" }
+	immediate = { log = "[GetDateText]: [Root.GetName]: event bdeausfor.6 FROM: [From.GetName]" }
 	title = bdeausfor.6.t
 	desc = bdeausfor.6.d
 	
 	picture = GFX_report_event_BAN_big_speech2
-
 	
 	is_triggered_only = yes
 
 	option = { #A shame
 		name = bdeausfor.6.a
 		ai_chance = { factor = 1 }
+		if = {
+			limit = {
+				has_completed_focus = AUS_entente_faction
+				FROM = { tag = ENT }
+			}
+			uncomplete_national_focus = {
+				focus = AUS_entente_faction
+				uncomplete_children = yes
+			}
+		}
+		else_if = {
+			limit = {
+				has_completed_focus = AUS_russia_faction
+				FROM = { tag = RUS }
+			}
+			uncomplete_national_focus = {
+				focus = AUS_russia_faction
+				uncomplete_children = yes
+			}
+		}
+		else_if = {
+			limit = {
+				has_completed_focus = AUS_reichspakt_faction
+				FROM = { tag = GER }
+			}
+			uncomplete_national_focus = {
+				focus = AUS_reichspakt_faction
+				uncomplete_children = yes
+			}
+		}
 	}
 }
 
@@ -7643,30 +7782,17 @@ country_event = { #AUS/HUN/GAL - The Iron Guard is Plotting
 		ai_chance = { factor = 50 }
 		custom_effect_tooltip = AUS_fight_romania
 		if = {
-			limit = {
-				has_idea = AUS_unsupported_rebels
-			}
+			limit = { has_idea = AUS_unsupported_rebels }
 			remove_ideas = AUS_unsupported_rebels
 		}
 		if = {
 			limit = {
 				tag = AUS
-				NOT = {
-					has_global_flag = AUS_banat_added
-				}
+				NOT = { has_global_flag = AUS_banat_added }
 			}
-			add_to_variable = {
-				var = TRS.extra_value
-				value = 0.03
-			}
-			add_to_variable = {
-				var = BUK.extra_value
-				value = 0.02
-			}
-			add_to_variable = {
-				var = BAN.extra_value
-				value = 0.02
-			}
+			add_to_variable = { TRS.extra_value = 0.03 }
+			add_to_variable = { BUK.extra_value  = 0.02 }
+			add_to_variable = { BAN.extra_value = 0.02 }
 			AUS_add_banat_array = yes
 		}
 	}
@@ -7698,27 +7824,16 @@ country_event = { #AUS/CRO - Foreboding Reminders in Serbian Bosnia
 		ai_chance = { factor = 50 }
 		custom_effect_tooltip = AUS_fight_serbia
 		if = {
-			limit = {
-				has_idea = AUS_unsupported_rebels
-			}
+			limit = { has_idea = AUS_unsupported_rebels }
 			remove_ideas = AUS_unsupported_rebels
 		}
 		if = {
 			limit = {
 				tag = AUS
 			}
-			add_to_variable = {
-				var = BOS.extra_value
-				value = 0.02
-			}
-			add_to_variable = {
-				var = SKS.extra_value
-				value = 0.02
-			}
-			add_to_variable = {
-				var = MNT.extra_value
-				value = 0.02
-			}
+			add_to_variable = { BOS.extra_value = 0.02 }
+			add_to_variable = { SKS.extra_value = 0.02 }
+			add_to_variable = { MNT.extra_value = 0.02 }
 			SER = {
 				country_event = {
 					id = bdeausfor.91
@@ -13681,7 +13796,14 @@ country_event = { #2WK a chance for peace?
 	
 	picture = GFX_event_AUS_karl_inspection
 
-	trigger = { NOT = { has_war_with = INT } }
+	trigger = { 
+		NOT = {
+			has_war_with = INT
+			is_in_faction_with = ENT
+			is_in_faction_with = GER
+			is_in_faction_with = RUS
+		}
+	}
 
 	fire_only_once = yes
 
