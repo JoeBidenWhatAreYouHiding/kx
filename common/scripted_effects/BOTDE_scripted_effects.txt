@@ -126,17 +126,9 @@ AUS_8_fed_minus = {
 }
 
 AUS_open_gui_click_effect = {
-	for_each_loop = {
-		array = global.constituents_array
-		var:v = {
-			if = {
-				limit = {
-					exists = yes
-					AUS_is_constituent = yes
-				}
-				add_to_array = { ROOT.austria_subject_array = v }
-			}
-		}
+	get_sorted_scored_countries = {
+		scorer = BOTDE_constituents_in_GUI_score
+		array = ROOT.austria_subject_array
 	}
 	get_sorted_scored_countries = {
 		scorer = BOTDE_minorities_in_GUI_score
@@ -147,8 +139,6 @@ AUS_open_gui_click_effect = {
 		clr_global_flag = AUS_clickme_flag
 	}
 	set_country_flag = subject_unrest_window_open
-	
-	
 	
 	# a little trolling
 	if = {
@@ -242,6 +232,7 @@ AUS_open_gui_click_effect = {
 		}
 	}
 }
+
 subjects_minority_view_sort_button_click_effect = {
 	if = {
 		limit = { has_global_flag = AUS_minority_array_not_sorted }
@@ -254,6 +245,20 @@ subjects_minority_view_sort_button_click_effect = {
 		array = ROOT.austria_minority_array
 	}
 }
+
+constituents_minority_view_sort_button_click_effect = {
+	if = {
+		limit = { has_global_flag = AUS_constituents_array_not_sorted }
+		clr_global_flag = AUS_constituents_array_not_sorted
+	}
+	else = { set_global_flag = AUS_constituents_array_not_sorted }
+	clear_array = ROOT.austria_subject_array
+	get_sorted_scored_countries = {
+		scorer = BOTDE_constituents_in_GUI_score
+		array = ROOT.austria_subject_array
+	}
+}
+
 AUS_warning_check = {
 	clear_array = ROOT.austria_warning_subject_array
 	for_each_loop = {
@@ -864,6 +869,7 @@ BOTDE_check_for_constituent_revolt = {
 			}
 			NOT = { 
 				has_global_flag = AUS_liebenfels_civil_war
+				has_global_flag = AUS_pause_collapse_flag
 				OR = {
 					AUS = { is_ai = yes }
 					date < 1937.01.01
@@ -974,6 +980,7 @@ BOTDE_check_for_constituent_revolt = {
 			NOT = { 
 				has_global_flag = no_more_collapse
 				has_global_flag = AUS_collapsed
+				has_global_flag = AUS_pause_collapse_flag
 				has_country_flag = do_not_show_kx_alerts
 			}
 		}
@@ -989,6 +996,7 @@ BOTDE_check_for_constituent_revolt = {
 				check_variable { global.AUS_tags_over_94_revolt < 1 }
 				has_global_flag = no_more_collapse
 				has_global_flag = AUS_collapsed
+				has_global_flag = AUS_pause_collapse_flag
 				has_country_flag = do_not_show_kx_alerts
 			}
 		}
@@ -2691,7 +2699,75 @@ AUS_remove_from_DWV = {
 			AUS_DWV_3
 			AUS_DWV_4
 			AUS_DWV_5
+			AUS_DWV_0_alt
+			AUS_DWV_1_alt
+			AUS_DWV_2_alt
+			AUS_DWV_3_alt
+			AUS_DWV_4_alt
+			AUS_DWV_5_alt
 		}
+	}
+}
+
+AUS_swap_DWV_to_alt = {
+	custom_override_tooltip = {
+		tooltip = swap_DWV_to_alt_tt
+		set_global_flag = DWV_alt_enabled
+		every_country = {
+			limit = { AUS_DWV_member = yes }
+			if = {
+				limit = { has_idea = AUS_DWV_0 }
+				swap_ideas = {
+					remove_idea = AUS_DWV_0
+					add_idea = AUS_DWV_0_alt
+				}
+			}
+			if = {
+				limit = { has_idea = AUS_DWV_1 }
+				swap_ideas = {
+					remove_idea = AUS_DWV_1
+					add_idea = AUS_DWV_1_alt
+				}
+			}
+			if = {
+				limit = { has_idea = AUS_DWV_2 }
+				swap_ideas = {
+					remove_idea = AUS_DWV_2
+					add_idea = AUS_DWV_2_alt
+				}
+			}
+			if = {
+				limit = { has_idea = AUS_DWV_3 }
+				swap_ideas = {
+					remove_idea = AUS_DWV_3
+					add_idea = AUS_DWV_3_alt
+				}
+			}
+			if = {
+				limit = { has_idea = AUS_DWV_4 }
+				swap_ideas = {
+					remove_idea = AUS_DWV_4
+					add_idea = AUS_DWV_4_alt
+				}
+			}
+			if = {
+				limit = { has_idea = AUS_DWV_5 }
+				swap_ideas = {
+					remove_idea = AUS_DWV_5
+					add_idea = AUS_DWV_5_alt
+				}
+			}
+		}
+	}
+}
+
+AUS_check_DWV_swap_effect = {
+	if = {
+		limit = {
+			tag = AUS
+			AUS_DWV_member = yes
+		}
+		AUS_swap_DWV_to_alt = yes
 	}
 }
 
@@ -2710,35 +2786,25 @@ AUS_radicalize_Heimwehr = {
 }
 
 EUU_add_to_EU = {
-	custom_effect_tooltip = THIS_JOINS_EU
-	add_to_array = {
-		array = EUU.EUU_EU_members
-		value = THIS
-	}
-	add_dynamic_modifier = {
-		modifier = EUU_allocations
+	custom_override_tooltip = {
+		tooltip = THIS_JOINS_EU
+		add_to_array = { EUU.EUU_EU_members = THIS }
+		add_dynamic_modifier = {
+			modifier = EUU_allocations
+		}
 	}
 }
 
 EUU_remove_from_EU = {
-	remove_from_array = {
-		array = EUU.EUU_EU_members
-		value = ROOT
-	}
-	set_variable = {
-		var = THIS.extra_pp_allocation
-		value = 0
-	}
+	remove_from_array = { EUU.EUU_EU_members = ROOT }
+	set_variable = { THIS.extra_pp_allocation = 0 }
 	remove_dynamic_modifier = {
 		modifier = EUU_allocations
 	}
 }
 
 EUU_find_half_calculation = {
-	set_variable = {
-		var = global.european_countries
-		value = 0
-	}
+	set_variable = { global.european_countries = 0 }
 	every_country = {
 		if = {
 			limit = {
@@ -2750,27 +2816,18 @@ EUU_find_half_calculation = {
 					tag = TUR
 				}
 			}
-			add_to_variable = {
-				var = global.european_countries
-				value = 1
-			}
+			add_to_variable = { global.european_countries = 1 }
 		}
 	}
 	#Find half of that number
 	set_temp_variable = { half_life = global.european_countries }
 	divide_temp_variable = { half_life = 2 }
 	round_temp_variable = half_life
-	set_variable = {
-		var = global.half_of_euro_countries
-		value = half_life
-	}
+	set_variable = { global.half_of_euro_countries = half_life }
 }
 
 EUU_find_third_calculation = {
-	set_variable = {
-		var = global.european_countries
-		value = 0
-	}
+	set_variable = { global.european_countries = 0 }
 	every_country = {
 		if = {
 			limit = {
@@ -2783,178 +2840,89 @@ EUU_find_third_calculation = {
 					tag = NSW
 				}
 			}
-			add_to_variable = {
-				var = global.european_countries
-				value = 1
-			}
+			add_to_variable = { global.european_countries = 1 }
 		}
 	}
 	#Find half of that number
 	set_temp_variable = { half_life_3 = global.european_countries }
 	divide_temp_variable = { half_life_3 = 3 }
 	round_temp_variable = half_life_3
-	set_variable = {
-		var = global.third_of_euro_countries
-		value = half_life_3
-	}
+	set_variable = { global.third_of_euro_countries = half_life_3 }
 }
 
 EUU_get_pressure_gain = {
-	set_variable = {
-		var = global.EU_pressure_gain
-		value = 0
-	}
-	set_variable = {
-		var = global.EU_pressure_gain_monthly
-		value = 0
-	}
+	set_variable = { global.EU_pressure_gain = 0 }
+	set_variable = { global.EU_pressure_gain_monthly = 0 }
 	every_country = {
-		limit = {
-			EUU_EU_member = yes
-		}
-		set_temp_variable = {
-			var = local_pressure
-			value = political_power_daily
-		}
+		limit = { EUU_EU_member = yes }
+		set_temp_variable = { local_pressure = political_power_daily }
 		set_temp_variable = { extra_pp_allocation = THIS.extra_pp_allocation }
 		multiply_temp_variable = { extra_pp_allocation = 3 }
-		add_to_variable = {
-			var = global.EU_pressure_gain
-			value = local_pressure
-		}
-		add_to_variable = {
-			var = global.EU_pressure_gain
-			value = extra_pp_allocation
-		}
+		add_to_variable = { global.EU_pressure_gain = local_pressure }
+		add_to_variable = { global.EU_pressure_gain = extra_pp_allocation }
 	}
 	set_temp_variable = { weekly = global.EU_pressure_gain }
 	multiply_temp_variable = { weekly = 7 }
-	add_to_variable = {
-		var = global.EU_pressure_gain_weekly
-		value = weekly
-	}
+	add_to_variable = { global.EU_pressure_gain_weekly = 7 }
 	set_temp_variable = { monthly = global.EU_pressure_gain }
 	multiply_temp_variable = { monthly = 30 }
-	add_to_variable = {
-		var = global.EU_pressure_gain_monthly
-		value = monthly
-	}
+	add_to_variable = { global.EU_pressure_gain_monthly = monthly }
 }
 
-
 EUU_calculate_army_factories = {
-	set_variable = {
-		var = global.EU_total_divisions_var
-		value = 0
-	}
-	set_variable = {
-		var = global.EU_total_battalions_var
-		value = 0
-	}
-	set_variable = {
-		var = global.EU_total_factories_var
-		value = 0
-	}
-	set_variable = {
-		var = global.EU_total_dockyards
-		value = 0
-	}
-	set_variable = {
-		var = global.EU_total_mils
-		value = 0
-	}
-	set_variable = {
-		var = global.EU_total_civs
-		value = 0
-	}
+	set_variable = { global.EU_total_divisions_var = 0 }
+	set_variable = { global.EU_total_battalions_var = 0 }
+	set_variable = { global.EU_total_factories_var = 0 }
+	set_variable = { global.EU_total_dockyards = 0 }
+	set_variable = { global.EU_total_mils = 0 }
+	set_variable = { global.EU_total_civs = 0 }
 	every_country = {
-		limit = {
-			EUU_EU_member = yes
-		}
-		add_to_variable = {
-			var = global.EU_total_divisions_var
-			value = num_divisions
-		}
-		add_to_variable = {
-			var = global.EU_total_battalions_var
-			value = num_battalions
-		}
-		add_to_variable = {
-			var = global.EU_total_factories_var
-			value = num_of_factories
-		}
-		add_to_variable = {
-			var = global.EU_total_dockyards
-			value = num_of_naval_factories
-		}
-		add_to_variable = {
-			var = global.EU_total_mils
-			value = num_of_military_factories
-		}
-		add_to_variable = {
-			var = global.EU_total_civs
-			value = num_of_civilian_factories
-		}
-		
+		limit = { EUU_EU_member = yes }
+		add_to_variable = { global.EU_total_divisions_var = num_divisions }
+		add_to_variable = { global.EU_total_battalions_var = num_battalions }
+		add_to_variable = { global.EU_total_factories_var = num_of_factories }
+		add_to_variable = { global.EU_total_dockyards = num_of_naval_factories }
+		add_to_variable = { global.EU_total_mils = num_of_military_factories }
+		add_to_variable = { global.EU_total_civs = num_of_civilian_factories }
 	}
 }
 
 EUU_add_pressure_from_gain = {
-	add_to_variable = {
-		var = global.EU_pressure_value
-		value = global.EU_pressure_gain
-	}
+	add_to_variable = { global.EU_pressure_value = global.EU_pressure_gain }
 }
 
 EUU_add_pressure_from_gain_week = {
 	set_temp_variable = { weekly = global.EU_pressure_gain }
 	multiply_temp_variable = { weekly = 7 }
 	if = {
-		limit = {
-			has_global_flag = EUU_federalized
-		}
+		limit = { has_global_flag = EUU_federalized }
 		multiply_temp_variable = { weekly = 5 }
 	}
-	add_to_variable = {
-		var = global.EU_pressure_value
-		value = weekly
-	}
+	add_to_variable = { global.EU_pressure_value = weekly }
 }
 
 
 EUU_add_20_pressure_to_FROM = {
-	custom_effect_tooltip = EUU_add_20_pressure
-	add_to_variable = {
-		var = FROM.EU_pressure
-		value = 20
-	}
-	add_to_variable = {
-		var = global.EU_pressure_value
-		value = -20
+	custom_override_tooltip = {
+		tooltip = EUU_add_20_pressure
+		add_to_variable = { FROM.EU_pressure = 20 }
+		add_to_variable = { global.EU_pressure_value = -20 }
 	}
 }
 
 EUU_add_100_pressure_to_FROM = {
-	custom_effect_tooltip = EUU_add_100_pressure
-	add_to_variable = {
-		var = FROM.EU_pressure
-		value = 100
-	}
-	add_to_variable = {
-		var = global.EU_pressure_value
-		value = -100
+	custom_override_tooltip = {
+		tooltip = EUU_add_100_pressure
+		add_to_variable = { FROM.EU_pressure = 100 }
+		add_to_variable = { global.EU_pressure_value = -100 }
 	}
 }
 
 EUU_add_1000_pressure_to_FROM = {
-	custom_effect_tooltip = EUU_add_1000_pressure
-	add_to_variable = {
-		var = FROM.EU_pressure
-		value = 1000
-	}
-	add_to_variable = {
-		var = global.EU_pressure_value
-		value = -1000
+	custom_override_tooltip = {
+		tooltip = EUU_add_1000_pressure
+		add_to_variable = { FROM.EU_pressure = 1000 }
+		add_to_variable = { global.EU_pressure_value = -1000 }
 	}
 }
 
@@ -2972,14 +2940,8 @@ EUU_calculate_necessary_pressure = {
 	add_to_temp_variable = { pressure_total = pressure_population }
 	add_to_temp_variable = { pressure_total = pressure_army }
 	
-	
 	capital_scope = {
-		owner = {
-			set_variable = {
-				var = necessary_EU_pressure
-				value = pressure_total
-			}
-		}
+		owner = { set_variable = { necessary_EU_pressure = pressure_total } }
 	}
 }
 
@@ -2999,23 +2961,16 @@ EU_faction_do_economic_integration = {
 	multiply_temp_variable = { necessary_integration_total_factories = 2 }
 	add_to_temp_variable = { necessary_integration = necessary_integration_total_factories }
 	
-	
-	
 	multiply_temp_variable = { total_integration_civs_count = 1.5 }
-	add_to_variable = {
-		var = global.EU_economic_integration_flat
-		value = total_integration_civs_count
-	}
+	add_to_variable = { global.EU_economic_integration_flat = total_integration_civs_count }
+
 	set_temp_variable = { economic_percent_temp = global.EU_economic_integration_flat }
 	multiply_temp_variable = { economic_percent_temp = 100 }
 	divide_temp_variable = { economic_percent_temp = necessary_integration }
 	divide_temp_variable = { economic_percent_temp = 10 }
 	
 	#Find percentage
-	set_variable = {
-		var = global.EU_economic_integration_percentage
-		value = economic_percent_temp
-	}
+	set_variable = { global.EU_economic_integration_percentage = economic_percent_temp }
 }
 
 EU_faction_do_military_integration = {
@@ -3029,19 +2984,14 @@ EU_faction_do_military_integration = {
 	divide_temp_variable = { army_percent_temp = 10 }
 	
 	#Find percentage
-	set_variable = {
-		var = global.EU_army_integration_percentage
-		value = army_percent_temp
-	}
+	set_variable = { global.EU_army_integration_percentage = army_percent_temp }
 }
 
 EU_turn_DWV_into_EU = {
 	every_country = {
 		limit = {
 			AUS_DWV_member = yes
-			NOT = {
-				has_country_flag = EU_FOUNDER
-			}
+			NOT = { has_country_flag = EU_FOUNDER }
 		}
 		country_event = {
 			id = bdeeu.1
@@ -3298,40 +3248,32 @@ AUS_change_revolt_progress_to_all_minorities = {
 
 AUS_reduce_collapse_idea = {
 	if = {
-		limit = {
-			has_idea = AUS_legacy_of_collapse
-		}
+		limit = { has_idea = AUS_legacy_of_collapse }
 		swap_ideas = {
 			remove_idea = AUS_legacy_of_collapse
 			add_idea = AUS_legacy_of_collapse_2
 		}
 	}
 	else_if = {
-		limit = {
-			has_idea = AUS_legacy_of_collapse_2
-		}
+		limit = { has_idea = AUS_legacy_of_collapse_2 }
 		swap_ideas = {
 			remove_idea = AUS_legacy_of_collapse_2
 			add_idea = AUS_legacy_of_collapse_3
 		}
 	}
 	else_if = {
-		limit = {
-			has_idea = AUS_legacy_of_collapse_3
-		}
+		limit = { has_idea = AUS_legacy_of_collapse_3 }
 		swap_ideas = {
 			remove_idea = AUS_legacy_of_collapse_3
 			add_idea = AUS_legacy_of_collapse_4
 		}
 	}
 	else_if = {
-		limit = {
-			has_idea = AUS_legacy_of_collapse_4
-		}
+		limit = { has_idea = AUS_legacy_of_collapse_4 }
 		remove_ideas = AUS_legacy_of_collapse_4
-		else = {
-			custom_effect_tooltip = AUS_reduces_collapse
-		}
+	}
+	else = {
+		custom_effect_tooltip = AUS_reduces_collapse
 	}
 }
 
@@ -3408,128 +3350,6 @@ AUS_gleich_add_hungarian_grievance = {
 					days = 2
 					random = 120
 				}
-			}
-		}
-	}
-}
-
-AUS_gleich_add_illyrian_grievance = {
-	custom_effect_tooltip = AUS_gliech_illyrian_grievance
-	add_to_variable = {
-		var = CRO.ausgleich_grievances
-		value = 1
-	}
-}
-
-AUS_gleich_add_bohemian_grievance = {
-	custom_effect_tooltip = AUS_gliech_bohemian_grievance
-	add_to_variable = {
-		var = CZE.ausgleich_grievances
-		value = 1
-	}
-}
-
-AUS_gleich_add_galician_grievance = {
-	custom_effect_tooltip = AUS_gliech_galician_grievance
-	add_to_variable = {
-		var = GAL.ausgleich_grievances
-		value = 1
-	}
-}
-
-
-
-AUS_gleich_remove_hungarian_grievance = {
-	custom_effect_tooltip = AUS_gliech_hungarian_grievance
-	add_to_variable = {
-		var = HUN.ausgleich_grievances
-		value = -1
-	}
-}
-
-AUS_gleich_remove_illyrian_grievance = {
-	custom_effect_tooltip = AUS_gliech_illyrian_grievance
-	add_to_variable = {
-		var = CRO.ausgleich_grievances
-		value = -1
-	}
-}
-
-AUS_gleich_remove_bohemian_grievance = {
-	custom_effect_tooltip = AUS_gliech_bohemian_grievance
-	add_to_variable = {
-		var = CZE.ausgleich_grievances
-		value = -1
-	}
-}
-
-AUS_gleich_remove_galician_grievance = {
-	custom_effect_tooltip = AUS_gliech_galician_grievance
-	add_to_variable = {
-		var = GAL.ausgleich_grievances
-		value = -1
-	}
-}
-
-
-
-
-AUS_gleich_add_hungarian_grievances = {
-	custom_effect_tooltip = AUS_gliech_hungarian_grievances
-	add_to_variable = {
-		var = HUN.ausgleich_grievances
-		value = 2
-	}
-}
-
-AUS_gleich_add_illyrian_grievances = {
-	custom_effect_tooltip = AUS_gliech_illyrian_grievances
-	add_to_variable = {
-		var = CRO.ausgleich_grievances
-		value = 2
-	}
-}
-
-AUS_gleich_add_bohemian_grievances = {
-	custom_effect_tooltip = AUS_gliech_bohemian_grievances
-	add_to_variable = {
-		var = CZE.ausgleich_grievances
-		value = 2
-	}
-}
-
-AUS_gleich_add_galician_grievances = {
-	custom_effect_tooltip = AUS_gliech_galician_grievances
-	add_to_variable = {
-		var = GAL.ausgleich_grievances
-		value = 2
-	}
-}
-
-AUS_gleich_add_turn_taker = { # 1 = AUS. 2 = HUN. 3 = CRO. 4 = CZE. 5 = GAL. 6 = MNT. 7 = FIU. 8 = VNC.
-	if = {
-		limit = {
-			NOT = {
-				has_global_flag = BOTDE_small_nations_ausgleich
-			}
-			check_variable = { ausgleich_turn = 5 }
-		}
-		set_variable = { ausgleich_turn = 0 }
-		else = {
-			if = {
-				limit = {
-					has_global_flag = BOTDE_small_nations_ausgleich
-					check_variable = { ausgleich_turn = 8 }
-				}
-				set_variable = { ausgleich_turn = 0 }
-			}
-		}
-	}
-	add_to_variable = { ausgleich_turn = 1 }
-	if = {
-		limit = {
-			NOT = {
-				has_global_flag = BOTDE_small_nations_ausgleich
 			}
 		}
 	}
