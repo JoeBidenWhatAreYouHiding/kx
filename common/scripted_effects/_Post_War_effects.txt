@@ -1061,6 +1061,80 @@ white_peace_with_TARGET = {
 	}
 }
 
+# This can be used normally: TAG = { white_peace_with_PREV = yes }
+# Remember: PREV is the previous scope
+# TAG is the country you want PREV to completely be at peace with
+# meaning it will ensure peace with all faction members and puppets on either side
+
+white_peace_with_PREV = {
+	effect_tooltip = {
+		if = {
+			limit = { NOT = { civilwar_target = PREV } }
+			white_peace = PREV
+		}
+	}
+	hidden_effect = {
+		if = {
+			limit = {
+				has_war_with = PREV
+				NOT = { civilwar_target = PREV }
+			}
+			if = {
+				limit = {
+					is_in_faction = yes
+					is_faction_leader = no
+					faction_leader = { has_war_with = PREV.PREV }
+				}
+				set_temp_variable = { peace_target1 = faction_leader }
+			}
+			else_if = {
+				limit = {
+					is_subject = yes
+					overlord = { has_war_with = PREV.PREV }
+				}
+				set_temp_variable = { peace_target1 = overlord }
+			}
+			else = {
+				set_temp_variable = { peace_target1 = THIS }
+			}
+			PREV = {
+				if = {
+					limit = {
+						is_in_faction = yes
+						is_faction_leader = no
+						faction_leader = { has_war_with = PREV.PREV }
+					}
+					set_temp_variable = { peace_target2 = faction_leader }
+				}
+				else_if = {
+					limit = {
+						is_subject = yes
+						overlord = { has_war_with = PREV.PREV }
+					}
+					set_temp_variable = { peace_target2 = overlord }
+				}
+				else = {
+					set_temp_variable = { peace_target2 = THIS }
+				}
+			}
+			var:peace_target1 = { white_peace = var:peace_target2 }
+
+			#cleanup in case of war merge bugs
+			var:peace_target1 = {
+				every_enemy_country = {
+					limit = { is_ally_with = var:peace_target2 }
+					white_peace = var:peace_target1
+				}
+			}
+			var:peace_target2 = {
+				every_enemy_country = {
+					limit = { is_ally_with = var:peace_target1 }
+					white_peace = var:peace_target2
+				}
+			}
+		}
+	}
+}
 faction_collapse_member_peace_effect = {
 	leave_faction = yes
 	#Step one: peace out with any faction leaders who aren't neighbours of/invading PREV or claiming PREV territory
