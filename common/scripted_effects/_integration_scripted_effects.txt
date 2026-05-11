@@ -18,10 +18,10 @@ disable_coring = {
 	if = {
 		limit = { has_variable = PREV.can_integrate_@THIS }
 		clear_variable = PREV.can_integrate_@THIS
-		hidden_effect = {			
+		hidden_effect = {
 			if = {
-				limit = { is_controlled_by = PREV }
-				clear_state_integration_resistance = yes
+				limit = { PREV = { any_occupied_country = { tag = PREV.PREV } } }
+				set_occupation_law_where_available = default_law
 			}
 		}
 	}
@@ -301,24 +301,33 @@ start_state_integration_resistance = {
 			cancel_resistance = yes
 		}
 		add_core_of = XXB
+		force_enable_resistance = { occupied = XXB }
 		start_resistance = XXB
 		set_compliance = var:previous_compliance?0
 		set_resistance = var:previous_resistance?0
+		#remove_core_of = XXB
 	}
-	hidden_effect = { clear_state_integration_resistance = yes }
 	PREV = { XXB = { set_occupation_law_where_available = territorial_integration } }
 }
 
 clear_state_integration_resistance = {
-	XXB = {
-		every_core_state = {
+	force_enable_resistance = { occupied = XXB clear = yes }
+	if = {
+		limit = {
+			has_resistance = yes
+			occupied_country_tag = XXB
+		}
+		set_temp_variable = { previous_compliance = compliance }
+		set_temp_variable = { previous_resistance = resistance }
+		cancel_resistance = yes
+		if = {
 			limit = {
-				OR = {
-					is_core_of = controller
-					NOT = { has_variable = can_integrate_@var:controller }
-				}
+				NOT = { is_core_of = PREV }
+				check_variable = { core_countries^num > 0 }
 			}
-			remove_core_of = XXB
+			start_resistance = yes
+			set_compliance = var:previous_compliance?0
+			set_resistance = var:previous_resistance?0
 		}
 	}
 }
