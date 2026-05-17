@@ -236,10 +236,83 @@ MON_country_formation_decisions = { ###This is completly fucking retarded
 
 MON_foreign_policy_decisions = {
 
-	MON_did_you_forget_about_me = { #finally Mongolia won't forget ETS exists
+	MON_restore_control_over_altai = {
 		icon = generic_prepare_civil_war
 		allowed = { always = no }
 
+		available = {
+			has_capitulated = no
+			is_neighbor_of = FROM
+		}
+
+		cancel_trigger = {
+			OR = {
+				is_subject = yes
+				has_capitulated = yes
+				NOT = { can_declare_war_on = FROM }
+				NOT = { is_neighbor_of = FROM }
+				has_country_flag = mon_no_expansion
+				is_in_faction_with = RUS
+				is_in_faction_with = TRM
+			}
+		}
+		
+		visible = {
+			FROM = { exists = yes }
+			NOT = { has_country_flag = mon_no_expansion }
+		}
+		target_trigger = { can_declare_war_on = FROM }
+
+		fire_only_once = yes
+		cost = 0
+		days_remove = 20
+
+		ai_will_do = {
+			base = 0
+			modifier = {
+				factor = 0
+				OR = {
+					country_has_any_active_threat = yes
+					FROM = { dont_start_major_faction_wars = yes }
+					FROM = { default_attack_AI_trigger = yes } #Ai will avoid striking opponent that is way stronger.
+				}
+			}
+			modifier = {
+				add = 100
+				#Mongolia will attack if they outnumber their opponent by more than 2x
+				FROM = {
+					strength_ratio = {
+						tag = MON
+						ratio < 0.5
+					}
+				}
+			}
+		}
+		
+		war_with_target_on_remove = yes
+
+		cancel_effect = { 
+			log = "[GetDateText]: [Root.GetName]: Decision cancel MON_restore_control_over_altai target: [From.GetName]"
+			clear_decision_attack_AI = yes
+		}
+		complete_effect = { 
+			log = "[GetDateText]: [Root.GetName]: Decision MON_restore_control_over_altai target: [From.GetName]"
+			setup_decision_attack_AI = yes
+			FROM = { incoming_war_notification_effect = yes }
+		}
+		remove_effect = { 
+			log = "[GetDateText]: [Root.GetName]: Decision remove MON_restore_control_over_altai target: [From.GetName]"
+			declare_war_on = {
+				target = FROM
+				type = annex_everything
+			}
+		}
+	}
+	
+	MON_did_you_forget_about_me = { #finally Mongolia won't forget ETS exists
+		icon = generic_prepare_civil_war
+		name = MON_attack_minors
+		allowed = { always = no }
 
 		available = {
 			has_capitulated = no
@@ -309,11 +382,34 @@ MON_foreign_policy_decisions = {
 		
 		war_with_target_on_remove = yes
 
-		remove_effect = { 
+		cancel_effect = { 
+			log = "[GetDateText]: [Root.GetName]: Decision cancel MON_did_you_forget_about_me target: [From.GetName]"
+			clear_decision_attack_AI = yes
+		}
+		complete_effect = { 
 			log = "[GetDateText]: [Root.GetName]: Decision MON_did_you_forget_about_me target: [From.GetName]"
-			declare_war_on = {
-				target = FROM
-				type = annex_everything
+			setup_decision_attack_AI = yes
+			FROM = { incoming_war_notification_effect = yes }
+		}
+		remove_effect = { 
+			log = "[GetDateText]: [Root.GetName]: Decision remove MON_did_you_forget_about_me target: [From.GetName]"
+			clear_decision_attack_AI = yes
+			if = {
+				limit = { 
+					FROM = { 
+						OR = { 
+							tag = SIK
+							tag = ETS
+						}
+					}
+				}
+				FROM = { country_event = mongolia.6 }
+			}
+			else = {
+				declare_war_on = {
+					target = FROM
+					type = annex_everything
+				}
 			}
 		}
 	}
