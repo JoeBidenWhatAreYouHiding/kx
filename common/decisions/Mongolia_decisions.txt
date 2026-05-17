@@ -238,48 +238,84 @@ MON_foreign_policy_decisions = {
 
 	MON_did_you_forget_about_me = { #finally Mongolia won't forget ETS exists
 		icon = generic_prepare_civil_war
+		allowed = { always = no }
 
-		visible = {
-			ETS = {
-				exists = yes
-				NOT = { is_subject_of = MON }
-			}
-			NOT = {
-				is_in_faction_with = ETS
-				has_war_with = ETS
-				is_subject_of = ETS
-			}
-			has_completed_focus = MON_mongol_minority_in_xibei
-			custom_trigger_tooltip = {
-				tooltip = MON_sternberg_tooltip
-				MON_sternberg_in_power = yes
-			}
+
+		available = {
+			has_capitulated = no
+			is_neighbor_of = FROM
 		}
 
-		targets = { ETS }
-		target_root_trigger = { has_completed_focus = MON_mongol_minority_in_xibei }
+		cancel_trigger = {
+			OR = {
+				is_subject = yes
+				has_capitulated = yes
+				NOT = { can_declare_war_on = FROM }
+				NOT = { is_neighbor_of = FROM }
+			}
+		}
+		
+		visible = {
+			FROM = {
+				exists = yes
+				NOT = { is_subject_of = MON }
+				NOT = { is_subject_of = SIK }
+			}
+			MON_sternberg_in_power = yes
+		}
 		target_trigger = { can_declare_war_on = FROM }
 
 		fire_only_once = yes
-		cost = 5
-		days_remove = 14
+		cost = 0
+		days_remove = 40
 
 		ai_will_do = {
-			factor = 100
+			base = 0
 			modifier = {
 				factor = 0
-				has_war = yes
-			}
-			modifier = {
-				factor = 0
-				strength_ratio = {
-					tag = FROM
-					ratio < 0.7
+				OR = {
+					country_has_any_active_threat = yes
+					FROM = { dont_start_major_faction_wars = yes }
+					FROM = { default_attack_AI_trigger = yes } #Ai will avoid striking opponent that is way stronger.
 				}
 			}
+			modifier = {
+				add = 100
+				#Mongolia will attack if they outnumber their opponent by more than 2x
+				FROM = {
+					strength_ratio = {
+						tag = MON
+						ratio < 0.5
+					}
+				}
+			}
+			modifier = {
+				add = 100
+				#Mongolia strike if they have a slight advantage and their opponent is already being ganked
+				FROM = {
+					strength_ratio = {
+						tag = MON
+						ratio < 0.75
+					}
+					surrender_progress > 0.15
+				}
+			}
+			modifier = {
+				add = 100
+				#Mongolia will always strike if they meet the below checks and their opponent is down bad.
+				FROM = { surrender_progress > 0.65 }
+			}
 		}
+		
+		war_with_target_on_remove = yes
 
-		remove_effect = { ETS = { country_event = mongolia.6 } }
+		remove_effect = { 
+			log = "[GetDateText]: [Root.GetName]: Decision MON_did_you_forget_about_me target: [From.GetName]"
+			declare_war_on = {
+				target = FROM
+				type = annex_everything
+			}
+		}
 	}
 	
 	MON_invade_china = { #catch all decision for invading China
