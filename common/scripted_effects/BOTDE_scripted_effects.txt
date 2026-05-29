@@ -2820,6 +2820,83 @@ AUS_radicalize_Heimwehr = {
 	}
 }
 
+EUU_unite_europe_effect = {
+	custom_override_tooltip = {
+		tooltip = EUU_unite_europe_tt
+		every_country = {
+			limit = {
+				OR = {
+					is_in_faction_with = EUU
+					EUU_EU_member = yes
+					any_allied_country = {
+						AND = {
+							is_faction_leader = yes
+							EUU_EU_member = yes
+						}
+					}
+				}
+			}
+			add_to_temp_array = { temp_faction_members = THIS.id }
+		}
+		dismantle_faction = yes
+		every_country = {
+			limit = {
+				EUU_EU_member = yes
+				NOT = { tag = EUU }
+			}
+			every_owned_state = {
+				limit = { is_on_continent = europe }
+				add_core_of = EUU
+			}
+			every_subject_country = {
+				limit = { EUU_EU_member = no }
+				get_current_government_type = yes
+				EUU = {
+					set_autonomy = {
+						target = PREV
+						autonomous_state = kr_nominal_puppet
+					}
+				}
+				restore_previous_government_type = yes
+			}
+			every_unit_leader = { set_nationality = EUU }
+			every_scientist = { set_nationality = EUU }
+			if = {
+				limit = { is_in_array = { EUU.EUU_EU_members = THIS } }
+				remove_from_array = { EUU.EUU_EU_members = THIS }
+			}
+			EUU = {
+				transfer_technology_without_doctrines = yes
+				transfer_int_upgrade = yes
+				annex_country = {
+					target = PREV
+					transfer_troops = yes
+				}
+			}
+		}
+		EUU = {
+			set_cosmetic_tag = AUS_PANEURO
+			news_event = bdeeunews.1
+			create_faction_from_template = {
+				template = faction_template_paneuropa
+				name = faction_paneuropa
+				icon = GFX_faction_paneuropa
+				color = { 0.25 0.22 0.5 }
+			}
+			every_country = {
+				limit = {
+					is_in_array = { temp_faction_members = THIS.id }
+					exists = yes
+				}
+				EUU = { add_to_faction = PREV }
+			}
+		}
+		set_variable = { global.EU_economic_integration_flat = 0 }
+		set_variable = { global.EU_army_xp_pool = 0 }
+		set_global_flag = EUU_federalized
+	}
+}
+
 EUU_add_to_EU = {
 	custom_override_tooltip = {
 		tooltip = THIS_JOINS_EU
@@ -2835,9 +2912,16 @@ EUU_add_to_EU = {
 }
 
 EUU_remove_from_EU = {
-	remove_from_array = { EUU.EUU_EU_members = ROOT }
-	set_variable = { THIS.extra_pp_allocation = 0 }
-	remove_dynamic_modifier = { modifier = EUU_allocations }
+	if = {
+		limit = { is_in_array = { EUU.EUU_EU_members = THIS } }
+		remove_from_array = { EUU.EUU_EU_members = THIS }
+	}
+	if = {
+		limit = { has_dynamic_modifier = { modifier = EUU_allocations} }
+		remove_dynamic_modifier = { modifier = EUU_allocations }
+	}
+	clear_variable = THIS.extra_pp_allocation
+	clear_variable = THIS.EUU_civ_allocation_penalty
 }
 
 EUU_find_half_calculation = {
@@ -2976,6 +3060,14 @@ EUU_calculate_necessary_pressure = {
 	add_to_temp_variable = { pressure_total = pressure_factories }
 	add_to_temp_variable = { pressure_total = pressure_population }
 	add_to_temp_variable = { pressure_total = pressure_army }
+
+	round_temp_variable = pressure_total
+
+	set_temp_variable = { temp_modulo = pressure_total }
+	modulo_temp_variable = { temp_modulo = 50 }
+	subtract_from_temp_variable = { pressure_total = temp_modulo }
+
+	log = "[GetDateText]: [THIS.GetName]: EUU_calculate_necessary_pressure: pressure_total = [?pressure_total] temp_modulo = [?temp_modulo]"
 	
 	capital_scope = {
 		owner = { set_variable = { necessary_EU_pressure = pressure_total } }
