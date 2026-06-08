@@ -469,10 +469,19 @@ RUS_Duma = {
 		visible = {
 			rus_senate_duma_conflict_available = yes
 			RUS_russian_monarch = no
-			RUS_possible_presidential_election = no			
+			NOT = { 
+				has_country_leader = { name = "The Senate" ruling_only = yes }
+				has_country_leader = { name = "The State Council" ruling_only = yes }
+				has_idea = RUS_empowered_president 
+				has_idea = RUS_senate_duma_conflict
+				has_country_leader_with_trait = RUS_supreme_ruler
+				has_country_flag = RUS_president_elections_campaign
+				has_active_mission = RUS_early_elections_president_mission
+			}	
 			RUS_kerensky_in_power = no
 			RUS_denikin_in_power = no
 			RUS_kornilov_in_power = no
+			
 		}
 		available = {
 			RUS_has_any_law_in_vote = no
@@ -778,10 +787,7 @@ RUS_Duma = {
 		available = {
 			RUS_is_unitary = no
 			RUS_has_any_law_in_vote = no
-			all_state = { 
-				is_siberia = yes 
-				is_owned_by = ROOT
-			}
+			owns_state = 408
 		}
 		cost = 0
 		fire_only_once = yes
@@ -2445,6 +2451,9 @@ RUS_Passing_Laws = {
 			}
 			custom_effect_tooltip = RUS_LAW_PASSED_EFFECTS
 			effect_tooltip = { RUS_pass_current_law = yes }
+			hidden_effect = {
+				remove_mission = RUS_LAW_DUMA_LEVEL_DEADLINE
+			}
 		}
 		timeout_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision timeout RUS_LAW_DUMA_LEVEL_DEADLINE"
@@ -2453,6 +2462,9 @@ RUS_Passing_Laws = {
 			clear_law_country_flag = yes
 			set_variable = { RUS_law_level = 0 }
 			clr_country_flag = RUS_LAW_CHANGING_CONSTITUTION
+			hidden_effect = {
+				remove_mission = RUS_LAW_DUMA_LEVEL_DEADLINE
+			}
 		}
 	}
 	RUS_LAW_SENATE_LEVEL_DEADLINE = {
@@ -2499,15 +2511,21 @@ RUS_Passing_Laws = {
 			}
 			custom_effect_tooltip = RUS_LAW_PASSED_EFFECTS
 			effect_tooltip = { RUS_pass_current_law = yes }
-				}
+			hidden_effect = {
+				remove_mission = RUS_LAW_SENATE_LEVEL_DEADLINE
+			}
+		}
 		timeout_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision timeout RUS_LAW_SENATE_LEVEL_DEADLINE"
 			custom_effect_tooltip = RUS_LAW_NOT_PASSED_EFFECTS
 			RUS_not_pass_current_law = yes
 			custom_effect_tooltip = tooltip_white_line
-					clr_country_flag = RUS_LAW_SENATE_LEVEL
+			clr_country_flag = RUS_LAW_SENATE_LEVEL
 			clr_country_flag = RUS_LAW_CHANGING_CONSTITUTION
 			clear_law_country_flag = yes
+			hidden_effect = {
+				remove_mission = RUS_LAW_SENATE_LEVEL_DEADLINE
+			}
 		}
 	}
 	RUS_LAW_PRESIDENT_DECIDES_DEADLINE = {
@@ -2527,6 +2545,7 @@ RUS_Passing_Laws = {
 		selectable_mission = no
 		days_mission_timeout = 10
 		fire_only_once = no
+		
 		timeout_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision timeout RUS_LAW_PRESIDENT_DECIDES_DEADLINE"
 			custom_effect_tooltip = RUS_LAW_PASSED
@@ -2534,6 +2553,9 @@ RUS_Passing_Laws = {
 			RUS_pass_current_law = yes
 			clear_law_country_flag = yes
 			add_to_variable = { RUS_president_impeach = -1 }
+			hidden_effect = {
+				remove_mission = RUS_LAW_PRESIDENT_DECIDES_DEADLINE
+			}
 		}
 	}
 	RUS_LAW_MONARCH_DECIDES_DEADLINE = {
@@ -2558,6 +2580,9 @@ RUS_Passing_Laws = {
 			clear_law_country_flag = yes
 			multiply_variable = { RUS.popular_support_monarchy = 1.1 }
 			multiply_variable = { RUS.workers_support_monarchy = 1.1 }
+			hidden_effect = {
+				remove_mission = RUS_LAW_MONARCH_DECIDES_DEADLINE
+			}
 		}
 	}
 	
@@ -2612,22 +2637,25 @@ RUS_Passing_Laws = {
 					RUS_kornilov_in_power = no
 					RUS_denikin_in_power = no
 				}
-			add_to_variable = { RUS_president_impeach = 1 }
-			if = {
-				limit = {
-					check_variable = { RUS_president_impeach = 2 }
+				add_to_variable = { RUS_president_impeach = 1 }
+				if = {
+					limit = {
+						check_variable = { RUS_president_impeach = 2 }
+					}
+					custom_effect_tooltip = RUS_PRESIDENT_IMPEACHMENT_COMING_WARNING
 				}
-				custom_effect_tooltip = RUS_PRESIDENT_IMPEACHMENT_COMING_WARNING
-			}
-			if = {
-				limit = {
-					check_variable = { RUS_president_impeach > 2 }
+				if = {
+					limit = {
+						check_variable = { RUS_president_impeach > 2 }
+					}
+					custom_effect_tooltip = RUS_PRESIDENT_WILL_BE_IMPEACHED
+					country_event = rusdem.106
 				}
-				custom_effect_tooltip = RUS_PRESIDENT_WILL_BE_IMPEACHED
-				country_event = rusdem.106
 			}
+			hidden_effect = {
+				remove_mission = RUS_LAW_PRESIDENT_DECIDES_DEADLINE
+			}	
 		}
-	}
 	}
 	RUS_LAW_MONARCH_VETO = {
 		icon = GFX_decision_generic_political_discourse
@@ -2656,6 +2684,9 @@ RUS_Passing_Laws = {
 			multiply_variable = { RUS.clergy_support_monarchy = 1.1 }
 			decrease_ruling_party_popularity_by_5 = yes
 			add_stability = -0.07
+			hidden_effect = {
+				remove_mission = RUS_LAW_MONARCH_DECIDES_DEADLINE
+			}
 		}
 	}
 	RUS_LAW_GET_PLSR_DUMA_VOTES = {
@@ -5985,7 +6016,8 @@ RUS_presidential_race_category = {
 		timeout_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision timeout RUS_early_elections_president_mission"
 			RUS_remove_kornilov_legacy = yes
-			country_event = rusdem.50
+			country_event = rusdem.50		
+			set_variable = { RUS_president_impeach = 0 }
 		}
 	
 		cancel_effect = {
