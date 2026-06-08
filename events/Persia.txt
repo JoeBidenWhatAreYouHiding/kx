@@ -169,7 +169,7 @@ country_event = { #foroughi and da majlis talk it out
 		name = pers.6.a
 		add_popularity = {
 			ideology = social_liberal
-			popularity = 0.15
+			popularity = 0.05
 		}
 		add_soccon_to_coalition = yes
 	}
@@ -472,6 +472,10 @@ country_event = {
     option = {
         name = pers.18.a
         add_political_power = -25
+		add_popularity = {
+			ideology = social_conservative
+			popularity = 0.03
+		}
         hidden_effect = {
             country_event = { id = pers.19 days = 7 }
         }
@@ -483,7 +487,7 @@ country_event = {
         add_stability = -0.03
         add_popularity = {
             ideology = social_conservative
-            popularity = 0.04
+            popularity = 0.06
         }
         hidden_effect = {
             country_event = { id = pers.19 days = 7 }
@@ -496,7 +500,7 @@ country_event = {
         add_stability = -0.02
         add_popularity = {
             ideology = social_conservative
-            popularity = 0.02
+            popularity = 0.04
         }
         add_popularity = {
             ideology = social_liberal
@@ -530,6 +534,7 @@ country_event = {
             ideology = authoritarian_democrat
             popularity = 0.03
         }
+		add_ideas = PER_collapsing_economy
         hidden_effect = {
             country_event = { id = pers.20 days = 7 }
         }
@@ -543,6 +548,7 @@ country_event = {
             ideology = social_liberal
             popularity = 0.02
         }
+		add_ideas = PER_collapsing_economy
         hidden_effect = {
             country_event = { id = pers.20 days = 7 }
         }
@@ -551,6 +557,7 @@ country_event = {
     option = {
         name = pers.19.c
         add_stability = -0.05
+		add_ideas = PER_collapsing_economy
         hidden_effect = {
             country_event = { id = pers.20 days = 7 }
         }
@@ -1328,6 +1335,179 @@ country_event = {
 		hidden_effect = {
 			set_country_leader_ideology = natpop_islamism_subtype
 		}
+	}
+}
+
+country_event = { # The Middle East Descends Into Chaos
+	id = pers.39
+	immediate = { 
+		log = "[GetDateText]: [Root.GetName]: event pers.39" }
+	title = pers.39.t
+	desc = pers.39.d
+	picture = GFX_report_event_PER_parliament
+
+	fire_only_once = yes
+
+	trigger = {
+		tag = PER
+		has_global_flag = OTT_cairo_pact_war
+		OR = {
+			ZGS = { has_war_with = TUR }
+			ORM = { has_war_with = TUR }
+		}
+	}
+
+	mean_time_to_happen = {
+		days = 5
+	}
+
+	option = {
+		name = pers.39.a
+		set_country_flag = PER_desert_war_active
+		add_ideas = PER_window_of_opportunity
+		hidden_effect = {
+			country_event = { id = pers.40 days = 90 }
+		}
+	}
+}
+
+country_event = { # PER decisions during desert war
+	id = pers.40
+	immediate = { 
+		log = "[GetDateText]: [Root.GetName]: event pers.40" }
+	title = pers.40.t
+	desc = pers.40.d
+	picture = GFX_report_event_PER_parliament
+
+	fire_only_once = yes
+	is_triggered_only = yes
+
+	option = { # Foroughi
+		name = pers.40.a
+		trigger = { has_country_flag = PER_liberals_win }
+		add_ideas = PER_observed_restraint
+	}
+
+	option = { # Modarres
+		name = pers.40.b
+		trigger = { has_country_flag = PER_modarres_win }
+		if = {
+			limit = { ZGS = { exists = yes } }
+			ZGS = { add_ideas = ZGS_shi_unrest }
+		}
+	}
+
+	option = { # Reza Khan
+		name = pers.40.c
+		trigger = {
+			OR = {
+				has_country_flag = PER_reza_takeover
+				has_country_flag = PER_accepted_reza_deal
+			}
+		}
+		add_ideas = PER_military_intelligence
+	}
+
+	option = { # Fallback
+		name = pers.40.e
+		trigger = {
+			NOT = { has_country_flag = PER_liberals_win }
+			NOT = { has_country_flag = PER_modarres_win }
+			NOT = { has_country_flag = PER_reza_takeover }
+			NOT = { has_country_flag = PER_accepted_reza_deal }
+		}
+		add_political_power = 25
+	}
+}
+
+
+country_event = { # Desert War End
+	id = pers.41
+	title = pers.41.t
+	desc = pers.41.d
+	picture = GFX_report_event_PER_parliament
+
+	fire_only_once = yes
+
+	trigger = {
+		tag = PER
+		has_country_flag = PER_desert_war_active
+		NOT = { TUR = { has_war_with = EGY } }
+	}
+
+	mean_time_to_happen = {
+		days = 7
+	}
+
+	immediate = {
+		log = "[GetDateText]: [Root.GetName]: event pers.41"
+		clr_country_flag = PER_desert_war_active
+		remove_ideas = PER_window_of_opportunity
+	}
+
+	option = { # Ottoman victory
+		name = pers.41.a
+		trigger = { NOT = { has_global_flag = AXIS_VICTORY } }
+		add_war_support = 0.04
+	}
+
+	option = { # Cairo Pact victory
+		name = pers.41.b
+		trigger = { has_global_flag = AXIS_VICTORY }
+		add_war_support = 0.04
+	}
+}
+
+country_event = { # Declaring War on ZGS/ORM
+	id = pers.42
+	immediate = { log = "[GetDateText]: [Root.GetName]: event pers.42" }
+	title = pers.42.t
+	desc = pers.42.d
+	picture = GFX_report_event_PER_parliament
+
+	is_triggered_only = yes
+
+	option = { # Declare on ZGS only
+		name = pers.42.a
+		trigger = { ZGS = { exists = yes } }
+		clr_country_flag = PER_desert_war_active
+		declare_war_on = {
+			target = ZGS
+			type = annex_everything
+		}
+	}
+
+	option = { # Declare on ORM only
+		name = pers.42.b
+		trigger = { ORM = { exists = yes } }
+		clr_country_flag = PER_desert_war_active
+		declare_war_on = {
+			target = ORM
+			type = annex_everything
+		}
+	}
+
+	option = { # Declare on both
+		name = pers.42.c
+		trigger = {
+			ZGS = { exists = yes }
+			ORM = { exists = yes }
+		}
+		clr_country_flag = PER_desert_war_active
+		declare_war_on = {
+			target = ZGS
+			type = annex_everything
+		}
+		declare_war_on = {
+			target = ORM
+			type = annex_everything
+		}
+	}
+
+	option = { # Bide your time
+		name = pers.42.e
+		add_political_power = 10
+		add_war_support = -0.02
 	}
 }
 
