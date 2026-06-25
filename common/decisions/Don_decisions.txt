@@ -1,5 +1,76 @@
 ### by soclibdictator ###
 #new shit  
+operations = {
+	DKB_rally_monarchists = {
+		icon = GFX_decision_generic_army_support
+		allowed = { always = no }
+				
+		visible = {
+			hidden_trigger = {
+				FROM = {
+					any_unit_leader = { 
+						OR = {
+							RUS_is_irrelevant_monarchist_officer = yes
+							AND = {
+								has_trait = RUS_sidelined
+								has_trait = RUS_drozdovsky_officer
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		cancel_if_not_visible = yes
+		
+		custom_cost_text = CP_20
+		custom_cost_trigger = {
+			command_power > 19.99
+		}
+		fire_only_once = yes
+		days_remove = 120
+		
+		
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel DKB_rally_monarchists"			
+			hidden_effect = { 
+				add_command_power = 20
+			}
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision DKB_rally_monarchists"			
+			hidden_effect = { 
+				add_command_power = -20
+			}
+		}
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove DKB_rally_monarchists"
+			FROM = {
+				every_unit_leader = {
+					limit = { 
+						has_trait = RUS_sidelined
+						has_trait = RUS_drozdovsky_officer
+					}
+					set_nationality = ROOT
+				}
+			}
+			FROM = {
+				random_unit_leader = {
+					limit = { 
+						RUS_is_irrelevant_monarchist_officer = yes 
+						NOT = {
+							AND = {
+								has_trait = RUS_sidelined
+								has_trait = RUS_drozdovsky_officer
+							}
+						}
+					}
+					unit_leader_event = dkbpol.29
+				}
+			}			
+		}
+	}
+}
 DKU_expansion = {
 	DKU_attack_russia = {
 		icon = hol_draw_up_staff_plans
@@ -10,25 +81,51 @@ DKU_expansion = {
 				is_owner_neighbor_of = FROM
 				any_allied_country = { is_owner_neighbor_of = FROM }
 			}
+			if = {
+				limit = { FROM = { tag = TRM } }
+				OR = {
+					195 = { is_owned_and_controlled_by = ROOT }
+					195 = { is_owned_and_controlled_by = TRM }
+					219 = { is_owned_and_controlled_by = ROOT }
+					219 = { is_owned_and_controlled_by = TRM }
+				}
+			}
+			if = {
+				limit = {
+					NOT = { has_country_flag = DKB_no_caucasus_wars }
+				}
+				237 = { is_owned_and_controlled_by_ROOT_or_ally = yes }
+				234 = { is_owned_and_controlled_by_ROOT_or_ally = yes }
+			}
+			if = {
+				limit = { has_country_flag = DKB_no_ambition }
+				TRM = { has_war_with = FROM }
+			}
 		}
 		
 		visible = {
 			can_declare_war_on = FROM
 		}
 
-		targets = { RUS RVA RRF WRA }
+		targets = { RUS RVA RRF WRA TRM ORE }
 		target_root_trigger = {
 			OR = {
 				has_completed_focus = DKB_The_Cossack_Council
+				has_completed_focus = DKB_Invite_Exiled_Politicians
 				has_completed_focus = DKB_Confront_The_Bear
 				has_completed_focus = DKB_raze_russia
 				has_completed_focus = DKB_together_for_land
 				has_completed_focus = DKB_Slay_the_Dragon
+				has_completed_focus = DKB_Republic_Will_Die
 				has_country_flag = DKB_can_intervene_in_rcw
-			}				
+			}		
 		}
 		target_trigger = {
-			can_declare_war_on = FROM			
+			can_declare_war_on = FROM
+			if = {
+				limit = { FROM = { tag = ORE } }
+				ORE = { has_country_flag = RUS_can_integrate }
+			}
 		}
 
 		cost = 10
@@ -56,6 +153,16 @@ DKU_expansion = {
 			log = "[GetDateText]: [Root.GetName]: Decision DKU_attack_russia target: [From.GetName]"
 			set_country_flag = { flag = imminent_war days = 20 value = 1 }
 			setup_decision_attack_AI = yes
+			if = {
+				limit = { 
+					NOT = { has_country_flag = RUS_can_integrate }
+				}
+				set_country_flag = RUS_can_integrate
+				for_each_scope_loop = {
+					array = RUS.RUS_starting_states_array
+					add_claim_by = ROOT
+				}
+			}
 		}
 	
 		remove_effect = {
@@ -80,6 +187,14 @@ DKU_expansion = {
 				limit = { UCH_is_uch_member_tag = yes }
 				FROM = { UCH_is_uch_member_tag = no }
 			}
+			if = {
+				limit = { DKB_bogaevsky_in_power = yes }
+				has_completed_focus = DKB_Invite_Exiled_Politicians
+			}
+			if = {
+				limit = { DKB_germans_in_power = yes }
+				has_completed_focus = DKB_preparing_to_invade_shit
+			}
 		}
 		cancel_trigger = {
 			OR = {
@@ -94,7 +209,16 @@ DKU_expansion = {
 			}
 		}
 		visible = {
-			can_declare_war_on = FROM
+			is_subject = no
+			FROM = {
+				exists = yes
+				has_capitulated = no
+				NOT = {
+					has_war_with = ROOT
+					is_subject_of = ROOT
+					is_ally_of_ROOT = yes
+				}
+			}
 		}
 		cost = 10
 		days_remove = 14
@@ -109,6 +233,10 @@ DKU_expansion = {
 					FROM = { default_attack_AI_trigger_FROM = yes }
 					dont_start_major_faction_wars = yes
 					ROOT_is_threatened_cautious = yes
+					AND = {
+						FROM = { is_guaranteed_by = GER }
+						NOT = { owns_state = 219 }
+					}
 				}
 			}
 		}
@@ -161,6 +289,116 @@ DKU_expansion = {
 				target = FROM
 				type = annex_everything
 			}
+		}
+	}
+	
+	DKB_demand_tsargrad = {
+		icon = hol_draw_up_staff_plans
+
+		available = {
+			is_subject = no
+			OR = {
+				is_owner_neighbor_of = FROM
+				any_allied_country = { is_owner_neighbor_of = FROM }
+			}
+		}
+
+		visible = {
+			can_declare_war_on = FROM
+		}
+		cancel_trigger = {
+			FROM = { 
+				OR = {
+					is_in_faction_with = ROOT
+					exists = no
+					is_subject_of = ROOT
+				}
+			}
+		}
+			
+		targets = { 265.OWNER }
+		target_root_trigger = {
+			has_completed_focus = DKB_claim_tsargrad
+		}
+		target_trigger = {
+			can_declare_war_on = FROM
+			FROM = { owns_state = 265 }
+		}
+
+		cost = 10
+		days_remove = 14
+		fire_only_once = yes
+		
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				enemies_strength_ratio > 0.8
+			}
+			modifier = {
+				factor = 0
+				surrender_progress > 0
+			}
+			modifier = {
+				factor = 0
+				OR = {
+					alliance_strength_ratio < 0.5
+					surrender_progress > 0
+				}
+			}
+			modifier = {
+				factor = 0
+				strength_ratio = { tag = FROM ratio < 0.8 }
+			}
+			modifier = {
+				factor = 0
+				FROM = {
+					is_in_faction = yes
+					var:FROM.faction_leader = {
+						strength_ratio = {
+							tag = ROOT
+							ratio > 0.7
+						}
+					}
+				}
+			}
+			modifier = {
+				factor = 0
+				FROM = {
+					is_subject = yes
+					overlord = {
+						strength_ratio = {
+							tag = ROOT
+							ratio > 0.7
+						}
+					}
+				}
+				}
+			modifier = {
+				factor = 0
+				has_country_flag = imminent_war
+			}
+			modifier = {
+				add = 100
+				russian_civil_war = yes
+			}
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision DKB_demand_tsargrad target: [From.GetName]"
+			set_country_flag = { flag = imminent_war days = 20 value = 1 }
+			setup_decision_attack_AI = yes
+			FROM = {
+				country_event = {
+					id = dkbfor.100
+					days = 2
+				}
+			}
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove DKB_demand_tsargrad target: [From.GetName]"
+			clear_decision_attack_AI = yes
 		}
 	}
 	DKB_SOV_Attack_Europe = {
@@ -305,7 +543,10 @@ DKB_coring_shit = {
 			237 = { is_owned_and_controlled_by = ROOT }
 		}
 		visible = {
-			NOT = { has_cosmetic_tag = DKB_don_caucasus }
+			NOT = { 
+				has_cosmetic_tag = DKB_don_caucasus 
+				has_cosmetic_tag = DKB_seu 
+			}
 			OR = {
 				has_country_leader = { name = "Afrikan Bogaewsky" ruling_only = yes }
 				has_country_leader = { name = "Pyotr Krasnov" ruling_only = yes }
@@ -317,7 +558,13 @@ DKB_coring_shit = {
 		
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove DKB_proclaim_union target: [From.GetName]"
-			set_cosmetic_tag = DKB_don_caucasus
+			if = {
+				limit = { has_country_leader = { name = "Pyotr Krasnov" ruling_only = yes } }
+				set_cosmetic_tag = DKB_don_caucasus
+			}
+			else = {
+				set_cosmetic_tag = DKB_seu
+			}
 		}
 	}
 	DKU_move_to_moscow = {
@@ -332,6 +579,8 @@ DKB_coring_shit = {
 			has_cosmetic_tag = DKB_RUS
 			has_cosmetic_tag = DKB_soviet_union
 			has_cosmetic_tag = DKB_vlasov_RUS
+			has_cosmetic_tag = DKB_RUS_christian_state
+			has_cosmetic_tag = DKB_RUS_christian_state_alt
 			}
 		}
 		cost = 10
@@ -352,6 +601,7 @@ DKB_coring_shit = {
 			has_full_control_of_state = 195
 			OR = { 
 			has_cosmetic_tag = DKB_RUS_empire
+			has_cosmetic_tag = DKB_RUS_regency_empire
 			has_cosmetic_tag = DKB_tsar_willy
 			has_cosmetic_tag = DKB_vlasov_RUS
 			has_cosmetic_tag = DKB_RUS
@@ -463,14 +713,12 @@ DKB_coring_shit = {
 					transfer_state = 245
 					transfer_state = 238
 					transfer_state = 218
-					transfer_state = 1265
 					transfer_state = 1263
 					transfer_state = 1264
 					transfer_state = 1226
 					add_state_core = 218
 					add_state_core = 245
 					add_state_core = 238
-					add_state_core = 1265
 					add_state_core = 1263
 					add_state_core = 1264
 					add_state_core = 1226
@@ -479,3 +727,54 @@ DKB_coring_shit = {
 		}
 	}
 }	
+foreign_politics = {
+	DKB_join_reichspakt = {
+		name = GEO_join_reichspakt_decision
+		icon = generic_agreement
+		allowed = { always = no } # Activated by focus DKB_the_dream_is_dead
+
+		available = {
+			at_peace_or_same_enemies_as_FROM = yes
+			OR = {
+				has_war_with = 219.owner
+				FROM = { is_in_faction_with = TUR }
+				has_global_flag = ABK_ankara_agreements
+				has_country_leader = {
+					name = "Ioakhim I"
+					ruling_only = yes
+				}
+				has_completed_focus = GEO_hegemone_of_caucasus
+			}
+		}
+
+		visible = {
+			is_subject = no
+			is_in_faction = no
+			FROM = {
+				is_faction_leader = yes
+				NOT = { has_war_with = ROOT }
+			}
+			has_socialist_government = no
+			NOT = { 
+				has_completed_focus = DKB_distance_ourselves_from_germany
+				has_global_flag = GER_withdrew_from_caucasus 
+			}
+		}
+
+		fire_only_once = yes
+		cost = 0
+		
+		ai_will_do = {
+			factor = 100
+			modifier = {
+				factor = 0
+				has_game_rule = { rule = DKB_foreign_policy option = DKB_PATH_NEUTRALITY }
+			}
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision DKB_join_reichspakt target: [From.GetName]"
+			FROM = { country_event = sic.34 }
+		}
+	}
+}

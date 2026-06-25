@@ -362,6 +362,15 @@ RUS_civil_war_decisions = {
 				}
 				country_event = rcw.272
 			}
+			else_if = {
+				limit = {
+					tag = DKB
+				}
+				country_event = {
+					id = rcw.271
+					days = 7
+				}
+			}
 		}
 	}
 	RCW_joint_front = {
@@ -377,6 +386,10 @@ RUS_civil_war_decisions = {
 			}
 		}
 		visible = {
+			OR = { 
+				RUS_denikin_in_power = yes
+				RUS_wrangel_in_power = yes
+			}
 			has_global_flag = RCW_begun
 			NOT = { has_global_flag = RCW_over }
 		}
@@ -390,8 +403,7 @@ RUS_civil_war_decisions = {
 				template = faction_template_temp_alliance       
 				name = faction_russian_lib_front
 				icon = GFX_faction_moscow_accord
-			}			
-
+			}
 			every_other_country = {
 				limit = {
 					OR = {
@@ -400,12 +412,15 @@ RUS_civil_war_decisions = {
 							NOT = { has_global_flag = RCW_SOV_RRF_peace }
 						}
 						AND = {
-							tag = TRM
-							has_socialist_government = no
+							tag = WRA
+							PREV = { RUS_wrangel_in_power = yes }
 						}
 					}
-					exists = yes
+					exists = yes					
 					has_war_with = RUS
+					NOT = { has_war_with = ROOT }
+					is_valid_peace_target = yes
+					has_socialist_government = no
 				}
 				country_event = {
 					id = rcw.251
@@ -421,19 +436,39 @@ RUS_civil_war_decisions = {
 			country_exists = RUS
 			if = {
 				limit = { FROM = { tag = TRM } }
+				FROM = { RUS_russian_monarch = no }
 				if = {
-					limit = {
-						OR = { 
-							RUS_kornilov_in_power = yes
-							RUS_denikin_in_power = yes
+					limit = { 
+						FROM = {
+							OR = {
+								TRM_do_rovs_in_power = yes
+								AND = {
+									TRM_Pepelyaev_coup = yes
+									has_country_flag = TRM_ally_monarchist_officers
+								}
+							}
 						}
 					}
-					FROM = { has_government = paternal_autocrat }
+					RUS_wrangel_in_power = yes 
 				}
-				else_if = {
-					limit = { RUS_wrangel_in_power = yes }
-					FROM = { TRM_do_rovs_in_power = yes }
-				}
+				else = {
+					FROM = {
+						AND = {
+							TRM_Pepelyaev_coup = yes
+							NOT = { has_country_flag = TRM_ally_monarchist_officers }
+						}
+						AND = {
+							TRM_Nats_in_power = yes
+							has_completed_focus = TRM_Talks_With_ROVS
+						}
+						has_government = market_liberal
+						TRM_kolchak_in_power = yes 
+						AND = {
+							TRM_czech_legion_in_power = yes 
+							has_completed_focus = TRM_Panslavist_Direction
+						}
+					}
+				}				
 			}
 			else_if = {
 				limit = { FROM = { tag = ALO } }
@@ -449,12 +484,22 @@ RUS_civil_war_decisions = {
 					}
 				}
 			}
+			else_if = {
+				limit = { FROM = { tag = DKB } }
+				if = {
+					limit = { RUS_wrangel_in_power = yes }
+					FROM = { DKB_brp_in_power = yes }
+				}
+				else = {
+					FROM = { don_is_pro_russian = yes }
+				}
+			}
 		}
 		visible = {
 			has_global_flag = RCW_begun
 			NOT = { has_global_flag = RCW_over }			
 		}
-		targets = { ALO DKB TRM URL KUB }
+		targets = { ALO DKB TRM URL KUB WRA }
 		target_root_trigger = { is_faction_leader = yes }
 		target_trigger = {
 			FROM = {
@@ -476,12 +521,10 @@ RUS_civil_war_decisions = {
 					}
 					KUB = { KUB_has_lineytsy = yes }
 				}
-				else = {
-					has_war_with = var:219:owner
-				}
+				has_war_with = RUS
 				NOT = { has_war_with = ROOT }
-				is_in_faction = no
-				is_subject = no
+				is_valid_peace_target = yes
+				has_socialist_government = no
 			}
 		}
 		cost = 0
@@ -542,7 +585,10 @@ RUS_civil_war_decisions = {
 						ruling_only = yes
 					}
 				}
-				NOT = { has_war_with = ROOT }
+				NOT = { 
+					has_war_with = ROOT 
+					has_war_with = GER
+				}
 			}
 		}
 		cost = 0
@@ -655,6 +701,87 @@ RUS_civil_war_decisions = {
 			FROM = { country_event = WRA.5 }
 			custom_effect_tooltip = if_FROM_agrees
 			effect_tooltip = {
+				add_to_faction = FROM
+			}
+		}
+	}
+	RCW_negotiations_with_allies_WRA_DKB = {
+		name = RCW_negotiations_with_allies
+		icon = generic_agreement
+		allowed = { tag = WRA }
+		available = {
+			country_exists = RUS
+			has_war_with = RUS
+			FROM = { has_war_with = RUS }
+		}
+		visible = {
+			FROM = {
+				don_is_pro_german = yes
+				is_valid_peace_target = yes
+			}
+			is_faction_leader = yes
+		}
+		cost = 0
+		fire_only_once = yes
+		ai_will_do = { factor = 200 }
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision RCW_negotiations_with_allies_WRA_DKB target: [From.GetName]"
+			FROM = { country_event = WRA.5 }
+			custom_effect_tooltip = if_FROM_agrees
+			effect_tooltip = {
+				RUS_can_into_cossack_hosts = yes
+				add_to_faction = FROM
+			}
+		}
+	}
+	DKB_RCW_form_progerman_alliance = {
+		name = RCW_negotiations_with_allies
+		icon = generic_agreement
+		allowed = { always = no }
+		
+		available = { 
+			at_peace_or_same_enemies_as_FROM = yes
+		}
+		
+		visible = {
+			has_war_with = RUS
+			OR = {
+				AND = {
+					DKB_krasnov_in_power = yes
+					OR = {
+						has_idea = DKB_sympathy_with_germany_idea
+						has_idea = DKB_sympathy_with_germany_idea_alt
+					}
+				}
+				AND = {
+					DKB_brp_in_power = yes
+					NOT = { has_country_flag = TRM_become_russia }
+				}
+			}
+			is_valid_peace_target = yes
+			FROM = { 
+				exists = yes
+				has_capitulated = no 
+				has_war_with = RUS 
+				NOT = { has_war_with = ROOT }
+			}
+		}
+		
+		cost = 0
+		fire_only_once = yes
+		ai_will_do = { factor = 200 }
+		
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision DKB_RCW_form_progerman_alliance target: [From.GetName]"
+			FROM = { country_event = WRA.5 }
+			custom_effect_tooltip = if_FROM_agrees
+			effect_tooltip = {
+				create_faction_from_template = { 
+					template = faction_template_temp_alliance       
+					name = faction_russian_antisoc_front
+					icon = GFX_faction_moscow_accord
+				}			
 				add_to_faction = FROM
 			}
 		}
@@ -1655,6 +1782,8 @@ RUS_civil_war_decisions = {
 		on_map_mode = map_only		
 		
 		state_target = yes
+		target_array = EST.core_states
+		target_array = LAT.core_states
 		target_array = RUS.RUS_starting_states_array 
 		target_trigger = {
 			FROM = {
@@ -1742,7 +1871,7 @@ RUS_civil_war_decisions = {
 		ai_will_do = {
 			factor = 250
 			modifier = {
-				factor = 0
+				factor = 0.5
 				TRM = { is_ai = no }
 			}
 		}
@@ -1808,7 +1937,7 @@ RUS_civil_war_decisions = {
 		ai_will_do = {
 			factor = 150
 			modifier = {
-				factor = 0
+				factor = 0.5
 				TRM = { is_ai = no }
 			}
 		}

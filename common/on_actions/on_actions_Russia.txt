@@ -1,17 +1,13 @@
 on_actions = {
 	on_startup = {
 		effect = {
+			# Russia target (for use in targeted modifiers)
+			set_variable = { global.russia = RUS }
+			
 			#Russian integration arrays
 			for_each_scope_loop = {
 				array = RUS.owned_states
 				add_to_array = { RUS.RUS_starting_states_array = THIS }
-				if = {
-					limit = {
-						is_siberia = yes
-						NOT = { is_core_of = TRM }
-					}
-					add_to_array = { TRM.TRM_integration_array = THIS }
-				}			
 			}
 			811 = {
 				add_to_array = { RUS.RUS_starting_states_array = THIS }
@@ -36,12 +32,17 @@ on_actions = {
 				add_marlib_to_coalition = yes
 				set_variable = { Duma_Party_Status^5 = 1 } # LKDP  (Governing)		
 			}
-			RRF = {
-				add_radsoc_to_coalition = yes
-				add_authdem_to_coalition = yes
-				add_pataut_to_coalition = yes
-			}
-			TRM = { country_event = tram.1999 }
+			TRM = { 
+				give_resource_rights = { state = 1246 receiver = JAP }
+				every_state = {
+					limit = { 
+						is_siberia = yes 
+						NOT = { state = 574 }
+						NOT = { state = 564 }
+					}
+					enable_state_integration_50_compliance = yes
+				}
+			}			
 		}
 	}
 	
@@ -91,7 +92,7 @@ on_actions = {
 						NOT = { 
 							has_country_flag = SOV_restored_in_transamur 
 							has_country_flag = RUS_TRM_peaceful_integration 
-					}
+						}
 					}
 					country_event = { id = rusfor.1491 days = 10 }
 					country_event = { id = rusfor.1492 days = 30 }
@@ -194,14 +195,39 @@ on_actions = {
 					clr_global_flag = TRM_siberian_revolt
 				}
 			}
+			
+			### German Oil Treaty
 			if = {
 				limit = {
-					tag = TRM
-					FROM = { tag = TRB }
+					ROOT = { 
+						tag = RUS 
+						has_idea = RUS_GER_oil_treaty
+					}
+					FROM = {
+						OR = {
+							original_tag = AZE
+							original_tag = MTR
+							original_tag = PER
+							original_tag = GEO
+							original_tag = ARM
+							original_tag = DKB
+							original_tag = KUB
+						}
+					}
 				}
-				every_owned_state = { 
-					limit = { is_core_of = TRB }
-					remove_core_of = TRB
+				RUS = {
+					if = {
+						limit = { owns_state = 990 }
+						give_resource_rights = { state = 990 receiver = GER }
+					}
+					if = {
+						limit = { owns_state = 232 }
+						give_resource_rights = { state = 232 receiver = GER }
+					}
+					if = {
+						limit = { owns_state = 229 }
+						give_resource_rights = { state = 229 receiver = GER }
+					}
 				}
 			}
 		}
@@ -309,9 +335,34 @@ on_actions = {
 		}
 	}
 
+	#FROM is war target
 	on_declare_war = {
-		
+		effect = {
+			if = {
+				limit = {
+					RUS_is_in_rostorg = yes
+					FROM = { is_ally_with = RUS }
+				}
+				RUS_remove_from_rostorg = yes
+			}
+		}
 	}
+	
+	#FROM is country getting invited.
+	on_offer_join_faction = {
+		effect = {
+			FROM = {
+				if = {
+					limit = {
+						NOT = { is_in_faction_with = RUS }
+						RUS_is_in_rostorg = yes
+					}
+					RUS_remove_from_rostorg = yes
+				}
+			}
+		}
+	}
+	
 	#ROOT = attacking side
 	#FROM = defending side
 	#fired when two countries end up at war with each other (on_war is fired when a country goes to war against anyone and is not fired again when it enters war against another country unless it went to peace first)
@@ -343,7 +394,39 @@ on_actions = {
 					FROM = { remove_ideas = RUS_chinese_military_mission_idea }
 				}
 			}
+			if = { #If Russia goes to war against any Chinese tags
+				limit = {
+					ROOT = {
+						OR = {
+							original_tag = RUS
+							original_tag = EGY
+						}
+					}
+					FROM = {
+						OR = {
+							original_tag = RUS
+							original_tag = EGY
+						}
+					}
+				}
+				clr_global_flag = RUS_EGY_agreement
+			}
 			# Great Patriotic War (event)
+			if = {
+				limit = {
+					OR = {
+						AND = {
+							tag = RUS
+							FROM = { tag = GER }
+						}
+						AND = {
+							tag = GER
+							FROM = { tag = RUS }
+						}
+					}
+				}
+				RUS = { country_event = { id = rusfor.152 days = 90 random_days = 30 } }
+			}
 			if = {
 				limit = {
 					OR = {
@@ -352,18 +435,32 @@ on_actions = {
 							FROM = {
 								OR = {
 									tag = GER
-									tag = FRA
+									tag = INT
 								}
 							}
 						}
 						AND = {
 							OR = {
 								tag = GER
-								tag = FRA
+								tag = INT
 							}
 							FROM = { tag = RUS }
 						}
 					}
+				}
+				if = {
+					limit = { has_global_flag = tilsit_peace_success }
+					clr_global_flag = tilsit_peace_success
+					set_global_flag = tilsit_peace_collapsed					
+				}
+				if = {
+					limit = { RUS = { has_completed_focus = RUS_Feast_In_Time_Of_Plague } }
+					RUS = { 
+						uncomplete_national_focus = {
+							focus = RUS_Feast_In_Time_Of_Plague
+							refund_political_power = yes
+						} 
+					}	
 				}
 				RUS = { country_event = { id = rusfor.51 days = 3 } }
 				WHR = { country_event = { id = whrpol.59 days = 2 } }
@@ -719,55 +816,7 @@ on_actions = {
 				}
 				custom_effect_tooltip = KR_separate_peace
 				FROM = { white_peace = ROOT }
-			}
-			# TCW - Buryatia
-			if = {
-				limit = {
-					ROOT = {
-						tag = BRY
-						NOT = { has_government = totalist }
-						NOT = { has_government = paternal_autocrat }
-					}
-					FROM = { 
-						tag = TRM
-					}
-					FROM.FROM = { state = 408 } #Yekaterinburg
-					ROOT = { controls_province = 957 }
-				}
-				custom_effect_tooltip = KR_separate_peace
-				FROM = { white_peace = ROOT }
-				BRY = { transfer_state = 565 }
-				if = {
-					limit = {
-						NOT = { country_exists = YAK }
-					}
-					YAK = {
-						transfer_state = 574
-						add_state_core = 574
-						set_country_flag = YAK_secured_its_independence
-						white_peace = TRM
-					}
-				}
-				FROM = {
-					add_war_support = -0.25
-					add_stability = -0.25
-					add_popularity = {
-						ideology = authoritarian_democrat
-						popularity = 0.15
-					}
-					remove_ideas = TRM_dream
-					diplomatic_relation = {
-						country = ROOT
-						relation = non_aggression_pact
-						active = yes
-					}
-					diplomatic_relation = {
-						country = YAK
-						relation = non_aggression_pact
-						active = yes
-					}						
-				}
-			}
+			}			
 			if = {
 				limit = {
 					tag = TRM
@@ -840,6 +889,27 @@ on_actions = {
 					country_event = crm.179
 				}
 			}
+			### Restoration of Don Host for Germany
+			if = {
+				limit = {
+					ROOT = { 
+						OR = {
+							original_tag = GER
+							is_ally_with = GER
+						}
+					}
+					FROM = { tag = RUS }
+					FROM.FROM = {
+						is_core_of = DKB
+					}
+				}
+				GER = {
+					country_event = {
+						id = dongerman.15
+						days = 15
+					}
+				}
+			}
 		}
 	}
 	on_weekly_RUS = {
@@ -848,37 +918,6 @@ on_actions = {
 				limit = {
 					has_country_flag = monarchy_referendum_accepted
 				}
-				set_temp_variable = { temp1 = party_popularity@ruling_party }
-				set_temp_variable = { temp3 = 1 }
-				subtract_from_temp_variable = { temp3 = modifier@consumer_goods_factor }
-				multiply_temp_variable = { temp1 = temp3 }
-				set_temp_variable = { temp2 = RUS.stability }
-				if = {
-					limit = {
-						check_variable = { temp2 < 0.5 }
-					}
-					set_temp_variable = { temp2 = 0.5 }
-				}
-				add_to_temp_variable = { temp2 = 1 }
-				multiply_temp_variable = { temp1 = temp2 }
-				multiply_temp_variable = { temp1 = 2 }
-				clamp_variable = { var = temp1 min = 0 max = 1 }
-				set_variable = { RUS_monarchy_popular_support = temp1 }
-				add_to_variable = { RUS_monarchy_popular_support = RUS_monarchy_popular_support_bonus }
-				if = {
-					limit = {
-						has_completed_focus = RUS_Monarchist_Propaganda
-					}
-					add_to_variable = { RUS_monarchy_popular_support = 0.2 }
-				}
-				set_variable = { RUS_monarchy_referendum_legitimacy = party_popularity@ruling_party }
-				if = {
-					limit = {
-						has_completed_focus = RUS_Blame_Kerensky
-					}
-					add_to_variable = { RUS_monarchy_referendum_legitimacy = 0.15 }
-				}
-				add_to_variable = { RUS_monarchy_referendum_legitimacy = RUS_monarchy_referendum_legitimacy_bonus }
 				RUS_calculate_expected_monarchy_referendum = yes
 			}
 		}
@@ -888,11 +927,9 @@ on_actions = {
 			if = {
 				limit = {
 					RUS = { 
-						russia_is_democratic = yes
 						OR = {
 							has_country_flag = snap_elections
-							has_country_flag = RUS_elections_duma_1941
-							has_country_flag = RUS_early_elections
+							has_active_mission = RUS_early_elections_mission
 						} 
 					}
 				}
@@ -902,34 +939,11 @@ on_actions = {
 			}
 			if = {
 				limit = {
-					RUS = {
-						exists = yes
-					}
+					RUS = { has_active_mission = RUS_early_elections_president_mission }
 				}
-				if = {
-					limit = {
-						AND = {
-							has_dynamic_modifier = { modifier = RUS_backward_industry_modifier }
-							num_of_factories < 251
-						}
-					}
-					RUS = { recalculate_backward_industry_debuff = yes }
+				RUS = {
+					RUS_calculate_polling_presidential_averages = yes
 				}
-				else_if = {
-					limit = {
-						has_dynamic_modifier = { modifier = RUS_backward_industry_modifier }
-						num_of_factories > 250
-					}
-					RUS = { country_event = rusd.224 }
-				}
-			}
-			if = {
-				limit = {
-					RUS = {
-						exists = yes
-					}
-				}
-				RUS = { recalculate_monthly_industrialisation_rate = yes }
 			}
 		}
 	}
@@ -1036,5 +1050,49 @@ on_actions = {
 				}
 			}
 		}				
+	}
+	#ROOT is winner #FROM is loser
+	on_peaceconference_ended = {
+		effect = {
+			
+			### German Oil Treaty
+			if = {
+				limit = {
+					ROOT = { 
+						tag = RUS 
+						has_idea = RUS_GER_oil_treaty
+					}
+					FROM = {
+						OR = {
+							original_tag = AZE
+							original_tag = MTR
+							original_tag = PER
+							original_tag = GEO
+							original_tag = ARM
+							original_tag = DKB
+							original_tag = KUB
+						}
+					}
+				}
+				RUS = {
+					if = {
+						limit = { owns_state = 990 }
+						give_resource_rights = { state = 990 receiver = GER }
+					}
+					if = {
+						limit = { owns_state = 232 }
+						give_resource_rights = { state = 232 receiver = GER }
+					}
+					if = {
+						limit = { owns_state = 229 }
+						give_resource_rights = { state = 229 receiver = GER }
+					}
+				}
+			}			
+			if = {
+				limit = { FROM = { tag = TRM } }
+				YAK = { set_country_flag = YAK_secured_its_independence }
+			}
+		}
 	}
 }
