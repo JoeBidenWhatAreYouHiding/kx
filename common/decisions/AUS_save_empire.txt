@@ -6985,7 +6985,11 @@ AUS_foreign_policy_category = {
 					has_same_government_as_ROOT = yes
 					AND = {
 						ROOT = {
-							has_democratic_government = yes
+							OR = {
+								has_democratic_government = yes
+								has_government = authoritarian_democrat
+								has_government = paternal_autocrat
+							}
 						}
 						OR = {
 							has_democratic_government = yes
@@ -6997,28 +7001,6 @@ AUS_foreign_policy_category = {
 					}
 					AND = {
 						ROOT = {
-							has_authoritarian_government = yes
-							OR = {
-								has_country_flag = AUS_dollfuss_authoritarianis
-								has_country_flag = AUS_heimwehr_win_somehow
-								has_country_flag = AUS_liebenfels_coup
-							}
-						}
-						has_authoritarian_government = yes
-					}
-					AND = {
-						ROOT = {
-							has_dictatorship_government = yes
-							OR = {
-								has_country_flag = AUS_dollfuss_authoritarianis
-								has_country_flag = AUS_heimwehr_win_somehow
-								has_country_flag = AUS_liebenfels_coup
-							}
-						}
-						has_dictatorship_government = yes
-					}
-					AND = {
-						ROOT = {
 							OR = {
 								has_democratic_socialist_government = yes
 								has_country_flag = AUS_bauer_1940
@@ -7026,6 +7008,7 @@ AUS_foreign_policy_category = {
 						}
 						has_democratic_socialist_government = yes
 					}
+					tag = TEX
 					AND = {
 						tag = USA
 						ROOT = { has_idea = ACW_support_usa }
@@ -7035,12 +7018,18 @@ AUS_foreign_policy_category = {
 						ROOT = { has_idea = ACW_support_psa }
 					}
 					AND = {
-						tag = TEX
-						ROOT = { has_idea = ACW_support_aus }
-					}
-					AND = {
 						tag = COR
-						ROOT = { has_idea = ACW_support_cor }
+						has_country_leader = {
+						    name = "William H. Murray"
+						    ruling_only = yes
+						}
+						has_global_flag = USA_murray_is_president
+						ROOT = {
+							OR = {
+								has_government = social_conservative
+								has_government = authoritarian_democrat
+							}
+						}
 					}
 				}
 			}
@@ -7095,10 +7084,11 @@ AUS_foreign_policy_category = {
 		}
 		fire_only_once = yes
 		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove AUS_support_ACW_faction target: [From.GetName]"
+			log = "[GetDateText]: [Root.GetName]: Decision AUS_support_ACW_faction target: [From.GetName]"
 			set_global_flag = AUS_ACW_choice_made
 			FROM = {
 				save_event_target_as = AUS_USA_ALLY
+				save_global_event_target_as = AUS_USA_ALLY
 				set_country_flag = AUS_USA_choice
 			}
 			send_equipment = {
@@ -7116,7 +7106,6 @@ AUS_foreign_policy_category = {
 				amount = 500
 				target = FROM
 			}
-			save_global_event_target_as = AUS_USA_ALLY
 			country_event = {
 				id = bdeausfor.43
 				days = 1
@@ -7162,8 +7151,8 @@ AUS_foreign_policy_category = {
 		}
 		visible = {
 			has_global_flag = AUS_ACW_choice_made
-			any_country = {
-				limit = { has_country_flag = AUS_USA_choice }
+			any_country = { has_event_target = AUS_USA_ALLY }
+			event_target:AUS_USA_ALLY = {
 				any_enemy_country = {
 					has_volunteers_amount_from = {
 						tag = FROM
@@ -7173,9 +7162,8 @@ AUS_foreign_policy_category = {
 			}
 		}
 		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove AUS_CONST_withdraw_american_tag_support_if_it_opposes_AUS_USA_ALLY target: [From.GetName]"
-			every_country = {
-				limit = { has_country_flag = AUS_USA_choice }
+			log = "[GetDateText]: [Root.GetName]: Decision AUS_CONST_withdraw_american_tag_support_if_it_opposes_AUS_USA_ALLY target: [From.GetName]"
+			event_target:AUS_USA_ALLY = {
 				every_enemy_country = {
 					limit = {
 						has_volunteers_amount_from = {
@@ -7184,6 +7172,63 @@ AUS_foreign_policy_category = {
 						}
 					}
 					FROM = { recall_volunteers_from = PREV }
+				}
+			}
+		}
+		ai_will_do = {
+			factor = 100
+		}
+	}
+
+	AUS_USA_send_guns_mission = {
+		icon = GFX_decision_generic_prepare_civil_war
+		allowed = {
+			tag = AUS
+		}
+		activation = {
+			has_idea = AUS_american_aid
+			has_country_flag = AUS_USA_aid_missions_ongoing
+			any_country = { has_event_target = AUS_USA_ALLY }
+		}
+		cancel_trigger = {
+			NOT = {
+				has_idea = AUS_american_aid
+				has_country_flag = AUS_USA_aid_missions_ongoing
+				any_country = { has_event_target = AUS_USA_ALLY }
+			}
+		}
+		selectable_mission = yes
+		is_good = no
+		custom_cost_trigger = {
+			has_equipment = {
+				infantry_equipment > 599
+			}
+		}
+		custom_cost_text = AUS_600_gun
+		priority = 100
+		days_mission_timeout = 60
+		timeout_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision timeout AUS_USA_send_guns_mission"
+			remove_ideas = AUS_american_aid
+			clr_country_flag = AUS_USA_aid_missions_ongoing
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision AUS_USA_send_guns_mission"
+			hidden_effect = {
+				add_equipment_to_stockpile = {
+					type = infantry_equipment
+					amount = -600
+				}
+				country_event = {
+					id = bdeausfor.234
+					days = 1
+				}
+			}
+			event_target:AUS_USA_ALLY = {
+				add_equipment_to_stockpile = {
+					type = infantry_equipment
+					amount = 600
+					producer = AUS
 				}
 			}
 		}

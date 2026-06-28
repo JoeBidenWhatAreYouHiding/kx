@@ -5779,6 +5779,13 @@ country_event = { #Our Side Victorious in the 2ACW
 
 	is_triggered_only = yes
 
+	after = {
+		if = {
+			limit = { has_idea = AUS_american_aid }
+			remove_ideas = AUS_american_aid
+		}
+	}
+
 	option = { #Let America be better.
 		name = bdeausfor.31.a
 		add_war_support = 0.03
@@ -8878,6 +8885,29 @@ country_event = { #The Fifth Balkan War - Hidden event that does stuffs
 				NOT = { has_global_flag = fifth_balkan_war_ended }
 			}
 			BOTDE_5BW_looping_effect = yes
+		}
+		else_if = {
+			limit = {
+				NOT = {
+					AUS = {
+						has_war_with = SER
+						has_war_with = ROM
+					}
+				}
+				SER = {
+					OR = {
+						is_subject_of = AUS
+						exists = no
+					}
+				}
+				ROM = {
+					OR = {
+						is_subject_of = AUS
+						exists = no
+					}
+				}
+			}
+			AUS = { country_event = bdeausfor.107 }
 		}
 	}
 }
@@ -14581,6 +14611,66 @@ country_event = { #AUS - Fate of Bulgaria if it's occupied and macedonia revolte
 		name = bdeausfor.231.b
 		ai_chance = { base = 50 }
 		add_political_power = 50
+	}
+}
+
+country_event = { #AUS - Supporting US via aid mission thing so you don't get cucked outta austro-american alliance by 5bw
+	id = bdeausfor.232
+	immediate = { log = "[GetDateText]: [Root.GetName]: event bdeausfor.232" }
+	title = bdeausfor.232.t
+	desc = bdeausfor.232.d
+	
+	picture = GFX_event_AUS_america_ist_dood_wat_nou
+
+	is_triggered_only = yes
+
+	option = { #damn
+		name = bdeausfor.232.a
+		add_political_power = -5
+		add_war_support = 0.08
+	}
+}
+
+country_event = { #AUS - Supporting US via aid mission thing ends soon
+	id = bdeausfor.233
+	immediate = { log = "[GetDateText]: [Root.GetName]: event bdeausfor.233" }
+	title = bdeausfor.233.t
+	desc = bdeausfor.233.d
+	
+	picture = GFX_event_AUS_america_ist_dood_wat_nou
+
+	is_triggered_only = yes
+
+	option = { #damn
+		name = bdeausfor.233.a
+		custom_effect_tooltip = AUS_USA_one_month_to_resend_volunteers_tt
+		if = {
+			limit = { has_country_flag = AUS_USA_aid_missions_ongoing }
+			clr_country_flag = AUS_USA_aid_missions_ongoing
+		}
+		set_country_flag = {
+			flag = AUS_USA_keep_aid_idea_regardless_of_triggers_flag
+			value = 1
+			days = 30
+		}
+	}
+}
+
+country_event = { #AUS - gun mission hidden thing
+	id = bdeausfor.234
+	immediate = { log = "[GetDateText]: [Root.GetName]: event bdeausfor.234" }
+	title = bdeausfor.234.t
+	desc = bdeausfor.234.d
+	
+	picture = GFX_event_AUS_america_ist_dood_wat_nou
+
+	hidden = yes
+
+	is_triggered_only = yes
+
+	option = {
+		name = bdeausfor.234.a
+		AUS = { activate_mission = AUS_USA_send_guns_mission }
 	}
 }
 
@@ -31625,21 +31715,24 @@ country_event = { #Dropping of the "Frederick III" Atomic Bomb
 	
 	immediate = {
 		hidden_effect = {
-			create_entity = {
-				entity = nuke_entity
-				id = 775
-				x = 0
-				y = 0
-				z = 1
-				province = 6687
-				state = 42
-				rotation = 1.2
-				scale = 0.5
-				min_zoom = 3000.0
-			}
-			set_entity_animation = {
-				id = 775
-				animation = "attack"
+			if = {
+				limit = { is_ai = no }
+					create_entity = {
+					entity = nuke_entity
+					id = 775
+					x = 0
+					y = 0
+					z = 1
+					province = 6687
+					state = 42
+					rotation = 1.2
+					scale = 0.5
+					min_zoom = 3000.0
+				}
+				set_entity_animation = {
+					id = 775
+					animation = "attack"
+				}
 			}
 		}
 	}
@@ -31798,14 +31891,22 @@ country_event = { #(Every 6th of November) Weltkrieg Day; the day the Weltkrieg 
 
 	option = { #It still feels like it was yesterday...
 		name = bdeausflavor.17.a
-		trigger = { threat < 0.5 }
+		trigger = {
+			threat < 0.5
+			has_war = no
+		}
 		add_stability = -0.01
 		add_war_support = -0.01
 	}
 	
-	option = { #The Drums of War Beat Yet Again
+	option = { #The horrors of war wait for no man, nor the empire.
 		name = bdeausflavor.17.b
-		trigger = { threat > 0.49 }
+		trigger = {
+			OR = {
+				threat > 0.49
+				has_war = yes
+			}
+		}
 		add_stability = -0.01
 		add_war_support = 0.02
 		add_command_power = 1
@@ -31935,9 +32036,10 @@ country_event = { #Anton Apold (Director of Alpine Montangesellschaft, OAMG) Off
 
 	option = { #We accept
 		name = bdeausflavor.22.a
+		ai_chance = { base = 50 }
 		add_popularity = {
 			ideology = national_populist
-			popularity = 0.025
+			popularity = 0.03
 		}
 		add_political_power = -40
 		add_ideas = austria_montage
@@ -31945,6 +32047,7 @@ country_event = { #Anton Apold (Director of Alpine Montangesellschaft, OAMG) Off
 	
 	option = { #We simply can't
 		name = bdeausflavor.22.b
+		ai_chance = { base = 50 }
 		add_political_power = 15
 	}
 }
@@ -36092,15 +36195,8 @@ country_event = { #Final Withdraw from Serbia
 			limit = { any_unit_leader = { has_trait = BOTDE_militarmission_leader_trait } }
 			random_unit_leader = {
 				limit = { has_trait = BOTDE_militarmission_leader_trait }
+				remove_trait = { trait = BOTDE_militarmission_leader_trait }
 				set_nationality = AUS
-				remove_trait = BOTDE_militarmission_leader_trait
-			}
-		}
-		every_country = {
-			limit = { any_unit_leader = { has_trait = BOTDE_militarmission_leader_trait } }
-			random_unit_leader = {
-				limit = { has_trait = BOTDE_militarmission_leader_trait }
-				remove_trait = BOTDE_militarmission_leader_trait
 			}
 		}
 		hidden_effect = {
