@@ -218,6 +218,7 @@ has_syndicalist_government = {
 			has_country_leader_ideology = radsoc_anarcho_syndicalist_subtype
 			has_country_leader_ideology = syndie_social_democrat_subtype
 			has_country_leader_ideology = socdem_liberalized_syndicalism_subtype
+			has_country_leader_ideology = laskian_syndicalism_subtype
 		}
 	}
 }
@@ -257,7 +258,7 @@ has_communist_government = {
 			has_country_leader_ideology = syn_anarcho_communism_subtype
 			has_country_leader_ideology = syn_broad_communism_subtype
 			has_country_leader_ideology = syn_popcom_subtype
-			has_country_leader_ideology = corn_communism_subtype
+			has_country_leader_ideology = syn_technocratic_socialism_subtype
 			has_country_leader_ideology = syn_council_communism_subtype
 			has_country_leader_ideology = radsoc_communism_subtype
 			has_country_leader_ideology = radsoc_national_communism_subtype
@@ -271,6 +272,7 @@ has_communist_government = {
 			has_country_leader_ideology = market_leninism_subtype
 			has_country_leader_ideology = soltangalievism_subtype
 			has_country_leader_ideology = radsoc_council_communism_subtype
+			has_country_leader_ideology = evidentist_technocracy_subtype
 		}
 	}
 }
@@ -308,7 +310,10 @@ has_socialist_government = {
 			}
 			AND = {
 				has_country_leader_ideology = authdem_red_tinted_autocracy_subtype
-				NOT = { has_country_leader = { ruling_only = yes name = "Alberto Enríquez Gallo" } }
+				NOT = { 
+					has_country_leader = { ruling_only = yes name = "Alberto Enríquez Gallo" } 
+					has_country_leader = { ruling_only = yes name = "Aleksandar Protogerov" } 
+				}
 			}
 			AND = {
 				has_country_leader_ideology = soclib_tridemism_subtype
@@ -470,10 +475,12 @@ has_left_technocratic_government = {
 		tooltip = KR_left_wing_technocracy
 		OR = {
 			has_country_leader_ideology = technocratic_socialism_subtype
+			has_country_leader_ideology = syn_technocratic_socialism_subtype
 			has_country_leader_ideology = technocracy_subtype
 			has_country_leader_ideology = utopian_technocracy_subtype
 			has_country_leader_ideology = socdem_utopian_technocracy_subtype
 			has_country_leader_ideology = soclib_utopian_technocracy_subtype
+			has_country_leader_ideology = evidentist_technocracy_subtype
 		}
 	}
 }
@@ -484,6 +491,8 @@ has_right_technocratic_government = {
 		OR = {
 			has_country_leader_ideology = christian_technocracy_subtype
 			has_country_leader_ideology = right_technocracy_subtype
+			has_country_leader_ideology = authdem_right_technocracy_subtype
+			has_country_leader_ideology = natpop_right_technocracy_subtype
 		}
 	}
 }
@@ -502,12 +511,15 @@ has_colonial_government = {
 	custom_trigger_tooltip = {
 		tooltip = KR_is_colonial_govt
 		OR = {
+			has_country_leader_ideology = radsoc_colonial_govt_subtype
 			has_country_leader_ideology = socdem_colonial_govt_subtype
 			has_country_leader_ideology = soclib_colonial_govt_subtype
 			has_country_leader_ideology = marlib_colonial_govt_subtype
 			has_country_leader_ideology = soccon_colonial_govt_subtype
 			has_country_leader_ideology = colonial_govt_subtype
 			has_country_leader_ideology = autocratic_colonial_govt_subtype
+			has_country_leader_ideology = natpop_colonial_govt_subtype
+			has_country_leader = { name = "Martinho Nobre de Melo" ruling_only = yes }
 		}
 	}
 }
@@ -516,14 +528,15 @@ has_tribal_government = {
 	custom_trigger_tooltip = {
 		tooltip = KR_is_tribalist_govt
 		OR = {
+			has_country_leader_ideology = soccon_tribal_chiefdom_subtype
 			has_country_leader_ideology = tribal_chiefdom_subtype
 			has_country_leader_ideology = pataut_tribal_chiefdom_subtype
 			has_country_leader_ideology = natpop_tribal_chiefdom_subtype
 			has_country_leader_ideology = socdem_tribal_councilism_subtype
 			has_country_leader_ideology = soclib_tribal_councilism_subtype
 			has_country_leader_ideology = tribal_councilism_subtype
-			has_country_leader_ideology = soccon_tribal_chiefdom_subtype
 			has_country_leader_ideology = soccon_tribal_councilism_subtype
+			has_country_leader_ideology = natpop_tribal_councilism_subtype
 		}
 	}
 }
@@ -565,15 +578,12 @@ same_government_type_as_ROOT_authoritarian = {
 }
 
 both_socialist_or_both_not_socialist = {
-	OR = {
-		AND = {
-			has_socialist_government = yes
-			PREV = { has_socialist_government = yes }
-		}
-		AND = {
-			has_socialist_government = no
-			PREV = { has_socialist_government = no }
-		}
+	if = {
+		limit = { PREV = { has_socialist_government = yes } }
+		has_socialist_government = yes
+	}
+	else = {
+		has_socialist_government = no
 	}
 }
 # the following triggers will check if the country in scope is on a particular continent
@@ -646,6 +656,10 @@ is_in_middle_east = {
 
 is_in_australia = {
 	is_in_array = { global.oceania_tags_array = THIS }
+}
+
+is_in_italy = {
+	is_in_array = { global.italian_tags_array = THIS }
 }
 
 # checks whether the country in scope is in the same continent as ROOT (the country running the event)
@@ -981,6 +995,31 @@ is_valid_peace_target = {
 	}
 }
 
+# Used to check whether a country is eligible for peace deal events
+is_valid_peace_target_against_PREV = {
+	OR = {
+		is_subject = no
+		overlord = { NOT = { has_war_with = PREV.PREV } }
+	}
+	OR = {
+		is_in_faction = no
+		is_faction_leader = yes
+		faction_leader = { NOT = { has_war_with = PREV.PREV } }
+	}
+}
+
+# Used to check whether a country is eligible for peace deal events
+is_valid_peace_target_against_FROM = {
+	OR = {
+		is_subject = no
+		overlord = { NOT = { has_war_with = FROM } }
+	}
+	OR = {
+		is_in_faction = no
+		is_faction_leader = yes
+		faction_leader = { NOT = { has_war_with = FROM } }
+	}
+}
 ROOT_is_in_entente = {
 	OR = {
 		CAN = {
@@ -1018,6 +1057,7 @@ uses_generic_concerns = {
 		original_tag = AST
 		original_tag = AUS
 		original_tag = ALA
+		original_tag = AZE
 		original_tag = BAT
 		original_tag = BEL
 		original_tag = BHC
@@ -1361,23 +1401,6 @@ owns_ca_trigger = {
 	}
 }
 
-
-ai_air_doctrine_tier_1_trigger = {
-	OR = {
-		has_tech = naval_strike_tactics
-		has_tech = direct_ground_support
-		has_tech = low_echelon_support
-	}
-}
-
-ai_air_doctrine_tier_2_trigger = {
-	OR = {
-		has_tech = multialtitude_flying
-		has_tech = hunt_and_destroy
-		has_tech = operational_destruction
-	}
-}
-
 puppet_may_be_annexed = {
 	OR = {
 		AND = {
@@ -1522,21 +1545,6 @@ is_valid_state_for_development = {
 		has_state_category = zero_island
 		has_state_category = one_island
 		has_state_category = zero
-	}
-}
-
-at_peace_or_same_enemies_as_FROM = {
-	OR = {
-		has_war = no
-		custom_trigger_tooltip = {
-			tooltip = USA_same_wars_as_FROM
-			has_war = yes
-			NOT = {
-				any_enemy_country = {
-					NOT = { has_war_with = FROM }
-				}
-			}
-		}
 	}
 }
 
@@ -1780,49 +1788,54 @@ is_rural_state = {
 }
 
 is_member_of_economic_sphere = {
-	OR = {
-		has_country_flag = CAN_joined_iedc
-		is_in_tech_sharing_group = phalanstere_research
-		GER_is_in_mitteleuropa = yes
-		has_country_flag = JAP_economic_sphere_member
-		has_idea = ott_AMN_member_idea
-		KR_mizhmoria_is_member_economic = yes
-		KCN_is_member_economic = yes
-		has_idea = BRG_commonwealth_head_idea
-		has_idea = BRG_commonwealth_member_idea
-		has_dynamic_modifier = {
-			modifier = EGY_League_of_Arab_States_dynamic_modifier
-			scope = EGY
+	custom_trigger_tooltip = {
+		tooltip = is_member_of_economic_sphere
+		OR = {
+			has_country_flag = CAN_joined_iedc
+			is_in_tech_sharing_group = phalanstere_research
+			GER_is_in_mitteleuropa = yes
+			has_country_flag = JAP_economic_sphere_member
+			has_idea = ott_AMN_member_idea
+			KR_mizhmoria_is_member_economic = yes
+			KCN_is_member_economic = yes
+			has_idea = BRG_commonwealth_head_idea
+			has_idea = BRG_commonwealth_member_idea
+			has_dynamic_modifier = {
+				modifier = EGY_League_of_Arab_States_dynamic_modifier
+				scope = EGY
+			}
+			has_dynamic_modifier = {
+				modifier = SOV_profintern_leader_modifier
+			}
+			has_dynamic_modifier = {
+				modifier = SOV_profintern_member_modifier
+			}
+			has_idea = NFA_continental_system_leader
+			has_idea = NFA_continental_system_member
+			RUS_is_in_rostorg = yes
+			has_idea = Axis_of_Bosses_syndicate
+			has_idea = BP_economic_council_1
+			has_idea = BP_economic_council_2
+			has_idea = BP_economic_council_3
+			has_idea = BP_economic_council_upgraded_1
+			has_idea = BP_economic_council_upgraded_2
+			has_idea = BP_economic_council_upgraded_3
+			is_in_tech_sharing_group = austrian_research
+			has_idea = AUS_vienna_circle
+			has_idea = AUS_vienna_circle-1
+			has_dynamic_modifier = {
+				modifier = KR_minsheng_partnership_leader_dynamic_mod
+			}
+			has_dynamic_modifier = {
+				modifier = KR_minsheng_partnership_member_dynamic_mod
+			}
+			has_dynamic_modifier = {
+				modifier = OSAEC_member_dynamic_modifier
+			}
+			has_idea = USA_sphere_leader
+			has_idea = USA_sphere_member
+			has_idea = chud_axis_economic_council
+			has_idea = chud_axis_economic_upgraded
 		}
-		has_dynamic_modifier = {
-			modifier = SOV_profintern_leader_modifier
-		}
-		has_dynamic_modifier = {
-			modifier = SOV_profintern_member_modifier
-		}
-		has_idea = NFA_continental_system_leader
-		has_idea = NFA_continental_system_member
-		RUS_is_in_rostorg = yes
-		has_idea = Axis_of_Bosses_syndicate
-		has_idea = BP_economic_council_1
-		has_idea = BP_economic_council_2
-		has_idea = BP_economic_council_3
-		has_idea = BP_economic_council_upgraded_1
-		has_idea = BP_economic_council_upgraded_2
-		has_idea = BP_economic_council_upgraded_3
-		is_in_tech_sharing_group = austrian_research
-		has_idea = AUS_vienna_circle
-		has_idea = AUS_vienna_circle-1
-		has_dynamic_modifier = {
-			modifier = KR_minsheng_partnership_leader_dynamic_mod
-		}
-		has_dynamic_modifier = {
-			modifier = KR_minsheng_partnership_member_dynamic_mod
-		}
-		has_dynamic_modifier = {
-			modifier = OSAEC_member_dynamic_modifier
-		}
-		has_idea = USA_sphere_leader
-		has_idea = USA_sphere_member
 	}
 }

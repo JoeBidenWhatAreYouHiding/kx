@@ -218,3 +218,10 @@ NDefines.NProject.BREAKTHROUGH_DAILY_ROCKET_SITE_GAIN = 1.5		   -- Amount in 1/1
 NDefines.NProject.BREAKTHROUGH_DAILY_NUCLEAR_REACTOR_GAIN = 1.5       -- Amount in 1/100th percentage gained per nuclear reactor. E.g. 2 = 0.02% per nuclear reactor.
 NDefines.NProject.BASIC_RESEARCH_TECHNOLOGY_BONUS_DIMINISHING_RETURN_FACTOR = 0.75 -- Diminishing return on BASIC_RESEARCH_TECHNOLOGY_BONUS_FACTOR for each extra scientist performing basic research for multiple facilities.
 NDefines.NProject.BREAKTHROUGH_DAILY_SCIENTIST_SKILL_GAIN = 10
+
+--COAL
+NDefines.NProduction.RESOURCE_TO_ENERGY_COEFFICIENT = 15.0	-- Vanilla is 9.0
+
+--Navy
+NDefines.NNavy.NAVAL_INVASION_PLAN_CAP = 2									-- Vanilla is 1
+NDefines.NNavy.BASE_NAVAL_INVASION_DIVISION_CAP = 6							-- Vanilla is 4

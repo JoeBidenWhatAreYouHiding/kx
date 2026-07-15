@@ -899,7 +899,15 @@ ott_russo_ottoman_convention = {
 	### Georgia
 	if = {
 		limit = {
-			GEO = { has_completed_focus = GEO_kept_pipeline } #GEO is pro-German
+			GEO = { 
+				OR = {
+					is_ally_with = GER
+					is_guaranteed_by = GER
+					has_country_flag = GEO_keep_treaty 
+					has_government = market_liberal
+					has_country_leader = { name = "Ioakhim I" ruling_only = yes } 
+				}
+			}
 			has_global_flag = RUSSIAN_OTTOMAN_DEAL_GEO_PUPPET
 			can_declare_war_on = GEO
 		}
@@ -938,8 +946,18 @@ ott_russo_ottoman_convention = {
 			limit = {
 				has_global_flag = RUSSIAN_OTTOMAN_DEAL_AFG_ANNEX
 			}
-			set_country_flag = RUS_will_attack_afghanistan
-			unlock_decision_tooltip = RUS_Attack_Afghanistan
+			if = {
+				limit = {
+					NOT = { has_completed_focus = RUS_Secure_Afghanistan }
+				}
+				if = {
+					limit = { 
+						NOT = { has_country_flag = soviet_russia_restored }
+					}
+					activate_targeted_decision = { target = AFG decision = RUS_Invite_Country }
+				}
+				activate_targeted_decision = { target = AFG decision = RUS_Attack_Country_default }
+			}
 		}
 		else_if = {
 			limit = {
@@ -1002,7 +1020,7 @@ ott_russo_ottoman_convention = {
 			}
 			else = {
 				set_country_flag = RUS_will_attack_persia
-				unlock_decision_tooltip = RUS_Attack_Persia
+				activate_targeted_decision = { target = PER decision = RUS_Attack_Country_default }
 				TUR = {
 					add_state_claim = 413 #Khuzestan
 					add_state_claim = 417 #Western Azerbaijan
@@ -1023,22 +1041,28 @@ ott_russo_ottoman_convention = {
 	}
 
 	### Azerbaijan
-	AZE = {
-		if = {
-			limit = { is_in_faction_with = TUR }
-			leave_faction = yes	
-			save_event_target_as = white_peace_receiver
-			every_enemy_country = {
-				limit = {
-					has_war_with = TUR
-					is_valid_peace_target = yes
+	if = {
+		limit = { has_global_flag = RUSSIAN_OTTOMAN_DEAL_AZE }
+		AZE = {
+			if = {
+				limit = { is_guaranteed_by = TUR }
+				TUR = {
+					diplomatic_relation = {
+						country = AZE
+						relation = guarantee
+						active = no
+					}
 				}
-				white_peace_with_TARGET = yes
 			}
-		}
-		country_event = {
-			id = ottfor.80
-			hours = 12
+			if = {
+				limit = { is_in_faction_with = TUR }
+				leave_faction = yes
+				peace_out_non_neighbours_after_leaving_faction = yes
+			}
+			country_event = {
+				id = ottfor.80
+				hours = 12
+			}
 		}
 	}
 
@@ -1093,7 +1117,7 @@ ott_russo_ottoman_convention = {
 							state = 1001
 						}
 					}
-					ROOT = { transfer_state = PREV }
+					transfer_state_to = ROOT
 				}
 			}
 		}
@@ -1119,11 +1143,14 @@ OTT_remove_ottoman_ambitions_claims = {
 			NOT = {
 				is_owned_by = TUR
 				region = 129 #Anatolia
+				state = 184 #Komotini
 				state = 341 #Adrianople
 				state = 350 #Diyarbakir
 				state = 352 #Van
 				state = 773 #Constantinople
 				state = 1000 #Kars
+				state = 1089 #Kardzhali
+				check_variable = { core_countries^num = 1 }
 			}
 		}
 		remove_core_of = TUR
@@ -1135,11 +1162,13 @@ OTT_remove_ottoman_ambitions_claims = {
 			NOT = {
 				is_owned_by = TUR
 				region = 129 #Anatolia
+				state = 184 #Komotini
 				state = 341 #Adrianople
 				state = 350 #Diyarbakir
 				state = 352 #Van
 				state = 773 #Constantinople
 				state = 1000 #Kars
+				state = 1089 #Kardzhali
 			}
 		}
 		remove_claim_by = TUR
@@ -1176,6 +1205,27 @@ OTT_post_defeat_setup = {
 	if = {
 		limit = { has_idea = ott_AMN_member_idea }
 		remove_ideas = ott_AMN_member_idea
+	}
+	if = {
+		limit = { has_dynamic_modifier = { modifier = centralisation_dynamic_modifier } }
+		remove_dynamic_modifier = { modifier = centralisation_dynamic_modifier }
+	}
+	if = {
+		limit = { has_dynamic_modifier = { modifier = parliament_dynamic_modifier } }
+		remove_dynamic_modifier = { modifier = parliament_dynamic_modifier }
+	}
+	if = {
+		limit = { has_dynamic_modifier = { modifier = millet_mektepleri_dynamic_modifier } }
+		remove_dynamic_modifier = { modifier = millet_mektepleri_dynamic_modifier }
+	}
+	if = {
+		limit = { has_dynamic_modifier = { modifier = AMN_member_dynamic_modifier scope = OTT } }
+		remove_dynamic_modifier = { modifier = AMN_member_dynamic_modifier scope = OTT }
+		every_other_country = {
+			limit = { has_dynamic_modifier = { modifier = AMN_member_dynamic_modifier scope = OTT } }
+			remove_dynamic_modifier = { modifier = AMN_member_dynamic_modifier scope = OTT }
+		}
+		clear_variable = OTT.var_AMN_members
 	}
 	hidden_effect = {
 		remove_ideas = {
@@ -1432,6 +1482,8 @@ OTT_changes_into_turkey = {
 				}
 			}
 			
+			clear_global_event_target = KR_ottomans
+			
 			#create_dynamic_country = {
 				#original_tag = TUR
 				#save_global_event_target_as = KR_ottomans
@@ -1475,7 +1527,7 @@ OTT_remove_sultan = {
 				name = "Nihâl Atsız"
 				picture = "gfx/leaders/OTT/Portrait_OTT_Nihal_Atsiz.png"
 				expire = "1.1.1"
-				ideology = national_populist_subtype
+				ideology = pan_turkism_subtype
 			}
 			create_country_leader = {
 				name = "Şefik Hüsnü Deymer"

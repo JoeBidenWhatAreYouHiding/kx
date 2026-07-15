@@ -136,14 +136,6 @@ country_event = { #Ottomans Turn the Tide
 	option = {
 		name = ottgui.5.a
 		add_ideas = OTT_Ottoman_Reinvigoration
-		every_army_leader = {
-			add_temporary_buff_to_units = {
-				combat_breakthrough = 0.20
-				org_damage_multiplier = -0.30
-				str_damage_multiplier = -0.30
-				days = 100
-			}
-		}	
 	}
 }
 
@@ -1771,14 +1763,17 @@ country_event = {	#A Sunny Day in Izmir
 		name = ottpol.32.a
 		add_stability = -0.30
 		set_country_flag = Mustafa_Kemal_Pasa_dead
-		random_unit_leader = {
-			limit = { has_id = 670 }
-			retire = yes
-		}
 		hidden_effect = {
 			country_event = {
 				id = ottpol.33
 				days = 3
+			}
+			if = {
+				limit = { has_unit_leader = 681 }
+				random_unit_leader = {
+					limit = { has_id = 681 }
+					remove_unit_leader = yes
+				}
 			}
 		}
 	}
@@ -4285,14 +4280,8 @@ country_event = {	#The Grand Vizier travels to the front
 
 	option = {
 		name = ottkem.62.a
-		every_army_leader = {
-			add_temporary_buff_to_units = {
-				combat_offense = 0.10
-				combat_breakthrough = 0.10
-				org_damage_multiplier = -0.50
-				days = 10
-			}
-		}
+		add_war_support = 0.05
+		army_experience = 10
 	}
 }
 
@@ -6182,7 +6171,7 @@ country_event = {	#Idris returns to the throne
 		}
 		add_political_power = -150
 		add_war_support = -0.10
-		LBA = { clear_all_relations = yes }
+		hidden_effect = { LBA = { clear_all_relations = yes } }
 		declare_war_on = {
 			target = LBA
 			type = annex_everything
@@ -6204,7 +6193,7 @@ country_event = {	#Idris returns to the throne
 				}
 			}
 		}
-		LBA = { clear_all_relations = yes }
+		hidden_effect = { LBA = { clear_all_relations = yes } }
 		if = {
 			limit = {
 				has_government = authoritarian_democrat
@@ -7442,6 +7431,14 @@ country_event = {	#Istanbul Pact - Invite
 					NOT = { has_game_rule = { rule = UZB_foreign option = DEFAULT } }
 					NOT = { has_game_rule = { rule = UZB_foreign option = UZB_FOREIGN_OTT } }
 				}
+				AND = {
+					tag = AZE
+					NOT = { has_game_rule = { rule = AZE_forpol option = DEFAULT } }
+					NOT = { 
+						has_game_rule = { rule = AZE_forpol option = AZE_FOREIGN_TUR } 
+						has_game_rule = { rule = AZE_forpol option = AZE_FOREIGN_TUR_PUPPET } 
+					}
+				}
 			}
 		}
 		TUR = {
@@ -7457,6 +7454,12 @@ country_event = {	#Istanbul Pact - Invite
 			country_event = ottfor.19
 		}
 		add_stability = -0.05
+		hidden_effect = {
+			if = {
+				limit = { tag = AZE }
+				activate_targeted_decision = { target = ARM decision = AZE_attack_armenia_getting_too_strong_decision }
+			}
+		}
 	}
 }
 
@@ -7605,10 +7608,14 @@ country_event = {	#An Alliance of Convenience
 			limit = { tag = AUS }
 			if = {
 				limit = { is_in_faction = no }
-				create_faction = "Sarajevo Accords"
+			create_faction_from_template = { 
+				template = faction_template_regional   
+				name = faction_sarajevo
+				icon = GFX_faction_sarajevo_accords
+			}				
 			}
 			else = {
-				set_faction_name = "Sarajevo Accords"
+				set_faction_name = faction_sarajevo
 			}
 			hidden_effect = {
 				TUR = {
@@ -8394,7 +8401,7 @@ country_event = {	#Rauf Orbay sets up shop in Muscat
 	id = ottfor.42
 	immediate = { log = "[GetDateText]: [Root.GetName]: event ottfor.42" }
 	title = ottfor.42.t
-	desc = ottfor.42.d
+	desc = ottfor.42.d.OTT.d
 	picture = GFX_OTT_Sultan_Speech
 
 	fire_only_once = yes
@@ -8425,8 +8432,8 @@ country_event = {	#Rauf Orbay sets up shop in Muscat
 country_event = {	#Indian Reinforcements arrive in Muscat
 	id = ottfor.420
 	immediate = { log = "[GetDateText]: [Root.GetName]: event ottfor.420" }
-	title = ottfor.420.t
-	desc = ottfor.420.d
+	title = ottfor.42.t
+	desc = ottfor.42.d.DEH.d
 	picture = GFX_OTT_Sultan_Speech
 
 	fire_only_once = yes
@@ -8434,7 +8441,7 @@ country_event = {	#Indian Reinforcements arrive in Muscat
 	is_triggered_only = yes
 
 	option = {
-		name = ottfor.420.a
+		name = ottfor.42.a
 		add_stability = -0.1
 	}
 }
@@ -8685,15 +8692,11 @@ country_event = {	#Russian Expansionism in the Caucasus
 	trigger = {
 		country_exists = GEO
 		country_exists = AZE
-		#OR = {
-		#	has_war_with = PER
-		#	has_war_with = EGY			
-		#}	
 		NOT = {
 			has_completed_focus = OTT_Abolish_Full_Neutrality
 			has_completed_focus = OTT_Abolish_Full_Neutrality_Fevzi
-			has_completed_focus = OTT_Join_Entente
-			has_completed_focus = OTT_Join_Reichspakt
+			is_in_faction_with = GER
+			is_in_faction_with = ENT
 			has_war_with = RUS
 		}
 	}
@@ -8704,12 +8707,25 @@ country_event = {	#Russian Expansionism in the Caucasus
 
 	option = {
 		name = ottfor.51.a
+		ai_chance = {
+			base = 50
+			modifier = {
+				factor = 0
+				has_game_rule = { rule = OTT_russian_deal option = OTT_RUSSIAN_DEAL_NO }
+			}
+			modifier = {
+				factor = 0
+				NOT = { has_game_rule = { rule = OTT_foreign_policy option = DEFAULT } }
+				NOT = { has_game_rule = { rule = OTT_foreign_policy option = OTT_FOREIGN_POLICY_NEUTRAL } }
+			}
+		}
 		RUS = {
 			country_event = ottfor.55
 		}
 	}
 	option = {
 		name = ottfor.51.b
+		ai_chance = { base = 50 }
 		RUS = {
 			country_event = ottfor.53
 		}
@@ -8790,25 +8806,15 @@ country_event = {	#A Deal with the Devil?
 	option = {
 		name = ottfor.53.a
 		ai_chance = {
-			factor = 50
+			base = 100			
 			modifier = {
-				factor = 2
-				RUS = {
-					has_completed_focus = RUS_Realpolitik
-				}
-			}
-			modifier = {
-				factor = 0.5
-				RUS = {
-					has_completed_focus = RUS_Expansionism
-				}
+				factor = 0
+				has_game_rule = { rule = OTT_russian_deal option = OTT_RUSSIAN_DEAL_NO }
 			}
 			modifier = {
 				factor = 0
-				has_game_rule = {
-					rule = OTT_russian_deal
-					option = OTT_RUSSIAN_DEAL_NO
-				}
+				NOT = { has_game_rule = { rule = OTT_foreign_policy option = DEFAULT } }
+				NOT = { has_game_rule = { rule = OTT_foreign_policy option = OTT_FOREIGN_POLICY_NEUTRAL } }
 			}
 		}
 		TUR = {
@@ -8821,25 +8827,15 @@ country_event = {	#A Deal with the Devil?
 	option = {
 		name = ottfor.53.b
 		ai_chance = {
-			factor = 50
+			base = 0	
 			modifier = {
-				factor = 0.5
-				RUS = {
-					has_completed_focus = RUS_Realpolitik
-				}
+				add = 100
+				has_game_rule = { rule = OTT_russian_deal option = OTT_RUSSIAN_DEAL_NO }
 			}
 			modifier = {
-				factor = 2
-				RUS = {
-					has_completed_focus = RUS_Expansionism
-				}
-			}
-			modifier = {
-				factor = 0
-				has_game_rule = {
-					rule = OTT_russian_deal
-					option = OTT_RUSSIAN_DEAL_YES
-				}
+				add = 100
+				NOT = { has_game_rule = { rule = OTT_foreign_policy option = DEFAULT } }
+				NOT = { has_game_rule = { rule = OTT_foreign_policy option = OTT_FOREIGN_POLICY_NEUTRAL } }
 			}
 		}
 		set_global_flag = NO_RUSSIAN_OTTOMAN_DEAL
@@ -8860,10 +8856,10 @@ country_event = {	#Russia Proposes a Non-Aggression Pact
 	option = {
 		name = ottfor.54.a
 		ai_chance = {
-			factor = 100
+			factor = 50
 			modifier = {
 				factor = 0
-				is_in_faction_with = GER
+				has_game_rule = { rule = OTT_russian_deal option = OTT_RUSSIAN_DEAL_NO }
 			}
 		}
 		TUR = {
@@ -8882,10 +8878,16 @@ country_event = {	#Russia Proposes a Non-Aggression Pact
 	option = {
 		name = ottfor.54.b
 		ai_chance = {
-			factor = 0
+			factor = 50
 			modifier = {
-				add = 100
-				is_in_faction_with = GER
+				factor = 0
+				FROM = { is_ai = no }
+				NOT = { has_game_rule = { rule = OTT_russian_deal option = OTT_RUSSIAN_DEAL_NO } }
+			}
+			modifier = {
+				factor = 0
+				NOT = { has_game_rule = { rule = OTT_russian_deal option = DEFAULT } }
+				NOT = { has_game_rule = { rule = OTT_russian_deal option = OTT_RUSSIAN_DEAL_NO } }
 			}
 		}
 		set_global_flag = NO_RUSSIAN_OTTOMAN_DEAL
@@ -8906,25 +8908,15 @@ country_event = {	#Ottoman Empire Proposes a Non-Aggression Pact
 	option = {
 		name = ottfor.55.a
 		ai_chance = {
-			factor = 50
+			factor = 100
 			modifier = {
-				factor = 2
-				RUS = {
-					has_completed_focus = RUS_Realpolitik
-				}
-			}
-			modifier = {
-				factor = 0.5
-				RUS = {
-					has_completed_focus = RUS_Expansionism
-				}
+				factor = 0
+				has_game_rule = { rule = OTT_russian_deal option = OTT_RUSSIAN_DEAL_NO }
 			}
 			modifier = {
 				factor = 0
-				has_game_rule = {
-					rule = OTT_russian_deal
-					option = OTT_RUSSIAN_DEAL_NO
-				}
+				NOT = { has_game_rule = { rule = OTT_foreign_policy option = DEFAULT } }
+				NOT = { has_game_rule = { rule = OTT_foreign_policy option = OTT_FOREIGN_POLICY_NEUTRAL } }
 			}
 		}
 		TUR = {
@@ -8943,25 +8935,15 @@ country_event = {	#Ottoman Empire Proposes a Non-Aggression Pact
 	option = {
 		name = ottfor.55.b
 		ai_chance = {
-			factor = 50
+			base = 0
 			modifier = {
-				factor = 0.5
-				RUS = {
-					has_completed_focus = RUS_Realpolitik
-				}
+				add = 100
+				has_game_rule = { rule = OTT_russian_deal option = OTT_RUSSIAN_DEAL_NO }
 			}
 			modifier = {
-				factor = 2
-				RUS = {
-					has_completed_focus = RUS_Expansionism
-				}
-			}
-			modifier = {
-				factor = 0
-				has_game_rule = {
-					rule = OTT_russian_deal
-					option = OTT_RUSSIAN_DEAL_YES
-				}
+				add = 100
+				NOT = { has_game_rule = { rule = OTT_foreign_policy option = DEFAULT } }
+				NOT = { has_game_rule = { rule = OTT_foreign_policy option = OTT_FOREIGN_POLICY_NEUTRAL } }
 			}
 		}
 		TUR = {
@@ -8986,11 +8968,70 @@ country_event = {	#The Baku Conference
 
 	option = {
 		name = ottfor.56.a
-		RUS = {
-			country_event = {
-				id = ottfor.57
-				days = 2
-			}	
+		if = {
+			limit = { #if Georgia is invalid, skip to Afghanistan
+				OR = {
+					NOT = { country_exists = GEO }
+					RUS = { has_war_with = GEO }
+				}
+			}
+			if = {
+				limit = { #if Afghanistan is invalid, skip to Persia
+					OR = {
+						NOT = { country_exists = AFG }
+						RUS = { is_ally_with = AFG }
+						RUS = { has_war_with = AFG }
+					}
+				}
+				if = {
+					limit = { tag = OTT }
+					country_event = { id = ottfor.66 days = 2 }
+				}
+				else = {
+					effect_tooltip = {
+						OTT = { country_event = { id = ottfor.66 days = 2 } }
+					}
+				}
+			}
+			else = {
+				if = {
+					limit = { tag = RUS }
+					country_event = { id = ottfor.63 days = 2 }
+				}
+				else = {
+					effect_tooltip = {
+						RUS = { country_event = { id = ottfor.63 days = 2 } }
+					}
+				}
+			}
+		}
+		else_if = {
+			limit = { #if Georgia in alliance with Russia, skip to Batumi
+				OR = {
+					RUS = { is_ally_with = GEO }
+					RUS = { has_guaranteed = GEO }
+				}
+			}
+			if = {
+				limit = { tag = RUS }
+				country_event = { id = ottfor.61 days = 2 }
+			}
+			else = {
+				effect_tooltip = {
+					RUS = { country_event = { id = ottfor.61 days = 2 } }
+				}
+			}
+		}
+		else = {
+			if = {
+				limit = { tag = RUS }
+				country_event = { id = ottfor.57 days = 2 }
+			}
+			else = {
+				effect_tooltip = {
+					RUS = { country_event = { id = ottfor.57 days = 2 } }
+				}
+			}
 		}
 	}
 }
@@ -9009,18 +9050,10 @@ country_event = {	#The Matter of Georgia
 	option = {
 		name = ottfor.57.a
 		ai_chance = {
-			factor = 50
+			factor = 100
 			modifier = {
-				factor = 0.5
-				RUS = {
-					has_completed_focus = RUS_Realpolitik
-				}
-			}
-			modifier = {
-				factor = 2
-				RUS = {
-					has_completed_focus = RUS_Expansionism
-				}
+				factor = 0
+				RUS_is_expansionist = no
 			}
 		}
 		TUR = {
@@ -9033,25 +9066,10 @@ country_event = {	#The Matter of Georgia
 	option = {
 		name = ottfor.57.b
 		ai_chance = {
-			factor = 50
-			modifier = {
-				factor = 2
-				RUS = {
-					has_completed_focus = RUS_Realpolitik
-				}
-			}
-			modifier = {
-				factor = 0.5
-				RUS = {
-					has_completed_focus = RUS_Expansionism
-				}
-			}
+			factor = 100
 			modifier = {
 				factor = 0
-				has_game_rule = {
-					rule = OTT_russian_deal
-					option = OTT_RUSSIAN_DEAL_YES
-				}
+				RUS_is_expansionist = yes
 			}
 		}
 		TUR = {
@@ -9080,11 +9098,26 @@ country_event = {	#Russia Demands Georgian Annexation
 			factor = 100
 		}
 		set_global_flag = RUSSIAN_OTTOMAN_DEAL_GEO_ANNEX
-		RUS = {
-			country_event = {
-				id = ottfor.61
-				days = 1
-			}	
+		if = {
+			limit = { #if OTT does not own Batumi, skip to Afghanistan
+				NOT = { owns_state = 585 } #Batumi
+			}
+			if = {
+				limit = { #if Afghanistan is invalid, skip to Persia
+					OR = {
+						NOT = { country_exists = AFG }
+						RUS = { is_ally_with = AFG }
+						RUS = { has_war_with = AFG }
+					}
+				}
+				country_event = { id = ottfor.66 days = 2 }
+			}
+			else = {
+				RUS = { country_event = { id = ottfor.63 days = 2 } }
+			}
+		}
+		else = {
+			RUS = { country_event = { id = ottfor.61 days = 1 } }
 		}
 	}
 	option = {
@@ -9118,11 +9151,26 @@ country_event = {	#Russia Demands Georgian Subjugation
 			factor = 100
 		}
 		set_global_flag = RUSSIAN_OTTOMAN_DEAL_GEO_PUPPET
-		RUS = {
-			country_event = {
-				id = ottfor.61
-				days = 1
-			}	
+		if = {
+			limit = { #if OTT does not own Batumi, skip to Afghanistan
+				NOT = { owns_state = 585 } #Batumi
+			}
+			if = {
+				limit = { #if Afghanistan is invalid, skip to Persia
+					OR = {
+						NOT = { country_exists = AFG }
+						RUS = { is_ally_with = AFG }
+						RUS = { has_war_with = AFG }
+					}
+				}
+				country_event = { id = ottfor.66 days = 2 }
+			}
+			else = {
+				RUS = { country_event = { id = ottfor.63 days = 2 } }
+			}
+		}
+		else = {
+			RUS = { country_event = { id = ottfor.61 days = 1 } }
 		}
 	}
 	option = {
@@ -9152,6 +9200,18 @@ country_event = {	#The Ottomans Leave Baku
 
 	option = {
 		name = ottfor.60.a
+		clr_global_flag = RUSSIAN_OTTOMAN_DEAL
+		clr_global_flag = RUSSIAN_OTTOMAN_DEAL
+		clr_global_flag = RUSSIAN_OTTOMAN_DEAL_GEO_ANNEX
+		clr_global_flag = RUSSIAN_OTTOMAN_DEAL_GEO_PUPPET
+		clr_global_flag = RUSSIAN_OTTOMAN_DEAL_BATUMI
+		clr_global_flag = RUSSIAN_OTTOMAN_DEAL_AFG_PUPPET
+		clr_global_flag = RUSSIAN_OTTOMAN_DEAL_PER_BUFFER
+		clr_global_flag = RUSSIAN_OTTOMAN_DEAL_PER_SPLIT
+		clr_global_flag = RUSSIAN_OTTOMAN_DEAL_STRAITS
+		clr_global_flag = RUSSIAN_OTTOMAN_DEAL_ARMENIA
+		clr_global_flag = RUSSIAN_OTTOMAN_DEAL_AZE
+		clr_country_flag = RUS_OTT_AI_strategies
 		set_global_flag = NO_RUSSIAN_OTTOMAN_DEAL
 	}
 }
@@ -9164,24 +9224,24 @@ country_event = {	#The Status of Batumi
 	picture = GFX_report_event_generic_conference
 
 	fire_only_once = yes
-
 	is_triggered_only = yes
+	trigger = {
+		NOT = { has_global_flag = NO_RUSSIAN_OTTOMAN_DEAL }
+		OTT = {
+			NOT = {
+				has_war_with = RUS
+				is_in_faction_with = GER
+			}
+		}
+	}
 
 	option = {
 		name = ottfor.61.a
 		ai_chance = {
-			factor = 50
+			base = 100
 			modifier = {
-				factor = 0.1
-				RUS = {
-					has_completed_focus = RUS_Realpolitik
-				}
-			}
-			modifier = {
-				factor = 2
-				RUS = {
-					has_completed_focus = RUS_Expansionism
-				}
+				factor = 0
+				RUS_is_expansionist = no
 			}
 		}
 		TUR = {
@@ -9194,32 +9254,25 @@ country_event = {	#The Status of Batumi
 	option = {
 		name = ottfor.61.b
 		ai_chance = {
-			factor = 50
-			modifier = {
-				factor = 2
-				RUS = {
-					has_completed_focus = RUS_Realpolitik
-				}
-			}
-			modifier = {
-				factor = 0.5
-				RUS = {
-					has_completed_focus = RUS_Expansionism
-				}
-			}
+			base = 100
 			modifier = {
 				factor = 0
-				has_game_rule = {
-					rule = OTT_russian_deal
-					option = OTT_RUSSIAN_DEAL_YES
-				}
+				RUS_is_expansionist = yes
 			}
 		}
-		TUR = {
-			country_event = {
-				id = ottfor.66
-				days = 1
+		if = {
+			limit = { #if Afghanistan is invalid, skip to Persia
+				OR = {
+					NOT = { country_exists = AFG }
+					is_ally_with = AFG
+					has_war_with = AFG
+					AFG = { has_capitulated = yes }
+				}
 			}
+			OTT = { country_event = { id = ottfor.66 days = 2 } }
+		}
+		else = {
+			country_event = { id = ottfor.63 days = 2 }
 		}
 	}
 }
@@ -9232,13 +9285,21 @@ country_event = {	#Russia Demands Batumi
 	picture = GFX_report_event_generic_conference
 
 	fire_only_once = yes
-
 	is_triggered_only = yes
+	trigger = {
+		NOT = { has_global_flag = NO_RUSSIAN_OTTOMAN_DEAL }
+		OTT = {
+			NOT = {
+				has_war_with = RUS
+				is_in_faction_with = GER
+			}
+		}
+	}
 
 	option = {
 		name = ottfor.62.a
 		ai_chance = {
-			factor = 0
+			base = 0
 			modifier = {
 				add = 50
 				surrender_progress > 0.2
@@ -9248,23 +9309,31 @@ country_event = {	#Russia Demands Batumi
 				surrender_progress > 0.4
 			}
 			modifier = {
-				factor = 100
-				has_game_rule = {
-					rule = OTT_russian_deal
-					option = OTT_RUSSIAN_DEAL_YES
-				}
+				add = 100
+				NOT = { has_game_rule = { rule = OTT_russian_deal option = DEFAULT } }
+				NOT = { has_game_rule = { rule = OTT_russian_deal option = OTT_RUSSIAN_DEAL_NO } }
 			}
 		}
 		set_global_flag = RUSSIAN_OTTOMAN_DEAL_BATUMI
-		country_event = {
-			id = ottfor.66
-			days = 1
+		if = {
+			limit = { #if Afghanistan is invalid, skip to Persia
+				OR = {
+					NOT = { country_exists = AFG }
+					RUS = { is_ally_with = AFG }
+					RUS = { has_war_with = AFG }
+					AFG = { has_capitulated = yes }
+				}
+			}
+			OTT = { country_event = { id = ottfor.66 days = 2 } }
+		}
+		else = {
+			RUS = { country_event = { id = ottfor.63 days = 2 } }
 		}	
 	}
 	option = {
 		name = ottfor.62.b
 		ai_chance = {
-			factor = 100
+			base = 100
 			modifier = {
 				add = -50
 				surrender_progress > 0.2
@@ -9274,11 +9343,9 @@ country_event = {	#Russia Demands Batumi
 				surrender_progress > 0.4
 			}
 			modifier = {
-				factor = 0
-				has_game_rule = {
-					rule = OTT_russian_deal
-					option = OTT_RUSSIAN_DEAL_YES
-				}
+				add = -100
+				NOT = { has_game_rule = { rule = OTT_russian_deal option = DEFAULT } }
+				NOT = { has_game_rule = { rule = OTT_russian_deal option = OTT_RUSSIAN_DEAL_NO } }
 			}
 		}
 		RUS = {
@@ -9300,55 +9367,18 @@ country_event = {	#The Matter of Afghanistan
 	fire_only_once = yes
 
 	is_triggered_only = yes
-
-	option = {
-		name = ottfor.63.a
-		ai_chance = {
-			factor = 50
-			modifier = {
-				factor = 0.5
-				RUS = {
-					has_completed_focus = RUS_Realpolitik
-				}
+	trigger = {
+		NOT = { has_global_flag = NO_RUSSIAN_OTTOMAN_DEAL }
+		OTT = {
+			NOT = {
+				has_war_with = RUS
+				is_in_faction_with = GER
 			}
-			modifier = {
-				factor = 2
-				RUS = {
-					has_completed_focus = RUS_Expansionism
-				}
-			}
-		}
-		TUR = {
-			country_event = {
-				id = ottfor.64
-				days = 1
-			}	
 		}
 	}
+
 	option = {
 		name = ottfor.63.b
-		ai_chance = {
-			factor = 50
-			modifier = {
-				factor = 0.5
-				RUS = {
-					has_completed_focus = RUS_Realpolitik
-				}
-			}
-			modifier = {
-				factor = 2
-				RUS = {
-					has_completed_focus = RUS_Expansionism
-				}
-			}
-			modifier = {
-				factor = 0
-				has_game_rule = {
-					rule = OTT_russian_deal
-					option = OTT_RUSSIAN_DEAL_YES
-				}
-			}
-		}
 		TUR = {
 			country_event = {
 				id = ottfor.65
@@ -9368,6 +9398,15 @@ country_event = {	#Russia Demands Afghani Annexation
 	fire_only_once = yes
 
 	is_triggered_only = yes
+	trigger = {
+		NOT = { has_global_flag = NO_RUSSIAN_OTTOMAN_DEAL }
+		OTT = {
+			NOT = {
+				has_war_with = RUS
+				is_in_faction_with = GER
+			}
+		}
+	}
 
 	option = {
 		name = ottfor.64.a
@@ -9391,6 +9430,15 @@ country_event = {	#Russia Demands Afghani Subjugation
 	fire_only_once = yes
 
 	is_triggered_only = yes
+	trigger = {
+		NOT = { has_global_flag = NO_RUSSIAN_OTTOMAN_DEAL }
+		OTT = {
+			NOT = {
+				has_war_with = RUS
+				is_in_faction_with = GER
+			}
+		}
+	}
 
 	option = {
 		name = ottfor.65.a
@@ -9414,17 +9462,23 @@ country_event = {	#The Future of Persia
 	fire_only_once = yes
 
 	is_triggered_only = yes
+	trigger = {
+		NOT = { has_global_flag = NO_RUSSIAN_OTTOMAN_DEAL }
+		OTT = {
+			NOT = {
+				has_war_with = RUS
+				is_in_faction_with = GER
+			}
+		}
+	}
 
 	option = {
 		name = ottfor.66.a
 		ai_chance = {
-			factor = 50
+			base = 50
 			modifier = {
 				factor = 0
-				has_game_rule = {
-					rule = OTT_russian_deal
-					option = OTT_RUSSIAN_DEAL_YES
-				}
+				OTT_has_centralist_government = yes
 			}
 		}
 		RUS = {
@@ -9437,7 +9491,11 @@ country_event = {	#The Future of Persia
 	option = {
 		name = ottfor.66.b
 		ai_chance = {
-			factor = 50
+			base = 50
+			modifier = {
+				factor = 0
+				OTT_has_centralist_government = no
+			}
 		}
 		RUS = {
 			country_event = {
@@ -9458,24 +9516,62 @@ country_event = {	#The Ottomans Propose an Iranian Buffer State
 	fire_only_once = yes
 
 	is_triggered_only = yes
+	trigger = {
+		NOT = { has_global_flag = NO_RUSSIAN_OTTOMAN_DEAL }
+		OTT = {
+			NOT = {
+				has_war_with = RUS
+				is_in_faction_with = GER
+			}
+		}
+	}
 
 	option = {
 		name = ottfor.67.a
 		ai_chance = {
-			factor = 50
+			base = 100
+			modifier = {
+				factor = 0
+				RUS_is_expansionist = yes
+				NOT = { has_game_rule = { rule = OTT_russian_deal option = OTT_RUSSIAN_DEAL_YES } }
+			}
+			modifier = {
+				factor = 0
+				has_game_rule = { rule = OTT_russian_deal option = OTT_RUSSIAN_DEAL_YES_RUS }
+			}
 		}
 		set_global_flag = RUSSIAN_OTTOMAN_DEAL_PER_BUFFER
-		TUR = {
-			country_event = {
-				id = ottfor.71
-				days = 1
-			}	
+		if = {
+			limit = { #if Azerbaijan is invalid, skip to straits convention
+				OR = {
+					NOT = { country_exists = AZE }
+					is_ally_with = AZE
+					has_war_with = AZE
+					AZE = { has_capitulated = yes }
+					AZE = { is_valid_peace_target = no }
+					AZE = { has_idea = rgoc	}
+					has_global_flag = RUSSIAN_OTTOMAN_DEAL_AZE
+				}
+			}
+			country_event = { id = ottfor.73 days = 1 }
+		}
+		else = {
+			OTT = { country_event = { id = ottfor.71 days = 1 } }
 		}
 	}
 	option = {
 		name = ottfor.67.b
 		ai_chance = {
-			factor = 50
+			base = 100
+			modifier = {
+				factor = 0
+				RUS_is_expansionist = no
+				NOT = { has_game_rule = { rule = OTT_russian_deal option = OTT_RUSSIAN_DEAL_YES_RUS } }
+			}
+			modifier = {
+				factor = 0
+				has_game_rule = { rule = OTT_russian_deal option = OTT_RUSSIAN_DEAL_YES }
+			}
 		}
 		TUR = {
 			country_event = {
@@ -9508,18 +9604,38 @@ country_event = {	#The Ottomans Propose Splitting the Persian Empire
 	fire_only_once = yes
 
 	is_triggered_only = yes
+	trigger = {
+		NOT = { has_global_flag = NO_RUSSIAN_OTTOMAN_DEAL }
+		OTT = {
+			NOT = {
+				has_war_with = RUS
+				is_in_faction_with = GER
+			}
+		}
+	}
 
 	option = {
 		name = ottfor.68.a
 		ai_chance = {
-			factor = 100
+			base = 100
 		}
 		set_global_flag = RUSSIAN_OTTOMAN_DEAL_PER_SPLIT
-		TUR = {
-			country_event = {
-				id = ottfor.71
-				days = 1
-			}	
+		if = {
+			limit = { #if Azerbaijan is invalid, skip to straits convention
+				OR = {
+					NOT = { country_exists = AZE }
+					RUS = { is_ally_with = AZE }
+					RUS = { has_war_with = AZE }
+					AZE = { has_capitulated = yes }
+					AZE = { is_valid_peace_target = no }
+					AZE = { has_idea = rgoc	}
+					has_global_flag = RUSSIAN_OTTOMAN_DEAL_AZE
+				}
+			}
+			RUS = { country_event = { id = ottfor.73 days = 1 } }
+		}
+		else = {
+			OTT = { country_event = { id = ottfor.71 days = 1 } }
 		}
 	}
 	option = {
@@ -9546,6 +9662,15 @@ country_event = {	#The Russians Propose Splitting the Persian Empire
 	fire_only_once = yes
 
 	is_triggered_only = yes
+	trigger = {
+		NOT = { has_global_flag = NO_RUSSIAN_OTTOMAN_DEAL }
+		OTT = {
+			NOT = {
+				has_war_with = RUS
+				is_in_faction_with = GER
+			}
+		}
+	}
 
 	option = {
 		name = ottfor.69.a
@@ -9553,11 +9678,22 @@ country_event = {	#The Russians Propose Splitting the Persian Empire
 			factor = 100
 		}
 		set_global_flag = RUSSIAN_OTTOMAN_DEAL_PER_SPLIT
-		TUR = {
-			country_event = {
-				id = ottfor.71
-				days = 1
-			}	
+		if = {
+			limit = { #if Azerbaijan is invalid, skip to straits convention
+				OR = {
+					NOT = { country_exists = AZE }
+					RUS = { is_ally_with = AZE }
+					RUS = { has_war_with = AZE }
+					AZE = { has_capitulated = yes }
+					AZE = { is_valid_peace_target = no }
+					AZE = { has_idea = rgoc	}
+					has_global_flag = RUSSIAN_OTTOMAN_DEAL_AZE
+				}
+			}
+			RUS = { country_event = { id = ottfor.73 days = 1 } }
+		}
+		else = {
+			country_event = { id = ottfor.71 days = 1 }
 		}
 	}
 	option = {
@@ -9587,6 +9723,18 @@ country_event = {	#The Russians Leave Baku
 
 	option = {
 		name = ottfor.70.a
+		clr_global_flag = RUSSIAN_OTTOMAN_DEAL
+		clr_global_flag = RUSSIAN_OTTOMAN_DEAL
+		clr_global_flag = RUSSIAN_OTTOMAN_DEAL_GEO_ANNEX
+		clr_global_flag = RUSSIAN_OTTOMAN_DEAL_GEO_PUPPET
+		clr_global_flag = RUSSIAN_OTTOMAN_DEAL_BATUMI
+		clr_global_flag = RUSSIAN_OTTOMAN_DEAL_AFG_PUPPET
+		clr_global_flag = RUSSIAN_OTTOMAN_DEAL_PER_BUFFER
+		clr_global_flag = RUSSIAN_OTTOMAN_DEAL_PER_SPLIT
+		clr_global_flag = RUSSIAN_OTTOMAN_DEAL_STRAITS
+		clr_global_flag = RUSSIAN_OTTOMAN_DEAL_ARMENIA
+		clr_global_flag = RUSSIAN_OTTOMAN_DEAL_AZE
+		clr_country_flag = RUS_OTT_AI_strategies
 		set_global_flag = NO_RUSSIAN_OTTOMAN_DEAL
 	}
 }
@@ -9601,6 +9749,15 @@ country_event = {	#The Matter of Azerbaijan
 	fire_only_once = yes
 
 	is_triggered_only = yes
+	trigger = {
+		NOT = { has_global_flag = NO_RUSSIAN_OTTOMAN_DEAL }
+		OTT = {
+			NOT = {
+				has_war_with = RUS
+				is_in_faction_with = GER
+			}
+		}
+	}
 
 	option = {
 		name = ottfor.71.a
@@ -9623,12 +9780,22 @@ country_event = {	#The Ottomans Demand an Azeri Buffer State
 	fire_only_once = yes
 
 	is_triggered_only = yes
+	trigger = {
+		NOT = { has_global_flag = NO_RUSSIAN_OTTOMAN_DEAL }
+		OTT = {
+			NOT = {
+				has_war_with = RUS
+				is_in_faction_with = GER
+			}
+		}
+	}
 
 	option = {
 		name = ottfor.72.a
 		ai_chance = {
-			factor = 100
+			base = 100
 		}
+		set_global_flag = RUSSIAN_OTTOMAN_DEAL_AZE
 		RUS = {
 			country_event = {
 				id = ottfor.73
@@ -9639,19 +9806,12 @@ country_event = {	#The Ottomans Demand an Azeri Buffer State
 	option = {
 		name = ottfor.72.b
 		ai_chance = {
-			factor = 0
+			base = 0
 			modifier = {
 				add = 50
-				RUS = {
-					has_completed_focus = RUS_Expansionism
-				}
-			}
-			modifier = {
-				factor = 0
-				has_game_rule = {
-					rule = OTT_russian_deal
-					option = OTT_RUSSIAN_DEAL_YES
-				}
+				RUS_is_expansionist = yes
+				NOT = { has_game_rule = { rule = OTT_russian_deal option = OTT_RUSSIAN_DEAL_YES } }
+				NOT = { has_game_rule = { rule = OTT_russian_deal option = OTT_RUSSIAN_DEAL_YES_RUS } }
 			}
 		}
 		TUR = {
@@ -9673,29 +9833,23 @@ country_event = {	#The London Straits Convention
 	fire_only_once = yes
 
 	is_triggered_only = yes
+	trigger = {
+		NOT = { has_global_flag = NO_RUSSIAN_OTTOMAN_DEAL }
+		OTT = {
+			NOT = {
+				has_war_with = RUS
+				is_in_faction_with = GER
+			}
+		}
+	}
 
 	option = {
 		name = ottfor.73.a
 		ai_chance = {
 			factor = 50
 			modifier = {
-				factor = 0.5
-				RUS = {
-					has_completed_focus = RUS_Realpolitik
-				}
-			}
-			modifier = {
-				factor = 2
-				RUS = {
-					has_completed_focus = RUS_Expansionism
-				}
-			}
-			modifier = {
 				factor = 0
-				has_game_rule = {
-					rule = OTT_russian_deal
-					option = OTT_RUSSIAN_DEAL_YES
-				}
+				has_game_rule = { rule = OTT_russian_deal option = OTT_RUSSIAN_DEAL_YES }
 			}
 		}
 		TUR = {
@@ -9708,18 +9862,10 @@ country_event = {	#The London Straits Convention
 	option = {
 		name = ottfor.73.b
 		ai_chance = {
-			factor = 50
+			factor = 0
 			modifier = {
-				factor = 2
-				RUS = {
-					has_completed_focus = RUS_Realpolitik
-				}
-			}
-			modifier = {
-				factor = 0.5
-				RUS = {
-					has_completed_focus = RUS_Expansionism
-				}
+				add = 100
+				has_game_rule = { rule = OTT_russian_deal option = OTT_RUSSIAN_DEAL_YES }
 			}
 		}
 		RUS = {
@@ -9741,6 +9887,15 @@ country_event = {	#Russia Demands Revision of the London Straits Convention
 	fire_only_once = yes
 
 	is_triggered_only = yes
+	trigger = {
+		NOT = { has_global_flag = NO_RUSSIAN_OTTOMAN_DEAL }
+		OTT = {
+			NOT = {
+				has_war_with = RUS
+				is_in_faction_with = GER
+			}
+		}
+	}
 
 	option = {
 		name = ottfor.74.a
@@ -9779,16 +9934,23 @@ country_event = {	#The Matter of Armenia
 	fire_only_once = yes
 
 	is_triggered_only = yes
+	trigger = {
+		NOT = { has_global_flag = NO_RUSSIAN_OTTOMAN_DEAL }
+		OTT = {
+			NOT = {
+				has_war_with = RUS
+				is_in_faction_with = GER
+			}
+		}
+	}
 
 	option = {
 		name = ottfor.75.a
 		ai_chance = {
-			factor = 0
+			base = 0
 			modifier = {
-				add = 30
-				RUS = {
-					has_completed_focus = RUS_Expansionism
-				}
+				add = 50
+				RUS = { RUS_is_expansionist = yes }
 			}
 		}
 		TUR = {
@@ -9801,13 +9963,11 @@ country_event = {	#The Matter of Armenia
 	option = {
 		name = ottfor.75.b
 		ai_chance = {
-			factor = 70
+			base = 100
 			modifier = {
 				factor = 0
-				has_game_rule = {
-					rule = OTT_russian_deal
-					option = OTT_RUSSIAN_DEAL_YES
-				}
+				RUS = { RUS_is_expansionist = yes }
+				has_game_rule = { rule = OTT_russian_deal option = OTT_RUSSIAN_DEAL_YES_RUS }
 			}
 		}
 		RUS = {
@@ -9835,11 +9995,20 @@ country_event = {	#Russia Demands the Liberation of Armenia
 	fire_only_once = yes
 
 	is_triggered_only = yes
+	trigger = {
+		NOT = { has_global_flag = NO_RUSSIAN_OTTOMAN_DEAL }
+		OTT = {
+			NOT = {
+				has_war_with = RUS
+				is_in_faction_with = GER
+			}
+		}
+	}
 
 	option = {
 		name = ottfor.76.a
 		ai_chance = {
-			factor = 0
+			base = 0
 			modifier = {
 				add = 50
 				surrender_progress > 0.2
@@ -9849,11 +10018,9 @@ country_event = {	#Russia Demands the Liberation of Armenia
 				surrender_progress > 0.4
 			}
 			modifier = {
-				factor = 100
-				has_game_rule = {
-					rule = OTT_russian_deal
-					option = OTT_RUSSIAN_DEAL_YES
-				}
+				add = 100
+				NOT = { has_game_rule = { rule = OTT_russian_deal option = DEFAULT } }
+				NOT = { has_game_rule = { rule = OTT_russian_deal option = OTT_RUSSIAN_DEAL_NO } }
 			}
 		}
 		set_global_flag = RUSSIAN_OTTOMAN_DEAL_ARMENIA
@@ -9883,11 +10050,9 @@ country_event = {	#Russia Demands the Liberation of Armenia
 				surrender_progress > 0.4
 			}
 			modifier = {
-				factor = 0
-				has_game_rule = {
-					rule = OTT_russian_deal
-					option = OTT_RUSSIAN_DEAL_YES
-				}
+				add = -100
+				NOT = { has_game_rule = { rule = OTT_russian_deal option = DEFAULT } }
+				NOT = { has_game_rule = { rule = OTT_russian_deal option = OTT_RUSSIAN_DEAL_NO } }
 			}
 		}
 		RUS = {
@@ -9909,6 +10074,15 @@ country_event = {	#The Ratification of the Russo-Ottoman Convention
 	fire_only_once = yes
 
 	is_triggered_only = yes
+	trigger = {
+		NOT = { has_global_flag = NO_RUSSIAN_OTTOMAN_DEAL }
+		OTT = {
+			NOT = {
+				has_war_with = RUS
+				is_in_faction_with = GER
+			}
+		}
+	}
 
 	option = {
 		name = ottfor.77.a
@@ -9922,19 +10096,77 @@ country_event = {	#The Ratification of the Russo-Ottoman Convention
 				value = 200
 			}
 			add_ai_strategy = {
-				type = invade
+				type = conquer
 				id = "TUR"
-				value = -100
+				value = -200
+			}
+			if = {
+				limit = { has_global_flag = RUSSIAN_OTTOMAN_DEAL_AZE }
+				add_ai_strategy = {
+					type = befriend
+					id = "AZE"
+					value = 200
+				}
+				add_ai_strategy = {
+					type = conquer
+					id = "AZE"
+					value = -200
+				}
+			}
+			if = {
+				limit = { has_global_flag = RUSSIAN_OTTOMAN_DEAL_ARMENIA }
+				add_ai_strategy = {
+					type = befriend
+					id = "ARM"
+					value = 200
+				}
+				add_ai_strategy = {
+					type = conquer
+					id = "ARM"
+					value = -200
+				}
 			}
 			hidden_effect = {
 				country_event = { id = ottfor.7701 days = 3650 }
 			}
 		}
-		hidden_effect = {
-			RUS = {
-				country_event = {
-					id = ottfor.7702
-					hours = 2
+		else = {
+			add_ai_strategy = {
+				type = befriend
+				id = "RUS"
+				value = 200
+			}
+			add_ai_strategy = {
+				type = conquer
+				id = "RUS"
+				value = -200
+			}
+			if = {
+				limit = { has_global_flag = RUSSIAN_OTTOMAN_DEAL_AZE }
+				AZE = {
+					add_ai_strategy = {
+						type = befriend
+						id = "RUS"
+						value = 200
+					}
+					add_ai_strategy = {
+						type = conquer
+						id = "RUS"
+						value = -200
+					}
+				}
+			}
+			if = {
+				limit = { has_global_flag = RUSSIAN_OTTOMAN_DEAL_ARMENIA }
+				add_ai_strategy = {
+					type = befriend
+					id = "ARM"
+					value = 200
+				}
+				add_ai_strategy = {
+					type = conquer
+					id = "ARM"
+					value = -200
 				}
 			}
 		}
@@ -9950,54 +10182,85 @@ country_event = { #Clear RUS AI factors once Germany is dead or ten years have p
 	fire_only_once = yes
 	
 	trigger = {
-		has_country_flag = RUS_OTT_AI_strategies
+		OR = {
+			has_country_flag = RUS_OTT_AI_strategies
+			has_global_flag = RUSSIAN_OTTOMAN_DEAL
+		}
 	}
 	
 	option = {
-		clr_country_flag = RUS_OTT_AI_strategies
-		if = {
-			limit = { has_guaranteed = TUR }
-			diplomatic_relation = {
-				country = TUR
-				relation = guarantee
-				active = no
-			}
-		}
-		if = {
-			limit = { has_non_aggression_pact_with = TUR }
-			diplomatic_relation = {
-				country = TUR
-				relation = non_aggression_pact
-				active = no
-			}
-		}
-		if = {
-			limit = { has_military_access_to = TUR }
-			diplomatic_relation = {
-				country = TUR
-				relation = military_access
-				active = no
-			}
-		}
-		if = {
-			limit = { gives_military_access_to = OTT }
-			TUR = {
+		name = ottfor.7701.a
+		RUS = {
+			if = {
+				limit = { has_guaranteed = OTT }
 				diplomatic_relation = {
-					country = ROOT
+					country = OTT
+					relation = guarantee
+					active = no
+				}
+			}
+			if = {
+				limit = { has_non_aggression_pact_with = OTT }
+				diplomatic_relation = {
+					country = OTT
+					relation = non_aggression_pact
+					active = no
+				}
+			}
+			if = {
+				limit = { has_military_access_to = OTT }
+				diplomatic_relation = {
+					country = OTT
 					relation = military_access
 					active = no
 				}
 			}
-		}
-		add_ai_strategy = {
-			type = befriend
-			id = "TUR"
-			value = -200
-		}
-		add_ai_strategy = {
-			type = invade
-			id = "TUR"
-			value = 100
+			if = {
+				limit = { gives_military_access_to = OTT }
+				OTT = {
+					diplomatic_relation = {
+						country = ROOT
+						relation = military_access
+						active = no
+					}
+				}
+			}
+			add_ai_strategy = {
+				type = befriend
+				id = "OTT"
+				value = -200
+			}
+			add_ai_strategy = {
+				type = conquer
+				id = "OTT"
+				value = 200
+			}
+			if = {
+				limit = { has_global_flag = RUSSIAN_OTTOMAN_DEAL_AZE }
+				add_ai_strategy = {
+					type = befriend
+					id = "AZE"
+					value = -200
+				}
+				add_ai_strategy = {
+					type = conquer
+					id = "AZE"
+					value = 200
+				}
+			}
+			if = {
+				limit = { has_global_flag = RUSSIAN_OTTOMAN_DEAL_ARMENIA }
+				add_ai_strategy = {
+					type = befriend
+					id = "ARM"
+					value = -200
+				}
+				add_ai_strategy = {
+					type = conquer
+					id = "ARM"
+					value = 200
+				}
+			}
 		}
 		if = {
 			limit = { has_variable = 266.ambition_area_@ROOT }
@@ -10009,21 +10272,61 @@ country_event = { #Clear RUS AI factors once Germany is dead or ten years have p
 				}
 			}
 		}
-	}
-}
-
-country_event = { #Hidden event to trigger the Russo-Ottoman Convention scripted effects 
-	id = ottfor.7702
-	immediate = { log = "[GetDateText]: [Root.GetName]: event ottfor.7702" }
-
-	hidden = yes
-
-	is_triggered_only = yes
-
-	option = {
-		RUS = {
-			ott_russo_ottoman_convention = yes
+		OTT = {
+			add_ai_strategy = {
+				type = befriend
+				id = "RUS"
+				value = -200
+			}
+			add_ai_strategy = {
+				type = conquer
+				id = "RUS"
+				value = 200
+			}
 		}
+		if = {
+			limit = { has_global_flag = RUSSIAN_OTTOMAN_DEAL_AZE }
+			AZE = {
+				add_ai_strategy = {
+					type = befriend
+					id = "RUS"
+					value = -200
+				}
+				add_ai_strategy = {
+					type = conquer
+					id = "RUS"
+					value = 200
+				}
+			}
+		}
+		if = {
+			limit = { has_global_flag = RUSSIAN_OTTOMAN_DEAL_ARMENIA }
+			ARM = {
+				add_ai_strategy = {
+					type = befriend
+					id = "RUS"
+					value = -200
+				}
+				add_ai_strategy = {
+					type = conquer
+					id = "RUS"
+					value = 200
+				}
+			}
+		}
+		clr_global_flag = RUSSIAN_OTTOMAN_DEAL
+		clr_global_flag = RUSSIAN_OTTOMAN_DEAL
+		clr_global_flag = RUSSIAN_OTTOMAN_DEAL_GEO_ANNEX
+		clr_global_flag = RUSSIAN_OTTOMAN_DEAL_GEO_PUPPET
+		clr_global_flag = RUSSIAN_OTTOMAN_DEAL_BATUMI
+		clr_global_flag = RUSSIAN_OTTOMAN_DEAL_AFG_PUPPET
+		clr_global_flag = RUSSIAN_OTTOMAN_DEAL_PER_BUFFER
+		clr_global_flag = RUSSIAN_OTTOMAN_DEAL_PER_SPLIT
+		clr_global_flag = RUSSIAN_OTTOMAN_DEAL_STRAITS
+		clr_global_flag = RUSSIAN_OTTOMAN_DEAL_ARMENIA
+		clr_global_flag = RUSSIAN_OTTOMAN_DEAL_AZE
+		clr_country_flag = RUS_OTT_AI_strategies
+		set_global_flag = NO_RUSSIAN_OTTOMAN_DEAL		
 	}
 }
 
@@ -10038,20 +10341,21 @@ country_event = {	#Russia Demands Our Submission
 
 	option = {
 		name = ottfor.78.a
+		trigger = { is_valid_peace_target = yes }
 		ai_chance = {
 			factor = 0
 			modifier = {
 				add = 100
 				OR = {
 					AND = {
-					tag = GEO
+						tag = GEO
 						NOT = {
 							has_country_leader = { name = "Ioakhim I" ruling_only = yes }
 							has_government = market_liberal
 						}
 					}
 					AND = {
-					tag = ARM
+						tag = ARM
 						has_game_rule = { rule = ARM_forpol option = ARM_FORPOL_RUS }
 					}
 				}
@@ -10075,6 +10379,11 @@ country_event = {	#Russia Demands Our Submission
 				}
 				GEO_remove_monarchy = yes
 			}
+			remove_ideas = {
+				GEO_treaty_of_poti_idea
+				GEO_treaty_of_poti_idea2
+			}
+			GER_remove_from_mitteleuropa = yes
 			RUS = {
 				country_event = {
 					id = rusfor.1030
@@ -10082,6 +10391,14 @@ country_event = {	#Russia Demands Our Submission
 					random_days = 45
 				}
 			}
+		}
+		if = {
+			limit = { has_idea = GEO_treaty_of_poti_idea }
+			remove_ideas = GEO_treaty_of_poti_idea2
+		}
+		else_if = {
+			limit = { has_idea = GEO_treaty_of_poti_idea2 }
+			remove_ideas = GEO_treaty_of_poti_idea2
 		}
 		if = {
 			limit = {
@@ -10101,7 +10418,7 @@ country_event = {	#Russia Demands Our Submission
 				add = 100
 				OR = {
 					AND = {
-				tag = AFG
+						tag = AFG
 						has_game_rule = { rule = AFG_forpol option = AFG_FORPOL_RUS }
 					}
 					AND = {
@@ -10110,8 +10427,8 @@ country_event = {	#Russia Demands Our Submission
 							has_country_leader = { name = "Ioakhim I" ruling_only = yes }
 							has_government = market_liberal
 						}
-			}
-		}
+					}
+				}
 			}
 		}
 		RUS = {
@@ -10128,32 +10445,49 @@ country_event = {	#Russia Demands an End to Hostilities
 	picture = GFX_report_event_generic_conference
 
 	is_triggered_only = yes
+	trigger = {
+		has_global_flag = RUSSIAN_OTTOMAN_DEAL_PER_BUFFER
+	}
 
 	option = {
 		name = ottfor.79.a
 		ai_chance = {
-			factor = 100
-		}
-		TUR = {
-			white_peace_with_ROOT = yes
-		}	
-		if = {
-			limit = { has_war_with = AZE }
-			AZE = {
-				white_peace_with_ROOT = yes
+			base = 80
+			modifier = {
+				factor = 0
+				has_war_with = RUS
 			}
 		}
 		if = {
-			limit = { has_war_with = AFG }
-			AFG = {
-				white_peace_with_ROOT = yes
+			limit = { is_faction_leader = yes }
+			dismantle_faction = yes
+		}
+		else_if = {
+			limit = { is_in_faction = yes }
+			leave_faction = yes
+		}
+		every_subject_country = {
+			overlord = {
+				set_autonomy = {
+					target = PREV
+					autonomy_state = autonomy_free
+				}
 			}
 		}
+		separate_peace_all_wars = yes		
 	}
 	option = {
 		name = ottfor.79.b
 		ai_chance = {
-			factor = 0
+			base = 0
+			modifier = {
+				add = 100
+				has_war_with = RUS
+			}
+			modifier = {
+				add = 20
+				RUS = { has_war_with = GER }
+			}
 		}
 		RUS = {
 			activate_targeted_decision = { target = PREV decision = RUS_Attack_Country_default }
@@ -10174,24 +10508,75 @@ country_event = {	#The Russo-Ottoman Convention
 		name = ottfor.80.a
 		ai_chance = {
 			factor = 100
+			modifier = {
+				factor = 0
+				has_completed_focus = AZE_Ask_For_German_Bailout
+			}
+			modifier = {
+				factor = 0
+				OR = {
+					has_game_rule = { rule = AZE_forpol option = AZE_FOREIGN_FACTION }
+					has_game_rule = { rule = AZE_forpol option = AZE_FOREIGN_PANTURKIST }
+					has_game_rule = { rule = AZE_forpol option = AZE_FOREIGN_TUR_PUPPET }
+					has_game_rule = { rule = AZE_forpol option = AZE_FOREIGN_TUR }
+					has_game_rule = { rule = AZE_forpol option = AZE_FOREIGN_GER }
+					has_game_rule = { rule = AZE_forpol option = AZE_FOREIGN_UKR }
+				}
+			}
 		}
-		GER = {
-			remove_from_faction = AZE
+		if = {
+			limit = { is_subject = yes }
+			overlord = {
+				set_autonomy = {
+					target = PREV
+					autonomy_state = autonomy_free
+				}
+			}
 		}
-		TUR = {
-			give_guarantee = AZE
+		AZE_remove_german_dependence = yes
+		if = {
+			limit = { is_in_faction = yes }
+			leave_faction = yes
+		}
+		separate_peace_all_wars = yes		
+		OTT = {
+			give_guarantee = ROOT
+			diplomatic_relation = {
+				country = ROOT
+				relation = non_aggression_pact
+			}
 		}
 		RUS = {
+			set_country_flag = RUS_will_liberate_caucasus
 			give_guarantee = AZE
+			diplomatic_relation = {
+				country = ROOT
+				relation = non_aggression_pact
+			}
+			add_opinion_modifier = {
+				target = RUS
+				modifier = KR_trade_agreement
+			}
 		}
-		give_resource_rights = { state = 990 receiver = RUS }
+		RUS_add_to_rostorg = yes
+		add_ideas = rgoc
+		give_resource_rights = {
+			receiver = RUS
+			state = 990
+			resources = { oil }
+		}
+		add_opinion_modifier = {
+			modifier = KR_trade_agreement
+			target = RUS
+		}
 		# news event Russo-Ottoman Convention
 	}
 	option = {
 		name = ottfor.80.b
+		ai_chance = { base = 0 }
 		RUS = { country_event = ottfor.8001 }
-		}
-			}
+	}
+}
 country_event = {	#The Russo-Ottoman Convention
 	id = ottfor.8001
 	immediate = { log = "[GetDateText]: [Root.GetName]: event ottfor.8001" }
@@ -10210,6 +10595,7 @@ country_event = {	#The Russo-Ottoman Convention
 	option = {
 		name = ottfor.8001.b
 		ai_chance = { base = 0 }
+		activate_mission = RUS_defeat_caucasus
 		declare_war_on = {
 			target = FROM
 			type = topple_government
@@ -10227,8 +10613,20 @@ country_event = {	#[FROM.GetName] Refuses our Offer for Peace
 	is_triggered_only = yes
 
 	option = {
-		name = ottfor.81.a
-		
+		name = ottfor.81.a		
+		clr_global_flag = RUSSIAN_OTTOMAN_DEAL
+		clr_global_flag = RUSSIAN_OTTOMAN_DEAL
+		clr_global_flag = RUSSIAN_OTTOMAN_DEAL_GEO_ANNEX
+		clr_global_flag = RUSSIAN_OTTOMAN_DEAL_GEO_PUPPET
+		clr_global_flag = RUSSIAN_OTTOMAN_DEAL_BATUMI
+		clr_global_flag = RUSSIAN_OTTOMAN_DEAL_AFG_PUPPET
+		clr_global_flag = RUSSIAN_OTTOMAN_DEAL_PER_BUFFER
+		clr_global_flag = RUSSIAN_OTTOMAN_DEAL_PER_SPLIT
+		clr_global_flag = RUSSIAN_OTTOMAN_DEAL_STRAITS
+		clr_global_flag = RUSSIAN_OTTOMAN_DEAL_ARMENIA
+		clr_global_flag = RUSSIAN_OTTOMAN_DEAL_AZE
+		clr_country_flag = RUS_OTT_AI_strategies
+		set_global_flag = NO_RUSSIAN_OTTOMAN_DEAL	
 	}
 }
 
@@ -10278,12 +10676,14 @@ country_event = {	#The Russo-Ottoman Convention
 
 	trigger = {
 		has_global_flag = RUSSIAN_OTTOMAN_DEAL
-		country_exists = RUS
-		AND = {
-			country_exists = TUR
-			NOT = { has_global_flag = AXIS_VICTORY }
+		RUS = {
+			is_faction_leader = yes
+			has_socialist_government = no
 		}
-		TUR = {
+		OTT = {
+			exists = yes
+			is_subject = no
+			has_capitulated = no
 			NOT = { has_war_with = RUS }
 		}
 	}
@@ -10292,90 +10692,153 @@ country_event = {	#The Russo-Ottoman Convention
 		name = ottfor.83.a
 		### Persia
 		if = {
-			limit = {
-				has_country_flag = persian_victory
-			}
+			limit = { original_tag = PER }
 			if = {
-				limit = {
-					has_global_flag = RUSSIAN_OTTOMAN_DEAL_PER_SPLIT
-				}
-				every_state = {
-					limit = {
-						OR = {
-							is_owned_by = TUR
-							is_owned_by = RUS
-						}
-						OR = {
-							state = 417
-							state = 421
-							state = 413
-							state = 419
-						}
-					}
-					TUR = {
-						transfer_state = PREV
+				limit = { has_global_flag = RUSSIAN_OTTOMAN_DEAL_PER_SPLIT }
+				413 = { #Khuzestan
+					if = {
+						limit = { owner = { is_ally_with = RUS } }
+						transfer_state_to = OTT
 					}
 				}
-				every_owned_state = {
-					limit = {
-						is_core_of = PER
-						NOT = {
-							state = 417
-							state = 421
-							state = 413
-							state = 419
-						}
+				417 = { #Urmia
+					if = {
+						limit = { owner = { is_ally_with = RUS } }
+						transfer_state_to = OTT
 					}
-					RUS = {
-						transfer_state = PREV
+				}
+				419 = { #Tabriz
+					if = {
+						limit = { owner = { is_ally_with = RUS } }
+						transfer_state_to = OTT
+					}
+				}
+				421 = { #Kermanshah
+					if = {
+						limit = { owner = { is_ally_with = RUS } }
+						transfer_state_to = OTT
+					}
+				}
+				PER = {
+					every_core_state = {
+						limit = {
+							owner = {
+								OR = {
+									is_ally_with = TUR
+									is_ally_with = RUS
+								}
+							}
+							NOT = { is_core_of = owner }
+							NOT = { is_claimed_by = owner }
+							NOT = { state = 413 } #Khuzestan
+							NOT = { state = 417 } #Urmia
+							NOT = { state = 419 } #Tabriz
+							NOT = { state = 421 } #Kermanshah
+						}
+						transfer_state_to = PER
 					}
 				}
 			}
 			else = {
-				every_state = {
-					limit = {
-						OR = {
-							is_owned_by = TUR
-							is_owned_by = RUS
+				PER = {
+					every_core_state = {
+						limit = {
+							owner = {
+								OR = {
+									is_ally_with = TUR
+									is_ally_with = RUS
+								}
+							}
+							NOT = { is_core_of = owner }
+							NOT = { is_claimed_by = owner }
 						}
-						is_core_of = PER
+						transfer_state_to = PER
 					}
-					PER = {
-						transfer_state = PREV
+					if = {
+						limit = {
+							OR = {
+								has_socialist_government = yes
+								has_government = national_populist
+							}
+						}
+						set_politics = {
+							ruling_party = authoritarian_democrat
+							elections_allowed = no
+						}
+						set_political_party = {
+							ideology = authoritarian_democrat
+							popularity = 60
+						}
 					}
 				}
-				TUR = {
-					give_guarantee = PER
-				}
-				RUS = {
-					give_guarantee = PER
-				}
+				OTT = { give_guarantee = PER }
+				RUS = { give_guarantee = PER }
 			}
 		}
 		### Azerbaijan
-		if = {
-			limit = {
-				has_country_flag = azeri_victory
-			}
-			every_state = {
-				limit = {
-					OR = {
-						is_owned_by = TUR
-						is_owned_by = RUS
+		else = {
+			AZE = {
+				every_core_state = {
+					limit = {
+						owner = {
+							OR = {
+								is_ally_with = TUR
+								is_ally_with = RUS
+							}
+						}
+						NOT = { is_core_of = owner }
+						NOT = { is_claimed_by = owner }
 					}
-					is_core_of = AZE
+					transfer_state_to = AZE
 				}
-				AZE = {
-					transfer_state = PREV
+				if = {
+					limit = {
+						OR = {
+							has_socialist_government = yes
+							has_government = national_populist
+						}
+					}
+					set_politics = {
+						ruling_party = authoritarian_democrat
+						elections_allowed = no
+					}
+					set_political_party = {
+						ideology = authoritarian_democrat
+						popularity = 60
+					}
+				}
+				AZE_remove_german_dependence = yes
+				RUS_add_to_rostorg = yes
+				add_ideas = rgoc
+				give_resource_rights = {
+					receiver = RUS
+					state = 990
+					resources = { oil }
+				}
+				add_opinion_modifier = {
+					modifier = KR_trade_agreement
+					target = RUS
 				}
 			}
-			TUR = {
-				give_guarantee = AZE
+			OTT = { 
+				give_guarantee = AZE 
+				diplomatic_relation = {
+					country = AZE
+					relation = non_aggression_pact
+				} 
 			}
-			RUS = {
-				give_guarantee = AZE
+			RUS = { 
+				give_guarantee = AZE 
+				diplomatic_relation = {
+					country = AZE
+					relation = non_aggression_pact
+				}
+				add_opinion_modifier = {
+					target = AZE
+					modifier = KR_trade_agreement
+				}
 			}
-		}	
+		}
 	}
 }
 
@@ -10878,18 +11341,20 @@ country_event = {	#Russians offer whitepeace
 				}
 			}
 		}
-		RUS = {
-			save_event_target_as = white_peace_receiver
-		}
-		every_country = {
-			limit = {
-				OR = {
-					is_in_faction_with = TUR
-					is_subject_of = TUR
-					tag = TUR
-				}	
+		hidden_effect = {
+			RUS = {
+				save_event_target_as = white_peace_receiver
 			}
-			white_peace_with_TARGET = yes
+			every_country = {
+				limit = {
+					OR = {
+						is_in_faction_with = TUR
+						is_subject_of = TUR
+						tag = TUR
+					}	
+				}
+				white_peace_with_TARGET = yes
+			}
 		}
 	}
 	option = {
@@ -10927,6 +11392,7 @@ country_event = {	#Ottoman Empire in Disarray!
 					tag = JBS
 					tag = YEM
 				}
+				is_subject = no
 			}
 			EGY = {
 				add_to_faction = ROOT
@@ -14428,6 +14894,7 @@ country_event = {	#To Unite the Faithfuls?
 			583 = { add_core_of = TUR }
 			588 = { add_core_of = TUR }
 			708 = {	add_core_of = TUR }
+			1275 = { add_core_of = TUR }
 			country_event = {
 				id = ottars.14
 				days = 2
