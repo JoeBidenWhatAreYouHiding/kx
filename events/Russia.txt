@@ -14927,7 +14927,11 @@ country_event = { #RSDRP
 		remove_all_ministers_but_hog = yes
 		add_ideas = RUS_Vladimir_A_Karelin_for_syn
 		add_ideas = RUS_Boris_I_Nikolayevsky_eco_sde
-		add_ideas = RUS_Aleksey_I_Rykov_sec_rso
+		if = {
+			limit = { has_country_flag = Aleksey_Rykov_dead }
+			add_ideas = RUS_Andrey_Zhdanov_sec_rso
+		}
+		else = { add_ideas = RUS_Aleksey_I_Rykov_sec_rso }
 	}
 }
 country_event = { #RSDRP
@@ -19158,7 +19162,7 @@ country_event = { #The Patriarch's Demands
 			picture = "gfx/leaders/RUS/Portrait_RUS_Sergius_Stragorodsky.png"
 			expire = "1.1.1"
 			ideology = theocracy_subtype
-			traits = {}
+			traits = { RUS_patriarch_of_moscow_and_all_russias }
 		}			
 	}
 }
@@ -19295,6 +19299,7 @@ country_event = { #Status of the Orthodox Church
 				has_completed_focus = RUS_God_Save_the_Tsar
 				has_country_flag = RUS_PUR
 				has_idea = RUS_Patriarch_Sergius_hog_pau
+				has_idea = RUS_Patriarch_Isaac_hog_pau
 			}
 		}
 		ai_chance = {
@@ -22235,12 +22240,12 @@ country_event = {
 	title = rusd.1091.t
 	desc = rusd.1091.d
 
-	fire_only_once = yes
 	is_triggered_only = yes
 	trigger = {
-		NOT = { 
-			has_country_flag = soviet_russia_restored 
-			RUS_patriarch_sergius = yes
+		NOT = {  has_country_flag = soviet_russia_restored }
+		OR = {
+			tag = RUS
+			DKB_brp_in_power = yes
 		}
 	}
 	option = {
@@ -22257,7 +22262,28 @@ country_event = {
 				has_idea = RUS_Patriarch_Sergius_hog_pau
 			}
 			remove_ideas = RUS_Patriarch_Sergius_hog_pau
-			add_ideas = RUS_Patriarch_Kirill_hog_pau
+			add_ideas = RUS_Patriarch_Isaac_hog_pau
+		}
+		if = {
+			limit = {
+				RUS_patriarch_sergius = yes
+			}
+			if = { limit = { has_country_leader_ideology = theocracy_subtype } }
+				create_country_leader = {
+				name = "Isaac"
+				picture = "gfx/leaders/RUS/Portrait_RUS_Isaac_Vinogradov.png"
+				expire = "1.1.1"
+				ideology = theocracy_subtype
+				traits = { RUS_patriarch_of_moscow_and_all_russias }
+			}
+			else_if = { limit = { has_country_leader_ideology = theocracy_subtype } }
+				create_country_leader = {
+				name = "Isaac"
+				picture = "gfx/leaders/RUS/Portrait_RUS_Isaac_Vinogradov.png"
+				expire = "1.1.1"
+				ideology = fundementalism_subtype
+				traits = { RUS_patriarch_of_moscow_and_all_russias }
+			}
 		}
 	}
 }
@@ -33847,7 +33873,11 @@ country_event = { #
 		}
 		hidden_effect = {
 			SOV_disband_soviet_congress = yes
-			random_other_country = { news_event = rcw.496 }
+			if = {
+				limit = { NOT = { has_global_flag = SOV_second_october_news_fired_already } }
+				random_other_country = { news_event = rcw.496 }
+				set_global_flag = SOV_second_october_news_fired_already
+			}
 		}
 	}
 	option = {
@@ -33867,7 +33897,11 @@ country_event = { #
 		}		
 		hidden_effect = {
 			SOV_disband_soviet_congress = yes
-			random_other_country = { news_event = rcw.496 }
+			if = {
+				limit = { NOT = { has_global_flag = SOV_second_october_news_fired_already } }
+				random_other_country = { news_event = rcw.496 }
+				set_global_flag = SOV_second_october_news_fired_already
+			}
 		}
 	}
 }
@@ -47223,6 +47257,30 @@ country_event = { #Alaska Lev Sedov
 		activate_targeted_decision = { target = ALA decision = RUS_Attack_Country_default }
 	}
 }
+country_event = { #Kuznetsk Colony
+	id = russoc.542
+	immediate = { log = "[GetDateText]: [Root.GetName]: event russoc.542" }
+	title = russoc.542.t
+	desc = russoc.542.d
+	picture = GFX_report_event_RUS_kuznetsk
+	
+	fire_only_once = yes
+	is_triggered_only = yes
+	
+	option = { #
+		name = russoc.542.a
+		569 = {
+			add_manpower = 3000
+			increase_state_category_by_one_level = yes
+			add_extra_state_shared_building_slots = 1
+			add_building_construction = {
+				type = industrial_complex
+				level = 1
+				instant_build = yes
+			}
+		}
+	}
+}
 
 ### Don-Kuban seizes Astrakhan ###
 country_event = {
@@ -51637,10 +51695,10 @@ country_event = { #Join Rostorg?
 	picture = GFX_report_event_generic_read_write
 
 	trigger = {
-		is_in_faction_with = RUS
+		is_in_faction_with = FROM
 		RUS_is_in_rostorg = no
 		NOT = {
-			any_enemy_country = { is_ally_with = RUS }
+			any_enemy_country = { is_ally_with = FROM }
 		}
 	}
 
@@ -51657,14 +51715,14 @@ country_event = { #Join Rostorg?
 			}
 			modifier = {
 				add = -10
-				RUS = { has_idea = RUS_moscow_accord_leader_expansionist }
+				FROM = { has_idea = RUS_moscow_accord_leader_expansionist }
 			}
 		}
 		add_political_power = -25
 		RUS_add_to_rostorg = yes
 		if = {
 			limit = { is_subject = no }
-			RUS = {
+			FROM = {
 				country_event = { id = rusfor.8 days = 1 }
 			}
 		}
@@ -51680,11 +51738,11 @@ country_event = { #Join Rostorg?
 			factor = 20
 			modifier = {
 				factor = 0
-				ic_ratio = { tag = RUS ratio < 0.1 }
+				ic_ratio = { tag = FROM ratio < 0.1 }
 			}
 		}
 		add_political_power = 25
-		RUS = {
+		FROM = {
 			country_event = { id = rusfor.9 days = 1 }
 		}
 	}
@@ -63430,8 +63488,8 @@ country_event = { # Iranian aid
 	option = {
 		name = rusfor.1123.a
 		ai_chance = { base = 1 }
-		RUS = { 
-			country_event = { id = rusfor.534 days = 2 }
+		FROM = { 
+			country_event = { id = rusfor.1124 days = 2 }
 			set_country_flag = RUS_iranian_aid_sent 
 		}
 		if = {
@@ -63443,7 +63501,7 @@ country_event = { # Iranian aid
 		name = rusfor.1123.b
 		ai_chance = { base = 0 }
 		set_country_flag = RUS_iranian_aid_refused
-		RUS = { 
+		FROM = { 
 			country_event = { id = rusfor.11240 days = 2 }
 		}
 	}
@@ -63460,7 +63518,7 @@ country_event = { # Iranian aid
 
 	option = {
 		name = rusfor.1124.a
-		RUS = {
+		ROOT = {
 			add_relation_modifier = {
 				target = PER
 				modifier = volunteer_limit_plus_two
@@ -66325,7 +66383,10 @@ country_event = { #WHR question
 	option = {
 		name = rusfor.1240.a
 		trigger = {
-			RUS_is_expansionist = yes
+			OR = {
+				RUS_is_expansionist = yes
+				NOT = { tag = RUS }
+			}
 		}
 		ai_chance = {
 			factor = 100
@@ -66387,9 +66448,22 @@ country_event = { #WHR question
 				}
 			}
 		}
-		declare_war_on = {
-			target = WHR
-			type = annex_everything
+		if = {
+			limit = { 
+				WHR = {
+					OR = {
+						is_in_faction = yes
+						is_subject = yes
+					}
+				} 
+			}			
+			activate_targeted_decision = { target = WHR decision = RUS_Attack_Country_default }
+		}
+		else = {
+			declare_war_on = {
+				target = WHR
+				type = annex_everything
+			}
 		}
 	}
 	option = {
@@ -66562,7 +66636,6 @@ country_event = { #WHR question
 		}
 		if = {
 			limit = {
-				country_exists = RUS
 				RUS = {
 					is_subject = no
 					has_socialist_government = no
@@ -66571,10 +66644,10 @@ country_event = { #WHR question
 						is_in_faction_with = GER
 					}
 				}
-				NOT = { has_war_with = RUS }
+				NOT = { has_war_with = FROM }
 			}
 			get_current_government_type = yes
-			RUS = {
+			FROM = {
 				set_autonomy = {
 					target = WHR
 					autonomy_state = kr_autonomous_puppet
@@ -66590,7 +66663,7 @@ country_event = { #WHR question
 		name = rusfor.1241.b
 		trigger = {
 			OR = {
-				RUS = { RUS_is_open_to_diplomacy = no }
+				FROM = { RUS_is_open_to_diplomacy = no }
 				WHR = { is_ai = no }
 			}
 		}
@@ -66884,9 +66957,22 @@ country_event = { #WHR question
 		ai_chance = {
 			base = 15
 		}
-		declare_war_on = {
-			target = FROM
-			type = annex_everything
+		if = {
+			limit = { 
+				WHR = {
+					OR = {
+						is_in_faction = yes
+						is_subject = yes
+					}
+				} 
+			}			
+			activate_targeted_decision = { target = WHR decision = RUS_Attack_Country_default }
+		}
+		else = {
+			declare_war_on = {
+				target = WHR
+				type = annex_everything
+			}
 		}
 	}
 }
@@ -67185,7 +67271,10 @@ country_event = { #WHR question
 	option = {
 		name = rusfor.12677.a
 		trigger = {
-			RUS_is_expansionist = yes
+			OR = {
+				RUS_is_expansionist = yes
+				NOT = { tag = RUS }
+			}
 		}
 		ai_chance = {
 			factor = 10
@@ -67200,9 +67289,22 @@ country_event = { #WHR question
 			}
 		}
 		add_stability = -0.05
-		declare_war_on = {
-			target = FROM
-			type = annex_everything
+		if = {
+			limit = { 
+				WHR = {
+					OR = {
+						is_in_faction = yes
+						is_subject = yes
+					}
+				} 
+			}			
+			activate_targeted_decision = { target = WHR decision = RUS_Attack_Country_default }
+		}
+		else = {
+			declare_war_on = {
+				target = WHR
+				type = annex_everything
+			}
 		}
 	}
 	option = {
