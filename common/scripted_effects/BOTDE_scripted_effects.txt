@@ -330,6 +330,13 @@ CONST_do_additional_revolt_progress = {
 	set_temp_variable = { CONST_revolt_rate_rising_stability = AUS.stability }
 	set_temp_variable = { CONST_revolt_rate_rising_THIS_stability = stability }
 	set_temp_variable = { CONST_revolt_rate_rising_AUS = AUS.num_of_factories }
+	if = {
+		limit = { exists = no } #disables factory and army effects if the const doesn't exist because it makes its revolt progress decrease too much
+		set_temp_variable = { CONST_revolt_rate_rising = num_core_states }
+		set_temp_variable = { CONST_revolt_rate_rising_battalion_ROOT = 0 }
+		set_temp_variable = { CONST_revolt_rate_rising_battalion_AUS = 0 }
+		set_temp_variable = { CONST_revolt_rate_rising_THIS_stability = AUS.stability }
+	}
 	divide_temp_variable = { CONST_revolt_rate_rising_THIS_stability = 3 }
 	add_to_temp_variable = { CONST_revolt_rate_rising_stability = CONST_revolt_rate_rising_THIS_stability }
 	add_to_temp_variable = { CONST_revolt_rate_rising_stability = -1.2 }
@@ -2114,6 +2121,10 @@ BOTDE_disable_collapse_system = {
 			set_variable = { THIS.final_revolt_progress = THIS.subject_revolt_progress }
 			clear_variable = THIS.subject_revolt_progress
 		}
+		every_possible_country = {
+			limit = { has_country_flag = BOTDE_considered_a_const_even_if_it_doesnt_exist }
+			clr_country_flag = BOTDE_considered_a_const_even_if_it_doesnt_exist
+		}
 		if = {
 			limit = {
 				OR = {
@@ -2744,6 +2755,34 @@ THIS_add_one_percent_to_extra_value = {
 THIS_subtract_one_percent_to_extra_value = {
 	set_temp_variable = { revolt_rate_change = -0.01 }
 	BOTDE_add_revolt_rate = yes
+}
+
+HUN_add_zero_point_two_percent_to_extra_value = {
+	HUN = {
+		set_temp_variable = { revolt_rate_change = 0.002 }
+		BOTDE_add_revolt_rate = yes
+	}
+}
+
+HUN_add_zero_point_five_percent_to_extra_value = {
+	HUN = {
+		set_temp_variable = { revolt_rate_change = 0.005 }
+		BOTDE_add_revolt_rate = yes
+	}
+}
+
+HUN_add_one_percent_to_extra_value = {
+	HUN = {
+		set_temp_variable = { revolt_rate_change = 0.01 }
+		BOTDE_add_revolt_rate = yes
+	}
+}
+
+HUN_subtract_zero_point_five_percent_to_extra_value = {
+	HUN = {
+		set_temp_variable = { revolt_rate_change = -0.005 }
+		BOTDE_add_revolt_rate = yes
+	}
 }
 
 ALL_add_one_percent_to_extra_value = {
@@ -4670,28 +4709,33 @@ AUS_gleich_add_hungarian_grievance = {
 }
 
 CZE_do_revolt = {
-	clear_all_relations = yes
-	set_country_flag = BOTDE_has_revolted_before
+	CZE = { 
+		if = {
+			limit = { exists = no }
+			AUS = {
+				every_owned_controlled_state = {
+					limit = { is_core_of = CRO }
+					transfer_state_to = CRO
+				}
+			}
+		}
+		if = {
+			limit = { check_variable = { THIS.industrial_stuff_local > 0 } }
+			subtract_from_variable = { THIS.industrial_stuff_local = 1 }
+		}
+		clear_all_relations = yes
+		set_country_flag = BOTDE_has_revolted_before
+		if = {
+			limit = { AUS_DWV_member = yes }
+			AUS_remove_from_DWV =  yes
+		}
+	}
 	AUS = {
 		country_event = revolt.7 #Notification
 		every_owned_state = {
 			limit = { is_core_of = CZE }
 			transfer_state_to = CZE
 		}
-	}
-	CZE = { 
-		if = {
-			limit = { AUS_DWV_member = yes }
-			AUS_remove_from_DWV =  yes
-		}
-	}
-	if = {
-		limit = {
-			CZE = {
-				check_variable = { THIS.industrial_stuff_local > 0 }
-			}
-		}
-		subtract_from_variable = { THIS.industrial_stuff_local = 1 }
 	}
 	hidden_effect = {
 		set_global_flag = { flag = CZE_recent_revolt days = 720 value = 1 }
@@ -4888,6 +4932,15 @@ CZE_bohemian_revolution_effect = {
 
 CRO_do_revolt = {
 	CRO = {
+		if = {
+			limit = { exists = no }
+			AUS = {
+				every_owned_controlled_state = {
+					limit = { is_core_of = CRO }
+					transfer_state_to = CRO
+				}
+			}
+		}
 		CRO_remove_karl = yes
 		set_cosmetic_tag = CRO_collapse
 		set_country_flag = cro_revolt_in_progress
@@ -5002,17 +5055,26 @@ SLO_CRO_sponsored_revolt_effect = {
 }
 
 HUN_do_revolt = {
-	set_politics = {
-		ruling_party = social_conservative
-		elections_allowed = no
-	}
-	hidden_effect = {
-		increase_ruling_party_popularity_by_30 = yes
-		remove_ideas_with_trait = head_of_government
-		add_ideas = HUN_Zoltan_Tildy_hog_sco
-		clear_all_relations = yes
-	}
 	HUN = {
+		if = {
+			limit = { exists = no }
+			AUS = {
+				every_owned_controlled_state = {
+					limit = { is_core_of = HUN }
+					transfer_state_to = HUN
+				}
+			}
+		}
+		set_politics = {
+			ruling_party = social_conservative
+			elections_allowed = no
+		}
+		hidden_effect = {
+			increase_ruling_party_popularity_by_30 = yes
+			remove_ideas_with_trait = head_of_government
+			add_ideas = HUN_Zoltan_Tildy_hog_sco
+			clear_all_relations = yes
+		}
 		separate_peace_all_wars = yes
 		leave_faction = yes
 		load_oob = HUN_AUS_Civil_war
@@ -5048,6 +5110,16 @@ HUN_do_revolt = {
 
 GAL_do_revolt = {
 	GAL = {
+		if = {
+			limit = { exists = no }
+			AUS = {
+				every_owned_controlled_state = {
+					limit = { is_core_of = GAL }
+					transfer_state_to = GAL
+				}
+			}
+			load_oob = "GAL"
+		}
 		GAL_remove_karl = yes
 		GAL_create_liquidators = yes
 		set_cosmetic_tag = GAL_collapse
@@ -5994,6 +6066,10 @@ AUS_blow_the_fuck_up_and_make_the_yugoslav_wars_look_like_a_joke = {
 		every_possible_country = {
 			limit = { has_country_flag = botde_considered_sovereign }
 			clr_country_flag = botde_considered_sovereign
+		}
+		every_possible_country = {
+			limit = { has_country_flag = BOTDE_considered_a_const_even_if_it_doesnt_exist }
+			clr_country_flag = BOTDE_considered_a_const_even_if_it_doesnt_exist
 		}
 		every_possible_country = {
 			limit = { has_country_flag = trialist_extra }
@@ -8974,7 +9050,7 @@ AUS_annex_const_effect = {
 		}
 		if = {
 			limit = { is_in_array = { global.constituents_array = THIS } }
-			remove_from_array = { global.constituents_array = THIS }
+			set_country_flag = BOTDE_considered_a_const_even_if_it_doesnt_exist
 		}
 	}
 }
@@ -8987,13 +9063,7 @@ AUS_federalize_effect = {
 			limit = {
 				THIS = { AUS_is_constituent = yes }
 				NOT = {
-					AND = {
-						tag = HUN
-						NOT = { 
-							has_global_flag = AUS_autonomous_transleithania
-							has_global_flag = AUS_autonomous_transleithania_minorities
-						}
-					}
+					has_country_flag = BOTDE_const_wont_federalize_immediately
 					tag = ALA
 					tag = ENG
 				}
@@ -9008,13 +9078,7 @@ AUS_federalize_effect = {
 			limit = {
 				THIS = { AUS_is_constituent = yes }
 				NOT = {
-					AND = {
-						tag = HUN
-						NOT = { 
-							has_global_flag = AUS_autonomous_transleithania
-							has_global_flag = AUS_autonomous_transleithania_minorities
-						}
-					}
+					has_country_flag = BOTDE_const_wont_federalize_immediately
 					tag = AUS
 					tag = ALA
 					tag = ENG
@@ -9843,6 +9907,7 @@ BOTDE_minority_pulse_test = {
 					}
 					has_country_flag = no_minority_revolt
 					has_country_flag = AUS_evidenzbureau_minority_focus
+					has_global_flag = AUS_pause_collapse_flag 
 				}
 			}
 			do_minority_rise = yes
@@ -12868,6 +12933,7 @@ AUS_ausgleich_ending_effect = {
 	}
 	if = {
 		limit = { has_global_flag = AUS_autonomous_transleithania_minorities }
+		HUN = { set_country_flag =  BOTDE_const_wont_federalize_immediately }
 		AUS_divide_hungary_effect = yes
 		AUS = {
 			country_event = {
@@ -12876,6 +12942,10 @@ AUS_ausgleich_ending_effect = {
 				random_hours = 24
 			}
 		}
+	}
+	if = {
+		limit = { has_global_flag = AUS_autonomous_transleithania }
+		HUN = { set_country_flag =  BOTDE_const_wont_federalize_immediately }
 	}
 	if = {
 		limit = { has_global_flag = AUS_ausgleich_illyria_promoted_AUS }
@@ -12919,35 +12989,54 @@ AUS_ausgleich_ending_effect = {
 		}
 		clr_global_flag = ausgleich_eu_illyria
 	}
+
 	if = {
 		limit = { has_global_flag = AUS_ausgleich_common_army_law_small }
 		AUS_ausgleich_small_common_army_effect = yes
 		clr_global_flag = AUS_ausgleich_common_army_law_small
 	}
-	if = {
+	else_if = {
 		limit = { has_global_flag = AUS_ausgleich_common_army_law_medium }
 		AUS_ausgleich_medium_common_army_effect = yes
 		clr_global_flag = AUS_ausgleich_common_army_law_medium
 	}
-	if = {
+	else_if = {
 		limit = { has_global_flag = AUS_ausgleich_common_army_law_large }
 		AUS_ausgleich_large_common_army_effect = yes
 		clr_global_flag = AUS_ausgleich_common_army_law_large
 	}
+
 	if = {
 		limit = { has_global_flag = AUS_ausgleich_common_army_law_unity_small }
 		AUS_ausgleich_common_army_law_unity_small_effect = yes
 		clr_global_flag = AUS_ausgleich_common_army_law_unity_small
 	}
-	if = {
+	else_if = {
 		limit = { has_global_flag = AUS_ausgleich_common_army_law_unity_medium }
 		AUS_ausgleich_common_army_law_unity_medium_effect = yes
 		clr_global_flag = AUS_ausgleich_common_army_law_unity_medium
 	}
-	if = {
+	else_if = {
 		limit = { has_global_flag = AUS_ausgleich_common_army_law_unity_large }
 		AUS_ausgleich_common_army_law_unity_large_effect = yes
 		clr_global_flag = AUS_ausgleich_common_army_law_unity_large
+	}
+
+	if = {
+		limit = { has_global_flag = AUS_terrible_ausgleich }
+		HUN_add_one_percent_to_extra_value = yes
+	}
+	else_if = {
+		limit = { has_global_flag = AUS_bad_ausgleich }
+		HUN_add_zero_point_five_percent_to_extra_value = yes
+	}
+	else_if = {
+		limit = { has_global_flag = AUS_meh_ausgleich }
+		HUN_add_zero_point_two_percent_to_extra_value = yes
+	}
+	else_if = {
+		limit = { has_global_flag = AUS_good_ausgleich }
+		HUN_subtract_zero_point_five_percent_to_extra_value = yes
 	}
 }
 AUS_ausgleich_small_common_army_effect = {
@@ -13086,38 +13175,26 @@ AUS_ausgleich_const_revolt_success_effect = {
 			check_variable = { temp_num < 0.5 }
 			check_variable = { global.ausgleich_attendants^num > 3 }
 		}
-		add_to_variable = {
-			var = global.ausgleich_successes
-			value = 1
-		}
+		add_to_variable = { global.ausgleich_successes = 1 }
 	}
 	else_if = {
 		limit = {
 			check_variable = { temp_num < 0.75 }
 		}
-		add_to_variable = {
-			var = global.ausgleich_successes
-			value = 1
-		}
+		add_to_variable = { global.ausgleich_successes = 1 }
 	}
 	else_if = {
 		limit = {
 			check_variable = { temp_num > 1.5 }
 		}
-		add_to_variable = {
-			var = global.ausgleich_successes
-			value = -1
-		}
+		add_to_variable = { global.ausgleich_successes = -1 }
 	}
 	else_if = {
 		limit = {
 			check_variable = { temp_num > 2 }
 			check_variable = { global.ausgleich_attendants^num > 3 }
 		}
-		add_to_variable = {
-			var = global.ausgleich_successes
-			value = -1
-		}
+		add_to_variable = { global.ausgleich_successes = -1 }
 	}
 }
 AUS_ausgleich_common_army_law_unity_small_effect = {
@@ -14841,20 +14918,32 @@ SER_revolt_mission_timeout_effect = {
 			set_cosmetic_tag = BOS_SER_revolt
 			if = {
 				limit = { SER = { has_government = national_populist } }
+				create_country_leader = {
+					name = "Fehim Musakadić"
+					desc = ""
+					picture = "gfx/leaders/BOS/Portrait_BOS_Fehim_Musakadic.png"
+					expire = "1.1.1"
+					ideology = natpop_yugoslavism_subtype
+				}
 				set_politics = { ruling_party = national_populist }
-				increase_ruling_party_popularity_by_10 = yes
 			}
-			if = {
-				limit = { SER = { has_government = paternal_autocrat } }
-				set_politics = { ruling_party = paternal_autocrat }
-				increase_ruling_party_popularity_by_10 = yes
+			else = {
+				set_politics = { ruling_party = market_liberal }
+				add_soccon_to_coalition = yes
 			}
-			else = { set_politics = { ruling_party = social_conservative } }
+			increase_ruling_party_popularity_by_10 = yes
 		}
 		if = {
 			limit = { tag = SKS }
 			if = {
 				limit = { SER = { has_government = national_populist } }
+				create_country_leader = {
+					name = "Jezdimir Dangić"
+					desc = ""
+					picture = "gfx/leaders/SKS/SKS_Jezdimir_Dangic.png"
+					expire = "1.1.1"
+					ideology = natpop_yugoslavism_subtype
+				}
 				set_politics = { ruling_party = national_populist }
 			}
 		}
@@ -14863,10 +14952,17 @@ SER_revolt_mission_timeout_effect = {
 			set_cosmetic_tag = SLO_revolt
 			if = {
 				limit = { SER = { has_government = national_populist } }
+				create_country_leader = {
+					name = "Ernest Peterlin"
+					desc = ""
+					picture = "gfx/leaders/SLO/Portrait_SLO_Ernest_Peterlin.png"
+					expire = "1.1.1"
+					ideology = natpop_yugoslavism_subtype
+				}
 				set_politics = { ruling_party = national_populist }
 			}
-			else = { set_politics = { ruling_party = paternal_autocrat } }
-			increase_ruling_party_popularity_by_50 = yes
+			else = { set_politics = { ruling_party = social_conservative } }
+			increase_ruling_party_popularity_by_10 = yes
 		}
 	}
 	clear_global_event_target = BOTDE_backer_revolt_tag
@@ -14984,8 +15080,8 @@ ROM_invent_banat_effect = {
 				limit = { tag = HUN }
 				country_event = {
 					id = bdeausfor.87
-					days = 45
-					random = 720
+					days = 3
+					random = 264
 				}
 			}
 		}
@@ -15988,6 +16084,12 @@ AUS_display_weekly_const_revolt_modifiers_effect = {
 			set_temp_variable = { temp_var = num_battalions }
 			set_temp_variable = { temp_var_2 = AUS.stability }
 			set_temp_variable = { temp_var_3 = stability }
+			if = {
+				limit = { exists = no }
+				set_temp_variable = { modifier = num_core_states }
+				set_temp_variable = { temp_var = 0 }
+				set_temp_variable = { temp_var_3 = AUS.stability }
+			}
 			add_to_temp_variable = { temp_var_2 = -1.2 }
 			divide_temp_variable = { temp_var_3 = 3 }
 			add_to_temp_variable = { temp_var_2 = temp_var_3 }
@@ -16007,6 +16109,10 @@ AUS_display_weekly_const_revolt_modifiers_effect = {
 			set_temp_variable = { modifier = num_battalions }
 			divide_temp_variable = { modifier = 10000 }
 			if = {
+				limit = { exists = no }
+				set_temp_variable = { modifier = 0 }
+			}
+			if = {
 				limit = { NOT = { check_variable = { modifier = 0 } } }
 				custom_effect_tooltip = AUS_const_tooltip_modifier_battalions
 			}
@@ -16016,6 +16122,10 @@ AUS_display_weekly_const_revolt_modifiers_effect = {
 			set_temp_variable = { modifier = AUS.num_battalions }
 			divide_temp_variable = { modifier = -50000 }
 			if = {
+				limit = { exists = no }
+				set_temp_variable = { modifier = 0 }
+			}
+			if = {
 				limit = { NOT = { check_variable = { modifier = 0 } } }
 				custom_effect_tooltip = AUS_const_tooltip_modifier_aus_battalions
 			}
@@ -16023,10 +16133,20 @@ AUS_display_weekly_const_revolt_modifiers_effect = {
 		if = { #austrian factories
 			limit = { check_variable = { current_modifier = 4 } }
 			set_temp_variable = { modifier = AUS.num_of_factories }
+			if = {
+				limit = { exists = no }
+				set_temp_variable = { modifier = num_core_states }
+			}
 			divide_temp_variable = { modifier = -7500 }
 			if = {
 				limit = { NOT = { check_variable = { modifier = 0 } } }
-				custom_effect_tooltip = AUS_const_tooltip_modifier_aus_factories
+				if = {
+					limit = { exists = yes }
+					custom_effect_tooltip = AUS_const_tooltip_modifier_aus_factories
+				}
+				else = {
+					custom_effect_tooltip = AUS_const_tooltip_modifier_num_of_core_states
+				}
 			}
 		}
 		if = { #evidenzbureau
