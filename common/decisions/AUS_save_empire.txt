@@ -106,7 +106,7 @@ save_austria = {
 		days_mission_timeout = 60
 		timeout_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision timeout AUS_ROM_revolt_mission"
-			custom_effect_tooltip = AUS_revolt_will_begin_war_with_serbia_maybe
+			custom_effect_tooltip = AUS_revolt_will_begin_war_with_romania_maybe
 		}
 	}
 	AUS_ROM_revolt_mission_delay = {
@@ -2132,7 +2132,7 @@ save_austria = {
 					}
 				}
 				FROM = { is_owned_by = ROOT }
-				is_in_faction_with = AUS
+				is_ally_with = AUS
 			}
 			NOT = { has_country_flag = paramilitary_decisions_hidden }
 		}
@@ -2149,7 +2149,7 @@ save_austria = {
 				owner = {
 					OR = {
 						tag = AUS
-						is_subject_of = AUS
+						is_ally_with = AUS
 					}
 				}
 			}
@@ -2160,7 +2160,11 @@ save_austria = {
 				FROM = { has_state_flag = BOTDE_state_undergoing_operation }
 			}
 		}
-		fire_only_once = no
+		cancel_trigger = {
+			hidden_trigger = {
+				FROM = { AUS_has_minority_paramilitary_presence = no }
+			}
+		}
 		
 		days_remove = 14
 		fixed_random_seed = no
@@ -2173,12 +2177,23 @@ save_austria = {
 			hidden_effect = {
 				FROM = { set_state_flag = BOTDE_state_undergoing_operation }
 				set_country_flag = AUS_undergoing_operation
-				add_command_power = -25
-				army_experience = -10			
+				add_command_power = -10
+				army_experience = -10
+			}
+		}
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel AUS_attack_minority_paramilitary target: [From.GetName]"
+			hidden_effect = {
+				clr_country_flag = AUS_undergoing_operation
+				FROM = { clr_state_flag = BOTDE_state_undergoing_operation }
+				add_command_power = 10
+				army_experience = 10
 			}
 		}
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove AUS_attack_minority_paramilitary target: [From.GetName]"
+			clr_country_flag = AUS_undergoing_operation
+			FROM = { clr_state_flag = BOTDE_state_undergoing_operation }
 			random_list = {
 				60 = {
 					modifier = {
@@ -2189,11 +2204,11 @@ save_austria = {
 					modifier = {
 						FROM = { state = 789 }
 						ROOT = { has_country_flag = AUS_szekler_sztuff }
-						add = 35
+						add = -35
 					}
 					modifier = {
 						FROM = { owner = { has_country_flag = AUS_evidenzbureau_focus } }
-						factor = 0.9
+						factor = 0.5
 					}
 					if = {
 						limit = { is_ai = no }
@@ -2213,7 +2228,7 @@ save_austria = {
 						add = supps
 					}
 					modifier = {
-						set_temp_variable = { whatthefuck2 = ROOT.stability }
+						set_temp_variable = { whatthefuck2 = FROM.owner.stability }
 						clamp_temp_variable = {
 							var = whatthefuck2
 							min = 0
@@ -2233,16 +2248,14 @@ save_austria = {
 						add = whatthefuck
 					}
 					modifier = {
-						factor = 0.75
-						divisions_in_state = {
-							type = infantry
-							size > 5
-							state = FROM
-						}
+						set_temp_variable = { temp_armies = num_armies_in_state@FROM }
+						multiply_temp_variable = { temp_armies = 0.25 }
+						add_to_temp_variable = { temp_armies = 1 }
+						factor = temp_armies
 					}
 					modifier = {
 						FROM = { owner = { has_country_flag = AUS_evidenzbureau_focus } }
-						factor = 1.1
+						factor = 1.25
 					}
 					hidden_effect = {
 						scoped_sound_effect = "AUS_paramilitary_pacified"
@@ -2258,8 +2271,6 @@ save_austria = {
 					}
 				}
 			}
-			clr_country_flag = AUS_undergoing_operation
-			FROM = { clr_state_flag = BOTDE_state_undergoing_operation }
 		}
 	}
 	
