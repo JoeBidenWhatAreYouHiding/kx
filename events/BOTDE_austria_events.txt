@@ -3642,7 +3642,7 @@ country_event = { #An Ancient Aryan Burial Site
 	is_triggered_only = yes
 
 	option = { #Let's look into the Sitecah and the legends of ancient root-races.
-		name = bdeaus.49.a
+		name = bdeaus.39.a
 		
 	}
 }
@@ -15370,6 +15370,33 @@ country_event = { #Plan for the Ausgleich
 
 	is_triggered_only = yes
 
+	after = {
+		if = {
+			limit = { has_idea = AUS_approaching_ausgleich }
+			remove_ideas = AUS_approaching_ausgleich
+		}
+		hidden_effect = {
+			if = {
+				limit = {
+					OR = {
+						has_government = social_liberal
+						has_government = paternal_autocrat
+					}
+				}
+				country_event = {
+					id = bdeausgleichflavor.6
+					days = 14
+					random_hours = 120
+				}
+			}
+			country_event = {
+				id = bdeausgleich.3
+				days = 8
+				random_hours = 72
+			}
+		}
+	}
+
 	option = { #No way. This is between us and the Magyars.
 		name = bdeausgleich.1.a
 		ai_chance = {
@@ -15403,16 +15430,8 @@ country_event = { #Plan for the Ausgleich
 		else = {
 			add_to_variable = { global.ausgleich_successes = -1 }
 		}
-		remove_ideas = AUS_approaching_ausgleich
 		set_global_flag = AUS_ausgleich_hungary
 		HUN_subtract_five_collapse = yes
-		hidden_effect = {
-			country_event = {
-				id = bdeausgleich.3
-				days = 8
-				random_hours = 72
-			}
-		}
 	}
 	
 	option = { #Discuss this with just the 5 constituents.
@@ -15457,17 +15476,9 @@ country_event = { #Plan for the Ausgleich
 			}
 			add_to_variable = { global.ausgleich_successes = 1 }
 		}
-		remove_ideas = AUS_approaching_ausgleich
 		set_global_flag = AUS_ausgleich_kingdoms
 		ALL_subtract_five_collapse = yes
-		hidden_effect = {
-			country_event = {
-				id = bdeausgleich.3
-				days = 8
-				random_hours = 72
-			}
-			HUN_add_five_collapse = yes
-		}
+		HUN_add_five_collapse = yes
 	}
 	
 	option = { #All peoples of the Empire must be able to participate.
@@ -15490,12 +15501,29 @@ country_event = { #Plan for the Ausgleich
 				days = 1
 			}
 		}
-		every_country = {
+		every_possible_country = {
 			limit = {
 				OR = {
-					tag = CRO
-					tag = CZE
-					tag = GAL
+					AND = {
+						AUS_is_constituent = yes
+						OR = {
+							tag = CRO
+							tag = CZE
+							tag = GAL
+						}
+					}
+					AND = {
+						AUS_is_minority = yes
+						OR = {
+							tag = SLO
+							tag = SVK
+							tag = BUK
+							tag = TRS
+							tag = BOS
+							tag = WSU
+							tag = MNT
+						}
+					}
 				}
 			}
 			country_event = {
@@ -15503,7 +15531,6 @@ country_event = { #Plan for the Ausgleich
 				days = 1
 			}
 		}
-		remove_ideas = AUS_approaching_ausgleich
 		set_global_flag = AUS_ausgleich_peoples
 		AUS_subtract_one_collapse = yes
 		AUS_lower_all_minorities = yes
@@ -15525,11 +15552,6 @@ country_event = { #Plan for the Ausgleich
 		}
 		hidden_effect = {
 			country_event = {
-				id = bdeausgleich.3
-				days = 8
-				random_hours = 72
-			}
-			country_event = {
 				id = bdeausgleichflavor.4
 				days = 15
 				random_hours = 72
@@ -15539,24 +15561,11 @@ country_event = { #Plan for the Ausgleich
 				days = 30
 				random_hours = 72
 			}
-			if = {
-				limit = {
-					OR = {
-						has_government = social_liberal
-						has_government = paternal_autocrat
-					}
-				}
-				country_event = {
-					id = bdeausgleichflavor.6
-					days = 14
-					random_hours = 120
-				}
-			}
 		}
 	}
 }
 
-country_event = { #CONSTS - Invitation to the Ausgleich
+country_event = { #Invitation to the Ausgleich
 	id = bdeausgleich.2
 	immediate = { log = "[GetDateText]: [Root.GetName]: event bdeausgleich.2 ausgleich success: [?global.ausgleich_successes]" }
 	title = bdeausgleich.2.t
@@ -15569,7 +15578,6 @@ country_event = { #CONSTS - Invitation to the Ausgleich
 	option = { #Let's see what this is all about...
 		name = bdeausgleich.2.a
 		set_country_flag = going_to_le_ausgleich
-		custom_effect_tooltip = ausgleich_in_gui
 	}
 }
 
@@ -15587,17 +15595,19 @@ country_event = { #The Ausgleich Begins (Hidden)
 
 	is_triggered_only = yes
 
-	option = { #Let's see what this is all about...
+	option = {
 		name = bdeausgleich.3.a
 		set_global_flag = AUS_ausgleich_begun
-		every_country = {
+		clear_array = global.ausgleich_attendants
+		get_sorted_scored_countries = {
+		    scorer = BOTDE_ausgleich_priority_score
+		    array = global.ausgleich_attendants
+		}
+		every_possible_country = {
 			limit = {
 				OR = {
 					tag = AUS
-					tag = HUN
-					tag = CZE
-					tag = CRO
-					tag = HUN
+					has_country_flag = going_to_le_ausgleich
 				}
 			}
 			country_event = bdeausgleich.4
@@ -15737,22 +15747,6 @@ country_event = { #The Ausgleich Begins
 					tag = AUS
 					has_country_flag = going_to_le_ausgleich
 				}
-				NOT = {
-					is_in_array = { global.ausgleich_attendants = THIS.id }
-				}
-			}
-			if = {
-				limit = {
-					tag = HUN
-				}
-				add_to_array = {
-					array = global.ausgleich_attendants
-					value = THIS.id
-					index = 1
-				}
-			}
-			else = {
-				add_to_array = { global.ausgleich_attendants = THIS.id }
 			}
 			country_event = {
 				id = bdeausgleich.6
@@ -15942,6 +15936,16 @@ country_event = { #Federal Plan
 	picture = GFX_event_AUS_Federal_Plan_Paper
 	
 	is_triggered_only = yes
+
+	after = {
+		hidden_effect = {
+			clear_array = global.ausgleich_attendants
+			get_sorted_scored_countries = {
+			    scorer = BOTDE_ausgleich_priority_score
+			    array = global.ausgleich_attendants
+			}
+		}
+	}
 
 	option = { #Whether they like it or not, this is the best solution.
 		name = bdeausgleich.6.a
@@ -16632,12 +16636,6 @@ country_event = { #Hungary Withdraws from the Ausgleich
 					has_country_flag = going_to_le_ausgleich
 				}
 				clr_country_flag = going_to_le_ausgleich
-			}
-			if = {
-				limit = {
-					is_in_array = { global.ausgleich_attendants = HUN.id }
-				}
-				remove_from_array = { global.ausgleich_attendants = HUN.id }
 			}
 		}
 		hidden_effect = {
