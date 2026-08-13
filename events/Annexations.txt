@@ -2575,6 +2575,13 @@ country_event = { #Liberation of Austria
 					expire = "1.1.1"
 					ideology = austropopulism_subtype
 				}
+				create_country_leader = {
+					name = "Jörg Lanz von Liebenfels"
+					desc = "POLITICS_LIEBENFELS_DESC"
+					picture = "gfx/leaders/AUS/Portrait_AUS_Liebenfels.png"
+					expire = "1.1.1"
+					ideology = ariosophy_subtype
+				}
 			}
 			every_state = {
 				limit = {
@@ -2671,23 +2678,8 @@ country_event = { #Liberation of Austria
 			set_cosmetic_tag = DNF
 		}
 	}
-	option = { #old idea
-		name = annex.14.c
-		trigger = {
-			is_german_tag = yes
-			NOT = { tag = DKB }
-		}
-		ai_chance = {
-			factor = 100
-		}
-		set_country_flag = AUS_CONQ
-		country_event = annex.15
-	}
 	option = { #occupy
 		name = annex.occupation
-		trigger = {
-			is_german_tag = no
-		}
 		ai_chance = {
 			factor = 0
 		}
@@ -2696,39 +2688,6 @@ country_event = { #Liberation of Austria
 	}
 }
 
-country_event = { #greater Germany
-	id = annex.15
-	immediate = { log = "[GetDateText]: [Root.GetName]: event annex.15" }
-	title = annex.15.t
-	desc = annex.15.d
-	is_triggered_only = yes
-
-	option = {
-		name = annex.15.a
-		occupy_large_country = yes
-		every_state = {
-			limit = {
-				region = 21 #Austria
-				NOT = {
-					state = 102 #Slovenia
-					state = 1272 #Slovenia
-					state = 1101 #Slovenia
-					state = 1103 #Slovenia
-					state = 1104 #Slovenia
-					state = 736 #Istria
-					state = 1100 #Istria
-					state = 1144 #Istria
-					state = 783 #Trentino
-				}
-			}
-			add_core_of = ROOT
-		}
-		add_timed_idea = {
-			idea = GER_Austria_Integration
-			days = 365
-		}
-	}
-}
 country_event = { #Fate of the Aland Islands
 	id = annex.16
 	immediate = { log = "[GetDateText]: [Root.GetName]: event annex.16 FROM = [From.GetName]" }
@@ -5596,13 +5555,14 @@ country_event = { #NOR liberation
 					picture = "gfx/leaders/NOR/Portrait_Norway_Albin_Eines.png"
 					expire = "1.1.1"
 					ideology = natsynd_subtype
+					traits = { NOR_red_pressman }
 				}
 				create_country_leader = {
-					name = "Martin Tranmæl"
-					desc = "POLITICS_Martin_Tranmel_DESC"
-					picture = "gfx/leaders/NOR/Portrait_Norway_Martin_Tranmel.png"
+					name = "Elias Volan"
+					picture = "gfx/leaders/NOR/Portrait_Norway_Elias_Volan.png"
 					expire = "1.1.1"
 					ideology = syndicalist_subtype
+					traits = { trade_union_boss }
 				}
 				create_country_leader = {
 					name = "Martin Tranmæl"
@@ -5610,6 +5570,7 @@ country_event = { #NOR liberation
 					picture = "gfx/leaders/NOR/Portrait_Norway_Martin_Tranmel.png"
 					expire = "1.1.1"
 					ideology = moderate_socialist_subtype
+					traits = { NOR_socialist_organiser }
 				}
 				create_country_leader = {
 					name = "Vidkun Quisling"
@@ -6277,37 +6238,13 @@ country_event = { #SWE liberation
 					}
 				}
 				drop_cosmetic_tag = yes
-				remove_ideas = {
-					# Socialist ideas
-					SWE_union_activity
-					SWE_totalistmilitary
-					SWE_radicalistmilitary
-					SWE_syndicalistmilitary
-					SWE_totalisteconomy
-					SWE_radicalisteconomy
-					SWE_syndicalisteconomy
-					SWE_totalistsociety
-					SWE_radicalistsociety
-					SWE_syndicalistsociety
-					SWE_totalistpeople
-					SWE_radicalistpeople
-					SWE_syndicalistpeople
-					SWE_collectivisation
-					SWE_idea_true_folkhemmet
-					SWE_idea_reactionary_resistance
+				if = {
+					limit = { ROOT = { has_socialist_government = no }}
+					SWE_remove_socialism_effect = yes
 				}
 				if = {
-					limit = { ROOT = { has_socialist_government = yes }}
-					remove_ideas = {
-						SWE_military_work_battalions_idea
-						SWE_stapol_idea
-						SWE_idea_divine_disapproval
-						SWE_idea_divine_approval
-						SWE_corporatized_statare_idea
-						SWE_idea_aggressive_foreign_policy
-						SWE_idea_front_riksledare
-						SWE_idea_riksledare_dead
-					}
+					limit = { ROOT = { has_authoritarian_government = no }}
+					SWE_remove_nationalism_effect = yes
 				}
 			}
 			145 = { retain_state = yes } #Aland
@@ -8946,8 +8883,13 @@ country_event = { #Fate of Bucovina
 			80 = { is_valid_annexation_state = yes } #Cernauti
 			713 = { is_valid_annexation_state = yes } #Suceava
 			OR = {
-				RUS_is_expansionist = yes
-				RUS_russian_monarch = yes
+				AND = {
+					is_russian_tag_that_can_integrate = yes
+					OR = {
+						RUS_is_expansionist = yes
+						RUS_russian_monarch = yes
+					}
+				}
 				AND = {
 					is_ukrainian_tag = yes
 					owns_state = 89 #Stanislawow
@@ -9928,11 +9870,59 @@ country_event = { #The Fate of Russia
 				}
 			}
 		}
-		set_temp_variable = { tag_to_release = RUS }
-		hidden_effect = { remove_all_russian_cores = yes }
-		release_targeted_tag = yes
-		hidden_effect = { RUS_puppet_setup = yes }
-		recheck_annexations = yes
+		if = {
+			limit = { NOT = { tag = GER } }
+			set_temp_variable = { tag_to_release = RUS }
+			hidden_effect = { remove_all_russian_cores = yes }
+			release_targeted_tag = yes
+			hidden_effect = { RUS_puppet_setup = yes }
+			recheck_annexations = yes
+		}
+		else = {
+			set_temp_variable = { tag_to_release = RPG }
+			hidden_effect = { remove_all_russian_cores = yes }
+			release_targeted_tag = yes
+			GER = { 
+				country_event = {
+					id = gerfor.3200
+					days = 5
+				}
+			}	
+			RPG = {
+				create_country_leader = {
+					name = "Militär-General-Gouverneur in Russland"
+					picture = "gfx/leaders/GER/Portrait_Germany_Militar_General_Gouverneur.png"
+					expire = "1.1.1"
+					ideology = junta_subtype
+				}
+				set_party_name = {
+				ideology = paternal_autocrat
+				name = GER_Occupation_Russia_paternal_autocrat_party
+				long_name = GER_Occupation_Russia_paternal_autocrat_party_long
+			    }
+				set_politics = {
+					ruling_party = paternal_autocrat
+					election_frequency = 48
+					elections_allowed = no
+				}
+				set_country_flag = RUS_can_integrate
+				hidden_effect = {
+				set_popularities = {
+					totalist = 15
+					syndicalist = 20
+					radical_socialist = 15
+					social_democrat = 5
+					social_liberal = 0
+					market_liberal = 0
+					social_conservative = 0
+					authoritarian_democrat = 0
+					paternal_autocrat = 45
+					national_populist = 0
+				}
+			    }
+			}
+			recheck_annexations = yes
+		}
 	}
 
 	option = { #liberate core Russia and Siberia
@@ -10003,23 +9993,70 @@ country_event = { #The Fate of Russia
 		}
 		puppet_released_tag = yes
 		custom_effect_tooltip = tooltip_white_line
-		set_temp_variable = { tag_to_release = RUS }
-		hidden_effect = { remove_all_russian_cores = yes }
-		release_targeted_tag = yes
-		hidden_effect = { RUS_puppet_setup = yes }
 		if = {
-		limit = {
-			tag = TTR
-			has_completed_focus = TTR_Khan_In_Kazan
+			limit = { NOT = { tag = GER } }
+			set_temp_variable = { tag_to_release = RUS }
+			hidden_effect = { remove_all_russian_cores = yes }
+			release_targeted_tag = yes
+			hidden_effect = { RUS_puppet_setup = yes }
+			if = {
+			limit = {
+				tag = TTR
+				has_completed_focus = TTR_Khan_In_Kazan
+				}
+				SIB = { set_cosmetic_tag = SIB_KHAN }
 			}
-			SIB = { set_cosmetic_tag = SIB_KHAN }
 		}
+		else = {
+			set_temp_variable = { tag_to_release = RPG }
+			hidden_effect = { remove_all_russian_cores = yes }
+			release_targeted_tag = yes
+			GER = { 
+				country_event = {
+					id = gerfor.3200
+					days = 5
+				}
+			}	
+			RPG = {
+				create_country_leader = {
+					name = "Militär-General-Gouverneur in Russland"
+					picture = "gfx/leaders/GER/Portrait_Germany_Militar_General_Gouverneur.png"
+					expire = "1.1.1"
+					ideology = junta_subtype
+				}
+				set_party_name = {
+				ideology = paternal_autocrat
+				name = GER_Occupation_Russia_paternal_autocrat_party
+				long_name = GER_Occupation_Russia_paternal_autocrat_party_long
+			    }
+				set_politics = {
+					ruling_party = paternal_autocrat
+					election_frequency = 48
+					elections_allowed = no
+				}
+				hidden_effect = {
+				set_popularities = {
+					totalist = 15
+					syndicalist = 20
+					radical_socialist = 15
+					social_democrat = 5
+					social_liberal = 0
+					market_liberal = 0
+					social_conservative = 0
+					authoritarian_democrat = 0
+					paternal_autocrat = 45
+					national_populist = 0
+				}
+			    }
+			}
+		}	
 	}
 
 	option = { #Liberate max Russia
 		name = annex.48.c
 		trigger = {
-			NOT = { 
+			NOT = {  
+				tag = GER
 				tag = TRM 
 				tag = SIB
 			}
@@ -13099,11 +13136,7 @@ country_event = { #The Irish Question
 					}
 				}
 			}
-			hidden_effect = {
-				IRE = {
-					country_event = annex.69
-				}
-			}
+			country_event = annex.69
 		}
 	}
 
@@ -13121,13 +13154,22 @@ country_event = { #The Irish Question
 country_event = { #Irish Government
 	id = annex.69
 	immediate = { log = "[GetDateText]: [Root.GetName]: event annex.69" }
-	title = annex.69
-	desc = annex.69
+	title = annex.69.t
+	desc = annex.69.d
 	is_triggered_only = yes
 
 	option = {
 		name = annex.69.a
-		
+		ai_chance = {
+			factor = 30
+			modifier = {
+				factor = 0
+				OR = {
+					tag = GER
+					tag = NFA
+				}
+			}
+		}
 		if = {
 			limit = {
 				OR = {
@@ -13136,7 +13178,7 @@ country_event = { #Irish Government
 					has_government = radical_socialist
 				}
 			}
-			create_syndicalist_irish_government = yes
+			IRE = { create_syndicalist_irish_government = yes }
 		}
 		if = {
 			limit = {
@@ -13147,7 +13189,7 @@ country_event = { #Irish Government
 					has_government = social_democrat
 				}
 			}
-			create_democratic_irish_government = yes
+			IRE = { create_democratic_irish_government = yes }
 		}
 		if = {
 			limit = {
@@ -13157,40 +13199,30 @@ country_event = { #Irish Government
 					has_government = national_populist
 				}
 			}
-			create_autocratic_irish_government = yes
+			IRE = { create_autocratic_irish_government = yes }
 		}
 	}
 	
 	option = { #Create Monarchy
-
 		name = annex.69.b
-				trigger = {
+		trigger = { 
 			tag = GER
 		}
 		ai_chance = {
 			factor = 30
 		}
-
 		add_political_power = 20
-
-		IRE = {
-			country_event = {
-				id = annex.70
-			}
-		}
+		IRE = { country_event = annex.70 }
 	}
 	option = { #Create Consulate
-
 		name = annex.69.c
-				trigger = {
+		trigger = { 
 			tag = NFA
 		}
 		ai_chance = {
 			factor = 30
 		}
-
 		add_political_power = 20
-
 		IRE = {
 			set_cosmetic_tag = IRE_NFA
 			create_country_leader = {
@@ -13235,7 +13267,7 @@ country_event = { #Irish Government
 				expire = "1.1.1"
 				ideology = natpop_bonapartism_subtype
 			}
-		}
+		}	
 	}
 }
 
@@ -15747,6 +15779,7 @@ country_event = { #The Annexation of Egypt
 				tag = WHR
 				RUS_russian_monarch = yes
 				RUS_patriarch_sergius = yes
+				RUS_patriarch_isaac = yes
 			}
 		}
 		ai_chance = {
@@ -16863,91 +16896,15 @@ country_event = { #The Annexation of Afghanistan
 	picture = GFX_report_event_generic_diplomacy2
 	is_triggered_only = yes
 
-	option = { #puppet
+	option = { #puppet republic
 
 		name = annex.116.a
 		ai_chance = {
-			factor = 99
+			factor = 25
 		}
-		
 		set_temp_variable = { tag_to_release = AFG }
 		release_targeted_tag = yes
-		hidden_effect = {
-			AFG = {
-				create_country_leader = {
-					name = "Ghulam Muhammad Ghobar"
-					desc = ""
-					picture = "gfx/leaders/AFG/Portrait_AFG_Ghulam_Muhammad_Ghobar.png"
-					expire = "1.1.1"
-					ideology = socdem_islamism_subtype
-					traits = {}
-				}
-				create_country_leader = {
-					name = "Abdul Rauf Benawa"
-					desc = ""
-					picture = "gfx/leaders/AFG/Portrait_AFG_Abdul_Rauf_Benawa.png"
-					expire = "1.1.1"
-					ideology = soclib_progressive_democracy_subtype
-					traits = {}
-				}
-				create_country_leader = {
-					name = "Abdul Hadi Dawi"
-					desc = ""
-					picture = "gfx/leaders/AFG/Portrait_AFG_Abdul_Hadi_Dawi.png"
-					expire = "1.1.1"
-					ideology = marlib_kemalism_subtype
-					traits = {}
-				}
-				create_country_leader = {
-					name = "Muhammad Iqbal"
-					desc = ""
-					picture = "gfx/leaders/AFG/Portrait_AFG_Muhammad_Iqbal.png"
-					expire = "1.1.1"
-					ideology = soccon_islamism_subtype
-					traits = {}
-				}
-				create_country_leader = {
-					name = "Inayatullah Khan"
-					desc = ""
-					picture = "gfx/leaders/AFG/Portrait_AFG_Inayatullah_Khan_Suit.png"
-					expire = "1.1.1"
-					ideology = oligarchy_subtype
-					traits = {}
-				}
-				create_country_leader = {
-					name = "Inayatullah Khan"
-					desc = ""
-					picture = "gfx/leaders/AFG/Portrait_AFG_Inayatullah_Khan_Suit.png"
-					expire = "1.1.1"
-					ideology = pataut_oligarchy_subtype
-					traits = {}
-				}
-			}
 			if = {
-				limit = { NOT = { has_country_leader_ideology = natpop_islamism_subtype } }
-				AFG = { 
-				set_party_name = { 
-						ideology = national_populist
-						long_name = AFG_natrev_party_long
-						name = AFG_natrev_party
-					}
-					create_country_leader = {
-						name = "Mohammad Daoud Khan"
-						desc = "POLITICS_DAOUD_KHAN_DESC"
-						picture = "gfx/leaders/AFG/Portrait_AFG_Mohammed_Daoud_Khan.png"
-						expire = "1.1.1"
-						ideology = natpop_popular_patriotism_subtype
-						traits = {}
-					}
-				}
-			}
-			if = {
-				limit = { has_country_leader_ideology = natpop_islamism_subtype }
-				AFG = { 
-				set_cosmetic_tag = AFG_KALAKANI
-				}
-			}
-			if = { 
 				limit = {
 					OR = {
 						tag = CHI 
@@ -17053,6 +17010,25 @@ country_event = { #The Annexation of Afghanistan
 					set_cosmetic_tag = AFG_KMT
 				}
 			}
+			else = {
+			AFG = {
+			AFG_setup_republic = yes
+			}
+		}
+	}
+	option = { #puppet monarchy
+
+		name = annex.116.b
+		ai_chance = {
+			factor = 75
+		}
+		trigger = {
+		has_socialist_government = no
+		}
+		set_temp_variable = { tag_to_release = AFG }
+		release_targeted_tag = yes
+		AFG = {
+		AFG_setup_monarchy = yes
 		}
 	}
 	option = { #buddhist puppet
@@ -18891,12 +18867,8 @@ country_event = { #Fate of Japan
 					has_country_leader_ideology = pataut_caponism_subtype
 					has_country_leader_ideology = marlib_crime_syndicate_subtype
 					has_country_leader_ideology = crime_syndicate_subtype
-					has_country_leader_ideology = socdem_crime_syndicate_subtype 
 					has_country_leader_ideology = soclib_crime_syndicate_subtype 
 					has_country_leader_ideology = pirate_republic_subtype
-					has_country_leader_ideology = comrades_coast_subtype
-					has_country_leader_ideology = syn_comrades_coast_subtype
-					has_country_leader_ideology = radsoc_comrades_coast_subtype
 					has_completed_focus = VIN_Binh_Xuyen_Rises
 					has_completed_focus = CSA_death_of_capone
 					has_completed_focus = SIC_mafia_takeover
@@ -18910,6 +18882,10 @@ country_event = { #Fate of Japan
 					expire = "1.1.1"
 					ideology = crime_syndicate_subtype
 				}
+				set_political_party = {
+					ideology = paternal_autocrat
+					popularity = 100
+				}
 				set_politics = {
 					ruling_party = paternal_autocrat
 					elections_allowed = no
@@ -18922,9 +18898,21 @@ country_event = { #Fate of Japan
 			}
 		}
 		if = {
-			limit = { 
+			limit = {
+					OR = {
+					has_country_leader_ideology = socdem_crime_syndicate_subtype 
+					has_country_leader_ideology = comrades_coast_subtype
+					has_country_leader_ideology = syn_comrades_coast_subtype
+					has_country_leader_ideology = radsoc_comrades_coast_subtype
+					AND = {
+					has_completed_focus = VIN_Binh_Xuyen_Rises
+					has_government = totalist
+					}
+					AND = {
 					tag = LEC
 					has_country_leader = { name = "Jiang Qing" ruling_only = yes }
+					}
+				}
 			}
 			JAP = {
 				set_cosmetic_tag = JAP_buraku
@@ -18933,6 +18921,10 @@ country_event = { #Fate of Japan
 					picture = "gfx/leaders/JAP/Portrait_JAP_Jiichiro_Matsumoto.png"
 					expire = "1.1.1"
 					ideology = radsoc_clientelism_subtype
+				}
+				set_political_party = {
+					ideology = radical_socialist
+					popularity = 100
 				}
 				set_politics = {
 					ruling_party = radical_socialist
@@ -19903,6 +19895,7 @@ country_event = { #Fate of Peru
 								state = 855
 								state = 1040
 							}
+							is_claim_or_core_of_ROOT = no
 						}
 						transfer_state_to = PRU
 					}
@@ -21448,10 +21441,26 @@ country_event = { #Annexation of Yucatan
 
 	immediate = {
 		hidden_effect = {
-			YUC = {
-				add_state_core = 474
-				add_state_core = 1254
-				add_state_core = 1255
+			every_state = {
+				limit = {
+					NOT = {
+						state = 1254
+						state = 474
+						state = 1255
+					}
+				}
+				remove_core_of = YUC
+				remove_claim_by = YUC
+			}
+			every_state = {
+				limit = {
+					OR = {
+						state = 1254
+						state = 474
+						state = 1255
+					}
+				}
+				add_core_of = YUC
 			}
 		}
 	}
@@ -24374,6 +24383,11 @@ country_event = { #Fate of Portugal
 				set_country_flag = CNT_iberian_union
 			}
 		}
+		POR = {
+			every_unit_leader = {
+				set_nationality = ROOT
+			}
+		}
 	}
 
 	option = { #occupy
@@ -24395,7 +24409,7 @@ country_event = { #Fate of France
 
 	is_triggered_only = yes
 
-	immediate = {
+    immediate = {
 		hidden_effect = {
 			FRP = {
 				create_country_leader = {
@@ -24622,10 +24636,53 @@ country_event = { #Fate of France
 		}
 		set_temp_variable = { tag_to_release = FRP }
 		puppet_released_tag = yes
+		ROOT = { FRP = { transfer_technology = yes } }
 		if = {
 			limit = { tag = GER }
-			GER = { transfer_state = 779 }
+			hidden_effect = {
+			GER = { 
+				transfer_state = 779 
+				set_country_flag = GER_Released_Unified_France
+				country_event = {
+					id = gerfor.3000
+					days = 5
+				}
+			}	
 			779 = { remove_core_of = FRP }
+			FRP = { load_oob = FRP_independent_GER }
+			}
+			FRP = {
+				create_country_leader = {
+					name = "Militär-General-Gouverneur in Frankreich"
+					picture = "gfx/leaders/GER/Portrait_Germany_Militar_General_Gouverneur.png"
+					expire = "1.1.1"
+					ideology = junta_subtype
+				}
+				set_party_name = {
+				ideology = paternal_autocrat
+				name = GER_Occupation_France_paternal_autocrat_party
+				long_name = GER_Occupation_France_paternal_autocrat_party_long
+			    }
+				set_politics = {
+					ruling_party = paternal_autocrat
+					election_frequency = 48
+					elections_allowed = no
+				}
+				hidden_effect = {
+				set_popularities = {
+					totalist = 15
+					syndicalist = 20
+					radical_socialist = 15
+					social_democrat = 5
+					social_liberal = 0
+					market_liberal = 0
+					social_conservative = 0
+					authoritarian_democrat = 0
+					paternal_autocrat = 45
+					national_populist = 0
+				}
+			    }
+			}
 		}
 		if = {
 			limit = { 
@@ -24679,7 +24736,13 @@ country_event = { #Fate of France
 				is_in_faction_with = NFA
 			}
 		}
-		ai_chance = { factor = 50 }
+		ai_chance = { 
+			factor = 50 
+			modifier = {
+				factor = 0
+				tag = GER
+			}
+		}
 		every_state = {
 			limit = {
 				OR = {
@@ -24743,10 +24806,55 @@ country_event = { #Fate of France
 
 		set_temp_variable = { tag_to_release = FRP }
 		puppet_released_tag = yes
+		ROOT = { FRP = { transfer_technology = yes } }
+		ROOT = { BRI = { transfer_technology = yes } }
 		if = {
 			limit = { tag = GER }
-			GER = { transfer_state = 779 }
+			hidden_effect = {
+			GER = { 
+				transfer_state = 779 
+				set_country_flag = GER_Released_Balkanized_France
+				country_event = {
+					id = gerfor.3000
+					days = 5
+				}
+			}
 			779 = { remove_core_of = FRP }
+			BRI = { load_oob = BRI_independent_GER }
+			FRP = { load_oob = FRP_independent_GER }
+			}
+			FRP = {
+				create_country_leader = {
+					name = "Militär-General-Gouverneur in Frankreich"
+					picture = "gfx/leaders/GER/Portrait_Germany_Militar_General_Gouverneur.png"
+					expire = "1.1.1"
+					ideology = junta_subtype
+				}
+				set_party_name = {
+				ideology = paternal_autocrat
+				name = GER_Occupation_France_paternal_autocrat_party
+				long_name = GER_Occupation_France_paternal_autocrat_party_long
+			    }
+				set_politics = {
+					ruling_party = paternal_autocrat
+					election_frequency = 48
+					elections_allowed = no
+				}
+				hidden_effect = {
+				set_popularities = {
+					totalist = 15
+					syndicalist = 20
+					radical_socialist = 15
+					social_democrat = 5
+					social_liberal = 0
+					market_liberal = 0
+					social_conservative = 0
+					authoritarian_democrat = 0
+					paternal_autocrat = 45
+					national_populist = 0
+				}
+			    }
+			}
 		}
 	}
 	option = {
@@ -24761,6 +24869,10 @@ country_event = { #Fate of France
 		}
 		ai_chance = {
 			factor = 20
+			modifier = {
+				factor = 0
+				tag = GER
+			}
 		}
 		every_state = {
 			limit = {
@@ -24845,10 +24957,55 @@ country_event = { #Fate of France
 
 		set_temp_variable = { tag_to_release = FRP }
 		puppet_released_tag = yes
+		ROOT = { FRP = { transfer_technology = yes } }
+		ROOT = { OCC = { transfer_technology = yes } }
 		if = {
 			limit = { tag = GER }
-			GER = { transfer_state = 779 }
+			hidden_effect = {
+			GER = { 
+				transfer_state = 779 
+				set_country_flag = GER_Released_Balkanized_France
+				country_event = {
+					id = gerfor.3000
+					days = 5
+				}
+			}
 			779 = { remove_core_of = FRP }
+			OCC = { load_oob = OCC_independent_GER }
+			FRP = { load_oob = FRP_independent_GER }
+			}
+			FRP = {
+				create_country_leader = {
+					name = "Militär-General-Gouverneur in Frankreich"
+					picture = "gfx/leaders/GER/Portrait_Germany_Militar_General_Gouverneur.png"
+					expire = "1.1.1"
+					ideology = junta_subtype
+				}
+				set_party_name = {
+				ideology = paternal_autocrat
+				name = GER_Occupation_France_paternal_autocrat_party
+				long_name = GER_Occupation_France_paternal_autocrat_party_long
+			    }
+				set_politics = {
+					ruling_party = paternal_autocrat
+					election_frequency = 48
+					elections_allowed = no
+				}
+				hidden_effect = {
+				set_popularities = {
+					totalist = 15
+					syndicalist = 20
+					radical_socialist = 15
+					social_democrat = 5
+					social_liberal = 0
+					market_liberal = 0
+					social_conservative = 0
+					authoritarian_democrat = 0
+					paternal_autocrat = 45
+					national_populist = 0
+				}
+			    }
+			}
 		}
 	}
 	option = {
@@ -24866,6 +25023,10 @@ country_event = { #Fate of France
 		}
 		ai_chance = {
 			factor = 15
+			modifier = {
+				factor = 0
+				tag = GER
+			}
 		}
 
 		every_state = {
@@ -24998,8 +25159,53 @@ country_event = { #Fate of France
 		puppet_released_tag = yes
 		if = {
 			limit = { tag = GER }
-			GER = { transfer_state = 779 }
+			hidden_effect = {
+			GER = { 
+				transfer_state = 779 
+				set_country_flag = GER_Released_Balkanized_France
+				country_event = {
+					id = gerfor.3000
+					days = 5
+				}
+			}
 			779 = { remove_core_of = FRP }
+			BRI = { load_oob = BRI_independent_GER }
+			NRM = { load_oob = NRM_independent_GER }
+			OCC = { load_oob = OCC_independent_GER }
+			FRP = { load_oob = FRP_independent_GER }
+			}
+			FRP = {
+				create_country_leader = {
+					name = "Militär-General-Gouverneur in Frankreich"
+					picture = "gfx/leaders/GER/Portrait_Germany_Militar_General_Gouverneur.png"
+					expire = "1.1.1"
+					ideology = junta_subtype
+				}
+				set_party_name = {
+				ideology = paternal_autocrat
+				name = GER_Occupation_France_paternal_autocrat_party
+				long_name = GER_Occupation_France_paternal_autocrat_party_long
+			    }
+				set_politics = {
+					ruling_party = paternal_autocrat
+					election_frequency = 48
+					elections_allowed = no
+				}
+				hidden_effect = {
+				set_popularities = {
+					totalist = 15
+					syndicalist = 20
+					radical_socialist = 15
+					social_democrat = 5
+					social_liberal = 0
+					market_liberal = 0
+					social_conservative = 0
+					authoritarian_democrat = 0
+					paternal_autocrat = 45
+					national_populist = 0
+				}
+			    }
+			}
 		}
 
 		ROOT = {
@@ -25450,6 +25656,95 @@ country_event = { #Fate of Britain
 	title = annexation_ENG_CONQ
 
 	is_triggered_only = yes
+
+	immediate = {
+		hidden_effect = {
+			GBP = {
+				create_country_leader = {
+					name = "Hugh Gaitskell"
+					picture = "gfx/leaders/ENG/Portrait_Britain_Hugh_Gaitskell.png"
+					expire = "1.1.1"
+					ideology = liberal_socialism_subtype
+					traits = {}
+				}
+				create_country_leader = {
+					name = "Herbert Samuel"
+					picture = "gfx/leaders/ENG/Portrait_England_Herbert_Samuel.png"
+					expire = "1.1.1"
+					ideology = classical_liberalism_subtype
+				}
+				create_country_leader = {
+					name = "Abraham England"
+					picture = "gfx/leaders/ENG/Portrait_England_Abraham_England.png"
+					expire = "1.1.1"
+					ideology = marlib_classical_liberalism_subtype
+					traits = {}
+				}
+				create_country_leader = {
+					name = "Harold MacMillan"
+					picture = "gfx/leaders/ENG/Portrait_Britain_Harold_MacMillan.png"
+					expire = "1.1.1"
+					ideology = toryism_subtype
+					traits = {}
+				}
+				create_country_leader = {
+					name = "Charles III"
+					picture = "gfx/leaders/ENG/Portrait_Britain_Charles_III.png"
+					expire = "1.1.1"
+					ideology = authdem_toryism_subtype
+				}
+				create_country_leader = {
+					name = "Archibald Maule Ramsay"
+					picture = "gfx/leaders/BRG/Portrait_BRG_Archibald_Ramsay_Civilian.png"
+					expire = "1.1.1"
+					ideology = neo_feudalism_subtype 
+					traits = {  }
+				}
+				create_country_leader = {
+					name = "William Joyce"
+					picture = "gfx/leaders/BRG/Portrait_BRG_William_Joyce.png"
+					expire = "1.1.1"
+					ideology = legionarism_subtype 
+					traits = { }
+				}
+				set_party_name = {
+					ideology = social_democrat
+					long_name = GBP_social_democrat_party_long
+					name = GBP_social_democrat_party
+				}
+				set_party_name = {
+					ideology = social_liberal
+					long_name = GBP_social_liberal_party_long
+					name = GBP_social_liberal_party
+				}
+				set_party_name = {
+					ideology = market_liberal
+					long_name = GBP_market_liberal_party_long
+					name = GBP_market_liberal_party
+				}
+				set_party_name = {
+					ideology = social_conservative
+					long_name = GBP_social_conservative_party_long
+					name = GBP_social_conservative_party
+				}
+				set_party_name = {
+					ideology = authoritarian_democrat
+					long_name = GBP_authoritarian_democrat_party_long
+					name = GBP_authoritarian_democrat_party
+				}
+				set_party_name = {
+					ideology = paternal_autocrat
+					long_name = GBP_paternal_autocrat_party_long
+					name = GBP_paternal_autocrat_party
+				}
+				set_party_name = {
+					ideology = national_populist
+					long_name = GBP_national_populist_party_long
+					name = GBP_national_populist_party
+				}
+			}
+		}
+	}
 	
 	desc = {
 		text = annexation_ENG_CONQ_desc
@@ -25523,7 +25818,48 @@ country_event = { #Fate of Britain
 		release_targeted_tag = yes
 		if = {
 			limit = { tag = GER }
-			country_event = part.61
+			hidden_effect = {
+			GER = { 
+				set_country_flag = GER_Released_Unified_Britain
+				country_event = {
+					id = gerfor.3100
+					days = 5
+				}
+			}	
+			GBP = { load_oob = GBP_independent_GER }
+			}
+			GBP = {
+				create_country_leader = {
+					name = "Militär-General-Gouverneur in Britannien"
+					picture = "gfx/leaders/GER/Portrait_Germany_Militar_General_Gouverneur.png"
+					expire = "1.1.1"
+					ideology = junta_subtype
+				}
+				set_party_name = {
+				ideology = paternal_autocrat
+				name = GER_Occupation_Britain_paternal_autocrat_party
+				long_name = GER_Occupation_Britain_paternal_autocrat_party_long
+			    }
+				set_politics = {
+					ruling_party = paternal_autocrat
+					election_frequency = 48
+					elections_allowed = no
+				}
+				hidden_effect = {
+				set_popularities = {
+					totalist = 15
+					syndicalist = 20
+					radical_socialist = 15
+					social_democrat = 5
+					social_liberal = 0
+					market_liberal = 0
+					social_conservative = 0
+					authoritarian_democrat = 0
+					paternal_autocrat = 45
+					national_populist = 0
+				}
+			    }
+			}
 		}
 		if = {
 			limit = { 
@@ -25589,6 +25925,10 @@ country_event = { #Fate of Britain
 		}
 		ai_chance = {
 			base = 30
+			modifier = {
+				factor = 0
+				tag = GER
+			}
 		}
 		hidden_effect = {
 			GBP = {
@@ -25626,18 +25966,6 @@ country_event = { #Fate of Britain
 
 		set_temp_variable = { tag_to_release = SCT }
 		release_targeted_tag = yes
-		if = {
-			limit = { tag = GER }
-			SCT = {
-				country_event = part.65
-			}
-			WAL = {
-				country_event = part.67
-			}
-			GBP = {
-				country_event = part.69
-			}
-		}
 		if = {
 			limit = { 
 				OR = {
@@ -25677,6 +26005,53 @@ country_event = { #Fate of Britain
 		GBP = {
 			set_cosmetic_tag = GBP_england
 		}
+		if = {
+			limit = { tag = GER }
+			hidden_effect = {
+			GER = { 
+				set_country_flag = GER_Released_Balkanized_Britain
+				country_event = {
+					id = gerfor.3100
+					days = 5
+				}
+			}	
+			GBP = { load_oob = GBP_independent_GER }
+			}
+			GBP = {
+				create_country_leader = {
+					name = "Militär-General-Gouverneur in Britannien"
+					picture = "gfx/leaders/GER/Portrait_Germany_Militar_General_Gouverneur.png"
+					expire = "1.1.1"
+					ideology = junta_subtype
+				}
+				set_party_name = {
+				ideology = paternal_autocrat
+				name = GER_Occupation_Britain_paternal_autocrat_party
+				long_name = GER_Occupation_Britain_paternal_autocrat_party_long
+			    }
+				set_politics = {
+					ruling_party = paternal_autocrat
+					election_frequency = 48
+					elections_allowed = no
+				}
+				hidden_effect = {
+				set_popularities = {
+					totalist = 15
+					syndicalist = 20
+					radical_socialist = 15
+					social_democrat = 5
+					social_liberal = 0
+					market_liberal = 0
+					social_conservative = 0
+					authoritarian_democrat = 0
+					paternal_autocrat = 45
+					national_populist = 0
+				}
+			    }
+			}
+			SCT = { country_event = part.65 }
+			WAL = { country_event = part.67 }
+		}
 	}
 	option = { #England
 		name = annex.159.g
@@ -25710,14 +26085,53 @@ country_event = { #Fate of Britain
 		}
 		set_temp_variable = { tag_to_release = GBP }
 		release_targeted_tag = yes
-		if = {
-			limit = { tag = GER }
-			GBP = {
-				country_event = part.69
-			}
-		}
 		GBP = {
 			set_cosmetic_tag = GBP_england
+		}
+		if = {
+			limit = { tag = GER }
+			hidden_effect = {
+			GER = { 
+				set_country_flag = GER_Released_Unified_Britain
+				country_event = {
+					id = gerfor.3100
+					days = 5
+				}
+			}	
+			GBP = { load_oob = GBP_independent_GER }
+			}
+			GBP = {
+				create_country_leader = {
+					name = "Militär-General-Gouverneur in Britannien"
+					picture = "gfx/leaders/GER/Portrait_Germany_Militar_General_Gouverneur.png"
+					expire = "1.1.1"
+					ideology = junta_subtype
+				}
+				set_party_name = {
+				ideology = paternal_autocrat
+				name = GER_Occupation_Britain_paternal_autocrat_party
+				long_name = GER_Occupation_Britain_paternal_autocrat_party_long
+			    }
+				set_politics = {
+					ruling_party = paternal_autocrat
+					election_frequency = 48
+					elections_allowed = no
+				}
+				hidden_effect = {
+				set_popularities = {
+					totalist = 15
+					syndicalist = 20
+					radical_socialist = 15
+					social_democrat = 5
+					social_liberal = 0
+					market_liberal = 0
+					social_conservative = 0
+					authoritarian_democrat = 0
+					paternal_autocrat = 45
+					national_populist = 0
+				}
+			    }
+			}
 		}
 	}
 	option = { #restore a free United Kingdom
@@ -26393,7 +26807,7 @@ country_event = { #Fate of Luxembourg
 			NOT = { is_french_tag = yes }
 		}
 		ai_chance = {
-			factor = 20
+			factor = 0
 		}
 		if = {
 			limit = { is_ally_with = FRP }
@@ -26406,7 +26820,7 @@ country_event = { #Fate of Luxembourg
 		else = {
 			set_temp_variable = { french_target = NFA }
 		}
-		var:french_target = { transfer_state = 8 }
+		var:french_target = { transfer_state = 8 add_state_claim = 8 }
 	}
 
 	option = { #puppet Luxembourg
@@ -26433,7 +26847,7 @@ country_event = { #Fate of Luxembourg
 		else = {
 			set_temp_variable = { german_target = GER }
 		}
-		var:german_target = { transfer_state = 8 }
+		var:german_target = { transfer_state = 8 add_state_claim = 8 }
 	}
 
 	option = { #Annex Luxembourg to Belgium
@@ -29065,6 +29479,7 @@ country_event = { #Release Ma Clique (for Mongolia)
 					tag = MON
 					tag = TIB
 				}
+				is_ally_of_ROOT = yes
 			}
 			save_event_target_as = northwest_war_ally
 		}
@@ -29655,6 +30070,11 @@ country_event = { #Fate of the Legation Cities
 					smooth_talking_charmer
 				}
 			}
+			set_party_name = {
+				ideology = market_liberal
+				long_name = LEC_market_liberal_party_long
+				name = LEC_market_liberal_party
+			}
 			create_country_leader = {
 				name = "Siegmund Bodenheimer"
 				desc = "POLITICS_SIEGMUND_BODENHEIMER_DESC"
@@ -29665,7 +30085,14 @@ country_event = { #Fate of the Legation Cities
 					financial_expert
 				}
 			}
+			set_party_name = {
+				ideology = paternal_autocrat
+				long_name = LEC_paternal_autocrat_party_long
+				name = LEC_paternal_autocrat_party
+			}
 			drop_cosmetic_tag = yes
+			remove_all_ministers = yes
+			remove_ideas_with_trait = underworld_boss
 		}
 	    }
 	}
@@ -29759,6 +30186,9 @@ country_event = { #Fate of the Legation Cities
 					expire = "1.1.1"
 					ideology = autocratic_colonial_govt_subtype
 					}
+					get_current_government_type = yes
+					AUS = { puppet = LEC }
+					restore_previous_government_type = yes
 				}
 			}
 			else_if = {
@@ -29817,6 +30247,10 @@ country_event = { #Fate of the Legation Cities
 					has_country_leader_ideology = natpop_pirate_republic_subtype
 					has_country_leader_ideology = british_israelism_subtype
 					has_country_leader_ideology = fitzhughism_subtype
+					has_country_leader_ideology = legionarism_subtype
+					has_country_leader_ideology = natpop_washingtonism_subtype
+					has_country_leader_ideology = natpop_jacksonianism_subtype
+					has_country_leader_ideology = natpop_conservative_feminism_subtype
 					}
 				}
 				LEC = {
@@ -31054,6 +31488,35 @@ country_event = { #Fate of Canada
 			
 			}
 		}
+		hidden_effect = {
+		if = {
+			limit = {
+				tag = COR
+				has_country_flag = COR_columbian_victory
+			}
+		set_autonomy = {
+		target = CAN
+		autonomous_state = kx_colored_puppet
+		}
+		CAN = {
+			set_cosmetic_tag = CAN_Columbian
+			set_politics = {
+			name = COR_canada_columbian
+			long_name = COR_canada_columbian_long			
+			ruling_party = national_populist
+			elections_allowed = no
+			}
+			create_country_leader = {
+				name = "John Ross Taylor"
+				picture = "gfx/leaders/CAN/Portrait_Canada_John_Ross_Taylor.png"
+				expire = "1.1.1"
+				ideology = klan_nationalism_subtype
+				}			
+		add_popularity = { ideology = national_populist popularity = 0.67 }
+				}
+			
+			}
+		}		
 	}
 
 	option = { #Liberate Canada and Quebec
@@ -37860,6 +38323,13 @@ country_event = { #The Annexation of Puerto Rico
 					autonomous_state = kx_colored_puppet
 				}
 			}
+			if = {
+				limit = {
+					is_american_tag = yes
+					has_socialist_government = no
+				}
+				PRI = { set_cosmetic_tag = PRI_USA }
+			}
 		}
 	}
 	option = {
@@ -39211,6 +39681,60 @@ country_event = { #The Fate of Italy
 				}
 			}
 		}
+		if = {
+			limit = {
+			OR = {
+					has_country_leader_ideology = caponism_subtype
+					has_country_leader_ideology = pataut_caponism_subtype
+					has_country_leader_ideology = marlib_crime_syndicate_subtype
+					has_country_leader_ideology = crime_syndicate_subtype
+					has_country_leader_ideology = socdem_crime_syndicate_subtype 
+					has_country_leader_ideology = soclib_crime_syndicate_subtype 
+					has_country_leader_ideology = pirate_republic_subtype
+					has_country_leader_ideology = comrades_coast_subtype
+					has_country_leader_ideology = syn_comrades_coast_subtype
+					has_country_leader_ideology = radsoc_comrades_coast_subtype
+					has_completed_focus = VIN_Binh_Xuyen_Rises
+					has_completed_focus = CSA_death_of_capone
+					has_completed_focus = SIC_mafia_takeover
+					AND = {
+						tag = LEC
+						has_country_leader = { name = "Jiang Qing" ruling_only = yes }
+					}
+				}
+			}
+			hidden_effect = {
+				ITA = {
+					set_politics = {
+						ruling_party = paternal_autocrat
+						elections_allowed = no
+					}
+					add_popularity = {
+						ideology = paternal_autocrat
+						popularity = 1
+					}
+					create_country_leader = {
+						name = "Calogero Vizzini"
+						desc = "POLITICS_CALOGERO_VIZZINI_DESC"
+						picture = "gfx/leaders/SIC/Portrait_SIC_Calogero_Vizzini.png"
+						expire = "1.1.1"
+						ideology = crime_syndicate_subtype
+						traits = { criminal_overlord }
+					}
+					set_cosmetic_tag = SIC_mafia_italy
+					set_party_name = {
+						ideology = paternal_autocrat
+						long_name = SIC_mafia_party
+						name = SIC_mafia_party
+					}
+					remove_all_ministers = yes
+					add_ideas = SIC_Calogero_Vizzini_hog_pau
+					add_ideas = SIC_Carlo_Gambino_for_pau
+					add_ideas = SIC_Francesco_Cuccia_eco_pau
+					add_ideas = SIC_Giuseppe_Genco_Russo_sec_pau
+				}
+			}
+		}
 	}
 	option = {
 		name = annex.280.b #Release as SRI
@@ -39615,22 +40139,20 @@ country_event = { #Deal has been struck
 			limit = { is_faction_leader = yes }
 			effect_tooltip = { add_to_faction = FROM }
 		}
-		FROM = {
-			if = {
-				limit = { has_country_flag = offering_italy }
-				clr_country_flag = offering_italy
-				ROOT = { clr_country_flag = ITA_CONQ }
-			}
-			if = {
-				limit = { has_country_flag = offering_papacy }
-				clr_country_flag = offering_papacy
-				ROOT = { clr_country_flag = PAP_STATES_CONQ }
-			}
-			if = {
-				limit = { has_country_flag = offering_piedmont }
-				clr_country_flag = offering_piedmont
-				ROOT = { clr_country_flag = PIEDMONT_CONQ }
-			}
+		if = {
+			limit = { FROM = { has_country_flag = offering_italy } }
+			FROM = { clr_country_flag = offering_italy }
+			clr_country_flag = ITA_CONQ
+		}
+		if = {
+			limit = { FROM = { has_country_flag = offering_papacy } }
+			FROM = { clr_country_flag = offering_papacy }
+			clr_country_flag = PAP_STATES_CONQ
+		}
+		if = {
+			limit = { FROM = { has_country_flag = offering_piedmont } }
+			FROM = { clr_country_flag = offering_piedmont }
+			clr_country_flag = PIEDMONT_CONQ
 		}
 	}
 }
@@ -39645,22 +40167,20 @@ country_event = { #Deal has been refused
 
 	option = {
 		name = annex.283.a
-		FROM = {
-			if = {
-				limit = { has_country_flag = offering_italy }
-				clr_country_flag = offering_italy
-				ROOT = { clr_country_flag = ITA_CONQ }
-			}
-			if = {
-				limit = { has_country_flag = offering_papacy }
-				clr_country_flag = offering_papacy
-				ROOT = { clr_country_flag = PAP_STATES_CONQ }
-			}
-			if = {
-				limit = { has_country_flag = offering_piedmont }
-				clr_country_flag = offering_piedmont
-				ROOT = { clr_country_flag = PIEDMONT_CONQ }
-			}
+		if = {
+			limit = { FROM = { has_country_flag = offering_italy } }
+			FROM = { clr_country_flag = offering_italy }
+			clr_country_flag = ITA_CONQ
+		}
+		if = {
+			limit = { FROM = { has_country_flag = offering_papacy } }
+			FROM = { clr_country_flag = offering_papacy }
+			clr_country_flag = PAP_STATES_CONQ
+		}
+		if = {
+			limit = { FROM = { has_country_flag = offering_piedmont } }
+			FROM = { clr_country_flag = offering_piedmont }
+			clr_country_flag = PIEDMONT_CONQ
 		}
 	}
 }
@@ -40851,7 +41371,9 @@ country_event = { #The Fate of Emilia
 		clr_country_flag = EMI_CONQ
 		# restore initial cores if they were removed
 		set_temp_variable = { tag_to_release = ITA }
-		1004 = {
+		if = {
+			limit = { owns_state = 1004 }
+			1004 = {
 			if = {
 				limit = { is_claimed_by = var:tag_to_release }
 				remove_claim_by = var:tag_to_release
@@ -40861,8 +41383,11 @@ country_event = { #The Fate of Emilia
 				add_core_of = var:tag_to_release
 			}
 			transfer_state_to = var:tag_to_release
+			}
 		}
-		161 = {
+		if = {
+			limit = { owns_state = 161 }
+			161 = {
 			if = {
 				limit = { is_claimed_by = var:tag_to_release }
 				remove_claim_by = var:tag_to_release
@@ -40872,6 +41397,7 @@ country_event = { #The Fate of Emilia
 				add_core_of = var:tag_to_release
 			}
 			transfer_state_to = var:tag_to_release
+			}
 		}
 		puppet_released_tag = yes
 		reverse_add_opinion_modifier = { target = ITA modifier = KR_liberated_us }
@@ -40956,7 +41482,9 @@ country_event = { #The Fate of Emilia
 		clr_country_flag = EMI_CONQ
 		# restore initial cores if they were removed
 		set_temp_variable = { tag_to_release = SRI }
-		1004 = {
+		if = {
+			limit = { owns_state = 1004 }
+			1004 = {
 			if = {
 				limit = { is_claimed_by = var:tag_to_release }
 				remove_claim_by = var:tag_to_release
@@ -40966,8 +41494,11 @@ country_event = { #The Fate of Emilia
 				add_core_of = var:tag_to_release
 			}
 			transfer_state_to = var:tag_to_release
+			}
 		}
-		161 = {
+		if = {
+			limit = { owns_state = 161 }
+			161 = {
 			if = {
 				limit = { is_claimed_by = var:tag_to_release }
 				remove_claim_by = var:tag_to_release
@@ -40977,6 +41508,7 @@ country_event = { #The Fate of Emilia
 				add_core_of = var:tag_to_release
 			}
 			transfer_state_to = var:tag_to_release
+			}
 		}
 		puppet_released_tag = yes
 		reverse_add_opinion_modifier = { target = SRI modifier = KR_liberated_us }		
@@ -41006,11 +41538,19 @@ country_event = { #The Fate of Emilia
 		}
 		clr_country_flag = EMI_CONQ
 		set_temp_variable = { tag_to_release = EMI }
-		var:tag_to_release = {
+		if = {
+			limit = { owns_state = 1004 }
+			var:tag_to_release = {
 			add_state_core = 1004
 			transfer_state = 1004
+			}
+		}
+		if = {
+			limit = { owns_state = 161 }
+			var:tag_to_release = {
 			add_state_core = 161
 			transfer_state = 161
+			}
 		}
 		puppet_released_tag = yes
 		hidden_effect = {
@@ -41055,11 +41595,19 @@ country_event = { #The Fate of Emilia
 		}
 		clr_country_flag = EMI_CONQ
 		set_temp_variable = { tag_to_release = EMI }
-		var:tag_to_release = {
+		if = {
+			limit = { owns_state = 1004 }
+			var:tag_to_release = {
 			add_state_core = 1004
 			transfer_state = 1004
+			}
+		}
+		if = {
+			limit = { owns_state = 161 }
+			var:tag_to_release = {
 			add_state_core = 161
 			transfer_state = 161
+			}
 		}
 		puppet_released_tag = yes
 		hidden_effect = {
@@ -41100,11 +41648,19 @@ country_event = { #The Fate of Emilia
 		}
 		clr_country_flag = EMI_CONQ
 		set_temp_variable = { tag_to_release = EMI }
-		var:tag_to_release = {
+		if = {
+			limit = { owns_state = 1004 }
+			var:tag_to_release = {
 			add_state_core = 1004
 			transfer_state = 1004
+			}
+		}
+		if = {
+			limit = { owns_state = 161 }
+			var:tag_to_release = {
 			add_state_core = 161
 			transfer_state = 161
+			}
 		}
 		puppet_released_tag = yes
 		hidden_effect = {
@@ -41160,7 +41716,7 @@ country_event = { #The Fate of Emilia
 		clr_country_flag = EMI_CONQ
 		reverse_add_opinion_modifier = { target = ITA modifier = KR_returned_land }
 		hidden_effect = {
-			every_state = {
+			every_owned_state = {
 				limit = {
 					OR = {
 					state = 1004 
@@ -41205,7 +41761,7 @@ country_event = { #The Fate of Emilia
 		clr_country_flag = EMI_CONQ
 		reverse_add_opinion_modifier = { target = SRI modifier = KR_returned_land }
 		hidden_effect = {
-			every_state = {
+			every_owned_state = {
 				limit = {
 					OR = {
 					state = 1004 
@@ -41254,7 +41810,7 @@ country_event = { #The Fate of Emilia
 		clr_country_flag = EMI_CONQ
 		reverse_add_opinion_modifier = { target = SIC modifier = KR_returned_land }
 		hidden_effect = {
-			every_state = {
+			every_owned_state = {
 				limit = {
 					OR = {
 					state = 1004 
@@ -41303,7 +41859,7 @@ country_event = { #The Fate of Emilia
 		clr_country_flag = EMI_CONQ
 		reverse_add_opinion_modifier = { target = SRD modifier = KR_returned_land }
 		hidden_effect = {
-			every_state = {
+			every_owned_state = {
 				limit = {
 					OR = {
 					state = 1004 
@@ -44307,7 +44863,7 @@ country_event = {
 				add_ideas = {
 					AST_William_JR_Scott_hog_npo
 					AST_John_F_Dynon_for_npo
-					AST_Hubert_L_Primrose_eco_npo
+					AST_Hubert_Primrose_eco_npo
 					AST_Thomas_Blamey_sec_npo
 				}
 				if = {
@@ -45569,6 +46125,10 @@ country_event = { #Fate of Scotland
 		}
 		set_temp_variable = { tag_to_release = SCT }
 		release_targeted_tag = yes
+		if = {
+			limit = { tag = GER }
+			SCT = { country_event = part.65 }
+		}
 	}
 	option = { #puppet larger SCT
 		name = annex.301.b
@@ -45594,6 +46154,10 @@ country_event = { #Fate of Scotland
 		}
 		set_temp_variable = { tag_to_release = SCT }
 		release_targeted_tag_with_claims = yes
+		if = {
+			limit = { tag = GER }
+			SCT = { country_event = part.65 }
+		}
 	}
 	option = { #claim Highlands
 		name = annex.301.c
@@ -45682,6 +46246,10 @@ country_event = { #Fate of Wales
 		}
 		set_temp_variable = { tag_to_release = WAL }
 		release_targeted_tag = yes
+		if = {
+			limit = { tag = GER }
+			WAL = { country_event = part.67 }
+		}
 	}
 	option = { #give to the British
 		name = annex.302.b
@@ -47914,6 +48482,77 @@ country_event = { #Fate of New York
 				}
 				}
 			}
+			if = {
+				limit = { 
+				tag = LEC 
+				LEC = { has_country_flag = LEC_Triad_Power }
+				}
+				NYC = {
+				load_focus_tree = generic_focus	
+				remove_ideas = {
+					NYC_tammany_hall
+					NYC_the_mafia
+					NYC_economic_devestation
+					NYC_nypd
+				}
+				set_politics = {
+					ruling_party = paternal_autocrat
+				}
+				set_political_party = {
+					ideology = paternal_autocrat
+					popularity = 100
+				}
+				set_party_name = {
+						ideology = paternal_autocrat
+						name = NYC_triad_party
+						long_name = NYC_triad_party_long
+				}
+				set_cosmetic_tag = NYC_triad
+				create_country_leader = {
+					name = "Sai Wing Mock"
+					picture = "gfx/leaders/NYC/Portrait_NYC_Sai_Wing_Mock.png"
+					expire = "1.1.1"
+					ideology = crime_syndicate_subtype
+					traits = { }
+				}
+			}
+		}
+		if = {
+				limit = {
+				NOT = { tag = LEC }
+				OR = {
+					has_country_leader_ideology = caponism_subtype
+					has_country_leader_ideology = pataut_caponism_subtype
+					has_country_leader_ideology = marlib_crime_syndicate_subtype
+					has_country_leader_ideology = crime_syndicate_subtype
+					has_country_leader_ideology = socdem_crime_syndicate_subtype 
+					has_country_leader_ideology = soclib_crime_syndicate_subtype 
+					has_country_leader_ideology = pirate_republic_subtype
+					has_country_leader_ideology = comrades_coast_subtype
+					has_country_leader_ideology = syn_comrades_coast_subtype
+					has_country_leader_ideology = radsoc_comrades_coast_subtype
+					has_completed_focus = VIN_Binh_Xuyen_Rises
+					has_completed_focus = CSA_death_of_capone
+					has_completed_focus = SIC_mafia_takeover
+				}
+				}
+				NYC = {
+				load_focus_tree = generic_focus	
+				remove_ideas = {
+					NYC_tammany_hall
+					NYC_the_mafia
+					NYC_economic_devestation
+					NYC_nypd
+				}
+				set_politics = {
+					ruling_party = paternal_autocrat
+				}
+				set_political_party = {
+					ideology = paternal_autocrat
+					popularity = 100
+				}
+			}
+		}
 	}
 
 	option = { #Give it to America
@@ -57924,18 +58563,39 @@ country_event = { #Fate of the East Galicia
 }
 
 country_event = { #Fate of Sikkim
-
 	id = annex.406
 	immediate = { log = "[GetDateText]: [Root.GetName]: event annex.406" }
 	title = annexation_SKM_CONQ
 	desc = annexation_SKM_CONQ_desc
 	is_triggered_only = yes
+	
+	immediate = {
+		hidden_effect = {
+			every_state = {
+				limit = { NOT = { state = 888 } }
+				remove_core_of = SKM
+				remove_claim_by = SKM
+			}
+			every_state = {
+				limit = { state = 888 }
+				add_core_of = SKM
+			}
+		}
+	}		
 
 	option = { #puppet
 		name = annex.406.b
 		ai_chance = { factor = 10 }
 		set_temp_variable = { tag_to_release = SKM }
 		release_targeted_tag = yes
+	}
+	
+	option = { #puppet republic
+		name = annex.406.e
+		ai_chance = { factor = 10 }
+		set_temp_variable = { tag_to_release = SKM }
+		release_targeted_tag = yes
+		hidden_effect = { SKM = { set_cosmetic_tag = SKM_kazis New_Parties = yes } }
 	}
 
 	option = { #integrate
