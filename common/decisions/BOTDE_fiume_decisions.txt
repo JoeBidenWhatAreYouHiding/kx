@@ -6,6 +6,7 @@ BOTDE_FIU_jolly_roger = {
 		fire_only_once = no
 		days_re_enable = 15
 		days_remove = 10
+		priority = 5
 		allowed = { tag = FIU }
 		visible = {
 			has_global_flag = black_monday
@@ -36,6 +37,7 @@ BOTDE_FIU_jolly_roger = {
 		fire_only_once = no
 		days_re_enable = 60
 		days_remove = 15
+		priority = 5
 		allowed = { tag = FIU }
 		visible = {
 			has_global_flag = black_monday
@@ -73,6 +75,7 @@ BOTDE_FIU_jolly_roger = {
 		fire_only_once = no
 		days_re_enable = 60
 		days_remove = 15
+		priority = 5
 		allowed = { tag = FIU }
 		visible = {
 			has_global_flag = black_monday
@@ -103,10 +106,62 @@ BOTDE_FIU_jolly_roger = {
 
 	FIU_jolly_roger_raid = {
 		cost = 30
-		icon = GFX_decision_skull
-		fire_only_once = no
-		days_re_enable = 7
-		days_remove = 15
+		icon = GFX_decision_x_mark
+		days_re_enable = 60
+		days_remove = 14
+		priority = 1
+		allowed = { tag = FIU }
+		visible = {
+			has_global_flag = black_monday
+			tag = FIU
+		}
+		available = {
+			NOT = {
+				has_country_flag = FIU_ongoing_raid
+			}
+			FROM = {
+				NOT = {
+					has_dynamic_modifier = { modifier = FIU_state_just_got_raided_modifier }
+				}
+			}
+		}
+		ai_will_do = {
+			factor = 400
+		}
+		state_target = yes
+		on_map_mode = map_and_decisions_view
+		target_trigger = {
+			FROM = {
+				owner = { NOT = { is_ally_with = FIU } }
+				OR = {
+					FIU_state_is_large_target = yes
+					FIU_state_is_medium_target = yes
+					FIU_state_is_small_target = yes
+				}
+			}
+		}
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision FIU_jolly_roger_raid FROM: [From.GetName]"
+			set_country_flag = FIU_ongoing_raid
+		}
+		fixed_random_seed = no
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove FIU_jolly_roger_raid FROM: [From.GetName]"
+			#effect_tooltip = {
+			#	FROM = { FIU_raid_effect = yes }
+			#}
+			hidden_effect = {
+				FROM = { state_event = nufiupirate.3000 }
+			}
+		}
+	}
+
+	FIU_special_raid = {
+		cost = 60
+		icon = GFX_decision_x_mark
+		days_re_enable = 60
+		days_remove = 14
+		priority = 2
 		allowed = { tag = FIU }
 		visible = {
 			has_global_flag = black_monday
@@ -121,283 +176,41 @@ BOTDE_FIU_jolly_roger = {
 			factor = 400
 		}
 		state_target = yes
-		on_map_mode = map_only
+		on_map_mode = map_and_decisions_view
 		target_trigger = {
 			FROM = {
-				owner = {
-					NOT = {
-						is_in_faction_with = FIU
-					}
-				}
-				OR = {
-					state = 115
-					state = 161
-					state = 44
-					state = 47
-					state = 11818
-					state = 454
-					state = 447
-					state = 458
-					state = 459
-					state = 118
-					state = 165
-					state = 21
-					state = 838
-					state = 117
-					state = 450
-					state = 837
-					state = 2
-					state = 162
-					state = 346
-					state = 114
-					#Initially friendly states vvv
-					state = 160
-					state = 163
-					state = 105
+				owner = { NOT = { is_ally_with = FIU } }
+				FIU_state_is_special_raid = yes
+				NOT = {
+					has_dynamic_modifier = { modifier = FIU_state_just_got_raided_modifier }
 				}
 			}
 		}
 		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision FIU_special_raid FROM: [From.GetName]"
 			set_country_flag = FIU_ongoing_raid
 		}
 		fixed_random_seed = no
 		remove_effect = {
-			clr_country_flag = FIU_ongoing_raid
-			FIU_add_one_total_plunder = yes
-			FIU_add_one_recent_plunder = yes
-			if = { #Large target
-				limit = {
-					FROM = {
-						OR = {
-							state = 2
-							state = 459
-							state = 118
-							state = 447
-							state = 21
-							state = 47
-						}
+			log = "[GetDateText]: [Root.GetName]: Decision remove FIU_special_raid FROM: [From.GetName]"
+			#effect_tooltip = {
+			#	FROM = { FIU_raid_effect = yes }
+			#}
+			hidden_effect = {
+				FROM = {
+					if = {
+						limit = { state = 160 }
+						state_event = nufiupirate.3000
 					}
-				}
-				FIU_raise_risk_8 = yes
-				random_list = {
-					40 = {
-						FIU_add_one_successful_plunder = yes
-						FIU_successful_large_plunder = yes
-						modifier = {
-							factor = 1.15
-							has_war_support > 0.49
-						}
-						modifier = {
-							factor = 1.5
-							has_country_flag = FIU_laying_low #If Fiume has not made any raids in the last month
-						}
-						modifier = {
-							factor = 2.5
-							has_country_flag = FIU_readied_raid
-						}
+					else_if = {
+						limit = { state = 358 }
+						state_event = nufiupirate.3000
 					}
-					
-					60 = {
-						FIU_add_one_failed_plunder = yes
-						FIU_do_risk_calculation = yes
-						modifier = {
-							factor = 1.2
-							has_war_support < 0.40
-						}
-						modifier = {
-							factor = 1.08
-							has_stability < 0.60
-						}
-						modifier = {
-							factor = 1.05
-							check_variable = {
-								var = FIU_recent_plunders
-								value = 1
-								compare = equals
-							}
-						}
-						modifier = {
-							factor = 1.11
-							check_variable = {
-								var = FIU_recent_plunders
-								value = 2
-								compare = equals
-							}
-						}
-						modifier = {
-							factor = 1.18
-							check_variable = {
-								var = FIU_recent_plunders
-								value = 3
-								compare = equals
-							}
-						}
-						modifier = {
-							factor = 1.33
-							check_variable = {
-								var = FIU_recent_plunders
-								value = 3
-								compare = greater_than_or_equals
-							}
-						}
-					}
-				}
-				
-				
-				
-				
-				
-				else_if = { #Medium target
-					limit = {
-						FROM = {
-							OR = {
-								state = 454
-								state = 346
-								state = 117
-								state = 115
-								state = 165
-								state = 458
-								state = 454
-								state = 160
-								state = 163
-								state = 838
-							}
-						}
-					}
-					FIU_raise_risk_5 = yes
-					random_list = {
-						50 = {
-							FIU_add_one_successful_plunder = yes
-							FIU_successful_medium_plunder = yes
-							modifier = {
-								factor = 1.15
-								has_war_support > 0.49
-							}
-							modifier = {
-								factor = 1.5
-								has_country_flag = FIU_laying_low #If Fiume has not made any raids in the last month
-							}
-							modifier = {
-								factor = 2.5
-								has_country_flag = FIU_readied_raid
-							}
-						}
-						
-						50 = {
-							FIU_add_one_failed_plunder = yes
-							FIU_do_risk_calculation = yes
-							modifier = {
-								factor = 1.2
-								has_war_support < 0.40
-							}
-							modifier = {
-								factor = 1.08
-								has_stability < 0.60
-							}
-							modifier = {
-								factor = 1.05
-								check_variable = {
-									var = FIU_recent_plunders
-									value = 1
-									compare = equals
-								}
-							}
-							modifier = {
-								factor = 1.11
-								check_variable = {
-									var = FIU_recent_plunders
-									value = 2
-									compare = equals
-								}
-							}
-							modifier = {
-								factor = 1.18
-								check_variable = {
-									var = FIU_recent_plunders
-									value = 3
-									compare = equals
-								}
-							}
-							modifier = {
-								factor = 1.33
-								check_variable = {
-									var = FIU_recent_plunders
-									value = 3
-									compare = greater_than_or_equals
-								}
-							}
-						}
-					}
-					else = { #Small target
-						FIU_raise_risk_3 = yes
-						random_list = {
-							60 = {
-								FIU_add_one_successful_plunder = yes
-								FIU_successful_small_plunder = yes
-								modifier = {
-									factor = 1.15
-									has_war_support > 0.49
-								}
-								modifier = {
-									factor = 1.5
-									has_country_flag = FIU_laying_low #If Fiume has not made any raids in the last month
-								}
-								modifier = {
-									factor = 2.5
-									has_country_flag = FIU_readied_raid
-								}
-							}
-							
-							40 = {
-								FIU_add_one_failed_plunder = yes
-								FIU_do_risk_calculation = yes
-								modifier = {
-									factor = 1.2
-									has_war_support < 0.40
-								}
-								modifier = {
-									factor = 1.08
-									has_stability < 0.60
-								}
-								modifier = {
-									factor = 1.05
-									check_variable = {
-										var = FIU_recent_plunders
-										value = 1
-										compare = equals
-									}
-								}
-								modifier = {
-									factor = 1.11
-									check_variable = {
-										var = FIU_recent_plunders
-										value = 2
-										compare = equals
-									}
-								}
-								modifier = {
-									factor = 1.18
-									check_variable = {
-										var = FIU_recent_plunders
-										value = 3
-										compare = equals
-									}
-								}
-								modifier = {
-									factor = 1.33
-									check_variable = {
-										var = FIU_recent_plunders
-										value = 3
-										compare = greater_than_or_equals
-									}
-								}
-							}
-						}
+					else = {
+						state_event = nufiupirate.3000
 					}
 				}
 			}
-			
-			clr_country_flag = FIU_readied_raid
 		}
 	}
 }
