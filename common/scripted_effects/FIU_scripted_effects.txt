@@ -1,9 +1,9 @@
 FIU_add_risk_effect = {
 	custom_override_tooltip = {
 		tooltip = FIU_add_risk_effect_tt
-		add_to_variable = { FIU_risk = temp_FIU_risk }
+		add_to_variable = { FIU.FIU_risk = temp_FIU_risk }
 		clamp_variable = {
-			var = FIU_risk
+			var = FIU.FIU_risk
 			min = 0
 			max = 1
 		}
@@ -15,8 +15,8 @@ FIU_check_for_headsup_gui_effect = {
 	if = {
 		limit = {
 			OR = {
-				check_variable = { FIU_risk > 0.8 }
-				check_variable = { FIU_risk = 0.8 }
+				check_variable = { FIU.FIU_risk > 0.8 }
+				check_variable = { FIU.FIU_risk = 0.8 }
 			}
 		}
 		set_variable = { FIU.headsup_display_var = 5 }
@@ -24,8 +24,8 @@ FIU_check_for_headsup_gui_effect = {
 	else_if = {
 		limit = {
 			OR = {
-				check_variable = { FIU_risk > 0.6 }
-				check_variable = { FIU_risk = 0.6 }
+				check_variable = { FIU.FIU_risk > 0.6 }
+				check_variable = { FIU.FIU_risk = 0.6 }
 			}
 		}
 		set_variable = { FIU.headsup_display_var = 4 }
@@ -33,8 +33,8 @@ FIU_check_for_headsup_gui_effect = {
 	else_if = {
 		limit = {
 			OR = {
-				check_variable = { FIU_risk > 0.4 }
-				check_variable = { FIU_risk = 0.4 }
+				check_variable = { FIU.FIU_risk > 0.4 }
+				check_variable = { FIU.FIU_risk = 0.4 }
 			}
 		}
 		set_variable = { FIU.headsup_display_var = 3 }
@@ -42,14 +42,14 @@ FIU_check_for_headsup_gui_effect = {
 	else_if = {
 		limit = {
 			OR = {
-				check_variable = { FIU_risk > 0.2 }
-				check_variable = { FIU_risk = 0.2 }
+				check_variable = { FIU.FIU_risk > 0.2 }
+				check_variable = { FIU.FIU_risk = 0.2 }
 			}
 		}
 		set_variable = { FIU.headsup_display_var = 2 }
 	}
 	else_if = {
-		limit = { check_variable = { FIU_risk < 0.2 } }
+		limit = { check_variable = { FIU.FIU_risk < 0.2 } }
 		set_variable = { FIU.headsup_display_var = 1 }
 	}
 }
@@ -101,9 +101,11 @@ FIU_add_one_successful_plunder = {
 			limit = { NOT = { FIU = { has_dynamic_modifier = { modifier = FIU_piracy_gains_modifier } } } }
 			FIU = { add_dynamic_modifier = { modifier = FIU_piracy_gains_modifier } }
 		}
+		set_temp_variable = { temp_clamp_min = FIU.pirate_level }
+		divide_temp_variable = { temp_clamp_min = 100 }
 		clamp_variable = {
 			var = FIU.piracy_gains_var
-			min = 0
+			min = temp_clamp_min
 		}
 		country_event = nufiupirate.1000
 	}
@@ -114,9 +116,11 @@ FIU_add_one_failed_plunder = {
 		tooltip = FIU_raid_fails
 		add_to_variable = { FIU_failed_plunders = 1 }
 		add_to_variable = { FIU.piracy_gains_var = -0.01 }
+		set_temp_variable = { temp_clamp_min = FIU.pirate_level }
+		divide_temp_variable = { temp_clamp_min = 100 }
 		clamp_variable = {
 			var = FIU.piracy_gains_var
-			min = 0
+			min = temp_clamp_min
 		}
 		country_event = nufiupirate.2000
 	}
@@ -139,22 +143,26 @@ FIU_remove_one_recent_plunder = {
 }
 
 FIU_coup_raise = {
-	add_to_variable = { FIU_coup_value = 1 }
-	if = {
-		limit = {
-			check_variable = { FIU_coup_value < 7 }
-			NOT = { has_country_flag = FIU_coups_over }
-		}
-		meta_effect = {
-			text = {
-				country_event = {
-					id = nufiucoup.[COUP_EVENT_NUMBER]
-					days = 15
-					random = 200
-				}
+	custom_override_tooltip = {
+		tooltip = FIU_coup_raise_tt
+		if = {
+			limit = {
+				check_variable = { FIU_coup_value < 7 }
+				NOT = { has_country_flag = FIU_coups_over }
 			}
-			COUP_EVENT_NUMBER = "[?FIU_coup_value]"
+			meta_effect = {
+				text = {
+					country_event = {
+						id = nufiucoup.[COUP_EVENT_NUMBER]
+						days = 3
+						random_days = 10
+						random_hours = 240
+					}
+				}
+				COUP_EVENT_NUMBER = "[?FIU_coup_value]"
+			}
 		}
+		add_to_variable = { FIU_coup_value = 1 }
 	}
 }
 
@@ -177,6 +185,7 @@ FIU_do_risk_calculation = {
 				has_country_flag = FIU_readied_raid
 			}
 			modifier = {
+				add = fiu_temp_risk_math
 				factor = fiu_temp_risk_math
 			}
 			modifier = {
@@ -186,6 +195,10 @@ FIU_do_risk_calculation = {
 			modifier = {
 				factor = 2
 				PREV = { FIU_state_is_large_target = yes }
+			}
+			modifier = {
+				factor = 0.5
+				check_variable = { FIU.FIU_RISK < 0.2 }
 			}
 		}
 		75 = {
@@ -197,6 +210,7 @@ FIU_do_risk_calculation = {
 				factor = 1.5
 				has_country_flag = FIU_laying_low
 			}
+			custom_effect_tooltip = FIU_compromise_will_not_happen_tt
 		}
 	}
 	hidden_effect = {
