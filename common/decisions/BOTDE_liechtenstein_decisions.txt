@@ -165,6 +165,8 @@ BOTDE_LIC_decisions = {
 						state = 1206
 						state = 773
 						state = 450
+						state = 118
+						state = 1316
 						#Legations
 						state = 728
 						state = 729
@@ -180,6 +182,11 @@ BOTDE_LIC_decisions = {
 						state = 609
 						state = 745
 						state = 996
+						state = 336 #Singapore
+						state = 439 #Delhi
+						state = 321 #Goa
+						state = 1095 #Pondicherry
+						state = 1176 #Cape Town
 					}
 					else = { #Regular list
 						OR = {
@@ -341,9 +348,7 @@ BOTDE_LIC_decisions = {
 		target_trigger = {
 			FROM = {
 				tag = SWI
-				NOT = {
-					is_in_faction_with = ROOT
-				}
+				NOT = { is_ally_with = ROOT }
 			}
 		}
 		cancel_trigger = {
@@ -351,7 +356,7 @@ BOTDE_LIC_decisions = {
 		}
 		available = {
 			NOT = {
-				in_faction_with = FROM
+				is_in_faction_with = FROM
 				FROM = {
 					is_in_faction_with = GER
 				}
@@ -388,22 +393,18 @@ BOTDE_LIC_decisions = {
 				add_state_claim = 1003
 			}
 			if = {
-				limit = {
-					has_country_flag = LIC_marterl_support
-				}
+				limit = { has_country_flag = LIC_marterl_support }
 				add_timed_idea = {
 					idea = LIC_unternehmen_marterl_bonus_idea
 					days = 180
 				}
-				else_if = {
-					limit = {
-						has_country_flag = LIC_marterl_support_nonobadboy
-					}
-					custom_effect_tooltip = LIC_marterl_tt_badboy
-					else = {
-						custom_effect_tooltip = LIC_marterl_tt
-					}
-				}
+			}
+			else_if = {
+				limit = { has_country_flag = LIC_marterl_support_nonobadboy }
+				custom_effect_tooltip = LIC_marterl_tt_badboy
+			}
+			else = {
+				custom_effect_tooltip = LIC_marterl_tt
 			}
 			if = {
 				limit = {
@@ -415,6 +416,9 @@ BOTDE_LIC_decisions = {
 						type = annex_everything
 					}
 				}
+			}
+			hidden_effect = {
+				news_event = licnews.3
 			}
 		}
 	}
@@ -440,7 +444,7 @@ BOTDE_LIC_decisions = {
 		}
 		available = {
 			NOT = {
-				in_faction_with = FROM
+				is_in_faction_with = FROM
 				FROM = {
 					is_in_faction = no
 				}
@@ -659,9 +663,7 @@ BOTDE_LIC_decisions = {
 		available = {
 			num_of_civilian_factories_available_for_projects > 3
 			if = {
-				limit = {
-					has_dlc = "Götterdämmerung"
-				}
+				limit = { has_dlc_got = yes }
 				is_special_project_completed = sp:sp_land_military_engineering_vehicles
 			}
 		}
@@ -707,7 +709,7 @@ BOTDE_LIC_decisions = {
 				has_completed_focus = LIC_a_job_for_the_prince
 			}
 		}
-		icon = decision_generic_forestry
+		icon = GFX_decision_generic_forestry
 		modifier = {
 			civilian_factory_use = 2
 		}
@@ -726,6 +728,41 @@ BOTDE_LIC_decisions = {
 			mio:LIC_kaiser_ag_organisation = {
 				add_mio_funds = 250
 				add_mio_funds_gain_factor = 0.05
+			}
+		}
+	}
+	
+	LIC_electrification = {
+		custom_cost_trigger = {
+			num_of_civilian_factories_available_for_projects > 2
+		}
+		custom_cost_text = CONST_3_civ
+		allowed = { tag = LIC }
+		fire_only_once = yes
+		visible = {
+			OR = {
+				has_completed_focus = LIC_princely_roads_commission
+				has_completed_focus = LIC_dollfussian_corporatism
+				has_completed_focus = LIC_die_jahrhundertregel
+			}
+		}
+		icon = GFX_decision_generic_electricity
+		modifier = {
+			civilian_factory_use = 3
+		}
+		available = {
+			num_of_civilian_factories_available_for_projects > 2
+			has_capitulated = no
+			has_tech = electronic_mechanical_engineering
+		}
+		days_remove = 180
+		remove_effect = {
+			capital_scope = {
+				add_state_modifier = {
+					modifier = {
+						local_factory_energy_consumption_per_infrastructure = -0.06
+					}
+				}
 			}
 		}
 	}
@@ -821,6 +858,78 @@ BOTDE_LIC_decisions = {
 		}
 	}
 	
+	LIC_mercenaries_add = {
+		custom_cost_trigger = {
+			LIC_no_negs_HH = yes
+		}
+		custom_cost_text = LIC_1_HH
+		allowed = { tag = LIC }
+		fire_only_once = yes
+		visible = {
+			OR = {
+				has_completed_focus = LIC_restore_the_army
+				has_completed_focus = LIC_maintain_the_police
+			}
+			has_completed_focus = LIC_military_espionage
+		}
+		icon = GFX_decision_eng_blackshirt_march
+
+		days_remove = 25
+		days_re_enable = 15
+		complete_effect = {
+			LIC_nerf_hh = yes
+		}
+		remove_effect = {
+			custom_effect_tooltip = LIC_150_weekly_manpower
+			add_to_variable = {
+				var = LIC.weekly_manpower_var
+				value = 150
+			}
+			add_to_variable = {
+				var = LIC.merccount
+				value = 1
+			}
+		}
+	}
+	
+	LIC_mercenaries_remove = {
+		allowed = { tag = LIC }
+		fire_only_once = yes
+		available = {
+			custom_trigger_tooltip = {
+				tooltip = LIC_has_mercs
+				check_variable = {
+					var = LIC.merccount
+					value = 1
+					compare = greater_than_or_equals
+				}
+			}
+		}
+		visible = {
+			OR = {
+				has_completed_focus = LIC_restore_the_army
+				has_completed_focus = LIC_maintain_the_police
+			}
+			has_completed_focus = LIC_military_espionage
+		}
+		icon = GFX_decisions_generic_infiltration
+
+		days_remove = 10
+		days_re_enable = 10
+		remove_effect = {
+			LIC_restore_hh = yes
+			custom_effect_tooltip = LIC_m150_weekly_manpower
+			subtract_from_variable = {
+				var = LIC.weekly_manpower_var
+				value = 150
+			}
+			subtract_from_variable = {
+				var = LIC.merccount
+				value = 1
+			}
+		}
+	}
+	
 	LIC_anti_air_mission = {
 		allowed = { tag = LIC }
 		fire_only_once = yes
@@ -876,6 +985,31 @@ BOTDE_LIC_decisions = {
 		}
 	}
 	
+	LIC_airspace_sovereignty = {
+		allowed = { tag = LIC }
+		fire_only_once = yes
+		icon = GFX_decision_plane
+		custom_cost_trigger = {
+			command_power > 124
+		}
+		custom_cost_text = LIC_125_CP
+		available = {
+			has_deployed_air_force_size  = {
+				size > 49
+				type = fighter
+			}
+			any_neighbor_country = {
+				has_war_with_major = yes
+			}
+		}
+		visible = {
+			has_completed_focus = LIC_swiss_style_air_force
+		}
+		complete_effect = {
+			add_ideas = LIC_aerial_home_guard
+		}
+	}
+	
 	LIC_bunker_mission = {
 		allowed = { tag = LIC }
 		fire_only_once = yes
@@ -908,9 +1042,7 @@ BOTDE_LIC_decisions = {
 				}
 			}
 			if = {
-				limit = {
-					has_dlc = "Götterdämmerung"
-				}
+				limit = { has_dlc_got = yes }
 				sp:sp_land_stronghold_network = {
 					add_project_progress_ratio = 0.65
 				}
@@ -925,9 +1057,7 @@ BOTDE_LIC_decisions = {
 		}
 		timeout_effect = {
 			if = {
-				limit = {
-					has_dlc = "Götterdämmerung"
-				}
+				limit = { has_dlc_got = yes }
 				custom_effect_tooltip = LIC_stronghold_breakthrough
 				LIC_do_stronghold_breakthrough = yes
 			}
@@ -1022,7 +1152,7 @@ BOTDE_LIC_decisions = {
 			OR = {
 				AUS = {
 					is_subject_of = LIC
-					every_core_state = {
+					all_core_state = {
 						is_owned_by = LIC
 					}
 				}
@@ -1070,10 +1200,8 @@ BOTDE_LIC_decisions = {
 						OR = {
 							owns_state = PREV
 							any_subject_country = {
-								limit = {
-									NOT = {
-										has_autonomy_state = LIC_sister_state
-									}
+								NOT = {
+									has_autonomy_state = LIC_sister_state
 								}
 								owns_state = PREV.PREV
 							}
@@ -1118,10 +1246,8 @@ BOTDE_LIC_decisions = {
 						OR = {
 							owns_state = PREV
 							any_subject_country = {
-								limit = {
-									NOT = {
-										has_autonomy_state = LIC_sister_state
-									}
+								NOT = {
+									has_autonomy_state = LIC_sister_state
 								}
 								owns_state = PREV.PREV
 							}
@@ -1134,209 +1260,6 @@ BOTDE_LIC_decisions = {
 				}
 				transfer_state_to = AUS
 				add_core_of = AUS
-			}
-		}
-	}
-	
-	LIC_schwesterstaat_destroy_AH = {
-		allowed = { tag = LIC }
-		fire_only_once = yes
-		visible = {
-			has_completed_focus = LIC_payback_habsburgs
-			has_country_flag = LIC_restored_habsburgs
-		}
-		state_target = yes
-		on_map_mode = map_only
-		target_trigger = {
-			FROM = {
-				owner = {
-					AND = {
-						is_subject_of = LIC
-						has_autonomy_state = LIC_sister_state
-					}
-				}
-				is_capital = yes
-			}
-		}
-		icon = GFX_decision_generic_trumpet
-		available = {
-			FROM = {
-				has_capitulated = no
-			}
-			AUS = {
-				is_subject_of = LIC
-			}
-		}
-		complete_effect = {
-			FROM = {
-				set_state_flag = no_schwesterstaat
-			}
-			AUS = {
-				annex_country = {
-					target = FROM.owner
-					transfer_troops = yes
-				}
-			}
-		}
-	}
-	
-	LIC_give_schwesterstaat_manpower = {
-		allowed = { tag = LIC }
-		fire_only_once = no
-		visible = {
-			FROM = {
-				owner = {
-					AND = {
-						is_subject_of = LIC
-						has_autonomy_state = LIC_sister_state
-					}
-				}
-			}
-		}
-		icon = GFX_decision_champagne_glass
-		state_target = yes
-		on_map_mode = map_only
-		target_trigger = {
-			FROM = {
-				owner = {
-					AND = {
-						is_subject_of = LIC
-						has_autonomy_state = LIC_sister_state
-					}
-				}
-			}
-		}
-		available = {
-			FROM = {
-				has_capitulated = no
-				capital_scope = {
-					is_controlled_by = FROM
-				}
-			}
-		}
-		days_remove = 180
-		complete_effect = {
-			add_manpower = -15000
-			FROM = {
-				owner = {
-					add_manpower = 15000
-				}
-			}
-		}
-	}
-	
-	LIC_schwesterstaat_upgrade = {
-		allowed = { tag = LIC }
-		fire_only_once = yes
-		visible = {
-			FROM = {
-				owner = {
-					AND = {
-						is_subject_of = LIC
-						has_autonomy_state = LIC_sister_state
-					}
-				}
-			}
-		}
-		custom_cost_trigger = {
-			num_of_civilian_factories_available_for_projects > 1
-		}
-		custom_cost_text = CONST_2_civ
-		icon = GFX_decision_generic_factory
-		state_target = yes
-		on_map_mode = map_only
-		target_trigger = {
-			FROM = {
-				owner = {
-					AND = {
-						is_subject_of = LIC
-						has_autonomy_state = LIC_sister_state
-					}
-				}
-				is_capital = yes
-			}
-		}
-		available = {
-			FROM = {
-				has_capitulated = no
-				capital_scope = {
-					is_controlled_by = FROM
-				}
-			}
-			num_of_civilian_factories_available_for_projects > 1
-		}
-		days_remove = 180
-		complete_effect = {
-			FROM = {
-				add_state_modifier = {
-					modifier = {
-						state_production_speed_buildings_factor = 0.15
-						recruitable_population = 0.015
-						local_building_slots_factor = 0.25
-					}
-				}
-			}
-		}
-	}
-	
-	LIC_IM_PLAYING_MOEREDUX_AND_I_WANT_TO_LARP = {
-		allowed = { tag = LIC }
-		fire_only_once = no
-		visible = {
-			FROM = {
-				owner = {
-					has_cosmetic_tag = LIC_swst_anzio_MEME
-				}
-			}
-			is_any_meme_mode_flag_on = yes
-		}
-		icon = GFX_decision_italy_flag
-		state_target = yes
-		on_map_mode = map_only
-		target_trigger = {
-			FROM = {
-				owner = {
-					AND = {
-						is_subject_of = LIC
-						has_autonomy_state = LIC_sister_state
-					}
-				}
-				state = 1149
-			}
-		}
-		complete_effect = {
-			custom_effect_tooltip = please_use_this_only_if_using_moeredux
-			hidden_effect = {
-				FROM = {
-					owner = {
-						if = {
-							limit = {
-								check_variable = {
-									var = THIS.portrait_stat
-									value = 0
-									compare = equals
-								}
-							}
-							LIC_FIVE_MILLION_ISONZO_BATTLES = yes
-							add_to_variable = { var = THIS.portrait_stat value = 1 }
-							else_if = {
-								limit = {
-									check_variable = {
-										var = THIS.portrait_stat
-										value = 1
-										compare = equals
-									}
-								}
-								LIC_SIX_MILLION_ISONZO_BATTLES = yes
-								add_to_variable = { var = THIS.portrait_stat value = 1 }
-								else = {
-									LIC_EIGHT_MILLION_ISONZO_BATTLES = yes
-									set_variable = { var = THIS.portrait_stat value = 0 }
-								}
-							}
-						}
-					}
-				}
 			}
 		}
 	}
@@ -1433,7 +1356,7 @@ BOTDE_LIC_decisions = {
 			}
 			has_completed_focus = LIC_reichspakt
 		}
-		icon = GFX_decision_flag_germany
+		icon = GFX_decision_ger_flag
 		state_target = yes
 		on_map_mode = map_only
 		target_trigger = {
@@ -2137,7 +2060,15 @@ BOTDE_LIC_decisions = {
 				limit = {
 					has_cosmetic_tag = LIC_papacy
 				}
-				set_cosmetic_tag = LIC_papacy_alpine
+				if = {
+					limit = {
+						has_country_flag = LIC_archdiocese_vaduz
+					}
+					set_cosmetic_tag = LIC_papacy_alpine_vaduz
+					else = {
+						set_cosmetic_tag = LIC_papacy_alpine
+					}
+				}
 			}
 			set_country_flag = LIC_formed_alpine
 		}
@@ -2640,7 +2571,7 @@ BOTDE_LIC_decisions = {
 		target_trigger = {
 			FROM = {
 				is_owned_by = LIC
-				is_claim_of = LIC
+				is_claimed_by = LIC
 				NOT = {
 					is_core_of = LIC
 				}
@@ -2677,10 +2608,12 @@ BOTDE_LIC_decisions = {
 						}
 					}
 				}
-				else_if = {
-					limit = {
-						has_country_flag = LIC_cantons
-					}
+			}
+			else_if = {
+				limit = {
+					has_country_flag = LIC_cantons
+				}
+				FROM = {
 					add_state_modifier = {
 						modifier = {
 							state_production_speed_buildings_factor = 0.1
@@ -2717,6 +2650,9 @@ BOTDE_LIC_decisions = {
 				has_capitulated = yes
 				surrender_progress > 0.2
 			}
+			NOT = {
+				controls_state = 1235
+			}
 		}
 		complete_effect = {
 			ALA = {
@@ -2728,12 +2664,10 @@ BOTDE_LIC_decisions = {
 			set_capital = { state = 463 }
 			add_state_core = 463
 			set_country_flag = LIC_relocated
+			mark_focus_tree_layout_dirty = yes
 			set_country_flag = LIC_relocated_alaska
-			every_enemy_country = {
-				white_peace = {
-					tag = LIC
-				}
-			}
+			remove_state_core = 1235
+			add_state_claim = 1235
 			var:1235.controller = {
 				transfer_state = 1235
 				LIC = {
@@ -2747,23 +2681,22 @@ BOTDE_LIC_decisions = {
 					}
 				}
 			}
+			every_enemy_country = {
+				white_peace = {
+					tag = LIC
+				}
+			}
 		}
 	}
 	
-	LIC_relocate_to_ceylon = {
+	LIC_relocate_to_schwesterstaat = {
 		cost = 0
 		allowed = { tag = LIC }
 		fire_only_once = yes
 		visible = {
-			OR = {
-				owns_state = 422
-				CEY = {
-					is_puppet_of = LIC
-				}
-			}
-			NOT = {
-				has_country_flag = LIC_relocated
-				controls_state = 1235
+			any_country = {
+				is_subject_of = LIC
+				has_autonomy_state = LIC_sister_state
 			}
 			OR = {
 				has_capitulated = yes
@@ -2775,22 +2708,39 @@ BOTDE_LIC_decisions = {
 				has_capitulated = yes
 				surrender_progress > 0.2
 			}
-		}
-		complete_effect = {
-			transfer_state = 422
-			set_capital = { state = 422 }
-			add_state_core = 422
-			set_province_name = {
-				id = 7260
-				name = "Neu-Vaduz"
+			NOT = {
+				controls_state = 1235
 			}
-			set_country_flag = LIC_relocated
-			set_country_flag = LIC_relocated_ceylon
-			every_enemy_country = {
-				white_peace = {
-					tag = LIC
+		}
+		target_trigger = {
+			FROM = {
+				is_subject_of = LIC
+				has_autonomy_state = LIC_sister_state
+			}
+		}
+		on_map_mode = map_and_decisions_view
+		complete_effect = {
+			FROM = {
+				capital_scope = {
+					save_event_target_as = LIC_capital_change_schwesterstaat
+					set_state_flag = LIC_Exile_State
 				}
 			}
+			annex_country = {
+				target = FROM
+				transfer_troops = yes
+			}
+			event_target:LIC_capital_change_schwesterstaat = {
+				ROOT = {
+					set_capital = { state = PREV remember_old_capital = no }
+				}
+			}
+			set_country_flag = LIC_relocated
+			mark_focus_tree_layout_dirty = yes
+			set_country_flag = LIC_relocated_schwesterstaat
+			remove_state_core = 1235
+			add_state_claim = 1235
+			country_event = licflavor.92
 			var:1235.controller = {
 				transfer_state = 1235
 				LIC = {
@@ -2802,6 +2752,11 @@ BOTDE_LIC_decisions = {
 						}
 						transfer_state_to = PREV.PREV
 					}
+				}
+			}
+			every_enemy_country = {
+				white_peace = {
+					tag = LIC
 				}
 			}
 		}
@@ -2826,6 +2781,9 @@ BOTDE_LIC_decisions = {
 			OR = {
 				has_capitulated = yes
 				surrender_progress > 0.2
+			}
+			NOT = {
+				controls_state = 1235
 			}
 			has_global_flag = ENG_elected_FRANZJOSEFII
 		}
@@ -2852,13 +2810,11 @@ BOTDE_LIC_decisions = {
 				}
 			}
 			set_country_flag = LIC_relocated
+			mark_focus_tree_layout_dirty = yes
 			set_country_flag = LIC_relocated_britain
+			remove_state_core = 1235
+			add_state_claim = 1235
 			set_cosmetic_tag = LIC_ENG
-			every_enemy_country = {
-				white_peace = {
-					tag = LIC
-				}
-			}
 			var:1235.controller = {
 				transfer_state = 1235
 				LIC = {
@@ -2870,6 +2826,11 @@ BOTDE_LIC_decisions = {
 						}
 						transfer_state_to = PREV.PREV
 					}
+				}
+			}
+			every_enemy_country = {
+				white_peace = {
+					tag = LIC
 				}
 			}
 		}
@@ -2912,6 +2873,9 @@ BOTDE_LIC_decisions = {
 					is_puppet_of = LIC
 					is_ai = no
 				}
+			}
+			NOT = {
+				controls_state = 1235
 			}
 		}
 		complete_effect = {
@@ -2966,12 +2930,10 @@ BOTDE_LIC_decisions = {
 				}
 			}
 			set_country_flag = LIC_relocated
+			mark_focus_tree_layout_dirty = yes
 			set_country_flag = LIC_relocated_america
-			every_enemy_country = {
-				white_peace = {
-					tag = LIC
-				}
-			}
+			remove_state_core = 1235
+			add_state_claim = 1235
 			var:1235.controller = {
 				transfer_state = 1235
 				LIC = {
@@ -2983,6 +2945,11 @@ BOTDE_LIC_decisions = {
 						}
 						transfer_state_to = PREV.PREV
 					}
+				}
+			}
+			every_enemy_country = {
+				white_peace = {
+					tag = LIC
 				}
 			}
 		}
@@ -3005,6 +2972,1147 @@ BOTDE_LIC_decisions = {
 	}
 	
 }
+
+LIC_schwesterstaat_category = {
+	LIC_schwesterstaat_destroy_AH = {
+		allowed = { tag = LIC }
+		fire_only_once = yes
+		visible = {
+			has_completed_focus = LIC_payback_habsburgs
+			has_country_flag = LIC_restored_habsburgs
+		}
+		state_target = yes
+		on_map_mode = map_only
+		target_trigger = {
+			FROM = {
+				owner = {
+					AND = {
+						is_subject_of = LIC
+						has_autonomy_state = LIC_sister_state
+					}
+				}
+				is_capital = yes
+			}
+		}
+		icon = GFX_decision_generic_trumpet
+		available = {
+			FROM = {
+				has_capitulated = no
+			}
+			AUS = {
+				is_subject_of = LIC
+			}
+		}
+		complete_effect = {
+			FROM = {
+				set_state_flag = no_schwesterstaat
+			}
+			AUS = {
+				annex_country = {
+					target = FROM.owner
+					transfer_troops = yes
+				}
+			}
+		}
+	}
+	
+	LIC_give_schwesterstaat_manpower = {
+		allowed = { tag = LIC }
+		fire_only_once = no
+		visible = {
+			FROM = {
+				owner = {
+					AND = {
+						is_subject_of = LIC
+						has_autonomy_state = LIC_sister_state
+					}
+				}
+			}
+		}
+		icon = GFX_decision_champagne_glass
+		state_target = yes
+		on_map_mode = map_only
+		target_trigger = {
+			FROM = {
+				owner = {
+					AND = {
+						is_subject_of = LIC
+						has_autonomy_state = LIC_sister_state
+					}
+				}
+			}
+		}
+		available = {
+			FROM = {
+				owner = {
+					has_capitulated = no
+					capital_scope = {
+						is_controlled_by = PREV
+					}
+				}
+			}
+		}
+		days_remove = 180
+		remove_effect = {
+			add_manpower = -15000
+			FROM = {
+				owner = {
+					add_manpower = 15000
+				}
+			}
+		}
+	}
+	
+	LIC_schwesterstaat_upgrade = {
+		allowed = { tag = LIC }
+		fire_only_once = yes
+		visible = {
+			FROM = {
+				owner = {
+					AND = {
+						is_subject_of = LIC
+						has_autonomy_state = LIC_sister_state
+					}
+				}
+			}
+		}
+		custom_cost_trigger = {
+			num_of_civilian_factories_available_for_projects > 1
+		}
+		custom_cost_text = CONST_2_civ
+		icon = GFX_decision_generic_factory
+		state_target = yes
+		on_map_mode = map_only
+		target_trigger = {
+			FROM = {
+				owner = {
+					AND = {
+						is_subject_of = LIC
+						has_autonomy_state = LIC_sister_state
+					}
+				}
+				is_capital = yes
+			}
+		}
+		available = {
+			FROM = {
+				owner = {
+					has_capitulated = no
+					capital_scope = {
+						is_controlled_by = PREV
+					}
+				}
+			}
+			num_of_civilian_factories_available_for_projects > 1
+		}
+		days_remove = 180
+		remove_effect = {
+			FROM = {
+				add_state_modifier = {
+					modifier = {
+						state_production_speed_buildings_factor = 0.15
+						recruitable_population = 0.015
+						local_building_slots_factor = 0.25
+					}
+				}
+			}
+		}
+	}
+	
+	LIC_IM_PLAYING_MOEREDUX_AND_I_WANT_TO_LARP = {
+		allowed = { tag = LIC }
+		fire_only_once = no
+		visible = {
+			FROM = {
+				owner = {
+					has_cosmetic_tag = LIC_swst_anzio_MEME
+				}
+			}
+			is_any_meme_mode_flag_on = yes
+		}
+		icon = GFX_decision_LIC_BLOATWARE_FOR_MOEREDUX
+		state_target = yes
+		on_map_mode = map_only
+		target_trigger = {
+			FROM = {
+				owner = {
+					AND = {
+						is_subject_of = LIC
+						has_autonomy_state = LIC_sister_state
+					}
+				}
+				state = 1149
+			}
+		}
+		complete_effect = {
+			custom_effect_tooltip = please_use_this_only_if_using_moeredux
+			hidden_effect = {
+				FROM = {
+					owner = {
+						if = {
+							limit = {
+								check_variable = {
+									var = THIS.portrait_stat
+									value = 0
+									compare = equals
+								}
+							}
+							LIC_FIVE_MILLION_ISONZO_BATTLES = yes
+							add_to_variable = { var = THIS.portrait_stat value = 1 }
+							else_if = {
+								limit = {
+									check_variable = {
+										var = THIS.portrait_stat
+										value = 1
+										compare = equals
+									}
+								}
+								LIC_SIX_MILLION_ISONZO_BATTLES = yes
+								add_to_variable = { var = THIS.portrait_stat value = 1 }
+								else = {
+									LIC_EIGHT_MILLION_ISONZO_BATTLES = yes
+									set_variable = { var = THIS.portrait_stat value = 0 }
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	LIC_schwesterstaat_sevastopol_resorts = {
+		allowed = { tag = LIC }
+		fire_only_once = yes
+		visible = {
+			FROM = {
+				owner = {
+					OR = {
+						AND = {
+							is_subject_of = LIC
+							has_autonomy_state = LIC_sister_state
+						}
+						AND = {
+							has_country_flag = LIC_relocated_schwesterstaat
+							tag = LIC
+						}
+					}
+				}
+			}
+		}
+		custom_cost_trigger = {
+			num_of_civilian_factories_available_for_projects > 2
+		}
+		custom_cost_text = CONST_3_civ
+		icon = GFX_decision_oasis
+		state_target = yes
+		on_map_mode = map_and_decisions_view
+		target_trigger = {
+			FROM = {
+				owner = {
+					OR = {
+						AND = {
+							is_subject_of = LIC
+							has_autonomy_state = LIC_sister_state
+						}
+						AND = {
+							has_country_flag = LIC_relocated_schwesterstaat
+							tag = LIC
+						}
+					}
+				}
+				is_capital = yes
+				state = 1221
+			}
+		}
+		available = {
+			OR = {
+				has_completed_focus = LIC_reap_harvest
+				has_completed_focus = LIC_reaffirm_rubber_and_tea
+			}
+			FROM = {
+				owner = {
+					controls_state = FROM
+				}
+			}
+			num_of_civilian_factories_available_for_projects > 1
+		}
+		days_remove = 180
+		remove_effect = {
+			FROM = {
+				add_state_modifier = {
+					modifier = {
+						recruitable_population = 0.015
+						local_building_slots_factor = 0.25
+						enemy_operative_detection_chance_factor_over_occupied_tag = 0.25
+						enemy_intel_network_gain_factor_over_occupied_tag = -0.33
+					}
+				}
+				add_extra_state_shared_building_slots = 3
+			}
+			ROOT = {
+				country_event = licflavor.93
+				LIC_add_hh = yes
+			}
+		}
+	}
+	
+	LIC_schwesterstaat_constantinople_hagia_sophia = {
+		allowed = { tag = LIC }
+		fire_only_once = yes
+		visible = {
+			FROM = {
+				owner = {
+					OR = {
+						AND = {
+							is_subject_of = LIC
+							has_autonomy_state = LIC_sister_state
+						}
+						AND = {
+							has_country_flag = LIC_relocated_schwesterstaat
+							tag = LIC
+						}
+					}
+				}
+			}
+		}
+		custom_cost_trigger = {
+			num_of_civilian_factories_available_for_projects > 2
+		}
+		custom_cost_text = CONST_3_civ
+		icon = GFX_decision_papacy2
+		state_target = yes
+		on_map_mode = map_and_decisions_view
+		target_trigger = {
+			FROM = {
+				owner = {
+					OR = {
+						AND = {
+							is_subject_of = LIC
+							has_autonomy_state = LIC_sister_state
+						}
+						AND = {
+							has_country_flag = LIC_relocated_schwesterstaat
+							tag = LIC
+						}
+					}
+				}
+				is_capital = yes
+				state = 773
+			}
+		}
+		available = {
+			OR = {
+				has_completed_focus = LIC_reap_harvest
+				has_completed_focus = LIC_reaffirm_rubber_and_tea
+			}
+			FROM = {
+				owner = {
+					controls_state = FROM
+				}
+			}
+			num_of_civilian_factories_available_for_projects > 1
+		}
+		days_remove = 180
+		remove_effect = {
+			FROM = {
+				add_state_modifier = {
+					modifier = {
+						recruitable_population = 0.015
+					}
+				}
+				add_extra_state_shared_building_slots = 1
+			}
+			ROOT = {
+				country_event = licflavor.94
+				add_political_power = 250
+				add_stability = 0.1
+				add_war_support = 0.1
+				LIC_add_hh_chungus = yes
+			}
+		}
+	}
+	
+	LIC_schwesterstaat_andorra_ski_lodges_thermal_waters = {
+		allowed = { tag = LIC }
+		fire_only_once = yes
+		visible = {
+			FROM = {
+				owner = {
+					OR = {
+						AND = {
+							is_subject_of = LIC
+							has_autonomy_state = LIC_sister_state
+						}
+						AND = {
+							has_country_flag = LIC_relocated_schwesterstaat
+							tag = LIC
+						}
+					}
+				}
+			}
+		}
+		custom_cost_trigger = {
+			num_of_civilian_factories_available_for_projects > 4
+		}
+		custom_cost_text = CONST_5_civ
+		icon = GFX_decision_FIN_weapon_caches
+		state_target = yes
+		on_map_mode = map_and_decisions_view
+		target_trigger = {
+			FROM = {
+				owner = {
+					OR = {
+						AND = {
+							is_subject_of = LIC
+							has_autonomy_state = LIC_sister_state
+						}
+						AND = {
+							has_country_flag = LIC_relocated_schwesterstaat
+							tag = LIC
+						}
+					}
+				}
+				is_capital = yes
+				state = 1313
+			}
+		}
+		available = {
+			OR = {
+				has_completed_focus = LIC_reap_harvest
+				has_completed_focus = LIC_reaffirm_rubber_and_tea
+			}
+			FROM = {
+				owner = {
+					controls_state = FROM
+				}
+			}
+			num_of_civilian_factories_available_for_projects > 4
+		}
+		days_remove = 240
+		remove_effect = {
+			FROM = {
+				add_building_construction = {
+					type = industrial_complex
+					level = 1
+				}
+				add_extra_state_shared_building_slots = 3
+			}
+			ROOT = {
+				set_technology = {
+					tech_winter_logistics_support = 1
+					tech_ski_infantry = 1
+				}
+			}
+		}
+	}
+	
+	LIC_schwesterstaat_delhi_adopting_parade_animals = {
+		allowed = { tag = LIC }
+		fire_only_once = yes
+		visible = {
+			FROM = {
+				owner = {
+					OR = {
+						AND = {
+							is_subject_of = LIC
+							has_autonomy_state = LIC_sister_state
+						}
+						AND = {
+							has_country_flag = LIC_relocated_schwesterstaat
+							tag = LIC
+						}
+					}
+				}
+			}
+		}
+		custom_cost_trigger = {
+			num_of_civilian_factories_available_for_projects > 2
+		}
+		custom_cost_text = CONST_3_civ
+		icon = GFX_decision_generic_belgian_colonial_helmet
+		state_target = yes
+		on_map_mode = map_and_decisions_view
+		target_trigger = {
+			FROM = {
+				owner = {
+					OR = {
+						AND = {
+							is_subject_of = LIC
+							has_autonomy_state = LIC_sister_state
+						}
+						AND = {
+							has_country_flag = LIC_relocated_schwesterstaat
+							tag = LIC
+						}
+					}
+				}
+				is_capital = yes
+				state = 439
+			}
+		}
+		available = {
+			OR = {
+				has_completed_focus = LIC_reap_harvest
+				has_completed_focus = LIC_reaffirm_rubber_and_tea
+			}
+			FROM = {
+				owner = {
+					controls_state = FROM
+				}
+			}
+			num_of_civilian_factories_available_for_projects > 2
+		}
+		days_remove = 240
+		remove_effect = {
+			FROM = {
+				add_building_construction = {
+					type = industrial_complex
+					level = 1
+				}
+				add_extra_state_shared_building_slots = 3
+			}
+			ROOT = {
+				set_technology = {
+					tech_elephant_sappers = 1
+					elephantry = 1
+				}
+			}
+		}
+	}
+	
+	LIC_schwesterstaat_chinese_legation_banking_ties = {
+		allowed = { tag = LIC }
+		fire_only_once = yes
+		cost = 100
+		visible = {
+			FROM = {
+				owner = {
+					OR = {
+						AND = {
+							is_subject_of = LIC
+							has_autonomy_state = LIC_sister_state
+						}
+						AND = {
+							has_country_flag = LIC_relocated_schwesterstaat
+							tag = LIC
+						}
+					}
+				}
+			}
+			NOT = {
+				has_global_flag = LIC_schwesterstaat_legation_bank_flag
+			}
+		}
+		icon = GFX_decision_CHI_focus
+		state_target = yes
+		on_map_mode = map_and_decisions_view
+		target_trigger = {
+			FROM = {
+				owner = {
+					OR = {
+						AND = {
+							is_subject_of = LIC
+							has_autonomy_state = LIC_sister_state
+						}
+						AND = {
+							has_country_flag = LIC_relocated_schwesterstaat
+							tag = LIC
+						}
+					}
+				}
+				is_capital = yes
+				OR = {
+					state = 728
+					state = 729
+					state = 592
+					state = 326
+					state = 801
+					state = 802
+					state = 747
+					state = 803
+					state = 746
+					state = 1075
+					state = 744
+					state = 609
+					state = 745
+					state = 996
+				}
+			}
+		}
+		available = {
+			OR = {
+				has_completed_focus = LIC_reap_harvest
+				has_completed_focus = LIC_reaffirm_rubber_and_tea
+			}
+			FROM = {
+				owner = {
+					controls_state = FROM
+				}
+			}
+			has_completed_focus = LIC_reichspakt
+		}
+		days_remove = 240
+		complete_effect = {
+			set_global_flag = LIC_schwesterstaat_legation_bank_flag
+		}
+		remove_effect = {
+			FROM = {
+				add_state_modifier = {
+					modifier = {
+						local_building_slots_factor = 0.25
+						local_factory_energy_consumption = -0.25
+						local_supplies = 0.5
+					}
+				}
+				add_extra_state_shared_building_slots = 2
+			}
+			ROOT = {
+				LIC_add_hh = yes
+			}
+		}
+	}
+	
+	LIC_schwesterstaat_tianjin_foreign_quarter = {
+		allowed = { tag = LIC }
+		fire_only_once = yes
+		cost = 100
+		visible = {
+			FROM = {
+				owner = {
+					OR = {
+						AND = {
+							is_subject_of = LIC
+							has_autonomy_state = LIC_sister_state
+						}
+						AND = {
+							has_country_flag = LIC_relocated_schwesterstaat
+							tag = LIC
+						}
+					}
+				}
+			}
+		}
+		icon = GFX_decision_give_cash
+		state_target = yes
+		on_map_mode = map_and_decisions_view
+		target_trigger = {
+			FROM = {
+				owner = {
+					OR = {
+						AND = {
+							is_subject_of = LIC
+							has_autonomy_state = LIC_sister_state
+						}
+						AND = {
+							has_country_flag = LIC_relocated_schwesterstaat
+							tag = LIC
+						}
+					}
+				}
+				is_capital = yes
+				state = 609
+			}
+		}
+		available = {
+			OR = {
+				has_completed_focus = LIC_reap_harvest
+				has_completed_focus = LIC_reaffirm_rubber_and_tea
+			}
+			FROM = {
+				owner = {
+					controls_state = FROM
+				}
+			}
+			has_completed_focus = LIC_reichspakt
+		}
+		days_remove = 150
+		remove_effect = {
+			FROM = {
+				add_state_modifier = {
+					modifier = {
+						local_building_slots_factor = 0.15
+						state_production_speed_buildings_factor = 0.1
+						enemy_operative_detection_chance_factor_over_occupied_tag = 0.25
+						enemy_intel_network_gain_factor_over_occupied_tag = -0.33
+					}
+				}
+				add_extra_state_shared_building_slots = 3
+			}
+			add_timed_idea = {
+				idea = LIC_tianjin_SS_idea
+				days = 365
+			}
+		}
+	}
+	
+	LIC_schwesterstaat_baku_oil_field = {
+		allowed = { tag = LIC }
+		fire_only_once = yes
+		visible = {
+			FROM = {
+				owner = {
+					OR = {
+						AND = {
+							is_subject_of = LIC
+							has_autonomy_state = LIC_sister_state
+						}
+						AND = {
+							has_country_flag = LIC_relocated_schwesterstaat
+							tag = LIC
+						}
+					}
+				}
+			}
+		}
+		custom_cost_trigger = {
+			num_of_civilian_factories_available_for_projects > 4
+		}
+		custom_cost_text = CONST_5_civ
+		icon = GFX_decision_oil
+		state_target = yes
+		on_map_mode = map_and_decisions_view
+		target_trigger = {
+			FROM = {
+				owner = {
+					OR = {
+						AND = {
+							is_subject_of = LIC
+							has_autonomy_state = LIC_sister_state
+						}
+						AND = {
+							has_country_flag = LIC_relocated_schwesterstaat
+							tag = LIC
+						}
+					}
+				}
+				is_capital = yes
+				state = 990
+			}
+		}
+		available = {
+			OR = {
+				has_completed_focus = LIC_reap_harvest
+				has_completed_focus = LIC_reaffirm_rubber_and_tea
+			}
+			FROM = {
+				owner = {
+					controls_state = FROM
+				}
+			}
+			num_of_civilian_factories_available_for_projects > 4
+		}
+		modifier = {
+			civilian_factory_use = 5
+		}
+		days_remove = 150
+		remove_effect = {
+			FROM = {
+				add_state_modifier = {
+					modifier = {
+						local_resource_gain_efficiency_per_infrastructure = 0.05
+						local_resources = 0.15
+					}
+				}
+				add_extra_state_shared_building_slots = 3
+				add_building_construction = {
+					type = synthetic_refinery
+					level = 1
+				}
+			}
+			add_tech_bonus = {
+				uses = 1
+				bonus = 1
+				category = synth_resources
+			}
+			ROOT = {
+				LIC_add_hh = yes
+			}
+		}
+	}
+	
+	LIC_schwesterstaat_san_marino_noble_patronage = {
+		allowed = { tag = LIC }
+		fire_only_once = yes
+		cost = 100
+		visible = {
+			FROM = {
+				owner = {
+					OR = {
+						AND = {
+							is_subject_of = LIC
+							has_autonomy_state = LIC_sister_state
+						}
+						AND = {
+							has_country_flag = LIC_relocated_schwesterstaat
+							tag = LIC
+						}
+					}
+				}
+			}
+		}
+		icon = GFX_decision_LIC_castle_vaduz_decision
+		state_target = yes
+		on_map_mode = map_and_decisions_view
+		target_trigger = {
+			FROM = {
+				owner = {
+					OR = {
+						AND = {
+							is_subject_of = LIC
+							has_autonomy_state = LIC_sister_state
+						}
+						AND = {
+							has_country_flag = LIC_relocated_schwesterstaat
+							tag = LIC
+						}
+					}
+				}
+				is_capital = yes
+				state = 1236
+			}
+		}
+		available = {
+			OR = {
+				has_completed_focus = LIC_reap_harvest
+				has_completed_focus = LIC_reaffirm_rubber_and_tea
+			}
+			FROM = {
+				owner = {
+					controls_state = FROM
+				}
+			}
+		}
+		days_remove = 180
+		modifier = {
+			stability_weekly = 0.01
+		}
+		remove_effect = {
+			add_political_power = 250
+			add_war_support = 0.15
+			FROM = {
+				add_extra_state_shared_building_slots = 4
+				add_state_modifier = {
+					modifier = {
+						state_production_speed_buildings_factor = 0.2
+					}
+				}
+			}
+			ROOT = {
+				LIC_add_hh = yes
+			}
+		}
+	}
+	
+	LIC_schwesterstaat_singapore_dockyards = {
+		allowed = { tag = LIC }
+		fire_only_once = yes
+		custom_cost_trigger = {
+			num_of_civilian_factories_available_for_projects > 4
+		}
+		custom_cost_text = CONST_5_civ
+		visible = {
+			FROM = {
+				owner = {
+					OR = {
+						AND = {
+							is_subject_of = LIC
+							has_autonomy_state = LIC_sister_state
+						}
+						AND = {
+							has_country_flag = LIC_relocated_schwesterstaat
+							tag = LIC
+						}
+					}
+				}
+			}
+		}
+		icon = GFX_decision_generic_construction
+		state_target = yes
+		on_map_mode = map_and_decisions_view
+		target_trigger = {
+			FROM = {
+				owner = {
+					OR = {
+						AND = {
+							is_subject_of = LIC
+							has_autonomy_state = LIC_sister_state
+						}
+						AND = {
+							has_country_flag = LIC_relocated_schwesterstaat
+							tag = LIC
+						}
+					}
+				}
+				is_capital = yes
+				state = 336
+			}
+		}
+		available = {
+			OR = {
+				has_completed_focus = LIC_reap_harvest
+				has_completed_focus = LIC_reaffirm_rubber_and_tea
+			}
+			FROM = {
+				owner = {
+					controls_state = FROM
+				}
+			}
+			has_completed_focus = LIC_reichspakt
+		}
+		days_remove = 180
+		modifier = {
+			civilian_factory_use = 5
+		}
+		remove_effect = {
+			336 = {
+				add_building_construction = {
+					type = dockyard
+					level = 4
+				}
+				add_building_construction = {
+					type = coastal_bunker
+					level = 4
+					province = 12299
+					instant_build = yes
+				}
+				add_extra_state_shared_building_slots = 6
+			}
+			navy_experience = 50
+			add_mastery = {
+				amount = 250
+				folder = navy
+				index = 1
+			}
+		}
+	}
+	
+	LIC_schwesterstaat_vienna_austerity_measures = {
+		allowed = { tag = LIC }
+		fire_only_once = yes
+		custom_cost_trigger = {
+			num_of_civilian_factories_available_for_projects > 4
+		}
+		custom_cost_text = CONST_5_civ
+		visible = {
+			FROM = {
+				owner = {
+					OR = {
+						AND = {
+							is_subject_of = LIC
+							has_autonomy_state = LIC_sister_state
+						}
+						AND = {
+							has_country_flag = LIC_relocated_schwesterstaat
+							tag = LIC
+						}
+					}
+				}
+			}
+		}
+		icon = GFX_decision_austrian_eagle
+		state_target = yes
+		on_map_mode = map_and_decisions_view
+		target_trigger = {
+			FROM = {
+				owner = {
+					OR = {
+						AND = {
+							is_subject_of = LIC
+							has_autonomy_state = LIC_sister_state
+						}
+						AND = {
+							has_country_flag = LIC_relocated_schwesterstaat
+							tag = LIC
+						}
+					}
+				}
+				is_capital = yes
+				state = 1137
+			}
+		}
+		available = {
+			OR = {
+				has_completed_focus = LIC_reap_harvest
+				has_completed_focus = LIC_reaffirm_rubber_and_tea
+			}
+			FROM = {
+				owner = {
+					controls_state = FROM
+				}
+			}
+		}
+		days_remove = 180
+		modifier = {
+			civilian_factory_use = 5
+		}
+		remove_effect = {
+			LIC_add_hh_chungus = yes
+			add_political_power = 35
+			add_stability = 0.1
+			FROM = {
+				increase_state_category_by_one_level = yes
+				add_extra_state_shared_building_slots = 3
+				add_state_modifier = {
+					modifier = {
+						state_production_speed_buildings_factor = 0.1
+					}
+				}
+			}
+		}
+	}
+	
+	LIC_schwesterstaat_prague_new_castles = {
+		allowed = { tag = LIC }
+		fire_only_once = yes
+		custom_cost_trigger = {
+			num_of_civilian_factories_available_for_projects > 4
+		}
+		custom_cost_text = CONST_5_civ
+		visible = {
+			FROM = {
+				owner = {
+					OR = {
+						AND = {
+							is_subject_of = LIC
+							has_autonomy_state = LIC_sister_state
+						}
+						AND = {
+							has_country_flag = LIC_relocated_schwesterstaat
+							tag = LIC
+						}
+					}
+				}
+			}
+		}
+		icon = GFX_decision_LIC_castle_vaduz_decision
+		state_target = yes
+		on_map_mode = map_and_decisions_view
+		target_trigger = {
+			FROM = {
+				owner = {
+					OR = {
+						AND = {
+							is_subject_of = LIC
+							has_autonomy_state = LIC_sister_state
+						}
+						AND = {
+							has_country_flag = LIC_relocated_schwesterstaat
+							tag = LIC
+						}
+					}
+				}
+				is_capital = yes
+				state = 1129
+			}
+		}
+		available = {
+			OR = {
+				has_completed_focus = LIC_reap_harvest
+				has_completed_focus = LIC_reaffirm_rubber_and_tea
+			}
+			FROM = {
+				owner = {
+					controls_state = FROM
+				}
+			}
+		}
+		days_remove = 180
+		modifier = {
+			civilian_factory_use = 5
+		}
+		remove_effect = {
+			LIC_add_hh = yes
+			add_political_power = 35
+			add_stability = 0.1
+			FROM = {
+				add_building_construction = {
+					type = industrial_complex
+					level = 2
+				}
+				add_extra_state_shared_building_slots = 4
+				add_state_modifier = {
+					modifier = {
+						state_production_speed_industrial_complex_factor = 0.1
+					}
+				}
+			}
+		}
+	}
+	
+	LIC_schwesterstaat_kiev_bread_deals = {
+		allowed = { tag = LIC }
+		fire_only_once = yes
+		custom_cost_trigger = {
+			num_of_civilian_factories_available_for_projects > 2
+		}
+		custom_cost_text = CONST_3_civ
+		visible = {
+			FROM = {
+				owner = {
+					OR = {
+						AND = {
+							is_subject_of = LIC
+							has_autonomy_state = LIC_sister_state
+						}
+						AND = {
+							has_country_flag = LIC_relocated_schwesterstaat
+							tag = LIC
+						}
+					}
+				}
+			}
+		}
+		icon = GFX_decision_generic_agriculture
+		state_target = yes
+		on_map_mode = map_and_decisions_view
+		target_trigger = {
+			FROM = {
+				owner = {
+					OR = {
+						AND = {
+							is_subject_of = LIC
+							has_autonomy_state = LIC_sister_state
+						}
+						AND = {
+							has_country_flag = LIC_relocated_schwesterstaat
+							tag = LIC
+						}
+					}
+				}
+				is_capital = yes
+				state = 202
+			}
+		}
+		available = {
+			OR = {
+				has_completed_focus = LIC_reap_harvest
+				has_completed_focus = LIC_reaffirm_rubber_and_tea
+			}
+			FROM = {
+				owner = {
+					controls_state = FROM
+				}
+			}
+		}
+		days_remove = 120
+		modifier = {
+			civilian_factory_use = 3
+		}
+		remove_effect = {
+			LIC_add_hh = yes
+			add_ideas = LIC_breadtrade
+			FROM = {
+				increase_state_category_by_one_level = yes
+				add_extra_state_shared_building_slots = 1
+			}
+		}
+	}
+	
+}
+
+
+
 
 
 LIC_neutrality_cat = {
@@ -3198,6 +4306,12 @@ LIC_neutrality_cat = {
 				id = LIC_austro_swiss
 			}
 		}
+		available = {
+			power_balance_value = {
+				id = LIC_austro_swiss
+				value < 0
+			}
+		}
 		days_remove = 30
 		remove_effect = {
 			custom_effect_tooltip = LIC_tax_code_tt
@@ -3212,7 +4326,11 @@ LIC_neutrality_cat = {
 	}
 	
 	LIC_personen_und_gesellschaftsrecht = {
-		cost = 40
+		custom_cost_trigger = {
+			LIC_no_negs_HH_chungus = yes
+			has_political_power > 74
+		}
+		custom_cost_text = LIC_2_HH_75PP
 		icon = GFX_decision_gre_investment_decisions
 		allowed = { tag = LIC }
 		fire_only_once = yes
@@ -3221,8 +4339,22 @@ LIC_neutrality_cat = {
 				id = LIC_austro_swiss
 			}
 		}
-		days_remove = 60
+		available = {
+			is_power_balance_in_range = {
+				id = LIC_austro_swiss
+				range < LIC_bop_austro_swiss_austria_1
+			}
+		}
+		days_remove = 90
+		modifier = {
+			political_power_gain = -0.1
+		}
+		complete_effect = {
+			LIC_nerf_hh_chungus = yes
+		}
 		remove_effect = {
+			LIC_add_hh_chungus = yes
+			set_country_flag = LIC_PGR
 			custom_effect_tooltip = LIC_tax_code_tt
 			add_to_variable = { var = BM_efficiency value = 0.075 }
 			add_to_variable = { var = ph_consumer_goods value = -0.025 }
@@ -3230,6 +4362,246 @@ LIC_neutrality_cat = {
 				id = LIC_austro_swiss
 				value = -0.3
 				tooltip_side = LIC_austro_swiss_swiss
+			}
+			country_event = {
+				id = licflavor.91 #The Anstalt
+				days = 15
+				random_days = 15
+			}
+			if = {
+				limit = {
+					has_government = social_democrat
+				}
+				country_event = {
+					id = lic.106
+					days = 130
+					random_days = 140
+				}
+			}
+		}
+	}
+	
+	LIC_constituency_asset_rights_act = { #PGR but Austrian
+		custom_cost_trigger = {
+			LIC_no_negs_HH_chungus = yes
+			has_political_power > 74
+		}
+		custom_cost_text = LIC_2_HH_75PP
+		icon = GFX_decision_hol_attract_foreign_investors
+		allowed = { tag = LIC }
+		fire_only_once = yes
+		visible = {
+			has_power_balance = {
+				id = LIC_austro_swiss
+			}
+		}
+		available = {
+			is_power_balance_in_range = {
+				id = LIC_austro_swiss
+				range = LIC_bop_austro_swiss_austria_3
+			}
+			has_global_flag = AUS_ausgleich_over
+		}
+		days_remove = 90
+		modifier = {
+			political_power_gain = -0.1
+		}
+		complete_effect = {
+			LIC_nerf_hh_chungus = yes
+		}
+		remove_effect = {
+			LIC_add_hh_chungus = yes
+			set_country_flag = LIC_CARA
+			custom_effect_tooltip = LIC_tax_code_tt
+			add_to_variable = { var = BM_efficiency value = 0.075 }
+			add_to_variable = { var = ph_consumer_goods value = -0.025 }
+			add_power_balance_value = {
+				id = LIC_austro_swiss
+				value = 0.3
+				tooltip_side = LIC_austro_swiss_austria
+			}
+			country_event = {
+				id = licflavor.91 #The Anstalt
+				days = 15
+				random_days = 15
+			}
+			if = {
+				limit = {
+					has_government = social_democrat
+				}
+				country_event = {
+					id = lic.106
+					days = 130
+					random_days = 140
+				}
+			}
+		}
+	}
+	
+	LIC_dedicated_dialogue = {
+		custom_cost_trigger = {
+			LIC_no_negs_HH = yes
+		}
+		custom_cost_text = LIC_1_HH
+		icon = GFX_decision_generic_political_address
+		allowed = { tag = LIC }
+		fire_only_once = yes
+		visible = {
+			has_power_balance = {
+				id = LIC_austro_swiss
+			}
+		}
+		target_trigger = {
+			FROM = {
+				OR = {
+					tag = AUS
+					tag = SWI
+				}
+				check_variable = {
+					var = THIS.chatty
+					value = 1
+					compare = less_than_or_equals
+				}
+			}
+		}
+		days_re_enable = 25
+		complete_effect = {
+			LIC_nerf_hh = yes
+			if = {
+				limit = {
+					FROM = {
+						tag = AUS
+					}
+					NOT = {
+						has_variable = FROM.chatty
+					}
+				}
+				add_power_balance_modifier = {
+					id = LIC_austro_swiss
+					modifier = LIC_AUS_SWI_talk_AUS
+				}
+				else = {
+					add_power_balance_modifier = {
+						id = LIC_austro_swiss
+						modifier = LIC_AUS_SWI_talk_SWI
+					}
+				}
+			}
+			if = {
+				limit = {
+					FROM = {
+						tag = AUS
+					}
+					has_variable = FROM.chatty
+				}
+				add_power_balance_modifier = {
+					id = LIC_austro_swiss
+					modifier = LIC_AUS_SWI_talk_AUS2
+				}
+				else_if = {
+					limit = {
+						has_variable = FROM.chatty
+					}
+					add_power_balance_modifier = {
+						id = LIC_austro_swiss
+						modifier = LIC_AUS_SWI_talk_SWI2
+					}
+				}
+			}
+			FROM = {
+				add_to_variable = {
+					var = THIS.chatty
+					value = 1
+				}
+			}
+		}
+	}
+	
+	LIC_dedicated_dialogue_neg = {
+		cost = 10
+		icon = GFX_decision_generic_political_discourse
+		allowed = { tag = LIC }
+		fire_only_once = yes
+		visible = {
+			has_power_balance = {
+				id = LIC_austro_swiss
+			}
+			FROM = {
+				check_variable = {
+					var = THIS.chatty
+					value = 1
+					compare = greater_than_or_equals
+				}
+			}
+		}
+		target_trigger = {
+			FROM = {
+				OR = {
+					tag = AUS
+					tag = SWI
+				}
+				check_variable = {
+					var = THIS.chatty
+					value = 1
+					compare = greater_than_or_equals
+				}
+			}
+		}
+		days_re_enable = 25
+		complete_effect = {
+			LIC_restore_hh = yes
+			if = {
+				limit = {
+					FROM = {
+						tag = AUS
+					}
+					check_variable = {
+						var = FROM.chatty
+						value = 1
+						compare = equals
+					}
+				}
+				remove_power_balance_modifier = {
+					id = LIC_austro_swiss
+					modifier = LIC_AUS_SWI_talk_AUS
+				}
+				else = {
+					remove_power_balance_modifier = {
+						id = LIC_austro_swiss
+						modifier = LIC_AUS_SWI_talk_SWI
+					}
+				}
+			}
+			if = {
+				limit = {
+					FROM = {
+						tag = AUS
+					}
+					check_variable = {
+						var = FROM.chatty
+						value = 2
+						compare = equals
+					}
+				}
+				remove_power_balance_modifier = {
+					id = LIC_austro_swiss
+					modifier = LIC_AUS_SWI_talk_AUS2
+				}
+				else_if = {
+					limit = {
+						has_variable = FROM.chatty
+					}
+					remove_power_balance_modifier = {
+						id = LIC_austro_swiss
+						modifier = LIC_AUS_SWI_talk_SWI2
+					}
+				}
+			}
+			FROM = {
+				subtract_from_variable = {
+					var = THIS.chatty
+					value = 1
+				}
 			}
 		}
 	}
@@ -3273,8 +4645,16 @@ LIC_playing_60_seconds_speedrun = {
 		days_remove = 15
 		days_re_enable = 10
 		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove LIC_stock_food"
 			LIC_readiness_increase_1 = yes
 			add_stability = 0.02
+		}
+		ai_will_do = {
+			base = 50
+			modifier = {
+				factor = 100
+				LIC_AI_deal_with_famine_decrease_hh_trigger = yes
+			}
 		}
 	}
 	LIC_negotiations_foreign = {
@@ -3298,8 +4678,16 @@ LIC_playing_60_seconds_speedrun = {
 		days_remove = 15
 		days_re_enable = 10
 		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove LIC_negotiations_foreign"
 			LIC_readiness_increase_2 = yes
 			add_stability = 0.02
+		}
+		ai_will_do = {
+			base = 50
+			modifier = {
+				factor = 100
+				LIC_AI_deal_with_famine_decrease_hh_trigger = yes
+			}
 		}
 	}
 	
@@ -3321,8 +4709,16 @@ LIC_playing_60_seconds_speedrun = {
 			}
 		}
 		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove LIC_princely_focus"
 			LIC_readiness_increase_3 = yes
 			increase_ruling_party_popularity_by_2 = yes
+		}
+		ai_will_do = {
+			base = 50
+			modifier = {
+				factor = 100
+				LIC_AI_deal_with_famine_decrease_hh_trigger = yes
+			}
 		}
 	}
 	LIC_foreign_currency = {
@@ -3406,9 +4802,11 @@ LIC_playing_60_seconds_speedrun = {
 		days_remove = 30
 		days_re_enable = 30
 		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision LIC_foreign_currency"
 			LIC_nerf_hh = yes
 		}
 		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove LIC_foreign_currency"
 			LIC_restore_hh = yes
 			if = {
 				limit = {
@@ -3519,6 +4917,13 @@ LIC_playing_60_seconds_speedrun = {
 				}
 			}
 		}
+		ai_will_do = {
+			base = 50
+			modifier = {
+				factor = 100
+				LIC_AI_deal_with_famine_decrease_hh_trigger = yes
+			}
+		}
 	}
 	LIC_shadow_empire_allocation = {
 		custom_cost_trigger = {
@@ -3562,13 +4967,22 @@ LIC_playing_60_seconds_speedrun = {
 		days_remove = 25
 		days_re_enable = 25
 		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision LIC_shadow_empire_allocation"
 			custom_effect_tooltip = LIC_shadow_empire_minus1each
 			subtract_from_variable = { LIC.shadow_empire_civs = 1 }
 			subtract_from_variable = { LIC.shadow_empire_mils = 1 }
 		}
 		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove LIC_shadow_empire_allocation"
 			LIC_readiness_increase_3 = yes
 			add_political_power = 20
+		}
+		ai_will_do = {
+			base = 50
+			modifier = {
+				factor = 100
+				LIC_AI_deal_with_famine_decrease_hh_trigger = yes
+			}
 		}
 	}
 	LIC_leverage_properties = {
@@ -3589,9 +5003,17 @@ LIC_playing_60_seconds_speedrun = {
 		}
 		days_re_enable = 25
 		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision LIC_leverage_properties"
 			LIC_nerf_hh = yes
 			LIC_readiness_weekly_increase_05 = yes
-			add_to_variable = { var = LIC.allocations_HH value = 1 }
+			add_to_variable = { LIC.allocations_HH = 1 }
+		}
+		ai_will_do = {
+			base = 50
+			modifier = {
+				factor = 100
+				LIC_AI_deal_with_famine_decrease_hh_trigger = yes
+			}
 		}
 	}
 	LIC_unleverage = {
@@ -3619,9 +5041,17 @@ LIC_playing_60_seconds_speedrun = {
 		}
 		days_re_enable = 25
 		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision LIC_unleverage"
 			LIC_readiness_weekly_decrease_05 = yes
 			LIC_restore_hh = yes
-			add_to_variable = { var = LIC.allocations_HH value = -1 }
+			subtract_from_variable = { LIC.allocations_HH = 1 }
+		}
+		ai_will_do = {
+			base = 50
+			modifier = {
+				factor = 100
+				LIC_AI_deal_with_famine_increase_hh_trigger = yes
+			}
 		}
 	}
 	LIC_welfares = {
@@ -3686,7 +5116,15 @@ LIC_playing_60_seconds_speedrun = {
 		}
 		days_remove = 30
 		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove LIC_welfares"
 			LIC_readiness_weekly_increase_05 = yes
+		}
+		ai_will_do = {
+			base = 50
+			modifier = {
+				factor = 100
+				LIC_AI_deal_with_famine_decrease_hh_trigger = yes
+			}
 		}
 	}
 	LIC_international_aid = {
@@ -3708,8 +5146,16 @@ LIC_playing_60_seconds_speedrun = {
 		days_re_enable = 7
 		days_remove = 15
 		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove LIC_international_aid"
 			add_stability = 0.05
 			LIC_famine_decrease = yes
+		}
+		ai_will_do = {
+			base = 50
+			modifier = {
+				factor = 100
+				LIC_AI_deal_with_famine_decrease_hh_trigger = yes
+			}
 		}
 	}
 	LIC_fucking_grovel = {
@@ -3734,18 +5180,25 @@ LIC_playing_60_seconds_speedrun = {
 		days_re_enable = 15
 		days_remove = 15
 		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove LIC_fucking_grovel"
 			add_stability = -0.1
 			add_war_support = -0.1
 			add_political_power = -30
 			decrease_ruling_party_popularity_by_5 = yes
 			LIC_famine_decrease_grovel = yes
 		}
+		ai_will_do = {
+			base = 50
+			modifier = {
+				factor = 100
+				LIC_AI_deal_with_famine_decrease_hh_trigger = yes
+			}
+		}
 	}
-	
-	
 	
 	LIC_quota_mission = {
 		cost = 25
+		priority = 10
 		icon = GFX_decision_generic_scorched_earth
 		allowed = { tag = LIC }
 		fire_only_once = no
@@ -3761,14 +5214,18 @@ LIC_playing_60_seconds_speedrun = {
 					compare = greater_than_or_equals
 				}
 			}
-			always = no
+			hidden_trigger = { always = no }
 		}
 		is_good = no
 		days_mission_timeout = 365
 		days_re_enable = 25
 
 		timeout_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision timeout LIC_quota_mission"
 			LIC_next_quota = yes
+		}
+		ai_will_do = {
+			base = 50
 		}
 	}
 	
@@ -3795,9 +5252,13 @@ LIC_playing_60_seconds_speedrun = {
 		}
 		days_re_enable = 25
 		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove LIC_quota_build_slot"
 			random_owned_state = {
 				add_extra_state_shared_building_slots = 1
 			}
+		}
+		ai_will_do = {
+			base = 50
 		}
 	}
 	
@@ -3822,9 +5283,11 @@ LIC_playing_60_seconds_speedrun = {
 		days_remove = 20
 		days_re_enable = 35
 		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision LIC_quota_factory_civ"
 			LIC_readiness_take_20 = yes
 		}
 		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove LIC_quota_factory_civ"
 			random_owned_state = {
 				add_building_construction = {
 					type = industrial_complex
@@ -3833,6 +5296,9 @@ LIC_playing_60_seconds_speedrun = {
 				}
 				add_extra_state_shared_building_slots = 1
 			}
+		}
+		ai_will_do = {
+			base = 50
 		}
 	}
 	
@@ -3857,9 +5323,11 @@ LIC_playing_60_seconds_speedrun = {
 		days_remove = 20
 		days_re_enable = 35
 		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision LIC_quota_factory_mil"
 			LIC_readiness_take_20 = yes
 		}
 		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove LIC_quota_factory_mil"
 			random_owned_state = {
 				add_building_construction = {
 					type = arms_factory
@@ -3868,6 +5336,9 @@ LIC_playing_60_seconds_speedrun = {
 				}
 				add_extra_state_shared_building_slots = 1
 			}
+		}
+		ai_will_do = {
+			base = 50
 		}
 	}
 	
@@ -3890,14 +5361,19 @@ LIC_playing_60_seconds_speedrun = {
 			has_country_flag = LIC_quotas_done
 		}
 		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision LIC_quota_civil_service"
 			LIC_readiness_take_075 = yes
 		}
 		days_remove = 5
 		days_re_enable = 10
 		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove LIC_quota_civil_service"
 			add_stability = 0.05
 			add_war_support = 0.03
 			add_political_power = 30
+		}
+		ai_will_do = {
+			base = 50
 		}
 	}
 }
@@ -3925,8 +5401,10 @@ LIC_60s_AUS_SWI_helper = {
 		}
 		state_target = yes
 		available = {
-			num_of_civilian_factories_available_for_projects > 1
-			has_political_power > 29
+			hidden_trigger = {
+				num_of_civilian_factories_available_for_projects > 1
+				has_political_power > 29
+			}
 		}
 		days_remove = 30
 		days_re_enable = 30
@@ -4077,4 +5555,288 @@ LIC_occupation_govt_cat = {
 			}
 		}
 	}
+}
+
+BOTDE_LIC_decisions_exile = {
+	
+	LIC_navy_expansion = {
+		icon = GFX_decision_generic_merge_plant_ship
+		allowed = { tag = LIC }
+		fire_only_once = yes
+		custom_cost_trigger = {
+			num_of_civilian_factories_available_for_projects > 4
+		}
+		custom_cost_text = CONST_5_civ
+		visible = {
+			has_country_flag = LIC_relocated
+			has_completed_focus = LIC_navy
+		}
+		available = {
+			any_owned_state = {
+				is_coastal = yes
+			}
+		}
+		complete_effect = {
+			add_stability = -0.05
+		}
+		modifier = {
+			civilian_factory_use = 5
+			industrial_capacity_dockyard = 0.15
+			production_speed_dockyard_factor = 0.25
+		}
+		days_remove = 180
+		remove_effect = {
+			random_owned_state = {
+				limit = {
+					is_coastal = yes
+				}
+				add_building_construction = {
+					type = dockyard
+					level = 1
+				}
+				add_extra_state_shared_building_slots = 1
+			}
+			random_owned_state = {
+				limit = {
+					is_coastal = yes
+				}
+				add_building_construction = {
+					type = dockyard
+					level = 1
+				}
+				add_extra_state_shared_building_slots = 1
+			}
+			random_owned_state = {
+				limit = {
+					is_coastal = yes
+				}
+				add_building_construction = {
+					type = dockyard
+					level = 1
+				}
+				add_extra_state_shared_building_slots = 1
+			}
+		}
+	}
+	
+	LIC_change_city_codes = {
+		icon = GFX_decision_generic_break_treaty
+		allowed = { tag = LIC }
+		fire_only_once = yes
+		cost = 150
+		visible = {
+			has_country_flag = LIC_relocated
+			has_completed_focus = LIC_reaffirm_rubber_and_tea
+		}
+		available = {
+			has_country_flag = LIC_relocated_schwesterstaat
+		}
+		complete_effect = {
+			capital_scope = {
+				increase_state_category_by_one_level = yes
+				add_state_modifier = {
+					modifier = {
+						local_building_slots_factor = 0.15
+						state_production_speed_buildings_factor = 0.075
+					}
+				}
+			}
+		}
+	}
+	
+	LIC_alaska_surveying = {
+		icon = GFX_decision_binoculars
+		allowed = { tag = LIC }
+		fire_only_once = yes
+		cost = 150
+		visible = {
+			has_country_flag = LIC_relocated
+			#has_completed_focus = LIC_airports_and_sea
+		}
+		available = {
+			has_country_flag = LIC_relocated_alaska
+			owns_state = 1350
+		}
+		days_remove = 120
+		modifier = {
+			political_power_cost = 0.25
+			consumer_goods_factor = 0.1
+		}
+		remove_effect = {
+			1350 = {
+				add_resource = {
+					type = oil
+					amount = 25
+				}
+				increase_state_category_by_one_level = yes
+				add_state_modifier = {
+					modifier = {
+						local_resource_gain_efficiency_per_infrastructure = 0.1
+					}
+				}
+			}
+		}
+	}
+	
+	LIC_usa_princely_ships = {
+		icon = GFX_decision_eng_puppet_usa
+		allowed = { tag = LIC }
+		fire_only_once = yes
+		cost = 150
+		visible = {
+			has_country_flag = LIC_relocated
+			has_completed_focus = LIC_were_all_living_in_amerika
+		}
+		available = {
+			has_country_flag = LIC_relocated_america
+		}
+		days_remove = 120
+		modifier = {
+			dockyard_output = 0.33
+		}
+		remove_effect = {
+			random_owned_state = {
+				limit = {
+					is_coastal = yes
+				}
+				add_building_construction = {
+					type = dockyard
+					level = 1
+				}
+				add_extra_state_shared_building_slots = 2
+			}
+			random_owned_state = {
+				limit = {
+					is_coastal = yes
+				}
+				add_building_construction = {
+					type = dockyard
+					level = 1
+				}
+				add_extra_state_shared_building_slots = 2
+			}
+			random_owned_state = {
+				limit = {
+					is_coastal = yes
+				}
+				add_building_construction = {
+					type = dockyard
+					level = 1
+				}
+				add_extra_state_shared_building_slots = 2
+			}
+			random_owned_state = {
+				limit = {
+					is_coastal = yes
+				}
+				add_building_construction = {
+					type = dockyard
+					level = 1
+				}
+				add_extra_state_shared_building_slots = 2
+			}
+			random_owned_state = {
+				limit = {
+					is_coastal = yes
+				}
+				add_building_construction = {
+					type = dockyard
+					level = 1
+				}
+				add_extra_state_shared_building_slots = 2
+			}
+		}
+	}
+	
+	LIC_contact_virgil_rigsby = {
+		icon = GFX_decision_LIC_railguns
+		allowed = { tag = LIC }
+		fire_only_once = yes
+		custom_cost_trigger = {
+			num_of_civilian_factories_available_for_projects > 14
+		}
+		custom_cost_text = CONST_15_civ
+		visible = {
+			has_country_flag = LIC_relocated
+			has_completed_focus = LIC_high_over_the_legislature
+		}
+		available = {
+			has_country_flag = LIC_relocated_america
+			owns_state = 375
+			has_tech = advanced_computing_machine
+		}
+		modifier = {
+			research_speed_factor = -0.1
+			consumer_goods_factor = 0.12
+			civilian_factory_use = 15
+		}
+		days_remove = 180
+		complete_effect = {
+			TXS = {
+				TXS_Virgil_Rigsby = {
+					set_nationality = LIC
+				}
+			}
+		}
+		remove_effect = {
+			add_equipment_bonus = {
+				bonus = {
+					railgun_equipment = {
+						build_cost_ic = -0.1
+						soft_attack = 0.5
+						ap_attack = 0.15
+						air_attack = 0.75
+						breakthrough = 0.2
+					}
+				}
+			}
+		}
+	}
+	
+	LIC_defending_integrity = {
+		icon = GFX_decision_eng_imperial_federation
+		allowed = { tag = LIC }
+		fire_only_once = yes
+		custom_cost_trigger = {
+			command_power > 99
+		}
+		custom_cost_text = LIC_100_CP
+		visible = {
+			has_country_flag = LIC_relocated
+			has_completed_focus = LIC_high_over_the_legislature
+		}
+		available = {
+			has_country_flag = LIC_relocated_britain
+		}
+		modifier = {
+			political_power_cost = 0.5
+			war_support_weekly = 0.005
+		}
+		days_remove = 180
+		remove_effect = {
+			add_ideas = LIC_kam_on_ingerland
+			every_core_state = {
+				add_extra_state_shared_building_slots = 1
+			}
+		}
+	}
+	
+	LIC_return_home = {
+		icon = GFX_decision_global_liechtenstein
+		allowed = { tag = LIC }
+		fire_only_once = yes
+		visible = {
+			has_country_flag = LIC_relocated
+			has_completed_focus = LIC_retake_vaduz
+		}
+		available = {
+			owns_state = 1235
+		}
+		remove_effect = {
+			add_state_core = 1235
+			set_capital = { state = 1235 }
+			country_event = lic.14
+		}
+	}
+	
 }
