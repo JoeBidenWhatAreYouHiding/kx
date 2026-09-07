@@ -4309,6 +4309,10 @@ RUS_Foreign_Policy_decisions = {
 	RUS_general_winter = {
 		icon = fortress
 		available = {
+			OR = {
+				has_completed_focus = RUS_Winter_Warfare_Preparations
+				has_completed_focus = RUS_Defending_Our_Lifelines
+			}
 			custom_override_tooltip = {
 				tooltip = RUS_is_winter
 				meta_trigger = {
@@ -4327,7 +4331,6 @@ RUS_Foreign_Policy_decisions = {
 		visible = {
 			surrender_progress > 0.05
 			any_enemy_country = { is_actual_major = yes }
-			has_completed_focus = RUS_Winter_Warfare_Preparations
 		}
 
 		cost = 40
@@ -4508,7 +4511,164 @@ RUS_Foreign_Policy_decisions = {
 			hidden_effect = { var:361.owner = { country_event = rusfor.20 } } #Washington DC
 		}
 	}
-	
+	RUS_sponsor_foreign_revolts = {
+		icon = GFX_decision_generic_reorganize_irregulars
+		allowed = { always = no }  #activated manually 
+		available = {
+			country_exists = FROM
+			if = {
+				limit = { FROM = { tag = LIT } }
+				LIT = {
+					has_active_mission = LIT_LAF_guerilla_activity
+				}
+			}
+			else_if = {
+				limit = { FROM = { tag = BAT } }
+				num_divisions_in_states = {
+					count > 2
+					states = { 880 }
+				}
+				BAT = {
+					has_idea = BAT_forest_brothers
+				}
+			}
+			else_if = {
+				limit = { FROM = { tag = UKR } }
+				num_divisions_in_states = {
+					count > 2
+					states = { 240 }
+				}
+				BAT = {
+					has_idea = BAT_forest_brothers
+				}
+			}
+			NOT = {
+				is_in_faction_with = GER
+				has_global_flag = second_weltkrieg_has_started
+			}
+		}
+		visible = {
+			is_subject = no
+			NOT = { has_idea = RUS_vilnius_treaty }
+			has_socialist_government = no
+			FROM = { 
+				is_ai = yes 
+				NOT = {
+					has_war_with = ROOT 
+					is_in_faction_with = ROOT
+					is_subject_of = ROOT
+				}
+				if = {
+					limit = { tag = LIT }
+					has_active_mission = LIT_LAF_guerilla_activity 
+				}
+				if = {
+					limit = { tag = UKR }
+					has_active_mission = UKR_rivne_uprising
+				}
+				if = {
+					limit = { tag = UKR }
+					has_idea = BAT_forest_brothers
+				}
+			}
+		}
+
+		custom_cost_text = CP_50_500_infantry_equipment
+		custom_cost_trigger = {
+			command_power > 49.99
+			has_equipment = { infantry_equipment > 499 }
+		}		
+		modifier = { consumer_goods_factor = 0.05 }
+		
+		days_remove = 25
+		days_re_enable = 300
+		
+		cancel_if_not_visible = yes
+
+		ai_will_do = {
+			base = 1
+		}
+
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel RUS_sponsor_foreign_revolts target: [From.GetName]"	
+		}
+
+		complete_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision complete RUS_sponsor_foreign_revolts target: [From.GetName]"
+			hidden_effect = {
+				add_equipment_to_stockpile = {
+					type = infantry_equipment
+					amount = -500
+				}
+				add_command_power = -50
+			}
+		}
+
+		remove_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_sponsor_foreign_revolts target: [From.GetName]"
+			if = {
+				limit = {
+					FROM = { tag = LIT }
+				}
+				add_named_threat = {
+					threat = 1
+					name = RUS_sponsor_foreign_revolts_LIT
+				}
+				FROM = {
+					country_event = lit.257 #LAF Raid High
+					effect_tooltip = {
+						set_temp_variable = { LIT_threat_change = 4 }
+						LIT_change_LAF_threat = yes
+					}
+				}
+			}
+			else_if = {
+				limit = {
+					FROM = { tag = BAT }
+				}
+				add_named_threat = {
+					threat = 1
+					name = RUS_sponsor_foreign_revolts_BAT
+				}
+				add_manpower = -15000
+				random_unit_leader = {
+					limit = { has_id = 15016 }
+					gain_xp = 25 
+				}
+				army_experience = 5
+				BAT = {
+					every_core_state = {
+						limit = {
+							is_owned_and_controlled_by = PREV
+							has_resistance = yes
+						}
+						add_resistance_target = {
+							amount = 30
+							occupier = PREV
+							days = 365
+						}
+					}
+				}
+			}
+			else_if = {
+				limit = {
+					FROM = { tag = UKR }
+				}
+				add_named_threat = {
+					threat = 1
+					name = RUS_sponsor_foreign_revolts_UKR
+				}
+				add_manpower = -10000				
+				UKR = {
+					UKR_decrease_hetman = yes
+					UKR_decrease_king = yes
+					UKR_increase_direktoria = yes
+					add_stability = -0.03
+					add_political_power = -25
+				}
+			}
+		}
+	}
 	
 	### Default decisions first ###
 	RUS_Attack_Country_default = {
@@ -17972,174 +18132,6 @@ RUS_drozdovite_russia_cat = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_drozd_ally_brp"
 			clr_country_flag = RUS_drozd_seeking_alliances
 			country_event = rusd.3368
-		}
-	}
-}
-operations = {
-	RUS_sponsor_foreign_revolts = {
-		icon = GFX_decision_generic_reorganize_irregulars
-		allowed = { always = no }  #activated manually 
-		available = {
-			country_exists = FROM
-			if = {
-				limit = { FROM = { tag = LIT } }
-				LIT = {
-					has_active_mission = LIT_LAF_guerilla_activity
-				}
-			}
-			else_if = {
-				limit = { FROM = { tag = BAT } }
-				num_divisions_in_states = {
-					count > 2
-					states = { 880 }
-				}
-				BAT = {
-					has_idea = BAT_forest_brothers
-				}
-			}
-			else_if = {
-				limit = { FROM = { tag = UKR } }
-				num_divisions_in_states = {
-					count > 2
-					states = { 240 }
-				}
-				BAT = {
-					has_idea = BAT_forest_brothers
-				}
-			}
-			NOT = {
-				is_in_faction_with = GER
-				has_global_flag = second_weltkrieg_has_started
-			}
-		}
-		visible = {
-			is_subject = no
-			NOT = { has_idea = RUS_vilnius_treaty }
-			has_socialist_government = no
-		}
-		target_trigger = {
-			FROM = { is_ai = yes }
-			NOT = { 
-				has_war_with = FROM 
-				is_in_faction_with = FROM
-				FROM = { is_subject_of = ROOT }
-			}
-			if = {
-				limit = {
-					FROM = { tag = LIT }
-				}
-				FROM = { has_active_mission = LIT_LAF_guerilla_activity }
-			}
-			if = {
-				limit = {
-					FROM = { tag = UKR }
-				}
-				FROM = { has_active_mission = UKR_rivne_uprising }
-				owns_state = 240
-			}
-			if = {
-				limit = {
-					FROM = { tag = BAT }
-				}
-				FROM = { has_idea = BAT_forest_brothers }
-				owns_state = 880
-			}
-		}
-
-		custom_cost_text = CP_50_500_infantry_equipment
-		custom_cost_trigger = {
-			command_power > 49.99
-			has_equipment = { infantry_equipment > 499 }
-		}		
-		modifier = { consumer_goods_factor = 0.05 }
-		
-		days_remove = 25
-		days_re_enable = 300
-		
-		cancel_if_not_visible = yes
-
-		ai_will_do = {
-			base = 1
-		}
-
-		cancel_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision cancel RUS_sponsor_foreign_revolts target: [From.GetName]"	
-		}
-
-		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision complete RUS_sponsor_foreign_revolts target: [From.GetName]"
-			hidden_effect = {
-				add_equipment_to_stockpile = {
-					type = infantry_equipment
-					amount = -500
-				}
-				add_command_power = -50
-			}
-		}
-
-		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove RUS_sponsor_foreign_revolts target: [From.GetName]"
-			if = {
-				limit = {
-					FROM = { tag = LIT }
-				}
-				add_named_threat = {
-					threat = 1
-					name = RUS_sponsor_foreign_revolts_LIT
-				}
-				FROM = {
-					country_event = lit.257 #LAF Raid High
-					effect_tooltip = {
-						set_temp_variable = { LIT_threat_change = 4 }
-						LIT_change_LAF_threat = yes
-					}
-				}
-			}
-			else_if = {
-				limit = {
-					FROM = { tag = BAT }
-				}
-				add_named_threat = {
-					threat = 1
-					name = RUS_sponsor_foreign_revolts_BAT
-				}
-				add_manpower = -15000
-				random_unit_leader = {
-					limit = { has_id = 15016 }
-					gain_xp = 25 
-				}
-				army_experience = 5
-				BAT = {
-					every_core_state = {
-						limit = {
-							is_owned_and_controlled_by = PREV
-							has_resistance = yes
-						}
-						add_resistance_target = {
-							amount = 30
-							occupier = PREV
-							days = 365
-						}
-					}
-				}
-			}
-			else_if = {
-				limit = {
-					FROM = { tag = UKR }
-				}
-				add_named_threat = {
-					threat = 1
-					name = RUS_sponsor_foreign_revolts_UKR
-				}
-				add_manpower = -10000				
-				UKR = {
-					UKR_decrease_hetman = yes
-					UKR_decrease_king = yes
-					UKR_increase_direktoria = yes
-					add_stability = -0.03
-					add_political_power = -25
-				}
-			}
 		}
 	}
 }
