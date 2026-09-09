@@ -755,39 +755,6 @@ BOTDE_FIU_dow_jones = {
 		}
 	}
 
-	FIU_industrial_contracts = {
-		cost = 0
-		icon = GFX_decision_AUS_krone_coin
-		days_remove = 60
-		priority = 5
-		days_re_enable = 30
-		allowed = { tag = FIU }
-		visible = {
-			tag = FIU
-			has_country_flag = FIU_dow_jones_enabled
-			NOT = { has_country_flag = FIU_cant_get_coffer_crisis }
-		}
-		modifier = {
-			civilian_factory_use  = 5
-		}
-		cancel_if_not_visible = yes
-		complete_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision FIU_industrial_contracts"
-			add_stability = -0.05
-			set_temp_variable = { temp_add_profit = -10 }
-			FIU_add_profit_effect = yes
-		}
-		remove_effect = {
-			log = "[GetDateText]: [Root.GetName]: Decision remove FIU_industrial_contracts"
-			add_stability = 0.1
-			set_temp_variable = { temp_add_profit = 50 }
-			FIU_add_profit_effect = yes
-		}
-		ai_will_do = {
-			factor = 100
-		}
-	}
-
 	FIU_money_laundering = {
 		cost = 25
 		icon = GFX_decision_AUS_krone_coin
@@ -925,8 +892,8 @@ BOTDE_FIU_dow_jones = {
 		}
 		custom_cost_text = FIU_dec_cost_200_krone_30pp
 		icon = GFX_decision_AUS_krone_coin
-		days_remove = 14
-		days_re_enable = 60
+		days_remove = 30
+		days_re_enable = 240
 		allowed = { tag = FIU }
 		visible = {
 			hidden_trigger = {
@@ -935,14 +902,34 @@ BOTDE_FIU_dow_jones = {
 				NOT = { has_country_flag = FIU_cant_get_coffer_crisis }
 				FROM = {
 					FIU_can_raid_state_on_this_continent = yes
-					NOT = { owner = { any_enemy_country = { is_ally_with = ROOT } } }
+					NOT = {
+						owner = {
+							any_enemy_country = { is_ally_with = ROOT }
+							has_war_with = ROOT
+						}
+					}
+					owner = {
+						OR = {
+							AND = {
+								OR = {
+									has_government = paternal_autocrat
+									has_government = authoritarian_democrat
+								}
+								OR = {
+									has_democratic_government = yes
+									has_left_democratic_government = yes
+								}
+							}
+							same_government_type_as_ROOT = yes
+						}
+					}
 				}
 				check_variable = { FIU.lever_status_var > 1 }
 			}
 		}
-		cancel_if_not_visible = yes
 		available = {
 			num_of_civilian_factories_available_for_projects > 3
+			NOT = { has_country_flag = FIU_ongoing_raid }
 		}
 		modifier = {
 			civilian_factory_use  = 4
@@ -959,60 +946,121 @@ BOTDE_FIU_dow_jones = {
 				}
 			}
 		}
+		cancel_trigger = {
+			OR = {
+				has_country_flag = FIU_current_investment_rejected
+				hidden_trigger = {
+					NOT = {
+						has_country_flag = FIU_cant_get_coffer_crisis
+						has_country_flag = FIU_dow_jones_enabled
+					}
+					FROM = {
+						FIU_can_raid_state_on_this_continent = no
+						NOT = {
+							owner = {
+								any_enemy_country = { is_ally_with = ROOT }
+								has_war_with = ROOT
+							}
+						}
+					}
+				}
+			}
+		}
+		cancel_effect = {
+			log = "[GetDateText]: [Root.GetName]: Decision cancel FIU_make_dirty_money FROM: [From.GetName]"
+			hidden_effect = {
+				if = {
+					limit = { has_country_flag = FIU_current_investment_is_small }
+					clr_country_flag = FIU_current_investment_is_small
+				}
+				if = {
+					limit = { has_country_flag = FIU_current_investment_is_medium }
+					clr_country_flag = FIU_current_investment_is_medium
+				}
+				if = {
+					limit = { has_country_flag = FIU_current_investment_is_large }
+					clr_country_flag = FIU_current_investment_is_large
+				}
+				if = {
+					limit = { has_country_flag = FIU_ongoing_raid }
+					clr_country_flag = FIU_ongoing_raid
+				}
+				if = {
+					limit = { has_country_flag = FIU_current_investment_rejected }
+					clr_country_flag = FIU_current_investment_rejected
+				}
+				clear_global_event_target = FIU_investment_state
+			}
+		}
 		complete_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision FIU_make_dirty_money FROM: [From.GetName]"
 			hidden_effect = {
+				set_country_flag = FIU_ongoing_raid
 				add_political_power = -30
 				subtract_from_variable = { FIU.FIU_amount_of_money = 200 }
+				FROM = {
+					save_global_event_target_as = FIU_investment_state
+				}
+				country_event = {
+					id = nufiupirate.3003
+					days = 1
+				}
 			}
 		}
 		fixed_random_seed = no
 		remove_effect = {
 			log = "[GetDateText]: [Root.GetName]: Decision remove FIU_make_dirty_money FROM: [From.GetName]"
-			FROM = {
+			if = {
+				limit = { has_country_flag = FIU_current_investment_is_small }
+				FROM = {
+					add_extra_state_shared_building_slots = 1
+				}
+				set_temp_variable = { temp_add_money = 400 }
+				FIU_add_money_effect = yes
+			}
+			else_if = {
+				limit = { has_country_flag = FIU_current_investment_is_medium }
+				FROM = {
+					add_extra_state_shared_building_slots = 1
+					FIU_add_one_of_every_resource_state_has = yes
+				}
+				set_temp_variable = { temp_add_money = 500 }
+				FIU_add_money_effect = yes
+				add_political_power = 10
+			}
+			else_if = {
+				limit = { has_country_flag = FIU_current_investment_is_large }
+				FROM = {
+					add_building_construction = {
+						type = dockyard
+						level = 1
+						instant_build = yes
+					}
+					FIU_add_one_of_every_resource_state_has = yes
+					add_extra_state_shared_building_slots = 1
+				}
+				set_temp_variable = { temp_add_money = 800 }
+				FIU_add_money_effect = yes
+				add_political_power = 20
+			}
+			hidden_effect = {
 				if = {
-					limit = { FIU_state_is_large_target = yes }
-					random_list = {
-						30 = {
-							set_temp_variable = { temp_add_money = 500 }
-							FIU_add_money_effect = yes
-						}
-						60 = {
-							set_temp_variable = { temp_add_money = 250 }
-							FIU_add_money_effect = yes
-						}
-						10 = {
-							set_temp_variable = { temp_add_money = 100 }
-							FIU_add_money_effect = yes
-						}
-					}
+					limit = { has_country_flag = FIU_current_investment_is_small }
+					clr_country_flag = FIU_current_investment_is_small
 				}
-				else_if = {
-					limit = { FIU_state_is_medium_target = yes }
-					random_list = {
-						50 = {
-							set_temp_variable = { temp_add_money = 300 }
-							FIU_add_money_effect = yes
-						}
-						50 = {
-							set_temp_variable = { temp_add_money = 150 }
-							FIU_add_money_effect = yes
-						}
-					}
+				if = {
+					limit = { has_country_flag = FIU_current_investment_is_medium }
+					clr_country_flag = FIU_current_investment_is_medium
 				}
-				else_if = {
-					limit = { FIU_state_is_small_target = yes }
-					random_list = {
-						75 = {
-							set_temp_variable = { temp_add_money = 200 }
-							FIU_add_money_effect = yes
-						}
-						25 = {
-							set_temp_variable = { temp_add_money = 100 }
-							FIU_add_money_effect = yes
-						}
-					}
+				if = {
+					limit = { has_country_flag = FIU_current_investment_is_large }
+					clr_country_flag = FIU_current_investment_is_large
 				}
+				if = {
+					limit = { has_country_flag = FIU_ongoing_raid }
+					clr_country_flag = FIU_ongoing_raid
+				}
+				clear_global_event_target = FIU_investment_state
 			}
 		}
 		ai_will_do = {
