@@ -10071,7 +10071,7 @@ BOTDE_minority_pulse_test = {
 			limit = {
 				NOT = {
 					has_country_flag = no_minority_revolt
-					has_country_flag = AUS_evidenzbureau_minority_focus
+					has_country_flag = AUS_evidenzbureau_focus
 					has_global_flag = AUS_pause_collapse_flag 
 				}
 			}
@@ -10081,20 +10081,17 @@ BOTDE_minority_pulse_test = {
 			limit = {
 				check_variable = { THIS.subject_revolt_progress > 0.999 }
 				NOT = {
-					OR = {
-						has_global_flag = BOTDE_imminent_minority_revolt_temp
-						has_global_flag = recent_minority_revolt
-						has_country_flag = no_minority_revolt
-						has_country_flag = BOTDE_revolt_hold
-						AND = {
-							tag = MNT
-							exists = yes
-						}
-					}
+					has_global_flag = BOTDE_imminent_minority_revolt_temp
+					has_global_flag = recent_minority_revolt
+					has_country_flag = no_minority_revolt
+					has_country_flag = BOTDE_revolt_hold
+					any_country = { has_event_target = BOTDE_imminent_minority_revolt }
 				}
 				all_other_country = {
-					limit = { is_in_array = { ROOT.austria_minority_array = THIS } }
-					NOT = { has_country_flag = BOTDE_imminent_minority_revolt }
+					AND = {
+						is_in_array = { ROOT.austria_minority_array = THIS }
+						NOT = { has_country_flag = BOTDE_imminent_minority_revolt }
+					}
 				}
 			}
 			set_global_flag = BOTDE_imminent_minority_revolt_temp
@@ -10116,30 +10113,7 @@ BOTDE_minority_pulse_test = {
 				activate_mission = BOTDE_imminent_minority_revolt_headsup
 			}			
 		}
-		if = {
-			limit = {
-				has_country_flag = BOTDE_revolt_hold
-				check_variable = { THIS.subject_revolt_progress > 0.94 }
-				NOT = { has_country_flag = BOTDE_ready_held_revolt }
-			}
-			set_country_flag = BOTDE_ready_held_revolt
-		}
-		if = {
-			limit = {
-				has_country_flag = BOTDE_ready_held_revolt
-				OR = {
-					AND = {
-						var:THIS.capital_scope.owner = { NOT = { has_country_flag = AUS_evidenzbureau_focus } }
-						check_variable = { THIS.subject_revolt_progress < 0.75 }
-					}
-					AND = {
-						var:THIS.capital_scope.owner = { has_country_flag = AUS_evidenzbureau_focus }
-						check_variable = { THIS.subject_revolt_progress < 0.85 }
-					}
-				}
-			}
-			clr_country_flag = BOTDE_ready_held_revolt
-		}
+		BOTDE_minority_test_for_revolt_extra = yes
 	}
 }
 
@@ -10147,7 +10121,7 @@ BOTDE_minority_test_for_revolt_extra = {
 	if = {
 		limit = {
 			has_country_flag = BOTDE_revolt_hold
-			check_variable = { THIS.subject_revolt_progress > 0.94 }
+			check_variable = { THIS.subject_revolt_progress > 0.9499 }
 			NOT = { has_country_flag = BOTDE_ready_held_revolt }
 		}
 		set_country_flag = BOTDE_ready_held_revolt
@@ -10157,11 +10131,11 @@ BOTDE_minority_test_for_revolt_extra = {
 			has_country_flag = BOTDE_ready_held_revolt
 			OR = {
 				AND = {
-					var:THIS.capital_scope.owner = { NOT = { has_country_flag = AUS_evidenzbureau_focus } }
+					NOT = { has_country_flag = AUS_evidenzbureau_focus }
 					check_variable = { THIS.subject_revolt_progress < 0.75 }
 				}
 				AND = {
-					var:THIS.capital_scope.owner = { has_country_flag = AUS_evidenzbureau_focus }
+					has_country_flag = AUS_evidenzbureau_focus
 					check_variable = { THIS.subject_revolt_progress < 0.85 }
 				}
 			}
@@ -10624,8 +10598,6 @@ BOTDE_5BW_looping_effect = {
 			}
 		}
 	}
-	
-	
 	if = {
 		limit = { ROM = { is_ai = yes } }
 		random_country = {
@@ -10738,6 +10710,28 @@ BOTDE_5BW_looping_effect = {
 				days = 1
 			}
 		}
+	}
+	every_country = {
+		limit = {
+			is_ally_with = SER
+			SER = {
+				is_subject = no
+				NOT = { is_ally_with = RUS }
+			}
+			is_subject = no
+			is_major = no
+			has_war_with = AUS
+			OR = {
+				tag = SER
+				tag = ROM
+				tag = MNT
+				tag = ITA
+				tag = ALB
+				tag = BUL
+				tag = GRE
+			}
+		}
+		set_major = yes
 	}
 }
 
@@ -19051,14 +19045,6 @@ FIU_gain_italian_commanders = {
 }
 
 FIU_calculate_money_effect = {
-	if = {
-		limit = { check_variable = { FIU.black_monday_var > 1 } }
-		set_temp_variable = { temp_stab = FIU.black_monday_var }
-		subtract_from_temp_variable = { temp_stab = 1 }
-		multiply_temp_variable = { temp_stab = -1 }
-		add_stability = temp_stab
-		clear_variable = temp_stab
-	}
 	clamp_variable = {
 		var = FIU.black_monday_var
 		max = 1
@@ -19069,6 +19055,9 @@ FIU_calculate_money_effect = {
 	set_temp_variable = { temp_production_speed_factor = -0.15 }
 	set_temp_variable = { temp_drift_defence_factor = -0.3 }
 	set_temp_variable = { temp_stab = -0.4 }
+	set_temp_variable = { extra_stab = FIU.FIU_fraud_level }
+	multiply_temp_variable = { extra_stab = -0.01 }
+	add_to_temp_variable = { temp_stab = extra_stab }
 	multiply_temp_variable = { temp_industrial_cap_fact = FIU.black_monday_var }
 	multiply_temp_variable = { temp_industrial_cap_dock = FIU.black_monday_var }
 	multiply_temp_variable = { temp_production_speed_factor = FIU.black_monday_var }
@@ -19116,8 +19105,8 @@ FIU_add_bm_effect = {
 	custom_override_tooltip = {
 		tooltip = FIU_add_bm_effect_tt
 		add_to_variable = { FIU.black_monday_var = temp_add_bm }
+		FIU_calculate_money_effect = yes
 	}
-	FIU_calculate_money_effect = yes
 }
 
 FIU_add_one_of_every_resource_state_has = {
@@ -19267,4 +19256,11 @@ FIU_no_more_governor_setup = {
 		ideology = junta_subtype
 	}
 	FIU_remove_zadar_mayor_effect = yes
+}
+
+FIU_increase_fraud = {
+	custom_override_tooltip = {
+		tooltip = FIU_increase_fraud_tt
+		add_to_variable = { FIU.FIU_fraud_level = 1 }
+	}
 }
