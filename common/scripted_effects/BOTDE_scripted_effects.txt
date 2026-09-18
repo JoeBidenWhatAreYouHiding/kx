@@ -8541,29 +8541,35 @@ do_minority_rise_advanced_calc = {
 	add_to_temp_variable = { additional_value = nationalist_value }
 	add_to_temp_variable = { additional_value = collapse_value_owner }
 	divide_temp_variable = { additional_value = 100 }
-	divide_temp_variable = { resistance_value = 1600 }
 	add_to_temp_variable = { additional_value = minority_cores }
 	add_to_temp_variable = { additional_value = global.extra_value_war_exhaust }
 	add_to_temp_variable = { additional_value = THIS.extra_value }
-	add_to_temp_variable = { additional_value = global.extra_collapse_federalizing }
+	if = {
+		limit = { AUS = { has_country_flag = AUS_federal_government_forming } }
+		add_to_temp_variable = { additional_value = global.extra_collapse_federalizing }
+	}
 	add_to_temp_variable = { additional_value = modifier@BOTDE_revolt_rate_modifier }
+
 	subtract_from_temp_variable = { additional_value = subtractive_value }
+
+	divide_temp_variable = { resistance_value = 1600 }
 	add_to_temp_variable = { additional_value = resistance_value }
+
 	multiply_temp_variable = { additional_value = 0.8 }
-	add_to_temp_variable = { revolt_progress_change = additional_value }
+
+	set_temp_variable = { revolt_progress_change = additional_value }
+
 	if = {
 		limit = { var:capital_scope.owner = { has_country_flag = AUS_evidenzbureau_focus } }
 		add_to_temp_variable = { revolt_progress_change = -0.005 }
-		BOTDE_add_collapse = yes
 	}
 	if = {
 		limit = { has_country_flag = AUS_evidenzbureau_focus }
 		add_to_temp_variable = { revolt_progress_change = -0.025 }
-		BOTDE_add_collapse = yes
 	}
 	if = {
 		limit = { check_variable = { do_not_apply_revolt_change < 1 } } #for modifier tooltips
-		log = "[GetDateText]: [Root.GetName]: do_minority_rise_advanced_calc: [?revolt_progress_change]"
+		log = "[GetDateText]: [THIS.GetName]: do_minority_rise_advanced_calc: [?revolt_progress_change], additional_value: [?additional_value], subtractive_value: [?subtractive_value]"
 		BOTDE_add_collapse = yes
 	}
 }
@@ -8572,19 +8578,14 @@ AUS_do_schizo_test = {
 	var:schizophrenic = {
 		set_temp_variable = { collapse = THIS.subject_revolt_progress }
 	}
-	
+
 	set_temp_variable = { schizo_value = global.schizo_value_var }
-	
 	set_temp_variable = { calculator = 0 }
 	
 	add_to_temp_variable = { calculator = collapse }
 	add_to_temp_variable = { calculator = schizo_value }
 
-	
-	set_variable = {
-		var = global.schizocalc
-		value = calculator
-	}
+	set_variable = { global.schizocalc = calculator }
 	
 	if = {
 		limit = {
@@ -8734,25 +8735,17 @@ BOTDE_numpicker = {
 #Minorities are type 3 event.
 
 AUS_average_state_resistance = {
-	clear_temp_array = global.temp_states
-	clear_variable = THIS.avg_resistance
-	set_temp_variable = { global.num_states = 0 }
-	set_temp_variable = { global.resistance_sum = 0 }
-	set_variable = { THIS.avg_resistance = 0 }
-	every_state = {
-		limit = {
-			is_core_of = PREV
-			has_resistance = yes
-		}
-		add_to_temp_array = { global.temp_states = THIS }
+	every_core_state = {
+		limit = { has_resistance = yes }
+		add_to_temp_array = { temp_states = THIS }
 	}
 	for_each_scope_loop = {
-		array = global.temp_states
-		add_to_temp_variable = { global.num_states = 1 }
-		add_to_temp_variable = { global.resistance_sum = THIS.resistance }
+		array = temp_states
+		add_to_temp_variable = { num_states = 1 }
+		add_to_temp_variable = { resistance_sum = THIS.resistance }
 	}
-	divide_temp_variable = { global.resistance_sum = global.num_states }
-	set_variable = { THIS.avg_resistance = global.resistance_sum }
+	divide_temp_variable = { resistance_sum = num_states }
+	set_variable = { THIS.avg_resistance = resistance_sum }
 	if = {
 		limit = { has_event_target = BOTDE_avg_resistance_target }
 		clear_global_event_target = BOTDE_avg_resistance_target
@@ -8761,6 +8754,7 @@ AUS_average_state_resistance = {
 		limit = { has_event_target = BOTDE_avg_resistance_owner }
 		clear_global_event_target = BOTDE_avg_resistance_owner
 	}
+	log = "[GetDateText]: [Root.GetName]: AUS_average_state_resistance: [?THIS.avg_resistance]"
 }
 
 BOTDE_minority_test = {
@@ -9984,8 +9978,12 @@ HUN_remove_SVK_array = {
 	custom_override_tooltip = {
 		tooltip = HUN_SVK_removed
 		set_variable = { SVK.subject_revolt_progress = 0 }
-		remove_from_array = { ROOT.austria_minority_array = SVK }
 		set_global_flag = SVK_off_array
+		clear_array = ROOT.austria_minority_array
+		get_sorted_scored_countries = {
+			scorer = BOTDE_minorities_in_GUI_score
+			array = ROOT.austria_minority_array
+		}
 	}
 }
 
@@ -10000,7 +9998,7 @@ AUS_tally_ausgleich = { #-1 successes - Hungarian revolt. 0-2 successes - bad. 3
 		}
 		set_global_flag = AUS_terrible_ausgleich
 	}
-	if = {
+	else_if = {
 		limit = {
 			check_variable = {
 				var = global.ausgleich_successes
@@ -10015,7 +10013,7 @@ AUS_tally_ausgleich = { #-1 successes - Hungarian revolt. 0-2 successes - bad. 3
 		}
 		set_global_flag = AUS_bad_ausgleich
 	}
-	if = {
+	else_if = {
 		limit = {
 			check_variable = {
 				var = global.ausgleich_successes
@@ -10030,7 +10028,7 @@ AUS_tally_ausgleich = { #-1 successes - Hungarian revolt. 0-2 successes - bad. 3
 		}
 		set_global_flag = AUS_meh_ausgleich
 	}
-	if = {
+	else_if = {
 		limit = {
 			check_variable = {
 				var = global.ausgleich_successes
@@ -10040,27 +10038,20 @@ AUS_tally_ausgleich = { #-1 successes - Hungarian revolt. 0-2 successes - bad. 3
 		}
 		set_global_flag = AUS_good_ausgleich
 	}
-	if = {
-		limit = {
-			has_global_flag = AUS_autonomous_transleithania_minorities
-		}
-		country_event = {
-			id = bdeausgleich.59
-			days = 1
-		}
+	else = {
+		set_global_flag = AUS_meh_ausgleich
 	}
+
 	if = {
-		limit = {
-			has_global_flag = AUS_status_quo_1927
-		}
+		limit = { has_global_flag = AUS_status_quo_1927 }
 		country_event = {
 			id = bdeausgleich.71
-			days = 3
+			days = 1
 		}
 	}
 	country_event = {
 		id = bdeausgleich.58
-		days = 3
+		days = 2
 	}
 }
 
@@ -10072,7 +10063,7 @@ BOTDE_minority_pulse_test = {
 				NOT = {
 					has_country_flag = no_minority_revolt
 					has_country_flag = AUS_evidenzbureau_focus
-					has_global_flag = AUS_pause_collapse_flag 
+					has_global_flag = AUS_pause_collapse_flag
 				}
 			}
 			do_minority_rise_advanced_calc = yes
@@ -17200,7 +17191,10 @@ AUS_display_weekly_collpase_modifiers_effect = {
 		}
 		if = { #federalizing
 			limit = { check_variable = { current_modifier = 4 } }
-			set_temp_variable = { modifier = global.extra_collapse_federalizing }
+			if = {
+				limit = { AUS = { has_country_flag = AUS_federal_government_forming } }
+				set_temp_variable = { modifier = global.extra_collapse_federalizing }
+			}
 			if = {
 				limit = { NOT = { check_variable = { modifier = 0 } } }
 				custom_effect_tooltip = AUS_const_tooltip_modifier_federalizing
@@ -17300,7 +17294,10 @@ AUS_display_weekly_const_revolt_modifiers_effect = {
 		}
 		if = { #federalizing
 			limit = { check_variable = { current_modifier = 4 } }
-			set_temp_variable = { modifier = global.extra_collapse_federalizing }
+			if = {
+				limit = { AUS = { has_country_flag = AUS_federal_government_forming } }
+				set_temp_variable = { modifier = global.extra_collapse_federalizing }
+			}
 			if = {
 				limit = { NOT = { check_variable = { modifier = 0 } } }
 				custom_effect_tooltip = AUS_const_tooltip_modifier_federalizing
@@ -17398,8 +17395,19 @@ AUS_display_weekly_minority_revolt_modifiers_effect = {
 				custom_effect_tooltip = AUS_const_tooltip_modifier_paramilitaries
 			}
 		}
-		if = { #evidenzbureau
+		if = { #federalizing
 			limit = { check_variable = { current_modifier = 4 } }
+			if = {
+				limit = { AUS = { has_country_flag = AUS_federal_government_forming } }
+				set_temp_variable = { modifier = global.extra_collapse_federalizing }
+			}
+			if = {
+				limit = { NOT = { check_variable = { modifier = 0 } } }
+				custom_effect_tooltip = AUS_const_tooltip_modifier_federalizing
+			}
+		}
+		if = { #evidenzbureau
+			limit = { check_variable = { current_modifier = 5 } }
 			set_temp_variable = { modifier = 0 }
 			if = {
 				limit = {
@@ -17417,8 +17425,20 @@ AUS_display_weekly_minority_revolt_modifiers_effect = {
 				custom_effect_tooltip = AUS_const_tooltip_modifier_evidenzbureau
 			}
 		}
+		if = { #war
+			limit = { check_variable = { current_modifier = 6 } }
+			set_temp_variable = { modifier = 0 }
+			if = {
+				limit = { AUS = { has_war = yes }}
+				add_to_temp_variable = { modifier = -0.02 }
+			}
+			if = {
+				limit = { NOT = { check_variable = { modifier = 0 } } }
+				custom_effect_tooltip = AUS_const_tooltip_modifier_continuous_focus
+			}
+		}
 		if = { #continuous focus
-			limit = { check_variable = { current_modifier = 5 } }
+			limit = { check_variable = { current_modifier = 7 } }
 			set_temp_variable = { modifier = 0 }
 			if = {
 				limit = { has_global_flag = BOTDE_AUS_continuous_collapse_decrease_flag }
@@ -17433,7 +17453,7 @@ AUS_display_weekly_minority_revolt_modifiers_effect = {
 			limit = { check_variable = { current_modifier = 6 } }
 			set_temp_variable = { modifier = 0 }
 			set_temp_variable = { do_not_apply_revolt_change = 1 }
-			do_minority_rise_advanced_calc = yes
+			hidden_effect = { do_minority_rise_advanced_calc = yes }
 			add_to_temp_variable = { modifier = revolt_progress_change }
 			custom_effect_tooltip = AUS_const_tooltip_modifier_total
 		}
@@ -18225,7 +18245,7 @@ ALA_LIC_buy_alaska_effect = {
 	restore_previous_government_type = yes
 	hidden_effect = {
 		news_event = {
-			id = licnews.5
+			id = licnews.5 
 			days = 1
 		}
 	}
@@ -18672,7 +18692,7 @@ BOTDE_artifact_lets_check = {
 			}
 			NOT = { has_state_flag = artifact_minor_kieferberg_3 }
 		}
-		AUS = { country_event = { id = bdeaus.77 } } #There's nothing here
+		AUS = { country_event = bdeaus.77 } #There's nothing here
 	}
 	if = {
 		limit = {
@@ -18749,10 +18769,10 @@ BOTDE_artifact_lets_check = {
 		if = {
 			limit = { has_state_flag = artifact_minor_kieferberg_3 }
 			AUS = { scoped_sound_effect = "battlefield_tier_easter_egg_lalala_golden_maidens" }
-			else = {
-				AUS = {
-					country_event = { id = bdeaus.79 }
-				}
+		}
+		else = {
+			AUS = {
+				country_event = bdeaus.79
 			}
 		}
 		set_state_flag = AUS_state_searched_artifacts
@@ -18770,7 +18790,7 @@ BOTDE_artifact_lets_check = {
 			limit = {
 				is_full_germany = yes
 			}
-			add_to_variable = { var = AUS_mission_search_states_wotan value = 1 }
+			add_to_variable = { AUS_mission_search_states_wotan = 1 }
 		}
 	}
 }
