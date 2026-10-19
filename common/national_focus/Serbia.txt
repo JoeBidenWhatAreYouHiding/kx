@@ -967,14 +967,25 @@ focus_tree = {
 			log = "[GetDateText]: [Root.GetName]: Focus SER_greater_serbia"
 			custom_effect_tooltip = SER_greater_serbia_tooltip
 			add_political_power = 100
-			add_state_claim = 45 #Vojvodina
-			add_state_claim = 105 #Montenegro
-			add_state_claim = 1097 #Montenegro
-			add_state_claim = 794 #Syrmia
-			add_state_claim = 1128 #Syrmia
-			add_state_claim = 875 #West Banat
+			every_state = {
+				limit = {
+					OR = {
+						state = 45
+						state = 105
+						state = 1097
+						state = 794
+						state = 1128
+						state = 875
+					}
+					NOT = {
+						is_claimed_by = ROOT
+						is_core_of = ROOT
+					}
+				}
+				add_claim_by = ROOT
+			}
 		}
-		search_filters = { FOCUS_FILTER_POLITICAL }
+		search_filters = { FOCUS_FILTER_POLITICAL FOCUS_FILTER_ANNEXATION }
 	}
 
 	focus = {
@@ -1027,22 +1038,25 @@ focus_tree = {
 				}
 				add_claim_by = ROOT
 			}
-			SLO = {
-				custom_override_tooltip = {
-					tooltip = SER_tag_added_to_occupied_array
-					add_to_array = { global.bp_occupied_tag_array_SER = SLO }
-					for_each_scope_loop = {
-						array = AUS.owned_states
-						if = {
-							limit = { is_core_of = SLO }
-							add_to_array = { global.SER_slovenia_states = THIS }
-							add_to_array = { global.SER_target_states = THIS }
+			if = {
+				limit = { NOT = { has_global_flag = AUS_collapsed } }
+				SLO = {
+					custom_override_tooltip = {
+						tooltip = SER_tag_added_to_occupied_array
+						add_to_array = { global.bp_occupied_tag_array_SER = SLO }
+						for_each_scope_loop = {
+							array = AUS.owned_states
+							if = {
+								limit = { is_core_of = SLO }
+								add_to_array = { global.SER_slovenia_states = THIS }
+								add_to_array = { global.SER_target_states = THIS }
+							}
 						}
 					}
 				}
 			}
 		}
-		search_filters = { FOCUS_FILTER_POLITICAL }
+		search_filters = { FOCUS_FILTER_POLITICAL FOCUS_FILTER_ANNEXATION }
 	}
 
 	focus = {
@@ -1195,6 +1209,10 @@ focus_tree = {
 
 		ai_will_do = {
 			base = 20
+			modifier = {
+				factor = 5
+				SER_ROM_destablize_austria_trigger = yes
+			}
 		}
 
 		completion_reward = {
@@ -1282,7 +1300,10 @@ focus_tree = {
 
 		completion_reward = {
 			log = "[GetDateText]: [Root.GetName]: Focus SER_claim_dalmatia"
-			unlock_decision_tooltip = SER_dalmatian_connections
+			if = {
+				limit = { FIU = { is_subject = no } }
+				unlock_decision_tooltip = SER_dalmatian_connections
+			}
 			every_state = {
 				limit = {
 					OR = {
@@ -1351,129 +1372,31 @@ focus_tree = {
 					}
 				}
 			}
-			#modifier = {
-			#	factor = 2
-			#	105 = {
-			#		owner = {
-			#			has_war = yes
-			#		}
-			#	}
-			#}
-			## don't attack Austria unless it's vulnerable or other countries are waiting to help
-			#modifier = {
-			#	factor = 0
-			#	OR = {
-			#		MNT = { is_in_faction_with = AUS }
-			#		105 = { is_owned_by = CRO }
-			#	}
-			#	AUS = {
-			#		is_subject = no
-			#		is_faction_leader = yes
-			#		surrender_progress < 0.10
-			#		NOT = {
-			#			has_war_with = GER
-			#			has_war_with = RUS
-			#			has_war_with = HUN
-			#			has_war_with = POL
-			#			has_war_with = ITA
-			#		}
-			#	}
-			#	NOT = {
-			#		POL = { has_country_flag = waiting_to_attack_austria }
-			#		ITA = { has_country_flag = waiting_to_attack_austria }
-			#	}
-			#}
-			#modifier = {
-			#	factor = 5
-			#	OR = {
-			#		MNT = { is_in_faction_with = AUS }
-			#		105 = { is_owned_by = CRO }
-			#	}
-			#	OR = {
-			#		AUS = { has_war_with = HUN }
-			#		POL = { has_country_flag = waiting_to_attack_austria }
-			#		ITA = { has_country_flag = waiting_to_attack_austria }
-			#	}
-			#}
-			#modifier = {
-			#	factor = 10
-			#	has_country_flag = waiting_to_attack_austria
-			#}
-			## don't attack if it's owned by someone other than Austria, who is not a puppet/faction member and is stronger
-			#modifier = {
-			#	factor = 0
-			#	NOT = { owns_state = 105 }
-			#	105 = {
-			#		owned_by_austria_or_puppet = no
-			#		owner = {
-			#			NOT = { is_subject_of = AUS }
-			#			NOT = { is_in_faction_with = AUS }
-			#			surrender_progress < 0.10
-			#			strength_ratio = { tag = SER ratio > 1.0 }
-			#		}
-			#	}
-			#}
-			## don't attack if it's owned by someone other than Austria, who is a puppet of a stronger overlord
-			#modifier = {
-			#	factor = 0
-			#	NOT = { owns_state = 105 }
-			#	105 = {
-			#		owned_by_austria_or_puppet = no
-			#		owner = {
-			#			is_subject = yes
-			#			overlord = {
-			#				NOT = { tag = AUS }
-			#				surrender_progress < 0.10
-			#				strength_ratio = { tag = SER ratio > 1.0 }
-			#			}
-			#		}
-			#	}
-			#}
-			## don't attack if it's owned by someone other than Austria, who is in a faction with a stronger leader
-			#modifier = {
-			#	factor = 0
-			#	NOT = { owns_state = 105 }
-			#	105 = {
-			#		owned_by_austria_or_puppet = no
-			#		owner = {
-			#			is_in_faction = yes
-			#			is_faction_leader = no
-			#			any_allied_country = {
-			#				NOT = { tag = AUS }
-			#				is_faction_leader = yes
-			#				surrender_progress < 0.10
-			#				strength_ratio = { tag = ROM ratio > 1.0 }
-			#			}
-			#		}
-			#	}
-			#}
 		}
-
 		completion_reward = {
 			log = "[GetDateText]: [Root.GetName]: Focus SER_status_of_montenegro"
-			105 = {
-				owner = {
-					if = {
-						limit = {
-							is_subject = yes
-							is_ai = no
+			var:105.owner = {
+				if = {
+					limit = {
+						is_subject = yes
+						is_ai = no
+					}
+					overlord = {
+						country_event = {
+							id = serbia.58
+							hours = 2
 						}
-						overlord = {
-							country_event = {
-								id = serbia.58
-								hours = 2
-							}
-						}
-						else = {
-							country_event = {
-								id = serbia.58
-								hours = 2
-							}
-						}
+					}
+				}
+				else = {
+					country_event = {
+						id = serbia.58
+						hours = 2
 					}
 				}
 			}
 		}
+		search_filters = { FOCUS_FILTER_ANNEXATION }
 	}
 
 	focus = {
@@ -1834,7 +1757,7 @@ focus_tree = {
 
 	focus = {
 		id = SER_extra_research_slot_ii
-		icon = GFX_goal_HON_Education_Research
+		icon = GFX_goal_SER_extra_research_slot_ii
 		x = 0
 		y = 3
 		relative_position_id = SER_ultimatum_to_bulgaria
