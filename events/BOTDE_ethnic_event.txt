@@ -4840,27 +4840,6 @@ country_event = { #Empire at 100% Revolt Progress - AUS
 			every_owned_state = {
 				clr_state_flag = rev_point
 			}
-			if = {
-				limit = { NOT = { has_global_flag = AUS_rev_point_schutzbund } }
-				for_loop_effect = {
-					end = 2
-					random_owned_state = {
-						limit = {
-							NOT = { has_state_flag = rev_point }
-							has_state_flag = AUS_schutzbund
-						}
-						add_to_variable = { AUS.schutzbund_rev_point_var = 0.5 }
-						set_state_flag = rev_point
-					}
-				}
-			}
-			if = {
-				limit =  {
-					check_variable = { schutzbund_rev_point_var = 1 }
-				}
-				add_to_variable = { AUS.revolution_value = 1 }
-				set_global_flag = AUS_rev_point_schutzbund
-			}
 		}
 		set_country_flag = AUS_imminent_collapse
 		add_to_variable = { AUS.near_collapse_times = 1 }
@@ -4876,12 +4855,9 @@ country_event = { #Empire at 100% Revolt Progress - AUS
 			}
 			HUN = { set_country_flag = AUS_collapse_HUN_stays }
 		}		
-		#### Collapse type		
-		# Revolution		
-		if = {
-			limit = {
-				check_variable = { AUS.revolution_value > 3 }
-			}
+		#### Collapse type	
+		if = { # Revolution
+			limit = { check_variable = { AUS.revolution_value > 3 } }
 			set_country_flag = AUS_revolution_collapse
 			hidden_effect = {
 				country_event = {
@@ -5046,47 +5022,6 @@ country_event = { #Collapse of the Austrian Empire
 				set_political_power = 0
 			}
 			set_cosmetic_tag = CRO_collapse
-			if = {
-				limit = {
-					NOT = {
-						country_exists = CRR
-						has_government = market_liberal
-						has_government = social_conservative
-						has_government = social_democrat
-						has_government = social_liberal
-					}
-					tag = CRO
-					OR = {
-						owns_state = 103
-						owns_state = 713
-						owns_state = 1098
-					}
-				}
-				country_event = {
-					id = constituents.15 #Croatian Republicans go insane
-					days = 3
-					random_hours = 30
-				}
-			}
-			
-			if = {
-				limit = {
-					NOT = {
-						country_exists = SRC
-						has_government = syndicalist
-						has_government = radical_socialist
-						has_government = social_democrat
-						has_government = totalist
-					}
-					tag = CRO
-					owns_state = 1105
-				}
-				country_event = {
-					id = constituents.16 #Croatian Socialists go insane
-					days = 3
-					random_hours = 30
-				}
-			}
 			CRO_remove_karl = yes
 			country_event = {
 				id = bdecroint.1
@@ -6508,7 +6443,7 @@ country_event = { #Bukovina revolt
 
 country_event = { #Tick up collapse meter
 	id = constituents.23
-	immediate = { log = "[GetDateText]: [Root.GetName]: event constituents.23" }
+	immediate = { log = "[GetDateText]: [Root.GetName]: event constituents.23 - AUS.subject_revolt_progress: [?AUS.subject_revolt_progress]" }
 	title = constituents.23.t
 	desc = constituents.23.d
 	
@@ -6516,27 +6451,13 @@ country_event = { #Tick up collapse meter
 
 	is_triggered_only = yes
 
-	option = { #dont care didnt ask plus youre austrian
+	trigger = { AUS_can_collapse = yes }
+
+	option = {
 		name = constituents.23.a
-		random_list = {
-			70 = {
-				THIS_add_two_collapse = yes
-				if = {
-					limit = {
-						NOT = {
-							has_global_flag = AUS_bonus_collapse_off
-						}
-					}
-					add_to_variable = { AUS.subject_revolt_progress = AUS.bonus_collapse_rate }
-				}
-				if = {
-					limit = { NOT = { has_global_flag = AUS_pause_collapse_flag } }
-					AUS_do_revolt_rate_rise = yes
-				}
-			}
-			30 = {
-				
-			}
+		if = {
+			limit = { NOT = { has_global_flag = AUS_pause_collapse_flag } }
+			AUS_do_revolt_rate_rise = yes
 		}
 		if = {
 			limit = {
@@ -6568,111 +6489,98 @@ country_event = { #Tick up collapse meter
 				}
 			}
 		}
-		hidden_effect = {
-			if = {
-				limit = { AUS_can_collapse = yes }
-				country_event = {
-					id = constituents.23
-					days = 12
-					random_hours = 200
-				}
+		if = {
+			limit = { AUS_can_collapse = yes }
+			country_event = {
+				id = constituents.23
+				days = 14
 			}
-			for_each_scope_loop = {
-				array = global.constituents_array
-				if = {
-					limit = {
-						OR = {
-							has_global_flag = AUS_collapsed
-							AND = {
-								NOT = {
-									is_subject_of = AUS
-									is_in_faction_with = AUS
-								}
-								NOT = { has_country_flag = BOTDE_considered_a_const_even_if_it_doesnt_exist }
+		}
+		for_each_scope_loop = {
+			array = global.constituents_array
+			if = {
+				limit = {
+					OR = {
+						has_global_flag = AUS_collapsed
+						AND = {
+							NOT = {
+								is_subject_of = AUS
+								is_in_faction_with = AUS
 							}
+							NOT = { has_country_flag = BOTDE_considered_a_const_even_if_it_doesnt_exist }
 						}
 					}
-					remove_from_array = { global.constituents_array = THIS }
+				}
+				remove_from_array = { global.constituents_array = THIS }
+			}
+		}
+		BOTDE_minority_pulse_test = yes
+		if = {
+			limit = { check_variable = { AUS.subject_revolt_progress = 1 } }
+			country_event = {
+				id = constituents.1
+				days = 7
+			}
+		}
+		if = {
+			limit = {
+				has_country_flag = schizo_value_enabled
+				check_variable = { AUS.subject_revolt_progress < 0.95 }
+			}
+			random_list = {
+				92 = {}
+				8 = { AUS_have_paranoid_schizophrenic_episode = yes }
+			}
+		}
+		if = {
+			limit = {
+				has_country_flag = schizo_value_enabled
+				NOT = { has_global_flag = AUS_screamer_went_off }
+				OR = {
+					check_variable = { AUS.subject_revolt_progress = 0.95 }
+					check_variable = { AUS.subject_revolt_progress > 0.95 }
 				}
 			}
-			BOTDE_minority_pulse_test = yes
+			random_list = {
+				99 = {}
+				1 = { AUS_screamer = yes }
+			}
+		}
+		if = {
+			limit = {
+				OR = {
+					check_variable = { AUS.subject_revolt_progress = 0.9 }
+					check_variable = { AUS.subject_revolt_progress > 0.9 }
+				}
+			}
 			if = {
 				limit = {
 					OR = {
-						check_variable = { AUS.subject_revolt_progress = 0.1 }
-						check_variable = { AUS.subject_revolt_progress > 0.1 }
+						has_government = social_democrat
+						has_government = radical_socialist
+					}
+					NOT = {
+						has_country_flag = AUS_revolution_value_event
+						has_country_flag = AUS_liebenfels_high_collapse_flavor
 					}
 				}
 				country_event = {
-					id = constituents.1
-					days = 30
-					random_hours = 30
+					id = bdeausint.92
+					days = 7
+					random_hours = 120
 				}
 			}
-			if = {
-				limit = {
-					has_country_flag = schizo_value_enabled
-					check_variable = { AUS.subject_revolt_progress < 0.95 }
-				}
-				random_list = {
-					92 = {
-					
-					}
-					8 = {
-						AUS_have_paranoid_schizophrenic_episode = yes
-					}
+			else = {
+				country_event = {
+					id = bdeausint.91
+					days = 7
+					random_hours = 120
 				}
 			}
-			if = {
-				limit = {
-					has_country_flag = schizo_value_enabled
-					NOT = {
-						has_global_flag = AUS_screamer_went_off
-					}
-					OR = {
-						check_variable = { AUS.subject_revolt_progress = 0.95 }
-						check_variable = { AUS.subject_revolt_progress > 0.95 }
-					}
-				}
-				random_list = {
-					99 = {
-					
-					}
-					1 = {
-						AUS_screamer = yes
-					}
-				}
-			}
-			if = {
-				limit = {
-					OR = {
-						check_variable = { AUS.subject_revolt_progress = 0.9 }
-						check_variable = { AUS.subject_revolt_progress > 0.9 }
-					}
-				}
-				if = {
-					limit = {
-						OR = {
-							has_government = social_democrat
-							has_government = radical_socialist
-						}
-						NOT = {
-							has_global_flag = AUS_revolution_value_event
-						}
-					}
-					country_event = {
-						id = bdeausint.92
-						days = 30
-						random_hours = 600
-					}
-				}
-				else = {
-					country_event = {
-						id = bdeausint.91
-						days = 30
-						random_hours = 600
-					}
-				}
+			country_event = {
+				id = bdeausint.90
+				days = 15
+				random_hours = 480
 			}
 		}
 	}
