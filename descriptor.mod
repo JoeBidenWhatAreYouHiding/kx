@@ -94,6 +94,6 @@ tags={
 	"Gameplay"
 	"National Focuses"
 }
-supported_version="1.19.*"
+supported_version="1.20.*"
 path="C:/Users/User/Desktop/Documents/Paradox Interactive/Hearts of Iron IV/mod/kx"
 remote_file_id="2206134307"
